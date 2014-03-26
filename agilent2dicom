@@ -1,0 +1,1508 @@
+#!/usr/bin/env python
+
+"""agilent2dicom is used to convert Agilent FDF files to DICOM format.
+
+  Original code by  Amanda Ng 
+
+  Modified by Michael Eager
+
+"""
+
+MyVersionNumber = "0.1"
+
+import pdb
+import ast
+import os
+import sys
+import datetime
+import dateutil
+import dateutil.tz
+
+import dicom
+import uuid
+import math
+import numpy
+import argparse
+
+UID_ROOT = "2.25"
+UID_Type_InstanceCreator = "0"
+UID_Type_MediaStorageSOPInstance = "1"
+UID_Type_StudyInstance = "2"
+UID_Type_SeriesInstance = "3"
+UID_Type_FrameOfReference = "4"
+
+# Hard coded DICOM tag values
+InstanceCreatorId = ''.join(map(str,[ord(c) for c in 'agilent2dicom'])) + '.' + MyVersionNumber
+DICOM_Tag_Manufacturer = "Agilent Technologies"
+DICOM_Tag_InstitutionName = "Monash Biomedical Imaging"
+DICOM_Tag_ManufacturerModelName = "vnmrs"
+DICOM_Tag_DeviceSerialNumber = "unknown"
+DICOM_Tag_SoftwareVersions = "VnmrJ 3.2"
+
+
+
+
+#=========================================================================================
+# CREATEUID - Create and return Unique Identification (UID) 
+    
+def CreateUID(uid_type, procpar=[],study_id=[]):
+    dt = datetime.datetime.now()
+    dt = dt.strftime("%Y%m%d%H%M%S") + str(dt.microsecond/1000)
+    
+    if uid_type == UID_Type_InstanceCreator:
+        uidstr = InstanceCreatorId
+    elif uid_type == UID_Type_StudyInstance:
+        print procpar
+        print study_id
+        #if not procpar or study_id not in procpar.keys():
+        #    raise ValueError("Parameter 'procpar' either not passed or invalid")
+        study_id = procpar['studyid_'][2:]
+        if not study_id.isdigit():
+            raise ValueError("procpar field 'studyid_' is not in expected form (eg s_2014010101)")
+        uidstr = study_id
+    elif uid_type in [UID_Type_SeriesInstance,UID_Type_FrameOfReference]:
+        #if not procpar or study_id not in procpar.keys():
+        #    raise ValueError("Parameter 'procpar' either not passed or invalid")
+        series_id = procpar['time_complete'].replace("T","")
+        if not series_id.isdigit():
+            raise ValueError("procpar field 'time_complete' is not in expected form (eg 20130424T132414)")
+        uidstr = series_id   
+    else:
+        # max length of uuid = 39 characters
+        uidstr = dt + '.' + str(uuid.uuid4().int)
+        
+    return ".".join([UID_ROOT,uid_type,uidstr]).ljust(64,'\0')
+    
+#=========================================================================================
+# READFDF - Read FDF file and return properties derived from fdf header and image data
+#
+# Infomation on header parameters can be found in the "Agilent VNMRJ 3.2 User Programming 
+# User Guide"
+
+def ReadFDF(fdffilename):
+    f = open(fdffilename,'r')
+    
+    # Read in dataset properties
+    fdftext = ''
+    fdf_properties = dict()
+    line = f.readline()
+    while line[0] != '\x0c':
+        fdftext = fdftext + line
+        if line[0] == '#':
+            line = f.readline()
+            continue
+        tokens = line.strip(' ;\n').split(' ',1)
+        tokens = tokens[1].strip().split('=')
+        tokens[0] = tokens[0].strip(' *[]')
+        tokens[1] = tokens[1].strip()
+        if tokens[1][0] == '{' and tokens[1][-1] == '}':
+            tokens[1] = '[' + tokens[-1].strip('{}') + ']'
+        exec('fdf_properties["' + tokens[0] + '"] = ' + tokens[1])
+        line = f.readline()
+    fdf_properties['filename'] = fdffilename
+    fdf_properties['filetext'] = fdftext
+    
+    # Find NULL indicating start of image
+    c = f.read(1)
+    while c != '\x00':
+        c = f.read(1)
+        
+    # read in data
+    if fdf_properties['storage'] == "integer":
+        dt = "int"
+    elif fdf_properties['storage'] == "float":
+        dt = "float"
+    else:
+        print "Error: unrecognised fdf header storage value"
+        sys.exit(1)
+        
+    dt = dt + str(fdf_properties['bits'])
+    
+    data = numpy.fromfile(f,dtype=dt)
+    
+    f.close()
+    
+    return (fdf_properties, data)
+    
+#=========================================================================================
+# READPROCPAR - Read procpar file and return procpar dictionary and text
+#
+# Procpar element format
+#
+# First line: name subtype basictype maxvalue minvalue stepsize Ggroup Dgroup protection active intptr
+#   name: string
+#   subtype: 0 (undefined), 1 (real), 2 (string), 3 (delay), 4 (flag), 5 (frequency), 6 (pulse), 7 (integer).
+#   basictype: 0 (undefined), 1 (real), 2 (string).
+#   maxvalue: the maximum value that the parameter can contain, or an index to a maximum 
+#             value in the parameter parmax (found in /vnmr/conpar). Applies to both 
+#             string and real types of parameters.
+#   minvalue: the minimum value that the parameter can contain or an index to a minimum 
+#             value in the parameter parmin (found in /vnmr/conpar). Applies to real types 
+#             of parameters only.
+#   stepsize: a real number for the step size in which parameters can be entered or index 
+#             to a step size in the parameter parstep (found in /vnmr/conpar). If stepsize 
+#             is 0, it is ignored. Applies to real types only.
+#   Ggroup: 0 (ALL), 1 (SAMPLE), 2 (ACQUISITION), 3 (PROCESSING), 4 (DISPLAY), 5 (SPIN).
+#   Dgroup: The specific application determines the usage of this integer.
+#   protection: a 32-bit word made up of the following bit masks, which are summed to form 
+#               the full mask:
+#                   0  1    Cannot array the parameter
+#                   1  2    Cannot change active/not active status
+#                   2  4    Cannot change the parameter value
+#                   3  8    Causes _parameter macro to be executed (e.g., if parameter is named sw, the macro _sw is executed when sw is changed)
+#                   4  16   Avoids automatic redisplay
+#                   5  32   Cannot delete parameter
+#                   6  64   System parameter for spectrometer or data station
+#                   7  128  Cannot copy parameter from tree to tree
+#                   8  256  Cannot set array parameter
+#                   9  512  Cannot set parameter enumeral values
+#                   10 1024 Cannot change the parameter's group
+#                   11 2048 Cannot change protection bits
+#                   12 4096 Cannot change the display group
+#                   13 8192 Take max, min, step from /vnmr/conpar parameters parmax, parmin, parstep.
+#   active: 0 (not active), 1 (active).
+#   intptr: not used (generally set to 64).
+#
+# if basictype = 1, 
+#   Second line: numvalues value1 [value2] [value3] ... 
+#
+# if basictype = 2, 
+#   Second line: numvalues value1  
+#   [Third line: value2]
+#   [Fourth line: value3]
+#   ...
+#
+# Last line: 0, or if subtype = 4 (flag), an array of possible flag values formatted as
+#    numvalues flag1 [flag2] [flag3]
+#
+# Notes:
+# 1. All strings are enclosed in double quotes.
+# 2. Floating point values have been found associated with the subtype 'integer', 
+#    therefore it is advised to read these values as floats.
+
+def ReadProcpar(procparfilename):
+
+    f = open(procparfilename,'r')
+    
+    line = f.readline()
+    procpar = {}
+    while line != '':
+        # parse first line in property
+        tokens = line.split()
+        propname = tokens[0]
+        propsubtype = tokens[1]
+        proptype = tokens[2]
+        
+        # parse second line in property: [number of values] [first value] ...
+        line = f.readline()
+        tokens = line.strip().split(None,1)
+        propnumvalues = int(tokens[0])
+        
+        # handle property values
+        if proptype == '1': # real number
+            if propnumvalues == 1:
+                propvalue = float(tokens[1])
+            else:
+                propvalue = map(float, tokens[1].split())
+        elif proptype == '2': # string
+            if propnumvalues == 1:
+                propvalue = tokens[1].strip('"')
+            if propnumvalues > 1:
+                propvalue = [tokens[1].strip('"')]
+                for i in range(2,propnumvalues+1):
+                    propvalue.append(f.readline().strip('"\n"'))
+                
+        line = f.readline() # last line in property
+        line = f.readline() # next property
+        
+        lastprop = propvalue
+        procpar[propname] = propvalue
+    
+    f.seek(0)
+    procpartext = f.readlines()
+    
+    return (procpar, procpartext)
+    
+#=========================================================================================
+# ASSERTIMPLEMENTATION - Check FDF properties match up with interpretation of procpar
+# 
+# Due to lack of documentation on the use of the procpar file, the interpretation 
+# implemented in this script is based on various documents and scripts and may have errors.
+# This function seeks to double check some of the interpretations against the fdf
+# properties.
+
+def AssertImplementation(testval, fdffilename, comment, assumption):
+    if testval:   
+        if len(fdffilename) > 0:
+            FDFStr = "fdf file: " + fdffilename + "\n"
+        else:
+            FDFStr = ""
+    
+        print "\n\nImplementation check error:\n" + FDFStr + comment + '\nAssumption:' + assumption + '\n\n'
+        sys.exit(1)
+
+
+
+#=========================================================================================
+# MAIN CODE
+
+if __name__ == "__main__":
+
+    #=====================================================================================
+    # Parse command line arguments and validate img directory
+
+    parser = argparse.ArgumentParser(usage='Input FDF directory and optional output directory',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI.')
+    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent .img directory containing procpar and fdf files',required=True);
+    parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
+    parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
+    parser.add_argument('-p','--phase', help='Magnitude component flag.',action="store_true");
+    
+    # parser.add_argument("imgdir", help="Agilent .img directory containing procpar and fdf files")
+
+    args = parser.parse_args()
+    print "Agilent2Dicom: ", args #.accumulate(args.integers)
+
+
+    # Check input folder exists
+    if not os.path.exists(args.inputdir):
+        print 'Error: Folder \'' + args.inputdir + '\' does not exist.'
+        sys.exit(1)
+        
+    # Check folder contains procpar and *.fdf files
+    files = os.listdir(args.inputdir)
+    print files
+
+    if 'procpar' not in files:
+        print 'Error: FDF folder does not contain a procpar file'
+        sys.exit(1)
+       
+    fdffiles = [ f for f in files if f.endswith('.fdf') ]
+    if len(fdffiles) == 0:
+        print 'Error: FDF folder does not contain any fdf files'
+        sys.exit(1)
+    
+    # Check output directory
+    if not args.outputdir:
+        outdir = os.path.splitext(args.inputdir)[0]
+        if not outdir.find('.img'):
+            outdir = outdir + '.dcm'
+        else:
+            (dirName, imgdir) = os.path.split(outdir)
+            while imdir == '':
+                (dirName, imgdir) = os.path.split(outdir)
+
+            (ImgBaseName, ImgExtension)=os.path.splitext(imgdir)
+            outdir = os.path.join(dirName,ImgBaseName + '.dcm')
+    else:
+        outdir = args.outputdir
+    print outdir
+
+    if os.path.exists(outdir):
+        print 'Output folder ' + outdir + ' already exists'
+        #sys.exit(1)
+    else:
+        print 'Making output folder: ' + outdir    
+        os.makedirs(outdir)
+        
+    
+
+    # Read in data procpar
+    procpar, procpartext = ReadProcpar(args.inputdir + '/procpar')
+    # print procpar
+
+    #=====================================================================================
+    # Create file meta dataset
+
+    print("Setting file meta information...")
+
+    # Populate required values for file meta information
+    file_meta = dicom.dataset.Dataset()
+    #file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4.1"  # Enhanced MR Image SOP
+    file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4" #MR Image SOP
+    file_meta.MediaStorageSOPInstanceUID = CreateUID(UID_Type_MediaStorageSOPInstance)
+    file_meta.ImplementationClassUID = "1.3.6.1.4.1.25371.1.1.2"
+
+    #=====================================================================================
+    # Create dicom dataset
+
+    print("Setting dataset values...")
+
+    # Create the FileDataset instance (initially no data elements, but file_meta supplied)
+    #ds = FileDataset(filename, {}, file_meta=file_meta, preamble="\0" * 128)
+    ds = dicom.dataset.Dataset()
+    ds.file_meta = file_meta
+    ds.preamble = "\0"*128
+
+    # Set the transfer syntax
+    ds.is_little_endian = True
+    ds.is_implicit_VR = True
+
+    #-------------------------------------------------------------------------------------
+    # DICOM STANDARD - FOR MRI    
+    #
+    # Reference: DICOM Part 3: Information Object Definitions 
+    #
+    # Enhanced MR Image IOD Modules (A.36.2.3 - pg 254)
+    #
+    # Information Entities (IE):
+    #   Patient
+    #   Study
+    #   Series
+    #   Frame of Reference
+    #   Equipment
+    #   Image
+    
+    #-------------------------------------------------------------------------------------
+    # IE: Patient
+    # 
+
+    # Module: Patient (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.1.1 
+    
+    ds.PatientName = procpar['name']                                                     # 0010,0010 Patient Name (optional)
+    ds.PatientID = procpar['ident']                                                      # 0010,0020 Patient Id (optional)
+    #ds.PatientsBirthDate  = procpar["birthday"]                                                              # 0010,0030 Patient's Birth Date (optional)
+    #ds.PatientsSex #(M = male, F = Female, O = other)                                   # 0010,0040 Patient's Sex (optional) 
+
+    #-------------------------------------------------------------------------------------
+    # IE: Study
+    # 
+
+    # Module: General Study (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.2.1 
+
+    ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar)                     # 0020,000D Study Instance UID (mandatory)
+    ds.StudyDate = procpar['studyid_'][2:]                                               # 0008,0020 Study Date (optional)
+    # ds.StudyTime                                                                       # 0008,0030 Study Time (optional)
+    ds.StudyID = procpar['studyid_']                                                     # 0020,0010 Study ID (optional)
+
+    #-------------------------------------------------------------------------------------
+    # IE: Series
+    # 
+
+    # Module: General Series (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.3.1 
+
+    ds.Modality = "MR"                                                                   # 0008,0060 Modality (mandatory)
+    ds.SeriesInstanceUID = CreateUID(UID_Type_SeriesInstance, procpar)                   # 0020,000E Series Instance UID (mandatory)
+    ds.SeriesNumber = 1                                                                    # 0020,0011 Series Number (optional)
+    # ds.SeriesDate                                                                      # 0008,0021 Series Date (optional)
+    # ds.SeriesTime                                                                      # 0008,0031 Series Time (optional)
+    ds.ProtocolName = procpar['pslabel']                                                 # 0018,1030 Protocol Name (optional)
+    ds.SeriesDescription = procpar['comment']                                            # 0008,103E Series Description (optional)
+    ds.OperatorName = procpar['operator_']                                               # 0008,1070 Operator Name (optional)
+    
+    # include procpar in dicom header as "Series Comments"
+    # This is a retired field, so probably shouldn't be used. But, oh well.
+    ds.add_new((0x0018,0x1000), 'UT', procpartext)                                       # 0018,1000 Series Comments (retired)
+
+    
+    #-------------------------------------------------------------------------------------
+    # IE: Frame of Reference
+    # 
+
+    # Module: Frame of Reference (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.4.1 
+
+    ds.FrameOfReferenceUID = CreateUID(UID_Type_FrameOfReference, procpar)               # 0020,0052 Frame of Reference (mandatory)
+    
+    #-------------------------------------------------------------------------------------
+    # IE: Equipment
+    # 
+
+    # Module: General Equipment (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.5.1 
+
+    #ds.Manufacturer - see Equipment - Enhanced General Equipment                        # 0008,0070 Manufacturer (optional)
+    ds.InstitutionName = DICOM_Tag_InstitutionName                                       # 0008,0080 Institution Name (optional)
+    #ds.StationName                                                                      # 0008,1010 Station Name (optional)
+    #ds.ManufacturerModelName - see Equipment - Enhanced General Equipment               # 0008,1070 Manufacturer Model Name (optional)
+    #ds.DeviceSerialNumber - see Equipment - Enhanced General Equipment                  # 0018,1000 Device Serial Number (optional)
+    #ds.SoftwareVersions - see Equipment - Enhanced General Equipment                    # 0018,1020 Software Versions (optional)
+    
+    # Module: Enhanced General Equipment (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.5.2
+    
+    ds.Manufacturer = DICOM_Tag_Manufacturer                                             # 0008,0070 Manufacturer (mandatory)
+    ds.ManufacturerModelName = DICOM_Tag_ManufacturerModelName                           # 0008,1070 Manufacturer Model Name (mandatory)
+    ds.DeviceSerialNumber = DICOM_Tag_DeviceSerialNumber                                 # 0018,1000 Device Serial Number (mandatory)
+    ds.SoftwareVersions = DICOM_Tag_SoftwareVersions                                     # 0018,1020 Software Versions (mandatory)
+    
+
+    #-------------------------------------------------------------------------------------
+    # IE: Image
+    # 
+
+    # Module: Image Pixel (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.6.3 
+    # DO NOT SET TAGS HERE - SEE BELOW IN FDF FILE LOOP    
+
+    # Module: Multi-frame Functional Groups (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.6.16 
+    
+    ## Shared Functional Groups Sequence (5200,9229) 2 
+    # Sequence that contains the Functional Group Macros that are shared for all frames in 
+    # this SOP Instance and Concatenation.
+    # Note: The contents of this sequence are the same in all SOP Instances that comprise
+    # a Concatenation.
+    # Zero or one Item shall be included in this sequence.
+    # See section C.7.6.16.1.1 for further explanation.
+    
+    # Sequences: >Include one or more Functional Group Macros that are shared by all frames. The selected Functional Group Macros shall not be present in the Per-frame Functional Groups Sequence (5200,9230).
+
+    # Pixel Measures Macro C.7.6.16.2.1 M
+    # Pixel Measures Sequence (0028,9110) 1 Identifies the physical characteristics of the pixels of this frame.
+    # Only a single Item shall be included in this sequence.
+    # >Pixel Spacing (0028,0030) 1C  Physical distance in the imaging target (patient, specimen, or phantom) between the centers of each pixel, specified by a numeric pair - adjacent row spacing (delimiter) adjacent column spacing in mm. See 10.7.1.3 for further explanation of the value order.
+    # Note: In the case of CT images with an Acquisition Type (0018,9302) of
+    # CONSTANT_ANGLE, the pixel spacing is that in a plane normal to the central ray of the diverging X-Ray beam as it passes through the data collection center.
+    # Required if Volumetric Properties (0008,9206) is other than DISTORTED or SAMPLED. May be present otherwise.
+    # >Slice Thickness (0018,0050) 1C 
+    # Nominal reconstructed slice thickness (for tomographic imaging) or depth of field (for optical non-tomographic imaging), in mm.
+    # See C.7.6.16.2.3.1 for further explanation.
+    # Note: Depth of field may be an extended depth of field created by
+    # focus stacking (see C.8.12.4).
+    # Required if Volumetric Properties (0008,9206) is VOLUME or SAMPLED. May be present otherwise.
+
+
+
+    # Plane Position (Patient) Macro C.7.6.16.2.3 M
+    # Plane Position Sequence (0020,9113) 1 Identifies the position of the plane of this frame.
+    # Only a single Item shall be included in this sequence.
+    # >Image Position (Patient) (0020,0032) 1C The x, y, and z coordinates of the upper left hand corner (center of the first voxel transmitted) of the frame, in mm. See C.7.6.2.1.1 and C.7.6.16.2.3.1 for further explanation.
+    # Note: In the case of CT images with an Acquisition Type (0018,9302) of CONSTANT_ANGLE the image plane is defined to pass through
+    # the data collection center and be normal to the central ray of the diverging X-Ray beam.
+
+    # Plane Orientation (Patient) C.7.6.16.2.4 M
+    # Plane Orientation Sequence (0020,9116) 1 Identifies orientation of the plane of this frame.
+    # Only a single Item shall be included in this sequence.
+    # >Image Orientation (Patient) (0020,0037) 1C The direction cosines of the first row and the first column with respect to the patient. See C.7.6.2.1.1 and C.7.6.16.2.3.1 for further explanation.
+
+
+    # Frame Anatomy Macro C.7.6.16.2.8 M - Implement later if required.
+
+    # Pixel Value Transformation C.7.6.16.2.9 Macro
+    # Pixel Value Transformation Sequence (0028,9145) 1 Contains the attributes involved in the transformation of stored pixel values. 
+    # Only a single Item shall be included in this sequence.
+    # >Rescale Intercept (0028,1052) 1 The value b in relationship between stored values (SV) and the output units. Output units = m*SV + b.
+    # >Rescale Slope (0028,1053) 1 m in the equation specified by Rescale Intercept (0028,1052).
+    # >Rescale Type (0028,1054) 1 Specifies the output units of Rescale Slope (0028,1053) and Rescale Intercept (0028,1052).
+    # See C.11.1.1.2 for further explanation. Enumerated Value: US = Unspecified if Modality (0008,0060) equals MR or PT.
+
+
+    # MR Timing and Related Parameters Macro C.8.13.5.2 
+
+    # MR Timing and Related Parameters Sequence (0018,9112) 1 Identifies the timing and safety information of this frame.
+    # Only a single Item shall be included in this sequence.
+    # >Repetition Time (0018,0080) 1C The time in ms between two successive excitations of the same volume. Shall be 0 (zero) if there is a single excitation per volume. Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL. May be present otherwise.
+    # >Flip Angle (0018,1314) 1C
+    # Steady state angle in degrees to which the magnetic vector is flipped from the magnetic vector of the primary field.
+    # Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL. May be present otherwise.
+    # >Echo Train Length (0018,0091) 1C
+    # Number of lines in k-space acquired per excitation of the same volume regardless of the type of echo or the number of frames derived from them. See section C.8.12.5.2.1.
+    # Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL. May be present otherwise.
+    # >RF Echo Train Length (0018,9240) 1C
+    # Number of RF echoes collected per RF shot (or excitation) per frame. A value of zero shall correspond to a pure gradient echo frame. Note that this value corresponds to the current frame. Several frames may be derived from the same shot. See section C.8.13.5.2.1.
+    # Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL. May be present otherwise.
+    # >Gradient Echo Train Length (0018,9241) 1C
+    # Number of gradient echoes collected per RF echo per shot (or excitation) per frame. A value of zero shall correspond to a pure RF echo frame. If RF Echo Train Length (0018,9240) is non zero and Gradient Echo Train Length is as well then only the central echo will be an RF Spin Echo, all others will be gradient echoes. See section C.8.13.5.2.1.
+    # Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL. May be present otherwise.
+
+
+    # MR FOV/Geometry C.8.13.5.3 Macro
+    # MR FOV/Geometry Sequence (0018,9125) 1 Identifies the geometry parameters of this frame.
+    # Only a single Item shall be included in this sequence.
+    # >In-plane Phase Encoding Direction (0018,1312) 1C The axes of the in-plane phase encoding with respect to the frame.
+    # Enumerated Values: COLUMN ROW OTHER
+    # >MR Acquisition Frequency Encoding Steps (0018,9058) 1C Number of Frequency Encoding steps (kx) acquired
+
+    # >MR Acquisition Phase Encoding Steps in-plane (0018,9231) 1C Number of In-Plane Phase Encoding steps (ky) acquired
+
+    # >MR Acquisition Phase Encoding Steps out-of-plane (0018,9232) 1C Number of Out-of-Plane Phase Encoding steps (kz) acquired
+    # Required if MR Acquisition Type (0018,0023) equals 3D and Frame Type (0008,9007) Value 1 is ORIGINAL. May be present otherwise.
+    
+    # >Percent Sampling (0018,0093) 1C Fraction of acquisition matrix lines acquired, expressed as a percent.
+
+    # >Percent Phase Field of View (0018,0094) 1C Ratio of field of view dimension in phase direction to field of view dimension in frequency direction, expressed as a percent.
+
+    #MR Receive Coil C.8.13.5.7 C
+    # MR Receive Coil Sequence (0018,9042) 1 # A sequence that provides information about each receive coil used.
+    # Only a single Item shall be included in this sequence.
+    # >Receive Coil Name (0018,1250) 1C Name of receive coil used.
+
+    # MR Transmit Coil C.8.13.5.8 C 
+
+    # MR Diffusion C.8.13.5.9 C 
+    
+    # MR Averages C.8.13.5.10 C 
+    # MR Averages Sequence (0018,9119) 1 # Identifies the averaging parameters of this frame.
+    #Only a single Item shall be included in this sequence.
+    # >Number of Averages (0018,0083) 1C # Maximum number of times any point in k- space is acquired.
+
+
+    # MR Arterial Spin Labeling C.8.13.5.14 C Required if Image Type (0008,0008) Value 3 is ASL. May be present otherwise.
+
+
+
+    # Per-frame Functional Groups Sequence (5200,9230) 1
+    # Sequence that contains the Functional Group Sequence Attributes corresponding to 
+    # each frame of the Multi-frame Image. The first Item corresponds with the first 
+    # frame, and so on.
+    # One or more Items shall be included in this sequence. The number of Items shall be 
+    # the same as the number of frames in the Multi-frame image. 
+    # See Section C.7.6.16.1.2 for further explanation.
+    
+#     Sequences:>Include one or more Functional Group Macros
+    
+#     MR Image Frame Type C.8.13.5.1 M
+#     MR Image Frame Type Sequence (0018,9226) 1
+#     Identifies the characteristics of this frame.
+#     Only a single Item shall be included in this sequence.
+#     >Frame Type (0008,9007) 1
+#     Type of Frame. A multi-valued attribute analogous to the Image Type (0008,0008).
+#     Enumerated Values and Defined Terms are the same as those for the four values of the Image Type (0008,0008) attribute, except that the value MIXED is not allowed. See C.8.16.1 and C.8.13.1.1.1.
+#     SET TO SAME AS IMAGE TYPE
+
+#     MR Echo C.8.13.5.4 C
+#     MR Echo Sequence (0018,9114) 1 Identifies echo timing of this frame.
+#     Only a single Item shall be included in this sequence.
+#     >Effective Echo Time (0018,9082) 1C The time in ms between the middle of the excitation pulse and the peak of the echo produced for kx=0.
+
+#     Frame Content C.7.6.16.2.2 M - May not be used as a Shared Functional Group.
+    
+#     Frame Content Sequence (0020,9111) 1 Identifies general characteristics of this frame. Only a single Item shall be included in this sequence.
+    
+#     >Frame Acquisition Number (0020,9156) 3 A number identifying the single continuous gathering of data over a period of time that resulted in this frame.
+    
+#     >Frame Reference DateTime (0018,9151) 1C The point in time that is most representative of when data was acquired for this frame. See C.7.6.16.2.2.1 and C.7.6.16.2.2.2 for further explanation. 
+# Note: The synchronization of this time with an external clock is specified
+# in the synchronization Module in Acquisition Time synchronized (0018,1800).
+
+#     >Frame Acquisition DateTime (0018,9074) 1C The date and time that the acquisition of data that resulted in this frame started. See C.7.6.16.2.2.1 for further explanation.
+
+#     >Frame Acquisition Duration (0018,9220) 1C The actual amount of time [in milliseconds] that was used to acquire data for this frame. See C.7.6.16.2.2.1 and C.7.6.16.2.2.3 for further explanation.
+
+# >Dimension Index Values (0020,9157) 1C Contains the values of the indices defined in the Dimension Index Sequence (0020,9222) for this multi- frame header frame. The number of values is equal to the number of Items of the Dimension Index Sequence and shall be applied in the same order.
+# See section C.7.6.17.1 for a description. Required if the value of the Dimension Index Sequence (0020,9222) exists.
+# >Temporal Position Index (0020,9128) 1C Ordinal number (starting from 1) of the frame in the set of frames with different temporal positions. Required if the value of SOP Class UID (0008,0016) equals "1.2.840.10008.5.1.4.1.1.130". May be present otherwise. See C.7.6.16.2.2.6.
+#>Stack ID (0020,9056) 1C Identification of a group of frames, with different positions and/or orientations that belong together, within a dimension organization. See C.7.6.16.2.2.4 for further explanation. Required if the value of SOP Class UID (0008,0016) equals "1.2.840.10008.5.1.4.1.1.130". May be present otherwise. See C.7.6.16.2.2.7.
+# >In-Stack Position Number (0020,9057) 1C The ordinal number of a frame in a group of frames, with the same Stack ID Required if Stack ID (0020,9056) is present. See section C.7.6.16.2.2.4 for further explanation.
+# >Frame Comments (0020,9158) 3 User-defined comments about the frame.
+# >Frame Label (0020,9453) 3 Label corresponding to a specific dimension index value. Selected from a set of dimension values defined by the application. This attribute may be referenced by the Dimension Index Pointer (0020,9165) attribute in the Multi-frame Dimension Module. See C.7.6.16.2.2.5 for further explanation.
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    # Instance Number (0020,0013) 1
+    # A number that identifies this instance. The value shall be the same for all SOP 
+    # Instances of a Concatenation, and different for each separate Concatenation and for 
+    # each SOP Instance not within a Concatenation in a series.
+
+    # Content Date (0008,0023) 1
+    # The date the data creation was started.
+    # Note: For instance, this is the date the pixel data is created, not the date the 
+    # data is acquired.
+
+    # Content Time (0008,0033) 1
+    # The time the data creation was started.
+    # Note: For instance, this is the time the pixel data is created, not the time the 
+    # data is acquired.
+
+    # Number of Frames (0028,0008) 1
+    # Number of frames in a multi-frame image. See C.7.6.6.1.1 for further explanation.
+
+    # Concatenation Frame Offset Number (0020,9228) 1C
+    # Offset of the first frame in a multi-frame image of a concatenation. Logical frame 
+    # numbers in a concatenation can be used across all its SOP instances. This offset can 
+    # be applied to the implicit frame number to find the logical frame number in a 
+    # concatenation. The offset is numbered from zero; i.e., the instance of a 
+    # concatenation that begins with the first frame of the concatenation has a 
+    # Concatenation Frame Offset Number (0020,9228) of zero.
+    # Required if Concatenation UID (0020,9161) is present.
+
+    # Representative Frame Number (0028,6010) 3
+    # The frame number selected for use as a pictorial representation (e.g. icon) of the 
+    # multi-frame Image.
+
+    # Concatenation UID (0020,9161) 1C
+    # Identifier of all SOP Instances that belong to the same concatenation.
+    # Required if a group of multi-frame image SOP Instances within a Series are part of a 
+    # Concatenation.
+
+
+    # SOP Instance UID of Concatenation Source (0020,0242) 1C
+    # The SOP Instance UID of the single composite SOP Instance of which the Concatenation 
+    # is a part. All SOP Instances of a concatenation shall use the same value for this 
+    # attribute, see C.7.6.16.1.3.
+    # Note: May be used to reference the entire instance rather than individual instances 
+    # of the concatenation, which may be transient (e.g., from a presentation state).
+    # Required if Concatenation UID (0020,9161) is present.
+
+    #In-concatenation Number (0020,9162) 1C
+    # Identifier for one SOP Instance belonging to a concatenation. See C.7.6.16.2.2.4 for 
+    # further specification. The first instance in a concatentation (that with the lowest 
+    # Concatenation Frame Offset Number (0020,9228) value) shall have an In- concatenation 
+    # Number (0020,9162) value of 1, and subsequent instances shall have values 
+    # monotonically increasing by 1.
+    # Required if Concatenation UID (0020,9161) is present.
+
+    #In-concatenation Total Number (0020,9163) 3
+    # The number of SOP Instances sharing the same Concatenation UID.
+
+    # Module: Multi-frame Dimensions (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.6.17
+    
+    #Dimension Organization Sequence (0020,9221) 1
+    #Sequence that lists the Dimension Organization UIDs referenced by the containing SOP 
+    # Instance. See section C.7.6.17.2 for further explanation.
+    # One or more Items shall be included in this Sequence.
+    # Sequence: 
+        #> Dimension Organization UID (0020,9164) 1
+        # Uniquely identifies a set of dimensions referenced within the containing SOP 
+        # Instance. See section C.7.6.17.2 for further explanation.
+
+    #Dimension Organization Type (0020,9311) 3
+    # Dimension organization of the instance. Defined Terms: 
+    #   3D : Spatial Multi-frame image of parallel planes (3D volume set)
+    #   3D_TEMPORAL : Temporal loop of parallel-plane 3D volume sets.
+
+    #Dimension Index Sequence (0020,9222) 1
+    # Identifies the sequence containing the indices used to specify the dimension of the 
+    # multi-frame object.
+    # One or more Items shall be included in this sequence.
+    # Sequence:
+        #> Dimension Index Pointer (0020,9165) 1
+        # Contains the Data Element Tag that is used to identify the Attribute connected with 
+        # the index. See section C.7.6.17.1 for further explanation.
+
+        #> Dimension Index Private Creator (0020,9213) 1C
+        # Identification of the creator of a group of private data elements.
+        # Required if the Dimension Index Pointer (0020,9165) value is the Data Element Tag of 
+        # a Private Attribute.
+    
+        #> Functional Group Pointer (0020,9167) 1C 
+        # Contains the Data Element Tag of the Functional Group Sequence that contains the 
+        # Attribute that is referenced by the Dimension Index Pointer (0020,9165).
+        # See section C.7.6.17.1 for further explanation.
+        # Required if the value of the Dimension Index Pointer (0020,9165) is the Data Element 
+        # Tag of an Attribute that is contained within a Functional Group Sequence.
+
+        #> Functional Group Private Creator (0020,9238) 1C
+        #Identification of the creator of a group of private data elements.
+        # Required if the Functional Group Pointer 0020,9167) value is the Data Element Tag of 
+        # a Private Attribute.
+
+        #> Dimension Organization UID (0020,9164) 1C
+        # Uniquely identifies a set of dimensions referenced within the containing SOP 
+        # Instance. In particular the dimension described by this sequence item is associated 
+        # with this Dimension Organization UID. See section C.7.6.17.2 for further explanation.
+        # Required if the value of the Dimension Organization Sequence (0020,9221) contains Items
+
+        #> Dimension Description Label (0020,9421) 3
+        # Free text description that explains the meaning of the dimension.
+    
+# *** TO DO ***
+    # Module: Enhanced MR Image (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.8.13.1
+    
+    # Include ' MR Image and Spectroscopy Instance Macro' Table C.8-81
+    
+    #Acquisition Number (0020,0012) 3 
+    # A number identifying the single continuous gathering of data over a period of time 
+    # that resulted in this image.
+    # Note: This number is not required to be unique across SOP Instances in a series. 
+    # See also the description of the Referenced Raw Data Sequence (0008,9121).
+
+    #Acquisition DateTime (0008,002A) 1C 
+    # The date and time that the acquisition of data started.
+    # Note: The synchronization of this time with an external clock is specified
+    # in the synchronization Module in Acquisition Time synchronized (0018,1800).
+    # Required if Image Type (0008,0008) Value 1 is ORIGINAL or MIXED. 
+    # May be present otherwise.
+
+    #Acquisition Duration(0018,9073) 1C 
+    # The time in seconds needed to run the prescribed pulse sequence. 
+    # See C.7.6.16.2.2.1 for further explanation.
+    # Required if Image Type (0008,0008) Value 1 is ORIGINAL or MIXED. 
+    # May be present otherwise.
+    
+    #Resonant Nucleus (0018,9100) 1C
+    # Nucleus that is resonant at the transmitter frequency.
+    # Defined Terms: 1H 3HE 7LI 13C 19F 23NA 31P 129XE
+    # Required if Image Type (0008,0008) Value 1 is ORIGINAL or MIXED. 
+    # May be present otherwise.
+    
+    ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)       # 0018,0087 Magnetic Field Strength (optional)
+                                                                                         #Nominal field strength of the MR Magnet, in Tesla.
+    
+    #Image Comments (0020,4000) 3
+   # User-defined comments about the image.
+
+    # Image Type = ["ORIGINAL","PRIMARY"] (0008,0008) 1
+    # Image characteristics. See C.8.16.1 and C.8.13.1.1.1.
+    # Value 3 should be one of: MPR, T2 MAP, PHASE MAP, PHASE SUBTRACT, PROJECTION IMAGE,
+    # DIFFUSION MAP, VELOCITY MAP, MODULUS, SUBTRACT, T1 MAP, DENSITY MAP, IMAGE ADDITION,
+    # OTHER
+    # Value 4 is NONE
+
+    #Samples per Pixel (0028,0002) 1
+    # Number of samples (planes) in this image. For Enumerated Values see C.8.13.1.1.2.
+
+    #Photometric Interpretation (0028,0004) 1
+    # Specifies the intended interpretation of the pixel data. Enumerated Values are 
+    # specified in the IOD that invokes this Module. See C.7.6.3.1.2 for definition of 
+    # this term.
+
+    #Bits Allocated (0028,0100) 1
+    # Number of bits allocated for each pixel sample. Each sample shall have the same 
+    # number of bits allocated. For Enumerated Values see C.8.13.1.1.2.
+
+    #Bits Stored (0028,0101) 1
+    # Number of bits stored for each pixel sample. Each sample shall have the same number 
+    # of bits stored. For Enumerated Values see C.8.13.1.1.2.
+
+    #High Bit (0028,0102) 1
+    # Most significant bit for pixel sample data. Each sample shall have the same high bit. 
+    # Shall be one less than the value in Bits Stored (0028,0101).
+    
+    #Pixel Representation (0028,0103) 1
+    # Data representation of the pixel samples. Each sample shall have the same pixel 
+    # representation. For Enumerated Values see C.8.13.1.1.2
+    
+    #Spacing between Slices (0018,0088) 3
+    # Value of the prescribed spacing to be applied between the slices in a volume that is 
+    # to be acquired. The spacing in mm is defined as the center-to-center distance of 
+    # adjacent slices.
+    
+    #Burned In Annotation = "NO" (0028,0301) 1
+    # Indicates whether or not the image contains sufficient burned in annotation to 
+    # identify the patient and date the image was acquired.
+    # Enumerated Values: NO
+    # This means that images that contain this Module shall not contain such burned in 
+    # annotations.
+ 
+    # Lossy Image Compression = "00" (0028,2110) 1
+    # Specifies whether an Image has undergone lossy compression.
+    # Enumerated Values: 00 = Image has NOT been subjected to lossy compression.
+    #                    01 = Image has been subjected to lossy compression. 
+    # See C.7.6.1.1.5 for further explanation.
+    
+    #Presentation LUT Shape (2050,0020) 1C
+    # Specifies an identity transformation for the Presentation LUT, such that the output 
+    # of all grayscale transformations defined in the IOD containing this Module are 
+    # defined to be P-Values.
+    # Enumerated Values: IDENTITY - output is in P-Values.
+    # Required if Photometric Interpretation (0028,0004) is MONOCHROME2.
+        
+
+    # Module: MR Pulse Sequence (Required if Image Type (0008,0008) Value 1 is ORIGINAL
+    #         or MIXED. May be present otherwise.)
+    # Reference: DICOM Part 3: Information Object Definitions C.8.13.4
+    
+    #Pulse Sequence Name (0018,9005) 1C
+    # Name of the pulse sequence for annotation purposes. Potentially vendor-specific name.
+    # Required if Image Type (0008,0008) Value 1 is ORIGINAL or MIXED. 
+    # May be present otherwise.
+    
+    MRAcquisitionType = '2D'
+    if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
+        MRAcquisitionType = '3D'
+    ds.add_new((0x0018,0x0023), 'CS', MRAcquisitionType)
+    #ds.MRAcquistionType = MRAcquisitionType                                              # 0018,0023 MR Acquisition Type (optional)
+                                                                                         # Identification of spatial data encoding scheme.
+                                                                                         # Defined Terms: 1D 2D 3D
+
+    # Module: SOP Common (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.12.1 
+
+    ds.SOPClassUID = file_meta.MediaStorageSOPClassUID                                   # 0008,0016 SOP Class UID (mandatory)
+    ds.SOPInstanceUID = file_meta.MediaStorageSOPInstanceUID                             # 0008,0018 SOP Instance UID (mandatory)
+    
+    t = datetime.datetime.now(dateutil.tz.tzlocal())
+    ds.InstanceCreationDate = t.strftime('%Y%m%d')                                       # 0008,0012 Instance Creation Date (optional)
+    ds.InstanceCreationTime = t.strftime('%H%M%S.%f')                                    # 0008,0013 Instance Creation Time (optional)
+    ds.InstanceCreatorUID = CreateUID(UID_Type_InstanceCreator)                          # 0008,0014 Instance Creator UID (optional)
+    ds.TimezoneOffsetFromUTC = t.strftime('%z')                                          # 0008,0201 Timezone Offset From UTC (optional)
+    
+    
+    
+    
+    
+    # Module: Image Plane (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.6.2 
+    # DO NOT SET TAGS HERE - SEE BELOW IN FDF FILE LOOP    
+
+    # Module: MR Image (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.8.3.1
+    # NOTE: THESE TAGS HAVE BEEN REORDERED (COMPARED TO DICOM 3.0 DOCUMENTATION) TO SUIT 
+    # THE FDF FILE ITERATIONS I.E. TAGS COMMON TO ALL FDF FILES HAVE BEEN SET FIRST
+
+    # Image Type: MPR, T2 MAP, PHASE MAP, PHASE SUBTRACT, PROJECTION IMAGE, DIFFUSION MAP
+    #    VELOCITY MAP, MODULUS SUBTRACT, T1 MAP, DENSITY MAP, IMAGE ADDITION, OTHER
+    #defult image type
+    ds.ImageType = "OTHER"                                                                        # 0008,0008 ImageType (mandatory)
+
+## START ASL SECTION  ###
+# TODO
+    # ASL - DICOM dict
+# "(0018,9250) ","Arterial Spin Labeling Contrast","ArterialSpinLabelingContrast","CS",1,
+# "(0018,9251) ","MR Arterial Spin Labeling Sequence","MRArterialSpinLabeling","SQ",1,
+# "(0018,9252) ","ASL Technique Description","ASLTechniqueDescription","LO",1,
+# "(0018,9253) ","ASL Slab Number","ASLSlabNumber","US",1,
+# "(0018,9254) ","ASL Slab Thickness","ASLSlabThickness","FD ",1,
+# "(0018,9255) ","ASL Slab Orientation","ASLSlabOrientation","FD ",3,
+# "(0018,9256) ","ASL Mid Slab Position","ASLMidSlabPosition","FD ",3,
+# "(0018,9257) ","ASL Context","ASLContext","CS",1,
+# "(0018,9258)","ASL Pulse Train Duration","ASLPulseTrainDuration","UL",1,
+# "(0018,9259) ","ASL Crusher Flag","ASLCrusherFlag","CS",1,
+# "(0018,925A)","ASL Crusher Flow","ASLCrusherFlow","FD",1,
+# "(0018,925B)","ASL Crusher Description","ASLCrusherDescription","LO",1,
+# "(0018,925C) ","ASL Bolus Cut-off Flag","ASLBolusCutoffFlag","CS",1,
+# "(0018,925D)","ASL Bolus Cut-off Timing Sequence","ASLBolusCutoffTimingSequence","SQ",1,
+# "(0018,925E)","ASL Bolus Cut-off Technique","ASLBolusCutoffTechnique","LO",1,
+# "(0018,925F)","ASL Bolus Cut-off Delay Time","ASLBolusCutoffDelayTime","UL",1,
+# "(0018,9260)","ASL Slab Sequence","ASLSlabSequence","SQ",1,
+# ASL - DOCUMENTATION p 882
+#                                       Table C.8-100b
+#                     MR ARTERIAL SPIN LABELING MACRO ATTRIBUTES
+
+    if ('asl' in procpar.keys() and procpar["asl"] == "y"):
+        ds.ImageType = "ASL"         
+        ds.ArterialSpinLabelingContrast = 'CONTINUOUS' # (0018,9250) 1C Arterial Spin Labeling contrast technique.
+#                                                Enumerated Values:
+#                                                         CONTINUOUS = a single long low
+#                                                                powered RF pulse
+#                                                         PSEUDOCONTINUOUS =
+#                                                                multiple short low powered
+#                                                                RF pulses
+#                                                         PULSED = a single short high
+#                                                                powered RF pulse
+#                                                Required if Image Type (0008,0008) Value
+
+        ds.ASLTechniqueDescription=procpar["asltype"]  # FAIR, EPISTAR, PICORE http://www.nmr.mgh.harvard.edu/~jjchen/ASL.html
+        # if ('asltag' in procpar.keys()):
+        #    ds. = procpar["asltag"]       
+
+# ds.ASLContext  see per frame or per fdf file at end of script
+
+        # ds.ASLSlabSequence =  #(0018,9260) 1C Sequence describing the ASL Slab
+#               geometry and anatomical region.
+#               One or more Items shall be included in
+#               this sequence.
+#               Required if ASL Context (0018,9257) is
+#               CONTROL or LABEL. May be present
+#               otherwise.
+
+        #ds.ASLSlabNumber  = fdf_properties["array_index"]
+#        ds.ASLSlabThickness = procpar["aslthk"]     #          (0018,9254)  1 Thickness of slab in mm.
+        # aslthk or asltagthk  pr asladdthk : 12 or 5 or 4 
+
+#        ds.ASLSlabOrientation  =      # (0018,9255)  1 The direction cosines of a normal vector
+#                                               perpendicular to the ASL slab with
+#                                               respect to the patient. See C.7.6.2.1.1 for
+#                                               further explanation.
+#        ds.ASLMidSlabPosition =       # (0018,9256)  1 The x, y, and z coordinates of the
+#                                               midpoint of the slab in mm with respect to
+#                                               the patient. See C.7.6.2.1.1 for further
+#                                               explanation.
+#        ds.ASLPulseTrainDuration     # (0018,9258)  1 Duration (in milliseconds) of the Label or
+#                                               Control pulse.
+#                                               See C.8.13.5.14.3 for further explanation.
+#        ds.ASLCrusherFlag  =         #  (0018,9259)  1 Indicates if an ASL Crusher Method has
+#                                               been used.
+#                                               Enumerated Values:
+#                                                         YES
+#                                                         NO
+#                                               See C.8.13.5.14.2 for further explanation.
+#        ds.ASLCrusherFlowLimit =     # (0018,925A) 1C Maximum Flow Limit (in cm/s).
+#                                               Required if ASL Crusher Flag
+#                                               (0018,9259) is YES.
+#        ds.ASLCrusherDescription =      # (0018,925B) 1C Description of the ASL Crusher Method.
+#                                               Required if ASL Crusher Flag
+#                                               (0018,9259) is YES.
+#        ds.ASLBolusCutoffFlag =         #(0018,925C)  1 Indicates if a Bolus Cut-off technique is used.  Enumerated Values:
+#                                                         YES
+#                                                         NO
+#        ds.ASLBolusCutoffTimingSequence      # (0018,925D) 1C Sequence that specifies the timing of the Bolus Cut-off technique and possibly its
+#                                               (scientific) description.
+#                                               Only a single Item shall be included in
+#                                               this sequence.
+#                                               Required if ASL Bolus Cut-off Flag
+#                                               (0018,925C) is YES.
+#        ds.ASLBolusCutoffDelayTime =    #(0018,925F)  1 Bolus Cut-off pulse delay time (in ms).  See C.8.13.5.14.3 for further explanation.
+#        ds.ASLBolusCutoffTechnique =        # (0018,925E)  2 Text describing the cut-off technique.
+
+### END ASL SECTION ###
+
+
+
+# Mag and Phase
+#      C.8.13.3          MR Image Description Macro
+#      This section describes the MR Image Description Macro.
+#      Table C.8-84 specifies the attributes of the MR Image Description Macro.
+#                                                  Table C.8-84
+#                             MR IMAGE DESCRIPTION MACRO ATTRIBUTES
+# Attribute Name                                 Tag        Type Attribute Description
+# Complex Image Component                   (0008,9208)       1  Representation of complex data of frames
+#                                                                in the SOP Instance. See C.8.13.3.1.1 for
+#                                                                a description and Defined Terms.
+# Acquisition Contrast                      (0008,9209)       1  Indication of acquisition contrast used with
+#                                                                frames in the SOP Instance. See
+#                                                                C.8.13.3.1.2 for a description and Defined
+#                                                                Terms.
+# C.8.13.3.1        MR Image Description Attribute Description
+# C.8.13.3.1.1      Complex Image Component
+# The value of the Complex Image Component attribute (0008,9208) shall be used to indicate
+# which component of the complex representation of the signal is represented in the pixel data.
+# Table C.8-85 specifies the Defined Terms for Complex Image Component attribute (0008,9208).
+#                                            Table C.8-85
+#                    COMPLEX IMAGE COMPONENT ATTRIBUTE VALUES
+#    Defined Term Name             Defined Term Description
+#    MAGNITUDE                     The magnitude component of the complex image data.
+#    PHASE                         The phase component of the complex image data.
+#    REAL                          The real component of the complex image data.
+#    IMAGINARY                     The imaginary component of the complex image data.
+#    MIXED                         Used only as a value in Complex Image Component
+#                                  (0008,9208) in the Enhanced MR Image Module if frames
+#                                  within the image SOP Instance contain different values for
+#                                  the Complex Image Component attribute in the MR Frame
+#                                  Type Functional Group.
+        if args.magnitude:
+            ds.ComplexImageComponent = 'MAGNITUDE'
+        if args.phase:
+            ds.ComplexImageComponent = 'PHASE'
+
+
+
+    # Scanning sequence: SE = spin echo, IR = inversion recovery, GR = gradient recalled, 
+    #    EP = echo planar, RM = research mode
+    if 'seqfil' in procpar.keys():
+        if procpar["seqfil"] == 'epip':
+            ds.ScanningSequence   =  'EP'                                                             # 0018,0020 (mandatory)
+
+
+    # Sequence variant: SK = segmented k-space, MTC = magnetization transfor contrast, 
+    #    SS = steady state, TRSS = time reversed steady state, MP = MAG prepared, 
+    #    OSP = oversamplying phase, NONE = no sequence variant
+    #TODO: Is 'SK' always the case? #procpar['ncnnn']?                                             
+    # 0018,0021 Sequence Variant (mandatory)
+    ds.SequenceVariant  =  'SK'               
+
+    # 0018,0024 Sequence Name (user-defined) (optional)
+    ds.SequenceName     = procpar['pslabel']        
+
+    # Scan options: PER = Phase Encode Reordering, RG = Respiratory Gating, CG = Cardiac 
+    #    Gating, PPG = Peripheral Pulse Gating, FC = Flow Compensation, PFF = Partial 
+    #    Fourier - Frequency, PFP = Partial Fourier - Phase, SP = Spatial Presaturatino, 
+    #    FS = Fat Saturation
+    # 0018,0022 Scan Options (optional)
+    # ds.ScanOptions
+    
+    
+    # Determine acquisition dimensionality:  MR Acquisition Type: 2D, 3D
+    MRAcquisitionType = '2D'
+    if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
+        MRAcquisitionType = '3D'
+    # 0018,0023 MR Acquisition Type (optional)
+    #ds.MRAcquistionType = MRAcquisitionType                     
+
+    #TR    
+    #0018,0080 Repetition Time (in ms) (optional)
+    ds.RepetitionTime  = str(procpar['tr']*1000.0)
+    
+    #TE
+    # 0018,0081 Echo Time (in ms) (optional)
+    if 'te' in procpar.keys():
+        ds.EchoTime  = str(procpar['te']*1000.0)                                                                        
+    # 0018,0091 Echo Train Length (optional)
+    if 'etl' in procpar.keys():
+        ds.EchoTrainLength = procpar['etl']                                        
+
+    #TI
+    # 0018,0082 Inversion Time (optional)
+    ds.InversionTime = str(procpar['ti']*1000.0)                                                                    
+    # Angio Flag: Y, N
+#    ds.AngioFlag                                                                         # 0018,0026 Angio Flag (optional)
+#    ds.NumberOfAVerages                                                                  # 0018,0083 Number of Averages (optional)
+
+    #H1reffreq
+    # 0018,0084 Imaging Frequency (optional)
+    ds.ImagingFrequencey = str(procpar['H1reffrq'])                                                                
+    #TN
+    # 0018,0085 Imaged Nucleus (eg 1H) (optional)
+    if 'tn' in procpar.keys():
+        ds.ImagedNucleus = procpar['tn']
+    else:
+        ds.ImagedNucleus = 'H1'
+    # 0018,0086 Echo Number (optional)
+    if 'echo' in procpar.keys():
+        ds.EchoNumber =procpar['echo']                                                  
+    # 0018,0087 Magnetic Field Strength (optional)             
+    ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)      
+
+    # find this from the distance between positions of slices (or Thickness thk)
+    # ds.SpacingBetweenSlices  # procpar['thk']*1000                                                              # 0018,0088 Spacing Between Slices (optional)
+
+    #NPHASE
+    # 0018,0089 Number of Phase Encoding Steps (optional)
+    if 'nphase' in procpar.keys():
+        ds.NumberOfPhaseEncodingSteps   = procpar['nphase']                                               
+    #ds.PercentSampling                                                                   # 0018,0093 Percent Sampling (optional)
+    #ds.PercentPhaseFieldOfView                                                           # 0018,0094 PercentPhase Field of View (optional)
+
+    # 0018,0095 Pixel Bandwidth (optional)    
+    # SW1 or sw2 or sw3
+    ds.PixelBandwidth = str(procpar['sw1'])                                                          
+
+    #rfcoil
+    # 0018,1250 Receive Coil Name (optional)
+    ds.ReceiveCoilName  = procpar['rfcoil']                                                                
+    
+    ## From code below
+# FIXME
+#    ds.AcquistionMatrix  = [ procpar['']  , procpar['']  ]                                                                # 0018,1310 Acquistion Matrix (optional)
+        #---------------------------------------------------------------------------------
+        # Number of rows
+			# DICOMHDR code:
+			#    "note: ft3d causes nv/np to be swapped"   
+			#    elseif $tag='(0028,0010)' then	 " Rows"
+			#      if($dim = 3) then	"if 3D rows = nv"
+                        #	 on('fn1'):$on
+                        #	 if($on) then
+
+    if 'fn1' in procpar.keys() and procpar['fn1'] > 0:		
+        AcqMatrix1 = procpar['fn1']/2.0         
+    else:		#	   $pe = fn1/2.0
+        AcqMatrix1 = procpar['nv'] #	 else
+			#	   $pe = nv
+			#	 endif	
+			#	 $pes=''	
+			#	 format($pe,0,0):$pes	
+			#	 $value='['+$pes+']'  
+			#	  
+			#      else		"if 2D no of rows = np/2"
+			#	  on('fn'):$on
+			#	  if($on) then
+			#	    $ro = fn/2.0
+			#	  else
+			#	    $ro = np/2.0
+			#	  endif		
+			#	  $ros=''	
+			#	  format($ro,0,0):$ros	
+			#	  $value='['+$ros+']'
+	                #      endif
+
+        #---------------------------------------------------------------------------------
+        # Number of columns
+            # DICOMHDR code: 
+            #    elseif $tag='(0028,0011)' then	" Columns  "
+            #      if($dim = 3) then	"if 3D columns = np/2"
+            #        on('fn'):$on
+            #        if($on) then
+            #          $ro = fn/2.0
+            #        else
+            #          $ro = np/2.0
+            #        endif      	
+            #        $ros=''	
+            #        format($ro,0,0):$ros	
+            #        $value='['+$ros+']'   
+            #      else     
+            #        on('fn1'):$on
+            #        if($on) then
+            #         $pe = fn1/2.0
+            #        else
+            #         $pe = nv
+            #        endif	
+            #        $pes=''	
+            #        format($pe,0,0):$pes	
+            #        $value='['+$pes+']'
+            #      endif
+
+## FIXME   where is the flip list!!@#
+#    ds.FlipAngle                                                                         # 0018,1314 Flip Angle (optional)
+    #ds.VariableFlipAngleFlag                                                             # 0018,1315 Variable Flip Angle Flag (optional)
+    #ds.TemporalPositionIdentifier                                                        # 0020,0100 Temporal Position Identifier (optional)
+    #ds.NumberOfTemporalPositions                                                         # 0020,0105 Number of Temporal Positions (optional)
+
+    #ds.TemporalResolution                                                                # 0020,0110 Temporal Resolution (optional)
+
+    # Samples Per Pixel: should be 1 for MR
+    # 0028,0002 Samples Per Pixel (mandatory)
+    ds.SamplesPerPixel  =1                   
+                                              
+    # Photometric Interpretation: must be MONOCHROME2
+    # 0028,0004 Photometric Interpretation (mandatory)
+    ds.PhotometricInterpretation = 'MONOCHROME2'
+
+    # BitsAllocated: should be 16
+    # 0028,0100 (mandatory)
+    ds.BitsAllocated  =16                                                                   
+
+    # Module: Image Plane (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.6.2 
+    
+    # Slice Thinckness
+    # 0018,0050 Slice Thickness (optional)
+    if MRAcquisitionType == '3D':
+        if 'fn2' in procpar.keys() and procpar['fn2'] > 0:
+            pe2 = procpar['fn2']/2.0
+        else:
+            pe2 = procpar['nv2']
+        SliceThickness = procpar['lpe2']*10.0/pe2                         
+    else:
+        SliceThickness = procpar['thk']                                   
+    ds.SliceThickness = str(SliceThickness)                                                   
+
+
+    if MRAcquisitionType == '3D':
+        SpacingBetweenSlices = ds.SliceThickness                          
+
+    #FIXME
+
+    #ds.ImageOrientationPatient = fdfpar['orientation']                                                         # 0020,0037 Image Orientation (Patient) (mandatory)
+    #ds.ImagePositionPatient  = fdfpar['location']                                                            # 0020,0032 Image Position (Patient) (mandatory)
+    
+    #ds.SliceLocation                                                                    # 0020,1041 Slice Location (optional)
+
+
+
+
+    #-------------------------------------------------------------------------------------
+    # Iterate through FDF files
+    #
+    # Due to inconsistencies between procpar fields and the FDF (e.g. interpolation that 
+    # is not recorded in the procpar, or at least, I can't find it), the following data
+    # elements are based on FDF properties, not procpar.
+    # EXCEPTION - phase images
+
+    # Read in data from all files to determine scaling
+    datamin = float("inf")
+    datamax = float("-inf")
+
+    #TODO: Error in RescaleSlope of phase imgs - current hack puts 1.0 instead 
+    if args.phase and 'imPH' in procpar.keys() and procpar["imPH"] == 'y':
+        datamin = -math.pi
+        datamax = math.pi
+    else:
+        for filename in fdffiles:
+            fdf_properties, data = ReadFDF(args.inputdir + '/' + filename)
+            datamin = numpy.min([datamin,data.min()])
+            datamax = numpy.max([datamax,data.max()])
+
+    RescaleIntercept = datamin
+    RescaleSlope = (datamax - datamin) / 32767 #/ 65533
+    
+
+
+
+    # Read in data from file    
+    for filename in fdffiles:
+        print 'Converting ' + filename
+        fdf_properties, data = ReadFDF(args.inputdir + '/' + filename)
+        print 'Data shape:'
+        print data.shape
+        #---------------------------------------------------------------------------------
+        # General implementation checks
+        
+        if ds.ImageType == "ASL":         
+            if fdf_properties["asltag"] == 1:
+                ds.ASLContext  = 'LABEL'   # (0018,9257)      1C  The purpose of the Arterial Spin Labeling.
+            elif  fdf_properties["asltag"] == -1:            #   Enumerated Values:
+                ds.ASLContext  = 'CONTROL'                   #           LABEL
+#                                                                    CONTROL
+            else:
+                ds.ASLContext = 'M_ZERO_SCAN'                #            M_ZERO_SCAN
+#                                                           Required if Frame Type (0008,9007) is
+#                                                           ORIGINAL. May be present otherwise.
+#                                                           See C.8.13.5.14.1 for further
+#                                                           explanation. 
+
+
+        # File dimensionality
+        fdfdims = fdf_properties['rank']
+            
+        CommentStr = 'Acquisition dimensionality (ie 2D or 3D) does not match between fdf and procpar'
+        AssumptionStr = 'procpar nv2 > 0 indicates 3D acquisition and fdf rank property indicates dimensionality'
+        acqndims = procpar['acqdim']
+        print 'Acqdim (type): ' + MRAcquisitionType
+        print acqndims
+        AssertImplementation(acqndims != fdfdims, filename, CommentStr, AssumptionStr)
+        
+        # Slice thickness
+        if acqndims == 3:
+            fdfthk = fdf_properties['roi'][2]/fdf_properties['matrix'][2]*10
+        else:
+            fdfthk = fdf_properties['roi'][2]*10.0
+
+        CommentStr = 'Slice thickness does not match between fdf and procpar'
+        AssumptionStr = 'In fdf, slice thickness defined by roi[2] for 2D or roi[2]/matrix[2].\nIn procpar, slice thickness defined by thk (2D) or lpe2*10/(fn2/2) or lpe2*10/nv2'
+        print 'fdfthk : ' + str(fdfthk)
+        print 'SliceThinkness: ' + str(ds.SliceThickness)
+
+        #TODO Quick hack to avoid assert errors for diffusion and 3D magnitude images
+        if 'diff' in procpar.keys():
+            #    if procpar["diff"] == 'y': 
+            print procpar["diff"]
+        else:
+            if MRAcquisitionType == '3D':
+                print 'Not testing slicethickness in 3D MR FDF'
+            else:
+                AssertImplementation(ds.SliceThickness != fdfthk, filename, CommentStr, AssumptionStr)
+
+        #---------------------------------------------------------------------------------
+        # GROUP 0020: Relationship
+
+        ds.ImageComments = fdf_properties['filetext']
+ 
+        # For further information regarding the location, orientation, roi, span, etc 
+        # properties in the FDF header, see the "Agilent VNMRJ 3.2 User Programming 
+        # User Guide", pgs 434-436
+        
+        # Orientation defines the user frame of reference, and is defined according to the 
+        # magnet frame of reference (X,Y,Z), where
+        #   Z is along the bore, from cable end to sample end
+        #   Y is bottom to top, and
+        #   X is right to left, looking along positive Z
+        # ref: "Agilent VnmrJ 3 Imaging User Guide" pg 679
+        #
+        # Location defines the position of the centre of the acquired data volume, 
+        # relative to the magnet centre, in the user frame of reference.
+        #
+        # ROI is the size of the acquired data volume in cm in the user frame of reference.
+        #
+        # Origin is the coordinates of the first point in the data set, in the user frame 
+        # of reference.
+        
+        orientation = numpy.matrix(fdf_properties['orientation']).reshape(3,3)
+        location = numpy.matrix(fdf_properties['location'])*10
+        span = numpy.matrix(numpy.append(fdf_properties['span'], 0)*10.0)
+        print span
+        print location
+        
+        # diff = numpy.setdiff1d(span, location)
+        # print diff
+        if len(span) != len(location):
+            span=numpy.resize(span,(1,3))
+
+        o = location - span/2.0
+        
+        FirstVoxel = orientation.transpose() * o.transpose()
+        
+        # DICOM patient coordinate system is defined such that x increases towards the
+        # patient's left, y increases towards the patient's posterior, and z increases 
+        # towards the patient's head. If we imageine a (miniature) human lying supine, 
+        # with their head towards the cable end of the magnet, then x in the user
+        # reference frame remains the same, while y and z are inverted.
+        # See DICOM Standard section C.7.6.2.1.1
+        
+        ImagePositionPatient = FirstVoxel.flatten().tolist()[0]
+        ImagePositionPatient[1] *= -1
+        ImagePositionPatient[2] *= -1
+        
+        ImageOrientationPatient = orientation.flatten().tolist()[0]
+        ImageOrientationPatient[1] *= -1
+        ImageOrientationPatient[2] *= -1
+        ImageOrientationPatient[4] *= -1
+        ImageOrientationPatient[5] *= -1
+
+        ds.ImagePositionPatient = [str(ImagePositionPatient[0]),str(ImagePositionPatient[1]),str(ImagePositionPatient[2])]                        #(0020,0032) Image Patient Position
+        ds.ImageOrientationPatient = [str(ImageOrientationPatient[0]),str(ImageOrientationPatient[1]),str(ImageOrientationPatient[2]),str(ImageOrientationPatient[3]),str(ImageOrientationPatient[4]),str(ImageOrientationPatient[5])]                  #(0020,0037) Image Patient Orientation
+
+        #---------------------------------------------------------------------------------
+        # GROUP 0028: Image Presentation
+        # A good short description of this section can be found here: 
+        # http://dicomiseasy.blogspot.com.au/2012/08/chapter-12-pixel-data.html
+
+        #---------------------------------------------------------------------------------
+        # Number of frames        
+            # DICOMHDR code:
+            #     elseif $tag='(0028,0008)' then	" no of frames "
+            #       $dim = 2  "default 2D"
+            #       exists('nv2','parameter'):$ex     
+            #       if($ex > 0) then
+            #         if(nv2 > 0) then
+            #           on('fn2'):$on		"3D data"
+            #           if($on) then
+            #             $pe2 = fn2/2.0
+            #           else
+            #             $pe2 = nv2
+            #           endif         
+            #           $dim = 3
+            #         endif
+            #       endif
+            #       
+            #       if ($dim = 3) then
+            #         $f = $pe2    "no of frames for 3D"
+            #       else 
+            #         substr(seqcon,3,1):$spe1    
+            #         if($spe1 = 's') then
+            #           $f = (ns * (arraydim/nv) * ne)   "sems type"
+            #         else
+            #           $f = (ns * arraydim * ne)	"compressed gems type"
+            #         endif            
+            #         if($imagesout='single') then  
+            #           $f = $f	"single image output: frames=(no_of_slices * array_size * ne)"
+            #         else
+            #           $f = 1				" single frame"
+            #         endif
+            #       endif     
+            #      $fs='' 
+            #       format($f,0,0):$fs
+            #       $value='['+$fs+']'      
+            #       if $DEBUG then write('alpha','    new value = "%s"',$value) endif
+
+
+
+        #if fdfdims == 3:
+        #    ds.NumberOfFrames = fdf_properties['matrix'][2]
+        #ds.NumberOfFrames = fdf_properties['slices']
+        #ds.FrameAcquisitionNumber = fdf_properties['slice_no']
+        ds.AcquisitionNumber = fdf_properties['array_index']
+        ds.ImagesInAcquisition = fdf_properties['array_dim']
+
+        #---------------------------------------------------------------------------------
+        # Number of rows
+            # DICOMHDR code:
+            #    "note: ft3d causes nv/np to be swapped"   
+            #    elseif $tag='(0028,0010)' then	 " Rows"
+            #      if($dim = 3) then	"if 3D rows = nv"
+            #        on('fn1'):$on
+            #        if($on) then
+            #          $pe = fn1/2.0
+            #        else
+            #          $pe = nv
+            #        endif	
+            #        $pes=''	
+            #        format($pe,0,0):$pes	
+            #        $value='['+$pes+']'  
+            #         
+            #      else		"if 2D no of rows = np/2"
+            #         on('fn'):$on
+            #         if($on) then
+            #           $ro = fn/2.0
+            #         else
+            #           $ro = np/2.0
+            #         endif      	
+            #         $ros=''	
+            #         format($ro,0,0):$ros	
+            #         $value='['+$ros+']'
+            #      endif
+
+        ds.Rows = fdf_properties['matrix'][1]                                   #(0028,0010) Rows
+
+        ## Implementation check
+        # CommentStr = 'Number of rows does not match between fdf and procpar'
+        # AssumptionStr = 'In FDF, number of rows is defined by matrix[1]. 
+        # In procpar, for 3D datasets number of rows is either fn1/2 or nv.
+        # For 2D datasets, number of rows is fn/2.0 or np.'
+        # AssertImplementation(ds.Rows != fdf_properties['matrix'][1], filename, CommentStr, AssumptionStr)
+    
+
+        #---------------------------------------------------------------------------------
+        # Number of columns
+            # DICOMHDR code: 
+            #    elseif $tag='(0028,0011)' then	" Columns  "
+            #      if($dim = 3) then	"if 3D columns = np/2"
+            #        on('fn'):$on
+            #        if($on) then
+            #          $ro = fn/2.0
+            #        else
+            #          $ro = np/2.0
+            #        endif      	
+            #        $ros=''	
+            #        format($ro,0,0):$ros	
+            #        $value='['+$ros+']'   
+            #      else     
+            #        on('fn1'):$on
+            #        if($on) then
+            #         $pe = fn1/2.0
+            #        else
+            #         $pe = nv
+            #        endif	
+            #        $pes=''	
+            #        format($pe,0,0):$pes	
+            #        $value='['+$pes+']'
+            #      endif
+            
+        ds.Columns = fdf_properties['matrix'][0]                                 #(0028,0011) Columns
+
+        ## Implementation check
+        # CommentStr = 'Number of columns does not match between fdf and procpar'
+        # AssumptionStr = 'In FDF, number of columns is defined by matrix[0]. \nIn procpar, for 3D datasets number of columns is either fn/2 or np.\nFor 2D datasets, number of rows is fn1/2.0 or nv.'
+        # AssertImplementation(ds.Rows != fdf_properties['matrix'][0], filename, CommentStr, AssumptionStr)
+        
+        #---------------------------------------------------------------------------------
+        # Pixel spacing
+            # DICOMHDR code: 
+            #     elseif $tag='(0028,0030)' then	" pixel spacing "
+            #       if($dim = 3) then
+            #         $r=lro*10/$ro    "$ro and $pe were calculated earlier"
+            #         $p=lpe*10/$pe
+            #         $rs='' $ps=''
+            #         format($r,0,5):$rs
+            #         format($p,0,5):$ps
+            #         $value='['+$ps+'\\'+$rs+']'      "rows\cols swapped for 3D"   
+            #       else
+            #         $r=lro*10/$ro    "$ro and $pe were calculated earlier"
+            #         $p=lpe*10/$pe
+            #         $rs='' $ps=''
+            #         format($r,0,5):$rs
+            #         format($p,0,5):$ps
+            #         $value='['+$rs+'\\'+$ps+']' 
+            #       endif
+
+        # PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
+        PixelSpacing = map(lambda x,y: x*10.0/y, fdf_properties['roi'][0:2],fdf_properties['matrix'][0:2])
+        ds.PixelSpacing =  [str(PixelSpacing[0]),str(PixelSpacing[1])]        #(0028,0030) Pixel Spacing
+        
+        ds.SamplesPerPixel = 1                                                #(0028,0002) Samples Per Pixel
+        ds.PhotometricInterpretation = "MONOCHROME2"                          #(0028,0004) Photometric Interpretation
+        ds.BitsAllocated = 16                                                 #(0028,0100) Bits Allocated
+        ds.BitsStored = 16                                                    #(0028,0101) Bits Stored
+        ds.HighBit = 15                                                       #(0028,0102) High Bit
+        ds.PixelRepresentation = 0                                            #(0028,0103) Pixel Representation
+
+
+        # Module: Image Pixel (mandatory)
+        # Reference: DICOM Part 3: Information Object Definitions C.7.6.3 
+        # ds.Rows                                                              # 0028,0010 Rows (mandatory)
+        # ds.Columns                                                           # 0028,0011 Columns (mandatory)
+        # ds.BitsStored                                                        # 0028,0101 (mandatory)
+        # ds.HighBit                                                           # 0028,0102 (mandatory)
+        # ds.PixelRepresentation                                               # 0028,0103 Pixel Representation (mandatory)
+        # ds.PixelData                                                        # 7fe0,0010 Pixel Data (mandatory)
+
+        print "Rescale data to uint16"
+        print RescaleIntercept
+        print RescaleSlope
+        print "Current data min: ", data.min()
+        print "Current data max: ", data.max()
+        data = (data - RescaleIntercept) / RescaleSlope
+        data = data.astype(numpy.int16)
+        
+        ds.RescaleIntercept = str(RescaleIntercept)                                #(0028,1052) Rescale Intercept
+        # Rescale slope string must not be longer than 16
+        ds.RescaleSlope = str(RescaleSlope)[:16]                                       #(0028,1053) Rescale Slope
+
+
+        #ds.MRAcquistionType = '2D'                                              # 0018,0023 MR Acquisition Type (optional)
+                                                                                         # Identification of spatial data encoding scheme.
+                                                                                         # Defined Terms: 1D 2D 3D
+
+
+        #---------------------------------------------------------------------------------
+        # GROUP 7FE0: Image data
+        
+        ds.PixelData = data.tostring()                                        #(7fe0,0010) Pixel Data
+    
+        ds.save_as(os.path.join(outdir, os.path.splitext(filename)[0] + '.dcm'))
+
+        
