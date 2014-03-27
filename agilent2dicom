@@ -2,13 +2,15 @@
 
 """agilent2dicom is used to convert Agilent FDF files to DICOM format.
 
-  Original code by  Amanda Ng 
+  Original code by Amanda Ng (amanda.ng@monash.edu)
 
-  Modified by Michael Eager
+  Modified by Michael Eager (michael.eager@monash.edu)
+      Enhanced MR now done by dicom3tools and the fdf2dcm script
+
 
 """
 
-MyVersionNumber = "0.1"
+VersionNumber = "0.2"
 
 import pdb
 import ast
@@ -32,7 +34,7 @@ UID_Type_SeriesInstance = "3"
 UID_Type_FrameOfReference = "4"
 
 # Hard coded DICOM tag values
-InstanceCreatorId = ''.join(map(str,[ord(c) for c in 'agilent2dicom'])) + '.' + MyVersionNumber
+InstanceCreatorId = ''.join(map(str,[ord(c) for c in 'agilent2dicom'])) + '.' + VersionNumber
 DICOM_Tag_Manufacturer = "Agilent Technologies"
 DICOM_Tag_InstitutionName = "Monash Biomedical Imaging"
 DICOM_Tag_ManufacturerModelName = "vnmrs"
@@ -45,15 +47,16 @@ DICOM_Tag_SoftwareVersions = "VnmrJ 3.2"
 #=========================================================================================
 # CREATEUID - Create and return Unique Identification (UID) 
     
-def CreateUID(uid_type, procpar=[],study_id=[]):
+def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
     dt = datetime.datetime.now()
     dt = dt.strftime("%Y%m%d%H%M%S") + str(dt.microsecond/1000)
     
     if uid_type == UID_Type_InstanceCreator:
         uidstr = InstanceCreatorId
     elif uid_type == UID_Type_StudyInstance:
-        print procpar
-        print study_id
+        if verbose:
+            print procpar
+            print study_id
         #if not procpar or study_id not in procpar.keys():
         #    raise ValueError("Parameter 'procpar' either not passed or invalid")
         study_id = procpar['studyid_'][2:]
@@ -251,16 +254,18 @@ if __name__ == "__main__":
     #=====================================================================================
     # Parse command line arguments and validate img directory
 
-    parser = argparse.ArgumentParser(usage='Input FDF directory and optional output directory',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI.')
+    parser = argparse.ArgumentParser(usage='Input FDF directory and optional output directory',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version '+VersionNumber)
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent .img directory containing procpar and fdf files',required=True);
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
     parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
     parser.add_argument('-p','--phase', help='Magnitude component flag.',action="store_true");
+    parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     
     # parser.add_argument("imgdir", help="Agilent .img directory containing procpar and fdf files")
 
     args = parser.parse_args()
-    print "Agilent2Dicom: ", args #.accumulate(args.integers)
+    if args.verbose:
+        print "Agilent2Dicom python converter FDF to basic MR DICOM images\n Args: ", args #.accumulate(args.integers)
 
 
     # Check input folder exists
@@ -270,7 +275,8 @@ if __name__ == "__main__":
         
     # Check folder contains procpar and *.fdf files
     files = os.listdir(args.inputdir)
-    print files
+    if args.verbose:
+        print files
 
     if 'procpar' not in files:
         print 'Error: FDF folder does not contain a procpar file'
@@ -295,13 +301,16 @@ if __name__ == "__main__":
             outdir = os.path.join(dirName,ImgBaseName + '.dcm')
     else:
         outdir = args.outputdir
-    print outdir
+    if args.verbose:
+        print 'Output directory: ', outdir
 
     if os.path.exists(outdir):
-        print 'Output folder ' + outdir + ' already exists'
+        if args.verbose:
+            print 'Output folder ' + outdir + ' already exists'
         #sys.exit(1)
     else:
-        print 'Making output folder: ' + outdir    
+        if args.verbose:
+            print 'Making output folder: ' + outdir    
         os.makedirs(outdir)
         
     
@@ -313,19 +322,21 @@ if __name__ == "__main__":
     #=====================================================================================
     # Create file meta dataset
 
-    print("Setting file meta information...")
+    if args.verbose:
+        print("Setting file meta information...")
 
     # Populate required values for file meta information
     file_meta = dicom.dataset.Dataset()
     #file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4.1"  # Enhanced MR Image SOP
     file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4" #MR Image SOP
-    file_meta.MediaStorageSOPInstanceUID = CreateUID(UID_Type_MediaStorageSOPInstance)
+    file_meta.MediaStorageSOPInstanceUID = CreateUID(UID_Type_MediaStorageSOPInstance,[],[],args.verbose)
     file_meta.ImplementationClassUID = "1.3.6.1.4.1.25371.1.1.2"
 
     #=====================================================================================
     # Create dicom dataset
 
-    print("Setting dataset values...")
+    if args.verbose:
+        print("Setting dataset values...")
 
     # Create the FileDataset instance (initially no data elements, but file_meta supplied)
     #ds = FileDataset(filename, {}, file_meta=file_meta, preamble="\0" * 128)
@@ -371,7 +382,7 @@ if __name__ == "__main__":
     # Module: General Study (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.2.1 
 
-    ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar)                     # 0020,000D Study Instance UID (mandatory)
+    ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar,[],args.verbose)                     # 0020,000D Study Instance UID (mandatory)
     ds.StudyDate = procpar['studyid_'][2:]                                               # 0008,0020 Study Date (optional)
     # ds.StudyTime                                                                       # 0008,0030 Study Time (optional)
     ds.StudyID = procpar['studyid_']                                                     # 0020,0010 Study ID (optional)
@@ -384,7 +395,7 @@ if __name__ == "__main__":
     # Reference: DICOM Part 3: Information Object Definitions C.7.3.1 
 
     ds.Modality = "MR"                                                                   # 0008,0060 Modality (mandatory)
-    ds.SeriesInstanceUID = CreateUID(UID_Type_SeriesInstance, procpar)                   # 0020,000E Series Instance UID (mandatory)
+    ds.SeriesInstanceUID = CreateUID(UID_Type_SeriesInstance, procpar,[],args.verbose)                   # 0020,000E Series Instance UID (mandatory)
     ds.SeriesNumber = 1                                                                    # 0020,0011 Series Number (optional)
     # ds.SeriesDate                                                                      # 0008,0021 Series Date (optional)
     # ds.SeriesTime                                                                      # 0008,0031 Series Time (optional)
@@ -404,7 +415,7 @@ if __name__ == "__main__":
     # Module: Frame of Reference (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.4.1 
 
-    ds.FrameOfReferenceUID = CreateUID(UID_Type_FrameOfReference, procpar)               # 0020,0052 Frame of Reference (mandatory)
+    ds.FrameOfReferenceUID = CreateUID(UID_Type_FrameOfReference, procpar,[],args.verbose)               # 0020,0052 Frame of Reference (mandatory)
     
     #-------------------------------------------------------------------------------------
     # IE: Equipment
@@ -829,7 +840,7 @@ if __name__ == "__main__":
     t = datetime.datetime.now(dateutil.tz.tzlocal())
     ds.InstanceCreationDate = t.strftime('%Y%m%d')                                       # 0008,0012 Instance Creation Date (optional)
     ds.InstanceCreationTime = t.strftime('%H%M%S.%f')                                    # 0008,0013 Instance Creation Time (optional)
-    ds.InstanceCreatorUID = CreateUID(UID_Type_InstanceCreator)                          # 0008,0014 Instance Creator UID (optional)
+    ds.InstanceCreatorUID = CreateUID(UID_Type_InstanceCreator,[],[],args.verbose)                          # 0008,0014 Instance Creator UID (optional)
     ds.TimezoneOffsetFromUTC = t.strftime('%z')                                          # 0008,0201 Timezone Offset From UTC (optional)
     
     
@@ -1205,10 +1216,12 @@ if __name__ == "__main__":
 
     # Read in data from file    
     for filename in fdffiles:
-        print 'Converting ' + filename
+        if args.verbose:
+            print 'Converting ' + filename
         fdf_properties, data = ReadFDF(args.inputdir + '/' + filename)
-        print 'Data shape:'
-        print data.shape
+        if args.verbose:
+            print 'Data shape:'
+            print data.shape
         #---------------------------------------------------------------------------------
         # General implementation checks
         
@@ -1232,8 +1245,9 @@ if __name__ == "__main__":
         CommentStr = 'Acquisition dimensionality (ie 2D or 3D) does not match between fdf and procpar'
         AssumptionStr = 'procpar nv2 > 0 indicates 3D acquisition and fdf rank property indicates dimensionality'
         acqndims = procpar['acqdim']
-        print 'Acqdim (type): ' + MRAcquisitionType
-        print acqndims
+        if args.verbose:
+            print 'Acqdim (type): ' + MRAcquisitionType
+            print acqndims
         AssertImplementation(acqndims != fdfdims, filename, CommentStr, AssumptionStr)
         
         # Slice thickness
@@ -1244,13 +1258,14 @@ if __name__ == "__main__":
 
         CommentStr = 'Slice thickness does not match between fdf and procpar'
         AssumptionStr = 'In fdf, slice thickness defined by roi[2] for 2D or roi[2]/matrix[2].\nIn procpar, slice thickness defined by thk (2D) or lpe2*10/(fn2/2) or lpe2*10/nv2'
-        print 'fdfthk : ' + str(fdfthk)
-        print 'SliceThinkness: ' + str(ds.SliceThickness)
+        if args.verbose:
+            print 'fdfthk : ' + str(fdfthk)
+            print 'SliceThinkness: ' + str(ds.SliceThickness)
 
         #TODO Quick hack to avoid assert errors for diffusion and 3D magnitude images
         if 'diff' in procpar.keys():
-            #    if procpar["diff"] == 'y': 
-            print procpar["diff"]
+            if procpar["diff"] == 'y': 
+                print "Diffusion: ", procpar["diff"]
         else:
             if MRAcquisitionType == '3D':
                 print 'Not testing slicethickness in 3D MR FDF'
@@ -1284,8 +1299,9 @@ if __name__ == "__main__":
         orientation = numpy.matrix(fdf_properties['orientation']).reshape(3,3)
         location = numpy.matrix(fdf_properties['location'])*10
         span = numpy.matrix(numpy.append(fdf_properties['span'], 0)*10.0)
-        print span
-        print location
+        if args.verbose:
+            print "Span: ", span
+            print "Location: ", location
         
         # diff = numpy.setdiff1d(span, location)
         # print diff
@@ -1480,11 +1496,12 @@ if __name__ == "__main__":
         # ds.PixelRepresentation                                               # 0028,0103 Pixel Representation (mandatory)
         # ds.PixelData                                                        # 7fe0,0010 Pixel Data (mandatory)
 
-        print "Rescale data to uint16"
-        print RescaleIntercept
-        print RescaleSlope
-        print "Current data min: ", data.min()
-        print "Current data max: ", data.max()
+        if args.verbose:
+            print "Rescale data to uint16"
+            print RescaleIntercept
+            print RescaleSlope
+            print "Current data min: ", data.min()
+            print "Current data max: ", data.max()
         data = (data - RescaleIntercept) / RescaleSlope
         data = data.astype(numpy.int16)
         
