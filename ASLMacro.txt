@@ -1,0 +1,80 @@
+ C.8.13.5.14       MR Arterial Spin Labeling Macro
+ Table C.8-100b specifies the attributes of the MR Arterial Spin Labeling Functional Group macro.
+                                          Table C.8-100b
+                    MR ARTERIAL SPIN LABELING MACRO ATTRIBUTES
+Attribute Name                                Tag        Type     Attribute Description
+MR Arterial Spin Labeling Sequence       (0018,9251)        1     A sequence that provides the position of
+                                                                  Arterial Spin Labeling regions deposited
+                                                                  as part of the pulse sequence.
+                                                                  One or more items shall be included in
+                                                                  this sequence.
+>ASL Technique Description               (0018,9252)        2     Text describing the used labeling
+                                                                  technique in more detail.
+>ASL Context                             (0018,9257)       1C     The purpose of the Arterial Spin Labeling.
+                                                                  Enumerated Values:
+                                                                           LABEL
+                                                                           CONTROL
+                                                                           M_ZERO_SCAN
+                                                                  Required if Frame Type (0008,9007) is
+                                                                  ORIGINAL. May be present otherwise.
+                                                                  See C.8.13.5.14.1 for further
+                                                                  explanation.
+>ASL Slab Sequence                       (0018,9260)       1C     Sequence describing the ASL Slab
+                                                                  geometry and anatomical region.
+                                                                  One or more Items shall be included in
+                                                                  this sequence.
+                                                                  Required if ASL Context (0018,9257) is
+                                                                  CONTROL or LABEL. May be present
+                                                                  otherwise.
+>>ASL Slab Number                        (0018,9253)        1     Consecutive number identifying the
+                                                                  different slabs used for labeling, starting
+                                                                  with 1.
+>>Include ‘General Anatomy Optional Macro’ Table 10-7             The anatomical region where the slab is
+                                                                  positioned.
+                                                                  Defined Context ID for the Anatomic
+                                                                  Region Sequence (0008,2218) is CID
+                                                                  4030.
+                                                                  Defined Context ID for Anatomic Region
+                                                                  Modifier Sequence (0008,2220) and
+                                                                  Primary Anatomic Structure Modifier
+                                                                  Sequence (0008,2230) is CID 2.
+
+>>ASL Slab Thickness           (0018,9254)  1 Thickness of slab in mm.
+>>ASL Slab Orientation         (0018,9255)  1 The direction cosines of a normal vector
+                                              perpendicular to the ASL slab with
+                                              respect to the patient. See C.7.6.2.1.1 for
+                                              further explanation.
+>>ASL Mid Slab Position        (0018,9256)  1 The x, y, and z coordinates of the
+                                              midpoint of the slab in mm with respect to
+                                              the patient. See C.7.6.2.1.1 for further
+                                              explanation.
+>>ASL Pulse Train Duration     (0018,9258)  1 Duration (in milliseconds) of the Label or
+                                              Control pulse.
+                                              See C.8.13.5.14.3 for further explanation.
+>ASL Crusher Flag              (0018,9259)  1 Indicates if an ASL Crusher Method has
+                                              been used.
+                                              Enumerated Values:
+                                                        YES
+                                                        NO
+                                              See C.8.13.5.14.2 for further explanation.
+>ASL Crusher Flow Limit        (0018,925A) 1C Maximum Flow Limit (in cm/s).
+                                              Required if ASL Crusher Flag
+                                              (0018,9259) is YES.
+>ASL Crusher Description       (0018,925B) 1C Description of the ASL Crusher Method.
+                                              Required if ASL Crusher Flag
+                                              (0018,9259) is YES.
+>ASL Bolus Cut-off Flag        (0018,925C)  1 Indicates if a Bolus Cut-off technique is
+                                              used.
+                                              Enumerated Values:
+                                                        YES
+                                                        NO
+>ASL Bolus Cut-off Timing      (0018,925D) 1C Sequence that specifies the timing of the
+Sequence                                      Bolus Cut-off technique and possibly its
+                                              (scientific) description.
+                                              Only a single Item shall be included in
+                                              this sequence.
+                                              Required if ASL Bolus Cut-off Flag
+                                              (0018,925C) is YES.
+>>ASL Bolus Cut-off Delay Time (0018,925F)  1 Bolus Cut-off pulse delay time (in ms).
+                                              See C.8.13.5.14.3 for further explanation.
+>>ASL Bolus Cut-off Technique  (0018,925E)  2 Text describing the cut-off technique.
