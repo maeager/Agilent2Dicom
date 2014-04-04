@@ -41,7 +41,7 @@ DICOM_Tag_ManufacturerModelName = "vnmrs"
 DICOM_Tag_DeviceSerialNumber = "unknown"
 DICOM_Tag_SoftwareVersions = "VnmrJ 3.2"
 
-
+SEQUENCE=''
 
 
 #=========================================================================================
@@ -57,14 +57,14 @@ def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
         if verbose:
             print procpar
             print study_id
-        #if not procpar or study_id not in procpar.keys():
+        # if not procpar or study_id not in procpar.keys():
         #    raise ValueError("Parameter 'procpar' either not passed or invalid")
         study_id = procpar['studyid_'][2:]
         if not study_id.isdigit():
             raise ValueError("procpar field 'studyid_' is not in expected form (eg s_2014010101)")
         uidstr = study_id
     elif uid_type in [UID_Type_SeriesInstance,UID_Type_FrameOfReference]:
-        #if not procpar or study_id not in procpar.keys():
+        # if not procpar or study_id not in procpar.keys():
         #    raise ValueError("Parameter 'procpar' either not passed or invalid")
         series_id = procpar['time_complete'].replace("T","")
         if not series_id.isdigit():
@@ -184,9 +184,7 @@ def ReadFDF(fdffilename):
 #    therefore it is advised to read these values as floats.
 
 def ReadProcpar(procparfilename):
-
     f = open(procparfilename,'r')
-    
     line = f.readline()
     procpar = {}
     while line != '':
@@ -195,12 +193,10 @@ def ReadProcpar(procparfilename):
         propname = tokens[0]
         propsubtype = tokens[1]
         proptype = tokens[2]
-        
         # parse second line in property: [number of values] [first value] ...
         line = f.readline()
         tokens = line.strip().split(None,1)
-        propnumvalues = int(tokens[0])
-        
+        propnumvalues = int(tokens[0])        
         # handle property values
         if proptype == '1': # real number
             if propnumvalues == 1:
@@ -214,18 +210,14 @@ def ReadProcpar(procparfilename):
                 propvalue = [tokens[1].strip('"')]
                 for i in range(2,propnumvalues+1):
                     propvalue.append(f.readline().strip('"\n"'))
-                
         line = f.readline() # last line in property
-        line = f.readline() # next property
-        
+        line = f.readline() # next property        
         lastprop = propvalue
         procpar[propname] = propvalue
-    
     f.seek(0)
     procpartext = f.readlines()
-    
     return (procpar, procpartext)
-    
+
 #=========================================================================================
 # ASSERTIMPLEMENTATION - Check FDF properties match up with interpretation of procpar
 # 
@@ -317,7 +309,8 @@ if __name__ == "__main__":
 
     # Read in data procpar
     procpar, procpartext = ReadProcpar(args.inputdir + '/procpar')
-    # print procpar
+    if args.verbose:
+        print procpar
 
     #=====================================================================================
     # Create file meta dataset
@@ -372,8 +365,15 @@ if __name__ == "__main__":
     
     ds.PatientName = procpar['name']                                                     # 0010,0010 Patient Name (optional)
     ds.PatientID = procpar['ident']                                                      # 0010,0020 Patient Id (optional)
-    #ds.PatientsBirthDate  = procpar["birthday"]                                                              # 0010,0030 Patient's Birth Date (optional)
-    #ds.PatientsSex #(M = male, F = Female, O = other)                                   # 0010,0040 Patient's Sex (optional) 
+    ds.PatientsBirthDate  = procpar["birthday"]                                          # 0010,0030 Patient's Birth Date (optional)
+    # 0010,0040 Patient's Sex (optional)  #(M = male, F = Female, O = other) 
+    if 'gender' in procpar.keys():
+        if procpar['gender'] == 'male':
+            ds.PatientsSex  = 'M' 
+        elif  procpar['gender'] == 'female':
+            ds.patientsSex = 'F'
+        else:
+            ds.PatientsSex= 'O'
 
     #-------------------------------------------------------------------------------------
     # IE: Study
@@ -439,6 +439,20 @@ if __name__ == "__main__":
     ds.DeviceSerialNumber = DICOM_Tag_DeviceSerialNumber                                 # 0018,1000 Device Serial Number (mandatory)
     ds.SoftwareVersions = DICOM_Tag_SoftwareVersions                                     # 0018,1020 Software Versions (mandatory)
     
+    # Module: Image Plane (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.7.6.2 
+    # DO NOT SET TAGS HERE - SEE BELOW IN FDF FILE LOOP    
+
+    # Module: MR Image (mandatory)
+    # Reference: DICOM Part 3: Information Object Definitions C.8.3.1
+    # NOTE: THESE TAGS HAVE BEEN REORDERED (COMPARED TO DICOM 3.0 DOCUMENTATION) TO SUIT 
+    # THE FDF FILE ITERATIONS I.E. TAGS COMMON TO ALL FDF FILES HAVE BEEN SET FIRST
+
+    # Image Type: MPR, T2 MAP, PHASE MAP, PHASE SUBTRACT, PROJECTION IMAGE, DIFFUSION MAP
+    #    VELOCITY MAP, MODULUS SUBTRACT, T1 MAP, DENSITY MAP, IMAGE ADDITION, OTHER
+    #defult image type
+    ds.ImageType = ["ORIGINAL","PRIMARY"]    # 0008,0008 ImageType (mandatory)
+
 
     #-------------------------------------------------------------------------------------
     # IE: Image
@@ -543,8 +557,102 @@ if __name__ == "__main__":
 
     # MR Transmit Coil C.8.13.5.8 C 
 
+
+
     # MR Diffusion C.8.13.5.9 C 
-    
+#                                                                             Page 878
+# MR Diffusion Sequence            (0018,9117)      1 Identifies the diffusion parameters of this
+#                                                     frame.
+#                                                     Only a single Item shall be included in
+#                                                     this sequence.
+#                                                     Diffusion sensitization factor in sec/mm2.
+# >Diffusion b-value               (0018,9087)     1C
+#                                                     This is the actual b-value for original
+#                                                     frames and those derived from frames
+#                                                     with the same b-value, or the most
+#                                                     representative b-value when derived from
+#                                                     images with different b-values.
+#                                                     Required if Frame Type (0008,9007)
+#                                                     Value 1 of this frame is ORIGINAL. May
+#                                                     be present otherwise.
+# >Diffusion Directionality        (0018,9075)     1C Specifies whether diffusion conditions for
+#                                                     the frame are directional, or isotropic with
+#                                                     respect to direction.
+#                                                     Defined Terms:
+#                                                              DIRECTIONAL
+#                                                              BMATRIX
+#                                                              ISOTROPIC
+#                                                              NONE = to be used when
+#                                                                    Frame Type (0008,9007)
+#                                                                    value 4 equals
+#                                                                    DIFFUSION_ANISO or
+#                                                                    Diffusion b-value
+#                                                                    (0018,9087) is 0 (zero).
+#                                                     Required if Frame Type (0008,9007)
+#                                                     Value 1 of this frame is ORIGINAL. May
+#                                                     be present otherwise.
+# >Diffusion Gradient Direction    (0018,9076)     1C Sequence containing orientations of all
+# Sequence                                            diffusion sensitization gradients that were
+#                                                     applied during the acquisition of this
+#                                                     frame.
+#                                                      Only a single Item shall be included in
+#                                                     this sequence.
+#                                                     Required if Diffusion Directionality
+#                                                     (0018,9075) equals DIRECTIONAL
+#                                                     May be present if Diffusion Directionality
+#                                                     (0018,9075) equals BMATRIX.
+# >>Diffusion Gradient Orientation (0018,9089)     1C The direction cosines of the diffusion
+#                                                     gradient vector with respect to the patient
+#                                                     Required if Frame Type (0008,9007)
+#                                                     Value 1 of this frame is ORIGINAL. May
+#                                                     be present otherwise.
+# >Diffusion b-matrix Sequence (0018,9601) 1C The directional diffusion sensitization
+#                                             expressed as a 3x3 matrix with diagonal
+#                                             symmetry (with six unique elements from
+#                                             which the other elements can be
+#                                             derived).
+#                                             The rows and columns of the matrix are
+#                                             the X (right to left), Y (anterior to
+#                                             posterior) and Z (foot to head) patient-
+#                                             relative orthogonal axes as defined in
+#                                             C.7.6.2.1.1.
+#                                             The values are in units of ms/mm2.
+#                                             Only a single Item shall be included in
+#                                             this sequence.
+#                                             Required if Diffusion Directionality
+#                                             (0018,9075) equals BMATRIX.
+# >>Diffusion b-value XX       (0018,9602)  1 The value of b[X,X].
+# >>Diffusion b-value XY       (0018,9603)  1 The value of b[X,Y].
+# >>Diffusion b-value XZ       (0018,9604)  1 The value of b[X,Z].
+# >>Diffusion b-value YY       (0018,9605)  1 The value of b[Y,Y].
+# >>Diffusion b-value YZ       (0018,9606)  1 The value of b[Y,Z].
+# >>Diffusion b-value ZZ       (0018,9607)  1 The value of b[Z,Z].
+# >Diffusion Anisotropy Type   (0018,9147) 1C Class of diffusion anisotropy calculation.
+#                                             Defined Terms:
+#                                                      FRACTIONAL
+#                                                      RELATIVE
+#                                                      VOLUME_RATIO
+#                                             Required if Frame Type (0008,9007)
+#                                             value 4 equals DIFFUSION_ANISO.
+
+    if 'diff' in procpar.keys() and procpar['diff']='y':
+        if 'bvalue' in procpar.keys() and len(procpar['bvalue']) > 1:
+            SEQUENCE='Diffusion'
+            print 'Processing Diffusion sequence'
+            ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]  # Compulsory
+# Save procpar diffusion parameters
+            Bvalue = procpar['bvalue'] # 64 element array
+            BvalSave = procpar['bvalSave']
+            BvalVS = procpar['bvalvs']
+            BvalueRS = procpar['bvalrs'] # 64
+            BvalueRR = procpar['bvalrr'] # 64
+            BvalueRP = procpar['bvalrp'] # 64
+            BvaluePP = procpar['bvalpp'] # 64
+            BvalueSP = procpar['bvalsp'] # 64
+            BvalueSS = procpar['bvalss'] # 64
+
+        
+
     # MR Averages C.8.13.5.10 C 
     # MR Averages Sequence (0018,9119) 1 # Identifies the averaging parameters of this frame.
     #Only a single Item shall be included in this sequence.
@@ -552,7 +660,10 @@ if __name__ == "__main__":
 
 
     # MR Arterial Spin Labeling C.8.13.5.14 C Required if Image Type (0008,0008) Value 3 is ASL. May be present otherwise.
-
+    if 'asltag' in procpar.keys() and procpar['asltag'] != 0:
+        SEQUENCE='ASL'
+        print 'Processing ASL sequence images'
+        ds.ImageType = ["ORIGINAL","PRIMARY", "ASL"]
 
 
     # Per-frame Functional Groups Sequence (5200,9230) 1
@@ -578,6 +689,10 @@ if __name__ == "__main__":
 #     MR Echo Sequence (0018,9114) 1 Identifies echo timing of this frame.
 #     Only a single Item shall be included in this sequence.
 #     >Effective Echo Time (0018,9082) 1C The time in ms between the middle of the excitation pulse and the peak of the echo produced for kx=0.
+
+    if 'ne' in procpar.keys() and procpar['ne'] > 1:
+        ds.ImageType=["ORIGINAL","PRIMARY","MULTIECHO"]  # Compulsory
+
 
 #     Frame Content C.7.6.16.2.2 M - May not be used as a Shared Functional Group.
     
@@ -826,6 +941,7 @@ if __name__ == "__main__":
     MRAcquisitionType = '2D'
     if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
         MRAcquisitionType = '3D'
+
     ds.add_new((0x0018,0x0023), 'CS', MRAcquisitionType)
     #ds.MRAcquistionType = MRAcquisitionType                                              # 0018,0023 MR Acquisition Type (optional)
                                                                                          # Identification of spatial data encoding scheme.
@@ -847,110 +963,94 @@ if __name__ == "__main__":
     
     
     
-    # Module: Image Plane (mandatory)
-    # Reference: DICOM Part 3: Information Object Definitions C.7.6.2 
-    # DO NOT SET TAGS HERE - SEE BELOW IN FDF FILE LOOP    
-
-    # Module: MR Image (mandatory)
-    # Reference: DICOM Part 3: Information Object Definitions C.8.3.1
-    # NOTE: THESE TAGS HAVE BEEN REORDERED (COMPARED TO DICOM 3.0 DOCUMENTATION) TO SUIT 
-    # THE FDF FILE ITERATIONS I.E. TAGS COMMON TO ALL FDF FILES HAVE BEEN SET FIRST
-
-    # Image Type: MPR, T2 MAP, PHASE MAP, PHASE SUBTRACT, PROJECTION IMAGE, DIFFUSION MAP
-    #    VELOCITY MAP, MODULUS SUBTRACT, T1 MAP, DENSITY MAP, IMAGE ADDITION, OTHER
-    #defult image type
-    ds.ImageType = "OTHER"                                                                        # 0008,0008 ImageType (mandatory)
 
 ## START ASL SECTION  ###
-# TODO
-    # ASL - DICOM dict
-# "(0018,9250) ","Arterial Spin Labeling Contrast","ArterialSpinLabelingContrast","CS",1,
-# "(0018,9251) ","MR Arterial Spin Labeling Sequence","MRArterialSpinLabeling","SQ",1,
-# "(0018,9252) ","ASL Technique Description","ASLTechniqueDescription","LO",1,
-# "(0018,9253) ","ASL Slab Number","ASLSlabNumber","US",1,
-# "(0018,9254) ","ASL Slab Thickness","ASLSlabThickness","FD ",1,
-# "(0018,9255) ","ASL Slab Orientation","ASLSlabOrientation","FD ",3,
-# "(0018,9256) ","ASL Mid Slab Position","ASLMidSlabPosition","FD ",3,
-# "(0018,9257) ","ASL Context","ASLContext","CS",1,
-# "(0018,9258)","ASL Pulse Train Duration","ASLPulseTrainDuration","UL",1,
-# "(0018,9259) ","ASL Crusher Flag","ASLCrusherFlag","CS",1,
-# "(0018,925A)","ASL Crusher Flow","ASLCrusherFlow","FD",1,
-# "(0018,925B)","ASL Crusher Description","ASLCrusherDescription","LO",1,
-# "(0018,925C) ","ASL Bolus Cut-off Flag","ASLBolusCutoffFlag","CS",1,
-# "(0018,925D)","ASL Bolus Cut-off Timing Sequence","ASLBolusCutoffTimingSequence","SQ",1,
-# "(0018,925E)","ASL Bolus Cut-off Technique","ASLBolusCutoffTechnique","LO",1,
-# "(0018,925F)","ASL Bolus Cut-off Delay Time","ASLBolusCutoffDelayTime","UL",1,
-# "(0018,9260)","ASL Slab Sequence","ASLSlabSequence","SQ",1,
 # ASL - DOCUMENTATION p 882
 #                                       Table C.8-100b
 #                     MR ARTERIAL SPIN LABELING MACRO ATTRIBUTES
 
     if ('asl' in procpar.keys() and procpar["asl"] == "y"):
         ds.ImageType = "ASL"         
-        ds.ArterialSpinLabelingContrast = 'CONTINUOUS' # (0018,9250) 1C Arterial Spin Labeling contrast technique.
-#                                                Enumerated Values:
-#                                                         CONTINUOUS = a single long low
-#                                                                powered RF pulse
-#                                                         PSEUDOCONTINUOUS =
-#                                                                multiple short low powered
-#                                                                RF pulses
-#                                                         PULSED = a single short high
-#                                                                powered RF pulse
-#                                                Required if Image Type (0008,0008) Value
+        
+# TODO must have sequence to start ASL macro
+#        ds.MRArterialSpinLabelingSequence =
 
-        ds.ASLTechniqueDescription=procpar["asltype"]  # FAIR, EPISTAR, PICORE http://www.nmr.mgh.harvard.edu/~jjchen/ASL.html
-        # if ('asltag' in procpar.keys()):
-        #    ds. = procpar["asltag"]       
+# (0018,9250) 1C Arterial Spin Labeling contrast technique.
+#  Enumerated Values:  CONTINUOUS,  PSEUDOCONTINUOUS, PULSED
+        ds.ArterialSpinLabelingContrast = 'CONTINUOUS' 
+#ASL Technique Description:  FAIR, EPISTAR, PICORE http://www.nmr.mgh.harvard.edu/~jjchen/ASL.html
+        ds.ASLTechniqueDescription=procpar["asltype"]  
 
 # ds.ASLContext  see per frame or per fdf file at end of script
 
-        # ds.ASLSlabSequence =  #(0018,9260) 1C Sequence describing the ASL Slab
+#(0018,9260) ASLSlabSequence 1C Sequence describing the ASL Slab
 #               geometry and anatomical region.
 #               One or more Items shall be included in
 #               this sequence.
 #               Required if ASL Context (0018,9257) is
 #               CONTROL or LABEL. May be present
 #               otherwise.
+        # ds.ASLSlabSequence =  
 
         #ds.ASLSlabNumber  = fdf_properties["array_index"]
-#        ds.ASLSlabThickness = procpar["aslthk"]     #          (0018,9254)  1 Thickness of slab in mm.
-        # aslthk or asltagthk  pr asladdthk : 12 or 5 or 4 
+# (0018,9254) ASLSlabThickness 1 Thickness of slab in mm.
+# aslthk or asltagthk  pr asladdthk : 12 or 5 or 4 
+#        ds.ASLSlabThickness = procpar["aslthk"]   
 
-#        ds.ASLSlabOrientation  =      # (0018,9255)  1 The direction cosines of a normal vector
-#                                               perpendicular to the ASL slab with
-#                                               respect to the patient. See C.7.6.2.1.1 for
-#                                               further explanation.
-#        ds.ASLMidSlabPosition =       # (0018,9256)  1 The x, y, and z coordinates of the
-#                                               midpoint of the slab in mm with respect to
-#                                               the patient. See C.7.6.2.1.1 for further
-#                                               explanation.
-#        ds.ASLPulseTrainDuration     # (0018,9258)  1 Duration (in milliseconds) of the Label or
-#                                               Control pulse.
-#                                               See C.8.13.5.14.3 for further explanation.
-#        ds.ASLCrusherFlag  =         #  (0018,9259)  1 Indicates if an ASL Crusher Method has
-#                                               been used.
-#                                               Enumerated Values:
-#                                                         YES
-#                                                         NO
-#                                               See C.8.13.5.14.2 for further explanation.
-#        ds.ASLCrusherFlowLimit =     # (0018,925A) 1C Maximum Flow Limit (in cm/s).
-#                                               Required if ASL Crusher Flag
-#                                               (0018,9259) is YES.
-#        ds.ASLCrusherDescription =      # (0018,925B) 1C Description of the ASL Crusher Method.
-#                                               Required if ASL Crusher Flag
-#                                               (0018,9259) is YES.
-#        ds.ASLBolusCutoffFlag =         #(0018,925C)  1 Indicates if a Bolus Cut-off technique is used.  Enumerated Values:
-#                                                         YES
-#                                                         NO
-#        ds.ASLBolusCutoffTimingSequence      # (0018,925D) 1C Sequence that specifies the timing of the Bolus Cut-off technique and possibly its
-#                                               (scientific) description.
-#                                               Only a single Item shall be included in
-#                                               this sequence.
-#                                               Required if ASL Bolus Cut-off Flag
-#                                               (0018,925C) is YES.
-#        ds.ASLBolusCutoffDelayTime =    #(0018,925F)  1 Bolus Cut-off pulse delay time (in ms).  See C.8.13.5.14.3 for further explanation.
-#        ds.ASLBolusCutoffTechnique =        # (0018,925E)  2 Text describing the cut-off technique.
+# (0018,9255) ASLSlabOrientation 1 The direction cosines of a normal vector
+# perpendicular to the ASL slab with
+# respect to the patient. See C.7.6.2.1.1 for
+# further explanation.
+#        ds.ASLSlabOrientation  =      
 
+# (0018,9256)  ASLMidSlabPosition 1 The x, y, and z coordinates of the
+# midpoint of the slab in mm with respect to
+# the patient. See C.7.6.2.1.1 for further
+# explanation.
+#        ds.ASLMidSlabPosition =       
+
+# (0018,9258) ASLPulseTrainDuration  1 Duration (in milliseconds) of the Label or
+# Control pulse.
+# See C.8.13.5.14.3 for further explanation.
+#        ds.ASLPulseTrainDuration    
+
+#  (0018,9259) ASLCrusherFlag 1 Indicates if an ASL Crusher Method has
+#  been used.
+# Enumerated Values:
+#           YES
+#           NO
+# See C.8.13.5.14.2 for further explanation.
+#        ds.ASLCrusherFlag  =         
+
+# (0018,925A) ASLCrusherFlowLimit 1C Maximum Flow Limit (in cm/s).
+#                                               Required if ASL
+#                                               Crusher Flag
+#                                               (0018,9259) is YES.
+#        ds.ASLCrusherFlowLimit =     
+
+# (0018,925B) ASLCrusherDescription 1C Description of the ASL Crusher
+#                                               Method.  Required if
+#                                               ASL Crusher Flag
+#                                               (0018,9259) is YES.
+#        ds.ASLCrusherDescription =      
+
+#(0018,925C) ASLBolusCutoffFlag 1 Indicates if a Bolus Cut-off
+#   technique is used.  Enumerated Values: YES NO
+#        ds.ASLBolusCutoffFlag =         
+
+# (0018,925D) ASLBolusCutoffTimingSequence 1C Sequence that specifies
+# the timing of the Bolus Cut-off technique and possibly its
+# (scientific) description.  Only a single Item shall be included in
+# this sequence.  Required if ASL Bolus Cut-off Flag (0018,925C) is
+# YES.
+#        ds.ASLBolusCutoffTimingSequence      
+
+# (0018,925F) ASLBolusCutoffDelayTime 1 Bolus Cut-off pulse delay time (in ms).  
+# See C.8.13.5.14.3 for further explanation.
+#        ds.ASLBolusCutoffDelayTime =    
+
+# (0018,925E) ASLBolusCutoffTechnique 2 Text describing the cut-off technique.
+#        ds.ASLBolusCutoffTechnique =        
 ### END ASL SECTION ###
 
 
@@ -1031,8 +1131,9 @@ if __name__ == "__main__":
     
     #TE
     # 0018,0081 Echo Time (in ms) (optional)
-    if 'te' in procpar.keys():
-        ds.EchoTime  = str(procpar['te']*1000.0)                                                                        
+    # This is overwritten if the fdf file is a multiecho
+#    if 'te' in procpar.keys():
+#        ds.EchoTime  = str(procpar['te']*1000.0)                                                                        
     # 0018,0091 Echo Train Length (optional)
     if 'etl' in procpar.keys():
         ds.EchoTrainLength = procpar['etl']                                        
@@ -1054,8 +1155,8 @@ if __name__ == "__main__":
     else:
         ds.ImagedNucleus = 'H1'
     # 0018,0086 Echo Number (optional)
-    if 'echo' in procpar.keys():
-        ds.EchoNumber =procpar['echo']                                                  
+#    if 'echo' in procpar.keys():
+#        ds.EchoNumber =procpar['echo']                                                  
     # 0018,0087 Magnetic Field Strength (optional)             
     ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)      
 
@@ -1218,10 +1319,11 @@ if __name__ == "__main__":
     for filename in fdffiles:
         if args.verbose:
             print 'Converting ' + filename
-        fdf_properties, data = ReadFDF(args.inputdir + '/' + filename)
+        fdf_properties, image_data = ReadFDF(args.inputdir + '/' + filename)
+
         if args.verbose:
-            print 'Data shape:'
-            print data.shape
+            print 'Image_data shape:'
+            print image_data.shape
         #---------------------------------------------------------------------------------
         # General implementation checks
         
@@ -1238,6 +1340,23 @@ if __name__ == "__main__":
 #                                                           See C.8.13.5.14.1 for further
 #                                                           explanation. 
 
+        if ('ne' in procpar.keys()) and (procpar['ne'] > 1) and fdf_properties['echoes'] > 1:
+            print 'Multi-echo sequence'
+            tmp_file = open(os.path.join(args.outputdir,'MULTIECHO'),'w')
+            tmp_file.write(str(procpar['ne']))
+            # TE 0018,0081 Echo Time (in ms) (optional)
+            if 'TE' in fdf_properties.keys():
+                ds.EchoTime  = str(fdf_properties['TE'])                                                              
+            # 0018,0086 Echo Number (optional)
+            if 'echo_no' in fdf_properties.keys():
+                ds.EchoNumber = fdf_properties['echo_no']            
+                
+            tmp_file.close()
+        else:
+            if 'te' in procpar.keys():
+                ds.EchoTime  = str(procpar['te']*1000.0)
+            if 'echo' in procpar.keys():
+                ds.EchoNumber =procpar['echo']                                                  
 
         # File dimensionality
         fdfdims = fdf_properties['rank']
@@ -1263,8 +1382,7 @@ if __name__ == "__main__":
             print 'SliceThinkness: ' + str(ds.SliceThickness)
 
         #TODO Quick hack to avoid assert errors for diffusion and 3D magnitude images
-        if 'diff' in procpar.keys():
-            if procpar["diff"] == 'y': 
+        if 'diff' in procpar.keys() and procpar["diff"] == 'y': 
                 print "Diffusion: ", procpar["diff"]
         else:
             if MRAcquisitionType == '3D':
@@ -1299,15 +1417,16 @@ if __name__ == "__main__":
         orientation = numpy.matrix(fdf_properties['orientation']).reshape(3,3)
         location = numpy.matrix(fdf_properties['location'])*10
         span = numpy.matrix(numpy.append(fdf_properties['span'], 0)*10.0)
+
         if args.verbose:
-            print "Span: ", span
-            print "Location: ", location
+            print "Span: ", span, span.shape
+            print "Location: ", location, location.shape
         
         # diff = numpy.setdiff1d(span, location)
-        # print diff
-        if len(span) != len(location):
-            span=numpy.resize(span,(1,3))
 
+        if (numpy.prod(span.shape) != numpy.prod(location.shape)):
+            span=numpy.resize(span,(1,3))
+        print span
         o = location - span/2.0
         
         FirstVoxel = orientation.transpose() * o.transpose()
@@ -1379,10 +1498,51 @@ if __name__ == "__main__":
 
         #if fdfdims == 3:
         #    ds.NumberOfFrames = fdf_properties['matrix'][2]
-        #ds.NumberOfFrames = fdf_properties['slices']
-        #ds.FrameAcquisitionNumber = fdf_properties['slice_no']
+        # dicom3tool uses frames to create enhanced MR
+        # ds.NumberOfFrames = fdf_properties['slices']
+        # ds.FrameAcquisitionNumber = fdf_properties['slice_no']
+
+        if 'ne' in procpar.keys() and procpar['ne'] > 1:
+            print 'Processing multi-echo sequence image'
+
+
+        if SEQUENCE == 'Diffusion':
+            print 'Processing diffusion image'
+
+            # Per frame Diffusion macro
+            if (math.abs(Bvalue[ fdf_properties['array_index']*2 ] - fdf_properties['bvalue']) > 0.005):
+                print 'Procpar and fdf B-value mismatch: procpar value ', Bvalue[ fdf_properties['array_index']*2 ], ' and  local fdf value ', fdf_properties['bvalue']
+## MR Diffusion Sequence (0018,9117) see DiffusionMacro.txt
+            diffusionseq = dicom.dataset.Dataset()
+            diffusionseq.DiffusionBValue=fdf_properties['bvalue']
+            diffusionseq.DiffusionDirectionality = 'DIRECTIONAL' #One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
+            diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' # One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
+
+            ### Diffusion Gradient Direction Sequence (0018,9076) 
+            diffgraddirseq = dicom.dataset.Dataset()            
+            diffgraddirseq.DiffusionGradientOrientation= [ fdf_properties['dro'],  fdf_properties['dpe'],  fdf_properties['dsl']]
+            diffusionseq.DiffusionGradientDirectionSequence = diffgraddirseq
+
+            ### Diffusion b-matrix Sequence (0018,9601) 
+            diffbmatseq = dicom.dataset.Dataset()
+            diffbmatseq.DiffusionBValueXX =  BvalueRR[ fdf_properties['array_index']*2 ]
+            diffbmatseq.DiffusionBValueXY =  BvalueRP[ fdf_properties['array_index']*2 ] 
+            diffbmatseq.DiffusionBValueXZ =  BvalueRS[ fdf_properties['array_index']*2 ]
+            diffbmatseq.DiffusionBValueYY =  BvaluePP[ fdf_properties['array_index']*2 ]
+            diffbmatseq.DiffusionBValueYZ =  BvalueSP[ fdf_properties['array_index']*2 ]
+            diffbmatseq.DiffusionBValueZZ =  BvalueSS[ fdf_properties['array_index']*2 ]
+            diffusionseq.DiffusionGradientDirectionSequence = diffbmatseq
+
+            ds.MRDiffusionSequence= diffusionseq
+##
+        
+        #if 'echoes' in fdf_properties.keys() and fdf_properties['echoes'] > 1 and fdf_properties['array_dim'] == 1:
+        #    ds.AcquisitionNumber = fdf_properties['echo_no']
+        #    ds.ImagesInAcquisition = fdf_properties['echoes']
+        #else:
         ds.AcquisitionNumber = fdf_properties['array_index']
         ds.ImagesInAcquisition = fdf_properties['array_dim']
+
 
         #---------------------------------------------------------------------------------
         # Number of rows
@@ -1487,6 +1647,8 @@ if __name__ == "__main__":
         ds.PixelRepresentation = 0                                            #(0028,0103) Pixel Representation
 
 
+
+
         # Module: Image Pixel (mandatory)
         # Reference: DICOM Part 3: Information Object Definitions C.7.6.3 
         # ds.Rows                                                              # 0028,0010 Rows (mandatory)
@@ -1500,10 +1662,10 @@ if __name__ == "__main__":
             print "Rescale data to uint16"
             print RescaleIntercept
             print RescaleSlope
-            print "Current data min: ", data.min()
-            print "Current data max: ", data.max()
-        data = (data - RescaleIntercept) / RescaleSlope
-        data = data.astype(numpy.int16)
+            print "Current data min: ", image_data.min()
+            print "Current data max: ", image_data.max()
+        image_data = (image_data - RescaleIntercept) / RescaleSlope
+        image_data = image_data.astype(numpy.int16)
         
         ds.RescaleIntercept = str(RescaleIntercept)                                #(0028,1052) Rescale Intercept
         # Rescale slope string must not be longer than 16
@@ -1517,9 +1679,31 @@ if __name__ == "__main__":
 
         #---------------------------------------------------------------------------------
         # GROUP 7FE0: Image data
-        
-        ds.PixelData = data.tostring()                                        #(7fe0,0010) Pixel Data
+        if acqndims == 3:
+            # Multi-dimension multi echo export format
+
+            voldata = numpy.reshape(image_data,fdf_properties['matrix'])
+
+            print image_data.shape
+            print voldata.shape
+#            slice_data = numpy.zeros_like(numpy.squeeze(image_data[:,:,1]))
+#            if 'ne' in procpar.keys():
+            for islice in xrange(1,fdf_properties['matrix'][2]):
+
+                slice_data = numpy.reshape(voldata[islice],(fdf_properties['matrix'][0]*fdf_properties['matrix'][1],1)) #numpy.squeeze(numpy.matrix(image_data[islice]))
+                # print slice_data.shape
+
+                ds.PixelData = slice_data.tostring()                                        #(7fe0,0010) Pixel Data
+                if 'slice_no' in fdf_properties.keys():
+                    image_number = fdf_properties['slice_no']
+                else:
+                    image_number=1
+                new_filename = "slice%03dimage%03decho%03d.dcm" % (islice,image_number,fdf_properties['echo_no'])
+                ds.save_as(os.path.join(outdir, new_filename))
+        else:
+            # Common export format
+            ds.PixelData = image_data.tostring()                                        #(7fe0,0010) Pixel Data
     
-        ds.save_as(os.path.join(outdir, os.path.splitext(filename)[0] + '.dcm'))
+            ds.save_as(os.path.join(outdir, os.path.splitext(filename)[0] + '.dcm'))
 
         
