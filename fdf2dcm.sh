@@ -106,7 +106,7 @@ if [ -d "$output_dir" ]; then
     fi	
 fi
 
-magphflag=`ls ${input_dir}/magnitude.img ${input_dir}/phase.img` 2> /dev/null
+magphflag=`ls ${input_dir}/magnitude.img ${input_dir}/phase.img 2> /dev/null`
 if [ $? -eq 0 ]; then  
     echo "Input directory has 'magnitude.img' and 'phase.img' "
     $0 -m -i ${input_dir}/magnitude.img/ -o ${output_dir}/magnitude.dcm
