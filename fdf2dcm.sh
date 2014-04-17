@@ -1,9 +1,13 @@
-#!/bin/env  bash 
+#!/usr/bin/env  bash 
 ## FDF to DICOM converter
 #   Front-end to agilent2dicom and dcmulti
 #
 # - Michael Eager (michael.eager@monash.edu.au)
 # - (c) 2014
+
+set -o nounset  # shortform: -u
+set -o errexit  # -e
+set -o pipefail
 
 # Set config variables
 VERBOSE=0

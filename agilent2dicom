@@ -451,6 +451,7 @@ if __name__ == "__main__":
     # Image Type: MPR, T2 MAP, PHASE MAP, PHASE SUBTRACT, PROJECTION IMAGE, DIFFUSION MAP
     #    VELOCITY MAP, MODULUS SUBTRACT, T1 MAP, DENSITY MAP, IMAGE ADDITION, OTHER
     #defult image type
+
     ds.ImageType = ["ORIGINAL","PRIMARY"]    # 0008,0008 ImageType (mandatory)
 
 
@@ -637,8 +638,9 @@ if __name__ == "__main__":
 
     if 'diff' in procpar.keys() and procpar['diff']=='y':
         if 'bvalue' in procpar.keys() and len(procpar['bvalue']) > 1:
-            SEQUENCE='Diffusion'
-            print 'Processing Diffusion sequence'
+            SEQUENCE='Diffusion'            
+            if args.verbose:
+                print 'Processing Diffusion sequence'
             ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]  # Compulsory
 # Save procpar diffusion parameters
             Bvalue = procpar['bvalue'] # 64 element array
@@ -1394,9 +1396,7 @@ if __name__ == "__main__":
 
 
         #TODO Quick hack to avoid assert errors for diffusion and 3D magnitude images
-        if 'diff' in procpar.keys() and procpar["diff"] == 'y': 
-                print "Diffusion: ", procpar["diff"]
-        else:
+        if ! ('diff' in procpar.keys() and procpar["diff"] == 'y'): 
             if MRAcquisitionType == '3D':
                 print 'Not testing slicethickness in diffusion and 3D MR FDFs'
             else:
