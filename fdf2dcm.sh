@@ -6,8 +6,8 @@
 # - (c) 2014
 
 set -o nounset  # shortform: -u
-set -o errexit  # -e
-set -o pipefail
+# set -o errexit  # -e
+# set -o pipefail
 
 # Set config variables
 VERBOSE=0
@@ -23,6 +23,8 @@ fi
 export PATH=${PATH}:${DCM3TOOLS}
 E_BADARGS=65
 source ${FDF2DCMPATH}/yesno.sh
+
+DCMULTI="dcmulti -vvv  -makestack -sortby ImagePositionPatient  -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 
 
 # Print usage information and exit
@@ -110,7 +112,7 @@ if [ -d "$output_dir" ]; then
     fi	
 fi
 
-magphflag=`ls ${input_dir}/magnitude.img ${input_dir}/phase.img 2> /dev/null`
+magphflag=`ls ${input_dir}/magnitude.img ${input_dir}/phase.img` 2> /dev/null
 if [ $? -eq 0 ]; then  
     echo "Input directory has 'magnitude.img' and 'phase.img' "
     $0 -m -i ${input_dir}/magnitude.img/ -o ${output_dir}/magnitude.dcm
@@ -132,7 +134,8 @@ if [ $? -ne 0 ]; then  #-o "$procfiles" == ""
     exit 1
 fi
 
-
+set -o errexit  # -e
+set -o pipefail
 
 
 ## Crux of script
@@ -163,11 +166,11 @@ if [ -f ${output_dir}/MULTIECHO ]; then
     for iecho in $(seq 1 ${nechos}); do
 	echoext=$(printf '%03d' $iecho)
 	echo "Converting echo ${iecho} using dcmulti"
-	dcmulti $(ls -1 ${output_dir}/tmp/*echo${echoext}.dcm) > "${output_dir}/0${echoext}.dcm"
+	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 ${output_dir}/tmp/*echo${echoext}.dcm)
     done
     rm -f ${output_dir}/MULTIECHO
 else
-    dcmulti $(ls -1 ${output_dir}/tmp/*.dcm) > ${output_dir}/0001.dcm
+    ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm)
 fi
 
 
