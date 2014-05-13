@@ -1,0 +1,400 @@
+# C.7.6.16.2.8      Frame Anatomy Macro
+# Table C.7.6.16-9 specifies the attributes of the Frame Anatomy Functional Group macro.
+#                                          Table C.7.6.16-9
+#                            FRAME ANATOMY MACRO ATTRIBUTES
+# Attribute Name                                 Tag       Type   Attribute Description
+# Frame Anatomy Sequence                    (0020,9071)      1    Identifies anatomic characteristics of this
+#                                                                 frame.
+#                                                                 Only a single Item shall be included in
+#                                                                 this sequence.
+# >Frame Laterality                         (0020,9072)     1     Laterality of (possibly paired) body parts
+#                                                                 (as described in Anatomic Region
+#                                                                 Sequence (0008,2218)) examined.
+#                                                                 Enumerated Values:
+#                                                                        R = right
+#                                                                        L = left
+#                                                                        U = unpaired
+#                                                                        B = both left and right
+#                                                                    Note:     This Attribute is mandatory, in
+#                                                                              order to ensure that frames may
+#                                                                              be positioned correctly relative to
+#                                                                              one another for display.
+#                                                                 Shall be consistent with any laterality
+#                                                                 information contained in Primary
+#                                                                 Anatomic Structure Modifier Sequence
+#                                                                 (0008,2230), if present.
+# >Include 'General Anatomy Mandatory Macro' Table 10-5           Defined Context ID for the Anatomic
+#                                                                 Region Sequence (0008,2218) is 4030.
+#                                                                 Defined Context ID for Anatomic Region
+#                                                                 Modifier Sequence (0008,2220) and
+#                                                                 Primary Anatomic Structure Modifier
+#                                                                 Sequence (0008,2230) is 2.
+
+
+
+                                       Table 10-5
+                   GENERAL ANATOMY MANDATORY MACRO ATTRIBUTES
+Attribute Name                      Tag        Type            Attribute Description
+Anatomic Region Sequence        (0008,2218)      1  Sequence that identifies the anatomic
+                                                    region of interest in this Instance (i.e.
+                                                    external anatomy, surface anatomy, or
+                                                    general region of the body).
+                                                    Only a single Item shall be included in
+                                                    this sequence.
+                                      - Standard -
+                                                                                          PS 3.3 - 2011
+                                                                                                 Page 97
+>Include ‘Code Sequence Macro’ Table 8.8-1           Context ID may be defined in the macro
+                                                     invocation.
+>Anatomic Region Modifier              (0008,2220)      3    Sequence of Items that modifies the
+Sequence                                                     anatomic region of interest of this
+                                                             Instance.
+                                                             One or more Items are permitted in this
+                                                             sequence.
+>>Include ‘Code Sequence Macro’ Table 8.8-1          Defined CID 2, unless otherwise defined in the
+                                                     macro invocation.
+Include ‘Primary Anatomic Structure Macro’ Table 10- Context ID may be defined in the macro
+8                                                    invocation.
+
+
+
+                                              Table 10-6
+                      GENERAL ANATOMY REQUIRED MACRO ATTRIBUTES
+Attribute Name                              Tag       Type              Attribute Description
+Anatomic Region Sequence               (0008,2218)      2    Sequence that identifies the anatomic
+                                                             region of interest in this Instance (i.e.
+                                                             external anatomy, surface anatomy, or
+                                                             general region of the body).
+                                                             Zero or one Item shall be included in this
+                                                             Sequence.
+>Include ‘Code Sequence Macro’ Table 8.8-1           Context ID may be defined in the macro
+                                                     invocation.
+>Anatomic Region Modifier              (0008,2220)      3    Sequence of Items that modifies the
+Sequence                                                     anatomic region of interest of this
+                                                             Instance
+                                                             One or more Items are permitted in this
+                                                             sequence.
+>>Include ‘Code Sequence Macro’ Table 8.8-1          Defined CID 2, unless otherwise defined in the
+                                                     macro invocation.
+Include ‘Primary Anatomic Structure Macro’ Table 10- Context ID may be defined in the macro
+8                                                    invocation.
+
+
+                                             Table 10-7
+                     GENERAL ANATOMY OPTIONAL MACRO ATTRIBUTES
+Attribute Name                            Tag        Type              Attribute Description
+Anatomic Region Sequence             (0008,2218)       3    Sequence that identifies the anatomic
+                                                            region of interest in this Instance (i.e.
+                                                            external anatomy, surface anatomy, or
+                                                            general region of the body).
+                                                            Only a single Item is permitted in this
+                                                            sequence.
+>Include ‘Code Sequence Macro’ Table 8.8-1          Context ID may be defined in the macro
+                                                    invocation.
+>Anatomic Region Modifier            (0008,2220)       3    Sequence of Items that modifies the
+Sequence                                                    anatomic region of interest of this
+                                                            Instance
+                                                            One or more Items are permitted in this
+                                            - Standard -
+PS 3.3 - 2011
+Page 98
+                                                             sequence.
+>>Include ‘Code Sequence Macro’ Table 8.8-1          Defined CID 2, unless otherwise defined in the
+                                                     macro invocation.
+Include ‘Primary Anatomic Structure Macro’ Table 10- Context ID may be defined in the macro
+8                                                    invocation.
+
+
+                                            Table 10-8
+                     PRIMARY ANATOMIC STRUCTURE MACRO ATTRIBUTES
+Primary Anatomic Structure           (0008,2228)      3    Sequence of Items that identifies the
+Sequence                                                   primary anatomic structure(s) of interest
+                                                           in this Instance.
+                                                           One or more Items are permitted in this
+                                                           sequence.
+>Include ‘Code Sequence Macro’ Table 8.8-1         Context ID may be defined in the macro
+                                                   invocation.
+>Primary Anatomic Structure Modifier (0008,2230)      3    Sequence of Items that modifies the
+Sequence                                                   primary anatomic structure of interest in
+                                                           this Instance.
+                                                           One or more Items are permitted in this
+                                                           sequence.
+>>Include ‘Code Sequence Macro’ Table 8.8-1        Defined CID 2.
+
+
+
+                   Table 8.8-1 Common Attribute Set for Code Sequence Attributes
+                                (Invoked as “Code Sequence Macro”)
+ Attribute Name             Tag       Type                       Attribute Description
+BASIC CODED ENTRY ATTRIBUTES
+Code Value             (0008,0100)      1    See Section 8.1.
+Coding Scheme          (0008,0102)      1    See Section 8.2.
+Designator
+Coding Scheme          (0008,0103)     1C    See Section 8.2. Required if the value of Coding Scheme
+Version                                      Designator (0008,0102) is not sufficient to identify the Code
+                                             Value (0008,0100) unambiguously. May be present
+                                             otherwise.
+Code Meaning           (0008,0104)      1    See Section 8.3.
+ENHANCED ENCODING MODE
+Context Identifier     (0008,010F)      3    See Section 8.6.
+Context UID            (0008,0117)      3    See Section 8.6.
+Mapping Resource       (0008,0105)     1C    See Section 8.4. Required if Context Identifier (0008,010F)
+                                             is present.
+Context Group          (0008,0106)     1C    See Section 8.5. Required if Context Identifier (0008,010F)
+Version                                      is present.
+Context Group          (0008,010B)      3    Indicates whether the Code Value/Coding Scheme/Code
+Extension Flag                               Meaning is selected from a private extension of the Context
+                                             Group identified in Context Identifier (0008,010F). See
+                                             Section 8.7 of this Part.
+                                             Enumerated Values: “Y”, ”N”
+Context Group          (0008,0107)     1C    See Section 8.7. Required if the value of Context Group
+Local Version                                Extension Flag (0008,010B) is "Y".
+                                             .
+Context Group          (0008,010D)     1C    Identifies the person or organization who created an
+Extension Creator                            extension to the Context Group. See Section 8.7.
+UID                                          Required if the value of Context Group Extension Flag
+                                             (0008,010B) is "Y".
+
+
+
+CID 4030 CT, MR and PET Anatomy Imaged
+
+Context ID 4030CT, MR and PET Anatomy Imaged
+
+Type: Extensible Version: 20071101
+
+Coding Scheme Designator (0008,0102) 	Code Value (0008,0100) 	Code Meaning (0008,0104)
+INCLUDE CID 4031 Common Anatomic Regions
+SRT 	T-42500 	Abdominal aorta
+SRT 	T-41070 	Abdominal aorta and its branches
+SRT 	T-B3000 	Adrenal gland
+SRT 	T-42300 	Aortic arch
+SRT 	T-A0100 	Brain
+SRT 	T-45010 	Carotid Artery
+SRT 	T-A6000 	Cerebellum
+SRT 	T-45526 	Circle of Willis
+SRT 	T-43000 	Coronary artery
+SRT 	T-A0193 	Cranial venous system
+SRT 	T-41040 	Iliac arterial system
+SRT 	T-71000 	Kidney
+SRT 	T-62002 	Liver
+SRT 	T-65000 	Pancreas
+SRT 	T-B7000 	Parathyroid
+SRT 	T-44000 	Pulmonary artery
+SRT 	T-46600 	Renal artery
+SRT 	T-C3000 	Spleen
+SRT 	T-94000 	Testis
+SRT 	T-42070 	Thoracic aorta
+SRT 	T-C8000 	Thymus
+SRT 	T-B6000 	Thyroid
+SRT 	T-83000 	Uterus 
+
+
+
+
+CID 4 Anatomic Region
+
+Context ID 4
+
+Anatomic Region
+
+Type: Extensible Version: 20110124
+
+Coding Scheme Designator (0008,0102) 	Code Value (0008,0100) 	Code Meaning (0008,0104)
+INCLUDE CID 4030 CT, MR and PET Anatomy Imaged
+INCLUDE CID 4040 Endoscopy Anatomic Regions
+INCLUDE CID 4042 XA/XRF Anatomy Imaged
+SRT 	T-32100 	Atrium
+SRT 	T-D8100 	Axilla
+SRT 	T-D2100 	Back
+SRT 	T-D6500 	Broad ligament
+SRT 	T-D1206 	Buccal region of face
+SRT 	T-D2600 	Buttock
+SRT 	T-72100 	Calyx
+SRT 	T-D1206 	Cheek
+SRT 	T-AA200 	Cornea
+SRT 	T-AB000 	Ear
+SRT 	T-41000 	Endo-arterial
+SRT 	T-32000 	Endo-cardiac
+SRT 	T-56000 	Endo-esophageal
+SRT 	T-21300 	Endo-nasal
+SRT 	T-23050 	Endo-nasopharyngeal
+SRT 	T-59600 	Endo-rectal
+SRT 	T-71000 	Endo-renal
+SRT 	T-73000 	Endo-ureteric
+SRT 	T-75000 	Endo-urethral
+SRT 	T-82000 	Endo-vaginal
+SRT 	T-40000 	Endo-vascular
+SRT 	T-48000 	Endo-venous
+SRT 	T-74250 	Endo-vesical
+SRT 	T-D4200 	Epigastric region
+SRT 	T-AA810 	Eyelid
+SRT 	T-D1200 	Face
+SRT 	T-D2310 	Flank
+SRT 	T-15200 	Fontanel of skull
+SRT 	T-D2600 	Gluteal region
+SRT 	T-15710 	Hip joint
+SRT 	T-D4240 	Hypogastric region
+SRT 	T-D1212 	Hypoglossal
+SRT 	T-55300 	Hypopharynx
+SRT 	T-D4010 	Intra-abdominal
+SRT 	G-A15A 	Intra-articular
+SRT 	T-D1400 	Intracranial
+SRT 	T-56000 	Intra-esophageal
+SRT 	T-D6221 	Intra-pelvic
+SRT 	T-D3000 	Intra-thoracic
+SRT 	T-D4211 	Left hypochondriac region
+SRT 	T-D7020 	Left inguinal region
+SRT 	T-D4140 	Left lower quadrant of abdomen
+SRT 	T-D2340 	Left lumbar region
+SRT 	T-D4130 	Left upper quadrant of abdomen
+SRT 	T-04003 	Lower inner quadrant of breast
+SRT 	T-04005 	Lower outer quadrant of breast
+SRT 	T-D2300 	Lumbar region
+SRT 	T-28000 	Lung
+SRT 	T-51000 	Mouth
+SRT 	T-21000 	Nose
+SRT 	T-D4450 	Omental bursa
+SRT 	T-D4600 	Omentum
+SRT 	T-87000 	Ovary
+SRT 	T-65010 	Pancreatic duct
+SRT 	T-D3136 	Parasternal
+SRT 	T-91000 	Penis
+SRT 	T-D2700 	Perineum
+SRT 	T-D9310 	Popliteal fossa
+SRT 	T-72000 	Renal pelvis
+SRT 	T-D4900 	Retroperitoneum
+SRT 	T-D4212 	Right hypochondriac region
+SRT 	T-D7010 	Right inguinal region
+SRT 	T-D4120 	Right lower quadrant of abdomen
+SRT 	T-D2342 	Right lumbar region
+SRT 	T-D4110 	Right upper quadrant of abdomen
+SRT 	T-D1160 	Scalp
+SRT 	T-AA110 	Sclera
+SRT 	T-98000 	Scrotum
+SRT 	T-A7010 	Spinal cord
+SRT 	T-D4210 	Subcostal
+SRT 	T-D1603 	Submandibular area
+SRT 	T-D3213 	Subxiphoid
+SRT 	T-D1620 	Supraclavicular region of neck
+SRT 	T-D4240 	Suprapubic region
+SRT 	T-11218 	Suprasternal notch
+SRT 	T-D9100 	Thigh
+SRT 	T-D3000 	Thorax
+SRT 	T-53000 	Tongue
+SRT 	T-D4230 	Umbilical region
+SRT 	T-04002 	Upper inner quadrant of breast
+SRT 	T-04004 	Upper outer quadrant of breast
+SRT 	T-82000 	Vagina
+SRT 	A-04140 	Vascular graft
+SRT 	T-32400 	Ventricle
+SRT 	T-81000 	Vulva
+SRT 	T-15460 	Wrist joint
+
+
+CID 4031 Common Anatomic Regions
+
+Context ID 4031Common Anatomic Regions
+
+Type: Extensible Version: 20091021
+
+Coding Scheme Designator (0008,0102) 	Code Value (0008,0100) 	Code Meaning (0008,0104)
+SRT 	T-D4000 	Abdomen
+SRT 	R-FAB57 	Abdomen and Pelvis
+SRT 	T-15420 	Acromioclavicular joint
+SRT 	T-15750 	Ankle joint
+SRT 	T-280A0 	Apex of Lung
+SRT 	T-D8200 	Arm
+SRT 	T-60610 	Bile duct
+SRT 	T-74000 	Bladder
+SRT 	T-04000 	Breast
+SRT 	T-26000 	Bronchus
+SRT 	T-12770 	Calcaneus
+SRT 	T-11501 	Cervical spine
+SRT 	T-D00F7 	Cervico-thoracic spine
+SRT 	T-D3000 	Chest
+SRT 	R-FAB55 	Chest and Abdomen
+SRT 	R-FAB56 	Chest, Abdomen and Pelvis
+SRT 	T-12310 	Clavicle
+SRT 	T-11BF0 	Coccyx
+SRT 	T-59300 	Colon
+SRT 	T-58200 	Duodenum
+SRT 	T-D8300 	Elbow
+SRT 	T-D0010 	Entire body
+SRT 	T-56000 	Esophagus
+SRT 	T-DD163 	Esophagus, stomach and duodenum
+SRT 	T-D0300 	Extremity
+SRT 	T-AA000 	Eye
+SRT 	T-D0801 	Eye region
+SRT 	T-11196 	Facial bones
+SRT 	T-12710 	Femur
+SRT 	T-D8800 	Finger
+SRT 	T-D9700 	Foot
+SRT 	T-12402 	Forearm bone
+SRT 	T-63000 	Gall bladder
+SRT 	T-D8700 	Hand
+SRT 	T-D1100 	Head
+SRT 	T-D1000 	Head and Neck
+SRT 	T-32000 	Heart
+SRT 	T-15710 	Hip joint
+SRT 	T-12410 	Humerus
+SRT 	T-58600 	Ileum
+SRT 	T-12340 	Ilium
+SRT 	T-AB959 	Internal Auditory Canal
+SRT 	T-D1213 	Jaw region
+SRT 	T-58400 	Jejunum
+SRT 	T-D9200 	Knee
+SRT 	T-59000 	Large intestine
+SRT 	T-24100 	Larynx
+SRT 	T-D9400 	Leg
+SRT 	T-11503 	Lumbar spine
+SRT 	T-D00F9 	Lumbo-sacral spine
+SRT 	T-11180 	Mandible
+SRT 	T-11133 	Mastoid bone
+SRT 	T-11170 	Maxilla
+SRT 	T-D3300 	Mediastinum
+SRT 	T-11149 	Nasal bone
+SRT 	T-D1600 	Neck
+SRT 	R-FAB52 	Neck and Chest
+SRT 	R-FAB53 	Neck, Chest and Abdomen
+SRT 	R-FAB54 	Neck, Chest, Abdomen and Pelvis
+SRT 	T-11102 	Optic canal
+SRT 	T-D14AE 	Oribital structure
+SRT 	T-65600 	Pancreatic duct and bile duct systems
+SRT 	T-22000 	Paranasal sinus
+SRT 	T-61100 	Parotid gland
+SRT 	T-12730 	Patella
+SRT 	T-D6000 	Pelvis
+SRT 	R-FAB58 	Pelvis and lower extremeties
+SRT 	T-9200B 	Prostate
+SRT 	T-59600 	Rectum
+SRT 	T-11300 	Rib
+SRT 	T-15680 	Sacroiliac joint
+SRT 	T-11AD0 	Sacrum
+SRT 	T-12280 	Scapula
+SRT 	T-D1460 	Sella turcica
+SRT 	T-12980 	Sesamoid bones of foot
+SRT 	T-D2220 	Shoulder
+SRT 	T-11100 	Skull
+SRT 	T-58000 	Small intestine
+SRT 	T-D0146 	Spine
+SRT 	T-15610 	Sternoclavicular joint
+SRT 	T-11210 	Sternum
+SRT 	T-57000 	Stomach
+SRT 	T-61300 	Submandibular gland
+SRT 	T-15770 	Tarsal joint
+SRT 	T-15290 	Temporomandibular joint
+SRT 	T-11502 	Thoracic spine
+SRT 	T-D00F8 	Thoraco-lumbar spine
+SRT 	T-D8810 	Thumb
+SRT 	T-D9800 	Toe
+SRT 	T-25000 	Trachea
+SRT 	T-70010 	Upper urinary tract
+SRT 	T-73800 	Ureter
+SRT 	T-75000 	Urethra
+SRT 	T-88920 	Uterus and fallopian tubes
+SRT 	T-11011 	Vertebral column and cranium
+SRT 	T-15460 	Wrist joint
+SRT 	T-11167 	Zygomatic arch
+
+Note: In a prior version of this table, the code T-D1217 was specified for the concept âMaxilla and mandibleâ. The use of this code conflicts with its assignment to another concept in SNOMED, and its use in this context is deprecated. Although there is minimal possibility of misinterpretation with SOP Instances that may include the deprecated use, receiving applications should be aware of this change; see Annex

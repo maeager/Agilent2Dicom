@@ -1,0 +1,84 @@
+                                    Table A.36-2
+                  ENHANCED MR IMAGE FUNCTIONAL GROUP MACROS
+Functional Group Macro         Section                            Usage
+Pixel Measures               C.7.6.16.2.1                           M
+Frame Content                C.7.6.16.2.2    M - May not be used as a Shared Functional
+                                                                  Group.
+Plane Position (Patient)     C.7.6.16.2.3                           M
+Plane Orientation (Patient)  C.7.6.16.2.4                           M
+Referenced Image             C.7.6.16.2.5    C - Required if the image or frame has been
+                                             planned on another image or frame. May be
+                                                            present otherwise
+Derivation Image             C.7.6.16.2.6    C - Required if the image or frame has been
+                                                  derived from another SOP Instance.
+Cardiac Synchronization      C.7.6.16.2.7      C - Required if Cardiac Synchronization
+                                              Technique (0018,9037) equals other than
+                                                NONE and if Image Type (0008,0008)
+                                               Value 1 is ORIGINAL or MIXED. May be
+                                                           present otherwise.
+Frame Anatomy                C.7.6.16.2.8                           M
+Pixel Value Transformation   C.7.6.16.2.9     C - Required if Photometric Interpretation
+                                                   (0028,0004) is MONOCHROME2.
+Frame VOI LUT               C.7.6.16.2.10         U - May be used only if Photometric
+                                                      Interpretation (0028,0004) is
+                                                           MONOCHROME2.
+Real World Value Mapping    C.7.6.16.2.11         U - May be used only if Photometric
+                                                      Interpretation (0028,0004) is
+                                                           MONOCHROME2.
+Contrast/Bolus Usage        C.7.6.16.2.12        C - Required if Contrast/Bolus Agent
+                                                    Sequence (0018,0012) is used.
+Respiratory Synchronization C.7.6.16.2.17          C - Required if Respiratory Motion
+                                                Compensation Technique (0018,9170)
+                                               equals other than NONE, REALTIME or
+                                                  BREATH_HOLD and if Image Type
+                                                 (0008,0008) Value 1 is ORIGINAL or
+                                                  MIXED. May be present otherwise.
+MR Image Frame Type           C.8.13.5.1                            M
+MR Timing and Related         C.8.13.5.2       C - Required if Image Type (0008,0008)
+Parameters                                     Value 1 is ORIGINAL or MIXED. May be
+                                                           present otherwise.
+            
+MR FOV/Geometry C.8.13.5.3  C - Required if Geometry of k-Space
+                                Traversal (0018,9032) equals
+                              RECTILINEAR and if Image Type
+                            (0008,0008) Value 1 is ORIGINAL or
+                             MIXED. May be present otherwise.
+MR Echo         C.8.13.5.4 C - Required if Image Type (0008,0008)
+                           Value 1 is ORIGINAL or MIXED. May be
+                                      present otherwise.
+MR Modifier     C.8.13.5.5 C - Required if Image Type (0008,0008)
+
+                                        Value 1 is ORIGINAL or MIXED. May be
+                                                   present otherwise.
+MR Imaging Modifier       C.8.13.5.6     C - Required if Image Type (0008,0008)
+                                        Value 1 is ORIGINAL or MIXED. May be
+                                                   present otherwise.
+MR Receive Coil           C.8.13.5.7     C - Required if Image Type (0008,0008)
+                                        Value 1 is ORIGINAL or MIXED. May be
+                                                   present otherwise.
+MR Transmit Coil          C.8.13.5.8     C - Required if Image Type (0008,0008)
+                                        Value 1 is ORIGINAL or MIXED. May be
+                                                   present otherwise.
+MR Diffusion              C.8.13.5.9       C - Required if Acquisition Contrast
+                                       (0008,9209) in any MR Image Frame Type
+                                          Functional Group in the SOP Instance
+                                           equals DIFFUSION and Image Type
+                                          (0008,0008) Value 1 is ORIGINAL or
+                                            MIXED. May be present otherwise.
+MR Averages               C.8.13.5.10    C - Required if Image Type (0008,0008)
+                                        Value 1 is ORIGINAL or MIXED. May be
+                                                   present otherwise.
+MR Spatial Saturation     C.8.13.5.11     C - Required if Spatial Pre-saturation
+                                       (0018,9027) equals SLAB for any frame in
+                                            the SOP Instance and Image Type
+                                          (0008,0008) Value 1 is ORIGINAL or
+                                            MIXED. May be present otherwise.
+MR Metabolite Map         C.8.13.5.12    C - Required if Image Type (0008,0008)
+                                      Value 3 equals METABOLITE_MAP. May be
+                                                   present otherwise.
+MR Velocity Encoding      C.8.13.5.13 C - Required if Phase Contrast (0018,9014)
+                                        equals YES and Image Type (0008,0008)
+                                        Value 1 is ORIGINAL or MIXED. May be
+                                                   present otherwise.
+MR Arterial Spin Labeling C.8.13.5.14   C – Required if Image Type (0008,0008)
+                                       Value 3 is ASL. May be present otherwise.

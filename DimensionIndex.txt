@@ -1,0 +1,67 @@
+                                       Table C.7.6.17-1
+                         MULTI-FRAME DIMENSION MODULE ATTRIBUTES
+Attribute Name                         Tag        Type  Attribute Description
+Dimension Organization Sequence    (0020,9221)      1   Sequence that lists the Dimension
+                                                        Organization UIDs referenced by the
+                                                        containing SOP Instance. See section
+                                                        C.7.6.17.2 for further explanation.
+                                                        One or more Items shall be included in
+                                                        this Sequence.
+>Dimension Organization UID        (0020,9164)      1   Uniquely identifies a set of dimensions
+                                                        referenced within the containing SOP
+                                                        Instance. See section C.7.6.17.2 for
+                                                        further explanation.
+Dimension Organization Type        (0020,9311)      3   Dimension organization of the instance.
+                                                        Defined Terms:
+                                                           3D
+                                                              Spatial Multi-frame image of parallel
+                                                              planes (3D volume set)
+                                                           3D_TEMPORAL
+                                                              Temporal loop of parallel-plane 3D
+                                                              volume sets.
+Dimension Index Sequence           (0020,9222)      1   Identifies the sequence containing the
+                                                        indices used to specify the dimension of
+                                                        the multi-frame object.
+                                                        One or more Items shall be included in
+                                                        this sequence.
+>Dimension Index Pointer           (0020,9165)      1   Contains the Data Element Tag that is
+                                                        used to identify the Attribute connected
+                                                        with the index. See section C.7.6.17.1 for
+                                                        further explanation.
+>Dimension Index Private Creator   (0020,9213)     1C   Identification of the creator of a group of
+                                                        private data elements.
+                                                        Required if the Dimension Index Pointer
+                                                        (0020,9165) value is the Data Element
+                                                        Tag of a Private Attribute.
+>Functional Group Pointer          (0020,9167)     1C   Contains the Data Element Tag of the
+                                                        Functional Group Sequence that contains
+                                                        the Attribute that is referenced by the
+                                                        Dimension Index Pointer (0020,9165).
+                                                        See section C.7.6.17.1 for further
+                                                        explanation.
+
+                                                     Required if the value of the Dimension
+                                                     Index Pointer (0020,9165) is the Data
+                                                     Element Tag of an Attribute that is
+                                                     contained within a Functional Group
+                                                     Sequence.
+>Functional Group Private Creator (0020,9238)     1C Identification of the creator of a group of
+                                                     private data elements.
+                                        - Standard -
+                                                                      PS 3.3 - 2011
+                                                                          Page 485
+                                            Required if the Functional Group Pointer
+                                            0020,9167) value is the Data Element
+                                            Tag of a Private Attribute.
+>Dimension Organization UID  (0020,9164) 1C Uniquely identifies a set of dimensions
+                                            referenced within the containing SOP
+                                            Instance. In particular the dimension
+                                            described by this sequence item is
+                                            associated with this Dimension
+                                            Organization UID. See section C.7.6.17.2
+                                            for further explanation.
+                                            Required if the value of the Dimension
+                                            Organization Sequence (0020,9221)
+                                            contains Items
+>Dimension Description Label (0020,9421)  3 Free text description that explains the
+                                            meaning of the dimension.
