@@ -10,7 +10,7 @@
 
 """
 
-VersionNumber = "0.2"
+VersionNumber = "0.3"
 
 import pdb
 # import ast
@@ -19,6 +19,7 @@ import sys
 import datetime
 import dateutil
 import dateutil.tz
+import re
 
 import dicom
 import uuid
@@ -26,12 +27,18 @@ import math
 import numpy
 import argparse
 
+from dicom.sequence import Sequence
+from dicom.dataset import Dataset
+
+
 UID_ROOT = "2.25"
 UID_Type_InstanceCreator = "0"
 UID_Type_MediaStorageSOPInstance = "1"
 UID_Type_StudyInstance = "2"
 UID_Type_SeriesInstance = "3"
 UID_Type_FrameOfReference = "4"
+UID_Type_DimensionIndex1 = "5"
+UID_Type_DimensionIndex2 = "6"
 
 # Hard coded DICOM tag values
 InstanceCreatorId = ''.join(map(str,[ord(c) for c in 'agilent2dicom'])) + '.' + VersionNumber
@@ -43,6 +50,45 @@ DICOM_Tag_SoftwareVersions = "VnmrJ 3.2"
 
 SEQUENCE=''
 
+
+def getColumns(inFile, delim="\t", header=True):
+    """
+    Get columns of data from inFile. The order of the rows is respected
+    
+    :param inFile: column file separated by delim
+    :param header: if True the first line will be considered a header line
+    :returns: a tuple of 2 dicts (cols, indexToName). cols dict has keys that 
+    are headings in the inFile, and values are a list of all the entries in that
+    column. indexToName dict maps column index to names that are used as keys in 
+    the cols dict. The names are the same as the headings used in inFile. If
+    header is False, then column indices (starting from 0) are used for the 
+    heading names (i.e. the keys in the cols dict)
+    """
+    cols = {}
+    indexToName = {}
+    for lineNum, line in enumerate(inFile):
+        if lineNum == 0:
+            headings = line.split(delim)
+            i = 0
+            for heading in headings:
+                heading = heading.strip()
+                if header:
+                    cols[heading] = []
+                    indexToName[i] = heading
+                else:
+                    # in this case the heading is actually just a cell
+                    cols[i] = [heading]
+                    indexToName[i] = i
+                i += 1
+        else:
+            cells = line.split(delim)
+            i = 0
+            for cell in cells:
+                cell = cell.strip()
+                cols[indexToName[i]] += [cell]
+                i += 1
+                
+    return cols, indexToName
 
 #=========================================================================================
 # CREATEUID - Create and return Unique Identification (UID) 
@@ -319,7 +365,7 @@ if __name__ == "__main__":
         print("Setting file meta information...")
 
     # Populate required values for file meta information
-    file_meta = dicom.dataset.Dataset()
+    file_meta = Dataset()
     #file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4.1"  # Enhanced MR Image SOP
     file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4" #MR Image SOP
     file_meta.MediaStorageSOPInstanceUID = CreateUID(UID_Type_MediaStorageSOPInstance,[],[],args.verbose)
@@ -333,7 +379,7 @@ if __name__ == "__main__":
 
     # Create the FileDataset instance (initially no data elements, but file_meta supplied)
     #ds = FileDataset(filename, {}, file_meta=file_meta, preamble="\0" * 128)
-    ds = dicom.dataset.Dataset()
+    ds = Dataset()
     ds.file_meta = file_meta
     ds.preamble = "\0"*128
 
@@ -365,7 +411,10 @@ if __name__ == "__main__":
     
     ds.PatientName = procpar['name']                                                     # 0010,0010 Patient Name (optional)
     ds.PatientID = procpar['ident']                                                      # 0010,0020 Patient Id (optional)
-    ds.PatientsBirthDate  = procpar["birthday"]                                          # 0010,0030 Patient's Birth Date (optional)
+    if procpar['birthday'][0] == '':
+        ds.PatientsBirthDate  = '20010101' #str(["01", "01", "01"])                        
+    else:
+        ds.PatientsBirthDate  = procpar["birthday"]                                          # 0010,0030 Patient's Birth Date (optional)
     # 0010,0040 Patient's Sex (optional)  #(M = male, F = Female, O = other) 
     if 'gender' in procpar.keys():
         if procpar['gender'] == 'male':
@@ -374,7 +423,7 @@ if __name__ == "__main__":
             ds.patientsSex = 'F'
         else:
             ds.PatientsSex= 'O'
-
+    
     #-------------------------------------------------------------------------------------
     # IE: Study
     # 
@@ -384,8 +433,13 @@ if __name__ == "__main__":
 
     ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar,[],args.verbose)                     # 0020,000D Study Instance UID (mandatory)
     ds.StudyDate = procpar['studyid_'][2:]                                               # 0008,0020 Study Date (optional)
-    # ds.StudyTime                                                                       # 0008,0030 Study Time (optional)
+    ds.StudyTime = procpar['time_submitted'][9:]                                                                     # 0008,0030 Study Time (optional)
     ds.StudyID = procpar['studyid_']                                                     # 0020,0010 Study ID (optional)
+    
+    ds.ReferringPhysiciansName = procpar['operator_']  # or  ['investigator']
+
+
+    
 
     #-------------------------------------------------------------------------------------
     # IE: Series
@@ -417,6 +471,33 @@ if __name__ == "__main__":
 
     ds.FrameOfReferenceUID = CreateUID(UID_Type_FrameOfReference, procpar,[],args.verbose)               # 0020,0052 Frame of Reference (mandatory)
     
+    ds.PositionReferenceIndicator = "SLIDE_CORNER"
+    # Position Reference Indicator (0020,1040) 2 Part of the imaging target used as a
+    #    reference. See C.7.4.1.1.2 for further
+    #    explanation.
+# C.7.4.1.1.2        Position Reference Indicator
+# The Position Reference Indicator (0020,1040) specifies the part of the imaging target that was
+# used as a reference point associated with a specific Frame of Reference UID. The Position
+# Reference Indicator may or may not coincide with the origin of the fixed frame of reference
+# related to the Frame of Reference UID.
+# For a Patient-related Frame of Reference, this is an anatomical reference point such as the iliac
+# crest, orbital-medial, sternal notch, symphysis pubis, xiphoid, lower coastal margin, or external
+# auditory meatus, or a fiducial marker placed on the patient. The patient-based coordinate system
+# is described in C.7.6.2.1.1.
+# For a slide-related Frame of Reference, this is the slide corner as specified in C.8.12.2.1 and
+# shall be identified in this attribute with the value 'SLIDE_CORNER'. The slide-based coordinate
+# system is described in C.8.12.2.1.
+# The Position Reference Indicator shall be used only for annotation purposes and is not intended
+# to be used as a mathematical spatial reference.
+#   Note:     The Position Reference Indicator may be sent zero length when it has no meaning, for example,
+#             when the Frame of Reference Module is required to relate mammographic images of the breast
+#             acquired without releasing breast compression, but where there is no meaningful anatomical
+#             reference point as such.
+
+
+
+
+
     #-------------------------------------------------------------------------------------
     # IE: Equipment
     # 
@@ -452,7 +533,12 @@ if __name__ == "__main__":
     #    VELOCITY MAP, MODULUS SUBTRACT, T1 MAP, DENSITY MAP, IMAGE ADDITION, OTHER
     #defult image type
 
-    ds.ImageType = ["ORIGINAL","PRIMARY"]    # 0008,0008 ImageType (mandatory)
+    ds.ImageType = ["ORIGINAL","PRIMARY","OTHER"]    # 0008,0008 ImageType (mandatory)
+    if 'diff' in procpar.keys() and procpar['diff'] =='y':
+        ds.ImageType[2]="DIFFUSION MAP"
+    if 'imPH' in procpar.keys() and procpar['imPH'] =='y':
+        ds.ImageType[2]="PHASE MAP"
+
 
 
     #-------------------------------------------------------------------------------------
@@ -507,6 +593,64 @@ if __name__ == "__main__":
 
     # Frame Anatomy Macro C.7.6.16.2.8 M - Implement later if required.
 
+    FrameAnatSeq = Dataset()
+    FrameAnatSeq.FrameLaterality="B"
+    GeneralAnatMandatoryMacro = Dataset()
+
+    # CodeSeqMacro = Dataset()
+    ## DEFAULT
+    GeneralAnatMandatoryMacro.CodeValue= 'T-D1100'
+    GeneralAnatMandatoryMacro.CodeSchemeDesignator='SRT'
+    # GeneralAnatMandatoryMacro.CodeSchemeVersion='1'
+    GeneralAnatMandatoryMacro.CodeMeaning = 'Head'
+    thispath = os.path.dirname(__file__)
+        #print(thispath)    
+    codes = file(thispath+"/AnatomyCodes.txt","r") 
+    cols, indToName = getColumns(codes) 
+    for codeidx in xrange(0,len(cols['Meaning'])-1):
+        if re.search(procpar['anatomy'].lower(),cols['Meaning'][codeidx].lower()):
+            GeneralAnatMandatoryMacro.CodeValue= cols['Value'][codeidx]
+            GeneralAnatMandatoryMacro.CodeSchemeDesignator='SRT'
+    # GeneralAnatMandatoryMacro.CodeSchemeVersion='1'
+            GeneralAnatMandatoryMacro.CodeMeaning = cols['Meaning'][codeidx]
+            break
+    codes.close()
+
+    AnatRegionModifierSeq = Dataset()
+    AnatRegionModifierSeq.CodeValue= 'G-A138'
+    AnatRegionModifierSeq.CodeSchemeDesignator='SRT'
+    #AnatRegionModifierSeq.CodeSchemeVersion
+    AnatRegionModifierSeq.CodeMeaning = 'Coronal'
+    codes = file(thispath+"/AnatomicModifier.txt","r") 
+    cols, indToName = getColumns(codes) 
+    for codeidx in xrange(0,len(cols['Meaning'])-1):
+        if re.search(procpar['sorient'].lower(),cols['Meaning'][codeidx].lower()):
+            AnatRegionModifierSeq.CodeValue= cols['Value'][codeidx]
+            AnatRegionModifierSeq.CodeSchemeDesignator='SRT'
+    # GeneralAnatMandatoryMacro.CodeSchemeVersion='1'
+            AnatRegionModifierSeq.CodeMeaning = cols['Meaning'][codeidx]
+            break
+    codes.close()
+
+    PrimaryAnatStructMacro = Dataset()
+    PrimaryAnatStructMacro.CodeValue = GeneralAnatMandatoryMacro.CodeValue
+    PrimaryAnatStructMacro.CodeSchemeDesignator = GeneralAnatMandatoryMacro.CodeSchemeDesignator
+    PrimaryAnatStructMacro.CodeMeaning = GeneralAnatMandatoryMacro.CodeMeaning
+    PrimaryAnatModifier = Dataset()
+    PrimaryAnatModifier.CodeValue= AnatRegionModifierSeq.CodeValue
+    PrimaryAnatModifier.CodeSchemeDesignator=AnatRegionModifierSeq.CodeSchemeDesignator
+    PrimaryAnatModifier.CodeMeaning = AnatRegionModifierSeq.CodeMeaning
+
+
+    ## Put the sequences together
+    PrimaryAnatStructMacro.PrimaryAnatomicStructureModifierSequence = Sequence([PrimaryAnatModifier])
+    FrameAnatSeq.PrimaryAnatomicStructureSequence = Sequence([PrimaryAnatStructMacro])
+    GeneralAnatMandatoryMacro.AnatomicRegionModifierSequence = Sequence([AnatRegionModifierSeq])
+    FrameAnatSeq.AnatomicRegionSequence = Sequence([GeneralAnatMandatoryMacro])
+    ds.FrameAnatomySequence = Sequence([FrameAnatSeq])
+
+    
+
     # Pixel Value Transformation C.7.6.16.2.9 Macro
     # Pixel Value Transformation Sequence (0028,9145) 1 Contains the attributes involved in the transformation of stored pixel values. 
     # Only a single Item shall be included in this sequence.
@@ -551,13 +695,72 @@ if __name__ == "__main__":
 
     # >Percent Phase Field of View (0018,0094) 1C Ratio of field of view dimension in phase direction to field of view dimension in frequency direction, expressed as a percent.
 
+##TODO
+    MRFOVSeq = Dataset()
+    MRFOVSeq.InPlanePhaseEncodingDirection=['ROW']
+    #MRFOVSeq.MRAcquisitionFrequencyEncodingSteps
+    #MRFOVSeq.MRAcquisitionPhaseEncodingStepsinplane
+    #MRFOVSeq.PercentSampling
+    #MRFOVSeq.PercentPhaseFieldofView
+    ds.MRFOVGeonmetrySequence = Sequence([MRFOVSeq])
+
     #MR Receive Coil C.8.13.5.7 C
     # MR Receive Coil Sequence (0018,9042) 1 # A sequence that provides information about each receive coil used.
     # Only a single Item shall be included in this sequence.
     # >Receive Coil Name (0018,1250) 1C Name of receive coil used.
+    ReceiveCoilSeq = Dataset()
+    ReceiveCoilSeq.ReceiveCoilName='NONAME'
+    ReceiveCoilSeq.ReceiveCoilType = 'VOLUME'
+    ReceiveCoilSeq.ReceiveCoilManufacturerName = 'Agilent Technologies'
+    if 'rfcoil' in procpar.keys():
+        if procpar['rfcoil'] == 'millipede':
+            ReceiveCoilSeq.ReceiveCoilName='millipede'
+            ReceiveCoilSeq.ReceiveCoilType = 'VOLUME'
+    ds.MRReceiveCoilSequence= Sequence([ReceiveCoilSeq])
 
     # MR Transmit Coil C.8.13.5.8 C 
-
+#                                           Table C.8-95
+#                              MR TRANSMIT COIL MACRO ATTRIBUTES
+# Attribute Name                          Tag        Type Attribute Description
+# MR Transmit Coil Sequence           (0018,9049)      1  A sequence that provides information
+#                                                         about the transmit coil used.
+#                                                         Only a single Item shall be included in
+#                                                         this sequence.
+# >Transmit Coil Name                 (0018,1251)     1C  Name of transmit coil used.
+#                                                         Required if Frame Type (0008,9007)
+#                                                         Value 1 of this frame is ORIGINAL. May
+#                                                         be present otherwise.
+# >Transmit Coil Manufacturer Name    (0018,9050)     2C  Name of manufacturer of transmit coil.
+#                                                         Required if Frame Type (0008,9007)
+#                                                         Value 1 of this frame is ORIGINAL. May
+#                                                         be present otherwise.
+# >Transmit Coil Type                 (0018,9051)     1C  Type of transmit coil used.
+#                                                         Required if Frame Type (0008,9007)
+#                                                         Value 1 of this frame is ORIGINAL. May
+#                                                         be present otherwise.
+#                                                         Defined Terms:
+#                                                                 BODY
+#                                                                 VOLUME = head, extremity,
+#                                                                                  etc.
+#                                                                 SURFACE
+    TransmitCoilSeq = Dataset()
+    TransmitCoilSeq.TransmitCoilManufacturername='Agilent Technologies'
+    TransmitCoilSeq.TransmitCoilName='NONAME'
+    TransmitCoilSeq.TransmitCoilType='VOLUME'
+    if 'bodycoil' in procpar.keys() and procpar['bodycoil']=='y':
+        ds.TransmitCoil = 'BODY'
+    ds.MRTransmitCoilSequence = Sequence([TransmitCoilSeq])
+    
+# Transmitter Frequency (0018,9098) 1C Precession frequency in MHz of the
+#                                      nucleus being addressed for each
+#                                      spectral axis.
+#                                      See section C.8.14.1.1 for further
+#                                      explanation of the ordering.
+#                                      Required if Image Type (0008,0008)
+#                                      Value 1 is ORIGINAL. May be present
+#                                      otherwise.
+    if 'sfrq' in procpar.keys():
+        ds.TransmitterFrequency = procpar['sfrq']
 
 
     # MR Diffusion C.8.13.5.9 C 
@@ -665,7 +868,7 @@ if __name__ == "__main__":
     if 'asltag' in procpar.keys() and procpar['asltag'] != 0:
         SEQUENCE='ASL'
         print 'Processing ASL sequence images'
-        ds.ImageType = ["ORIGINAL","PRIMARY", "ASL"]
+        ds.ImageType = ["ORIGINAL","PRIMARY", "ASL","NONE"]
 
 
     # Per-frame Functional Groups Sequence (5200,9230) 1
@@ -699,7 +902,7 @@ if __name__ == "__main__":
         tmp_file.write(str(procpar['ne']))
         tmp_file.close()
         ds.ImageType=["ORIGINAL","PRIMARY","MULTIECHO"]  # Compulsory
-
+        
 
 #     Frame Content C.7.6.16.2.2 M - May not be used as a Shared Functional Group.
     
@@ -722,22 +925,26 @@ if __name__ == "__main__":
 # >In-Stack Position Number (0020,9057) 1C The ordinal number of a frame in a group of frames, with the same Stack ID Required if Stack ID (0020,9056) is present. See section C.7.6.16.2.2.4 for further explanation.
 # >Frame Comments (0020,9158) 3 User-defined comments about the frame.
 # >Frame Label (0020,9453) 3 Label corresponding to a specific dimension index value. Selected from a set of dimension values defined by the application. This attribute may be referenced by the Dimension Index Pointer (0020,9165) attribute in the Multi-frame Dimension Module. See C.7.6.16.2.2.5 for further explanation.
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+        
+
+    # Image Laterality (0020,0062) 3 Laterality of (possibly paired) body part examined.
+                               # Enumerated Values:
+                               #          R = right
+                               #          L = left
+                               #          U = unpaired
+                               #          B = both left and right
+    ds.Laterality="R"
+  
+    # Accession Number (0008,0050) 3 An identifier of the Imaging Service Request
+    #                           for this Requested Procedure.
+    ds.AccessionNumber = '1'
     
     # Instance Number (0020,0013) 1
     # A number that identifies this instance. The value shall be the same for all SOP 
     # Instances of a Concatenation, and different for each separate Concatenation and for 
     # each SOP Instance not within a Concatenation in a series.
+    ds.InstanceNumber = 1
+
 
     # Content Date (0008,0023) 1
     # The date the data creation was started.
@@ -936,23 +1143,229 @@ if __name__ == "__main__":
     # Required if Photometric Interpretation (0028,0004) is MONOCHROME2.
         
 
+
     # Module: MR Pulse Sequence (Required if Image Type (0008,0008) Value 1 is ORIGINAL
     #         or MIXED. May be present otherwise.)
     # Reference: DICOM Part 3: Information Object Definitions C.8.13.4
     
-    #Pulse Sequence Name (0018,9005) 1C
-    # Name of the pulse sequence for annotation purposes. Potentially vendor-specific name.
-    # Required if Image Type (0008,0008) Value 1 is ORIGINAL or MIXED. 
-    # May be present otherwise.
-    
+#                                            Table C.8-87
+#                         MR PULSE SEQUENCE MODULE ATTRIBUTES
+# Attribute Name                       Tag        Type Attribute Description
+# Pulse Sequence Name              (0018,9005)     1C  Name of the pulse sequence for
+#                                                      annotation purposes. Potentially vendor-
+#                                                      specific name.
+#                                                      Required if Image Type (0008,0008)
+#                                                      Value 1 is ORIGINAL or MIXED. May be
+#                                                      present otherwise.
+    ds.PulseSequenceName     = procpar['pslabel'][:15]        
+# MR Acquisition Type              (0018,0023)     1C  Identification of spatial data encoding
+#                                                      scheme.
+#                                                      Defined Terms:
+#                                                               1D
+#                                                               2D
+#                                                               3D
+#                                                      Required if Image Type (0008,0008)
+#                                                      Value 1 is ORIGINAL or MIXED. May be
+#                                                      present otherwise.
     MRAcquisitionType = '2D'
     if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
         MRAcquisitionType = '3D'
-
     ds.add_new((0x0018,0x0023), 'CS', MRAcquisitionType)
-    #ds.MRAcquistionType = MRAcquisitionType                                              # 0018,0023 MR Acquisition Type (optional)
-                                                                                         # Identification of spatial data encoding scheme.
-                                                                                         # Defined Terms: 1D 2D 3D
+# Echo Pulse Sequence              (0018,9008)     1C  Echo category of pulse sequences.
+#                                                      Enumerated Values:
+#                                                               SPIN
+#                                                               GRADIENT
+#                                                               BOTH
+#                                                      Required if Image Type (0008,0008)
+#                                                      Value 1 is ORIGINAL or MIXED. May be
+#                                                      present otherwise.
+    ds.EchoPulseSequence = 'SPIN'  ##TODO
+# Multiple Spin Echo               (0018,9011)     1C  Multiple Spin Echo category of pulse
+#                                                      sequence used to collect different lines in
+#                                                      k-space for a single frame.
+#                                                      Enumerated Values:
+#                                                               YES
+#                                                               NO
+#                                                      Required if Image Type (0008,0008)
+#                                                      Value 1 is ORIGINAL or MIXED and Echo
+#                                                      Pulse Sequence (0018,9008) equals SPIN
+#                                                      or BOTH.
+#                                                      Otherwise may be present if Image Type
+#                                                      (0008,0008) Value 1 is DERIVED and
+#                                                      Echo Pulse sequence (0018,9008) equals
+#                                                      SPIN or BOTH.
+    if SEQUENCE=="MULTIECHO":
+        ds.MultipleSpinEcho="YES"
+    else:
+        ds.MultipleSpinEcho="NO"
+# Multi-planar Excitation          (0018,9012)     1C  Technique that simultaneously excites
+#                                                      several volumes.
+#                                                      Enumerated Values:
+#                                                               YES
+#                                                               NO
+#                                                Required if Image Type (0008,0008)
+#                                                Value 1 is ORIGINAL or MIXED. May be
+#                                                present otherwise.
+    ds.MultiplanarExcitation="NO"
+    if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
+        ds.MultiplanarExcitation="YES"
+# Phase Contrast                  (0018,9014) 1C Phase Contrast Pulse sequence is a pulse
+#                                                sequence in which the flowing spins are
+#                                                velocity encoded in phase.
+#                                                Enumerated Values:
+#                                                         YES
+#                                                         NO
+#                                                Required if Image Type (0008,0008)
+#                                                Value 1 is ORIGINAL or MIXED. May be
+#                                                present otherwise.
+    ds.PhaseContrast = "NO"  ##TODO
+# Velocity Encoding Acquisition   (0018,9092) 1C Velocity encoding directions used for
+# Sequence                                       acquisition.
+#                                                Required if Phase Contrast (0018,9014)
+#                                                equals YES.
+#                                                One or more Items shall be included in
+#                                                this sequence.
+# >Velocity Encoding Direction    (0018,9090)  1 The direction cosines of the velocity
+#                                                encoding vector with respect to the
+#                                                patient. See C.7.6.2.1.1 for further
+#                                                explanation.
+# Time of Flight Contrast         (0018,9015) 1C Time of Flight contrast is created by the
+#                                                inflow of blood in the saturated plane.
+#                                                Enumerated Values:
+#                                                         YES
+#                                                         NO
+#                                                Required if Image Type (0008,0008)
+#                                                Value 1 is ORIGINAL or MIXED. May be
+#                                                present otherwise.
+    ds.TimeofFlightContrast = "NO"
+# Arterial Spin Labeling Contrast (0018,9250) 1C Arterial Spin Labeling contrast technique.
+#                                                Enumerated Values:
+#                                                         CONTINUOUS = a single long low
+#                                                                 powered RF pulse
+#                                                         PSEUDOCONTINUOUS =
+#                                                                 multiple short low powered
+#                                                                 RF pulses
+#                                                         PULSED = a single short high
+#                                                                 powered RF pulse
+#                                                Required if Image Type (0008,0008) Value
+#                                                3 is ASL. May be present otherwise.
+    if ('asl' in procpar.keys() and procpar['asl'] == 'y'):
+        ds.ArterialSpinLabelingContrast = 'CONTINUOUS' 
+#FIXME##TODO: not well defined mapping see ASL section below
+
+# Steady State Pulse Sequence (0018,9017)     1C Steady State Sequence.
+#                                                Defined Terms:
+#                                                        FREE_PRECESSION
+#                                                        TRANSVERSE
+#                                                        TIME_REVERSED
+#                                                        LONGITUDINAL
+#                                                        NONE
+#                                                Required if Image Type (0008,0008)
+#                                                                       Page 861
+#                                           Value 1 is ORIGINAL or MIXED. May be
+#                                           present otherwise.
+    ds.SteadyStatePulseSequence = "FREE_PRECESSION"  ##TODO
+# Echo Planar Pulse Sequence (0018,9018) 1C Echo Planar category of Pulse
+#                                           Sequences.
+#                                           Enumerated Values:
+#                                                   YES
+#                                                   NO
+#                                           Required if Image Type (0008,0008)
+#                                           Value 1 is ORIGINAL or MIXED. May be
+#                                           present otherwise.
+    ds.EchoPlanarPulseSequence = "NO"  ##TODO
+# Saturation Recovery        (0018,9024) 1C Saturation recovery pulse sequence.
+#                                           Enumerated Values:
+#                                                   YES
+#                                                   NO
+#                                           Required if Image Type (0008,0008)
+#                                           Value 1 is ORIGINAL or MIXED. May be
+#                                           present otherwise.
+    ds.SaturationRecovery = "NO"  ##TODO
+# Spectrally Selected Suppression     (0018,9025) 1C Spectrally Selected Suppression.
+#                                                    Defined Terms:
+#                                                             FAT
+#                                                             WATER
+#                                                             FAT_AND_WATER
+#                                                             SILICON_GEL
+#                                                             NONE
+#                                                    Required if Image Type (0008,0008)
+#                                                    Value 1 is ORIGINAL or MIXED. May be
+#                                                    present otherwise.
+    ds.SpectrallySelectedSuppression = "NO" ##TODO
+# Oversampling Phase                  (0018,9029) 1C Oversampling Phase.
+#                                                    Enumerated Values:
+#                                                             2D           = phase direction
+#                                                             3D           = out of plane
+#                                                                            direction
+#                                                             2D_3D        = both
+#                                                             NONE
+#                                                    Required if Image Type (0008,0008)
+#                                                    Value 1 is ORIGINAL or MIXED. May be
+#                                                    present otherwise.
+    ds.OversamplingPhase= "NONE" ##TODO
+# Geometry of k-Space Traversal       (0018,9032) 1C Geometry category of k-Space traversal.
+#                                                    Defined Terms:
+#                                                             RECTILINEAR
+#                                                             RADIAL
+#                                                             SPIRAL
+#                                                    Required if Image Type (0008,0008)
+#                                                    Value 1 is ORIGINAL or MIXED. May be
+#                                                    present otherwise.
+#    ds.GeometryofkSpaceTraversal = "RECTILINEAR" ##TODO
+# Rectilinear Phase Encode Reordering (0018,9034) 1C Rectilinear phase encode reordering.
+#                                                    Defined Terms:
+#                                                             LINEAR
+#                                                             CENTRIC
+#                                                             SEGMENTED
+#                                                             REVERSE_LINEAR
+#                                                        REVERSE_CENTRIC
+#                                               Required if Image Type (0008,0008)
+#                                               Value 1 is ORIGINAL or MIXED and
+#                                               Geometry of k-Space Traversal
+#                                               (0018,9032) equals RECTILINEAR.
+#                                               Otherwise may be present if Image Type
+#                                               (0008,0008) Value 1 is DERIVED and
+#                                               Geometry of k-Space Traversal
+#                                               (0018,9032) equals RECTILINEAR.
+#    ds.RectilinearPhaseEncodeReordering= "LINEAR"  ##TODO
+# Segmented k-Space Traversal    (0018,9033) 1C Segmented k-Space traversal. If
+#                                               Geometry of k-Space Traversal is
+#                                               rectilinear, multiple lines can be acquired
+#                                               at one time. If Geometry of k-Space
+#                                               Traversal is spiral or radial, paths can be
+#                                               interleaved and acquired at one time.
+#                                               Enumerated Values:
+#                                                        SINGLE = successive single
+#                                                                       echo coverage
+#                                                        PARTIAL = segmented coverage
+#                                                        FULL       = single shot full
+#                                                                       coverage
+#                                               Required if Image Type (0008,0008)
+#                                               Value 1 is ORIGINAL or MIXED. May be
+#                                               present otherwise.
+#    ds.SegmentedkSpaceTraversal = "SINGLE"
+# Coverage of k-Space            (0018,9094) 1C Coverage of k-Space in the ky-kz plane.
+#                                                Defined Terms:
+#                                                        FULL
+#                                                        CYLINDRICAL
+#                                                        ELLIPSOIDAL
+#                                                        WEIGHTED
+#                                               Required if Image Type (0008,0008)
+#                                               Value 1 is ORIGINAL or MIXED and MR
+#                                               Acquisition Type (0018,0023) equals 3D.
+#                                               Otherwise may be present if Image Type
+#                                               (0008,0008) Value 1 is DERIVED and MR
+#                                               Acquisition Type (0018,0023) equals 3D.
+#    ds.CoverageofkSpace = "FULL" ##TODO
+# Number of k-Space Trajectories (0018,9093) 1C Number of interleaves or shots.
+#                                               Required if Image Type (0008,0008)
+#                                               Value 1 is ORIGINAL or MIXED. May be
+#                                               present otherwise.
+#    ds.NumberofkSpaceTrajectories='1'
+
+## END MR Pulse Seqence Macro
+
 
     # Module: SOP Common (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.12.1 
@@ -977,20 +1390,20 @@ if __name__ == "__main__":
 #                     MR ARTERIAL SPIN LABELING MACRO ATTRIBUTES
 
     if ('asl' in procpar.keys() and procpar["asl"] == "y"):
-        ds.ImageType = ["ORIGINAL","PRIMARY","ASL"]         
+        ds.ImageType = ["ORIGINAL","PRIMARY","ASL","NONE"]         
         
 # TODO must have sequence to start ASL macro
-        MRASLSeq = dicom.dataset.Dataset()
-        ds.MRArterialSpinLabelingSequence=MRASLSeq
+        MRASLSeq = Dataset()
+
 # (0018,9250) 1C Arterial Spin Labeling contrast technique.
 #  Enumerated Values:  CONTINUOUS,  PSEUDOCONTINUOUS, PULSED
-#FIXME: not well defined mapping
-        ds.MRArterialSpinLabelingSequence.ArterialSpinLabelingContrast = 'CONTINUOUS' 
+#FIXME##TODO: not well defined mapping
+        MRASLSeq.ArterialSpinLabelingContrast = 'CONTINUOUS' 
 
 #ASL Technique Description:  FAIR, EPISTAR, PICORE http://www.nmr.mgh.harvard.edu/~jjchen/ASL.html
-        ds.MRArterialSpinLabelingSequence.ASLTechniqueDescription=procpar["asltype"]  
+        MRASLSeq.ASLTechniqueDescription=procpar["asltype"]  
 
-        ds.MRArterialSpinLabelingSequence.ASLContext='CONTROL' #  see per frame or per fdf file at end of script
+        MRASLSeq.ASLContext='CONTROL' #  see per frame or per fdf file at end of script
 
 #(0018,9260) ASLSlabSequence 1C Sequence describing the ASL Slab
 #               geometry and anatomical region.
@@ -999,13 +1412,27 @@ if __name__ == "__main__":
 #               Required if ASL Context (0018,9257) is
 #               CONTROL or LABEL. May be present
 #               otherwise.
-        ASLSlabSequence = dicom.dataset.Dataset() 
+        ASLSlabSequence = Dataset() 
+
+        # Set number at end using fdf_properties["array_index"]
+        ASLSlabSequence.ASLSlabNumber = '1' 
+
+# >>Include ?General Anatomy Optional Macro? Table 10-7 The anatomical region where the slab is
+#                                                       positioned.
+#                                                       Defined Context ID for the Anatomic
+#                                                       Region Sequence (0008,2218) is CID
+#                                                       4030.
+#                                                       Defined Context ID for Anatomic Region
+#                                                       Modifier Sequence (0008,2220) and
+#                                                       Primary Anatomic Structure Modifier
+#                                                       Sequence (0008,2230) is CID 2.
+        ASLSlabSequence.AnatomicRegionSequence = Sequence([GeneralAnatMandatoryMacro])
 
 
-        #ds.MRArterialSpinLabelingSequence.ASLSlabSequence.ASLSlabNumber  = fdf_properties["array_index"]
 # (0018,9254) ASLSlabThickness 1 Thickness of slab in mm.
 # aslthk or asltagthk  pr asladdthk : 12 or 5 or 4 
         ASLSlabSequence.ASLSlabThickness = procpar["aslthk"]   
+
 
 # (0018,9255) ASLSlabOrientation 1 The direction cosines of a normal vector
 # perpendicular to the ASL slab with
@@ -1018,14 +1445,16 @@ if __name__ == "__main__":
 # midpoint of the slab in mm with respect to
 # the patient. See C.7.6.2.1.1 for further
 # explanation.
-#        ds.MRArterialSpinLabelingSequence.ASLSlabSequence.ASLMidSlabPosition =       
+        ASLSlabSequence.ASLMidSlabPosition =  [str(0.0),str(0.0),str(0.0)]
 
 # (0018,9258) ASLPulseTrainDuration  1 Duration (in milliseconds) of the Label or
 # Control pulse.
 # See C.8.13.5.14.3 for further explanation.
-#        ds.MRArterialSpinLabelingSequence.ASLSlabSequence.ASLPulseTrainDuration    
+        ASLSlabSequence.ASLPulseTrainDuration = 0.0   
 
-        ds.MRArterialSpinLabelingSequence.ASLSlabSequence = dicom.sequence.Sequence([ASLSlabSequence]) #must have [] for a list container
+        #Put the ASL slab sequence into MRASL Sequence 
+        MRASLSeq.ASLSlabSequence = Sequence([ASLSlabSequence]) 
+
 
 #  (0018,9259) ASLCrusherFlag 1 Indicates if an ASL Crusher Method has
 #  been used.
@@ -1033,38 +1462,44 @@ if __name__ == "__main__":
 #           YES
 #           NO
 # See C.8.13.5.14.2 for further explanation.
-        ds.MRArterialSpinLabelingSequence.ASLCrusherFlag  =  'NO'       
+        MRASLSeq.ASLCrusherFlag  =  'NO'       
 
 # (0018,925A) ASLCrusherFlowLimit 1C Maximum Flow Limit (in cm/s).
 #                                               Required if ASL
 #                                               Crusher Flag
 #                                               (0018,9259) is YES.
-#        ds.MRArterialSpinLabelingSequence.ASLCrusherFlowLimit =     
+        MRASLSeq.ASLCrusherFlowLimit = str(0.0)    
 
 # (0018,925B) ASLCrusherDescription 1C Description of the ASL Crusher
 #                                               Method.  Required if
 #                                               ASL Crusher Flag
 #                                               (0018,9259) is YES.
-#        ds.MRArterialSpinLabelingSequence.ASLCrusherDescription =      
+        MRASLSeq.ASLCrusherDescription =  'crusher description'    
 
 #(0018,925C) ASLBolusCutoffFlag 1 Indicates if a Bolus Cut-off
 #   technique is used.  Enumerated Values: YES NO
-        ds.MRArterialSpinLabelingSequence.ASLBolusCutoffFlag =  'NO'       #FIXME this is a quick 
+        MRASLSeq.ASLBolusCutoffFlag =  'NO'       #FIXME this is a quick 
 
 # (0018,925D) ASLBolusCutoffTimingSequence 1C Sequence that specifies
 # the timing of the Bolus Cut-off technique and possibly its
 # (scientific) description.  Only a single Item shall be included in
 # this sequence.  Required if ASL Bolus Cut-off Flag (0018,925C) is
 # YES.
-#        BolusCOSeq = dicom.dataset.Dataset()  
-#        ds.MRArterialSpinLabelingSequence.ASLBolusCutoffTimingSequence = dicom.sequence.Sequence(BolusCOSeq)
+        BolusCOSeq = Dataset()  
+#        
 
 # (0018,925F) ASLBolusCutoffDelayTime 1 Bolus Cut-off pulse delay time (in ms).  
 # See C.8.13.5.14.3 for further explanation.
-#        ds.MRArterialSpinLabelingSequence.ASLBolusCutoffTimingSequence.ASLBolusCutoffDelayTime =    
+        BolusCOSeq.ASLBolusCutoffDelayTime = 0.0   
 
 # (0018,925E) ASLBolusCutoffTechnique 2 Text describing the cut-off technique.
-#        ds.MRArterialSpinLabelingSequence.ASLBolusCutoffTimingSequence.ASLBolusCutoffTechnique =        
+        BolusCOSeq.ASLBolusCutoffTechnique = ''
+
+        MRASLSeq.ASLBolusCutoffTimingSequence = Sequence([BolusCOSeq]) 
+
+        
+        ## Put into all together
+        ds.MRArterialSpinLabelingSequence=Sequence([MRASLSeq])
 ### END ASL SECTION ###
 
 
@@ -1100,18 +1535,33 @@ if __name__ == "__main__":
 #                                  within the image SOP Instance contain different values for
 #                                  the Complex Image Component attribute in the MR Frame
 #                                  Type Functional Group.
-        if args.magnitude:
-            ds.ComplexImageComponent = 'MAGNITUDE'
-        if args.phase:
-            ds.ComplexImageComponent = 'PHASE'
+    if args.magnitude:
+        ds.ComplexImageComponent = 'MAGNITUDE'
+    if args.phase or procpar['imPH']=='y':
+        ds.ComplexImageComponent = 'PHASE'
+        
 
-
-
+    # MRImage Module
     # Scanning sequence: SE = spin echo, IR = inversion recovery, GR = gradient recalled, 
     #    EP = echo planar, RM = research mode
+    ds.ScanningSequence = "SE"  # 0018,0020 (mandatory)
     if 'seqfil' in procpar.keys():
         if procpar["seqfil"] == 'epip':
-            ds.ScanningSequence   =  'EP'                                                             # 0018,0020 (mandatory)
+            ds.ScanningSequence   =  'EP'  # 0018,0020 (mandatory)
+        if re.search('ge3d',procpar["seqfil"]):  # apptype im3D 
+            ds.ScanningSequence =  'GR'  # 0018,0020 (mandatory)
+
+##TODO
+    if ds.ScanningSequence == "IR":
+    # 0018,0082 Inversion Time (optional)
+    #Inversion Time (0018,0082) 2C Time in msec after the middle of inverting
+    #                          RF pulse to middle of excitation pulse to
+    #                          detect the amount of longitudinal
+    #                          magnetization. Required if Scanning
+    #                          Sequence (0018,0020) has values of IR.
+        ds.InversionTime = str(procpar['ti']*1000.0)                     
+
+
 
 
     # Sequence variant: SK = segmented k-space, MTC = magnetization transfor contrast, 
@@ -1122,14 +1572,20 @@ if __name__ == "__main__":
     ds.SequenceVariant  =  'SK'               
 
     # 0018,0024 Sequence Name (user-defined) (optional)
-    ds.SequenceName     = procpar['pslabel']        
+    ds.SequenceName     = procpar['pslabel'][:15]        
+    
 
     # Scan options: PER = Phase Encode Reordering, RG = Respiratory Gating, CG = Cardiac 
     #    Gating, PPG = Peripheral Pulse Gating, FC = Flow Compensation, PFF = Partial 
     #    Fourier - Frequency, PFP = Partial Fourier - Phase, SP = Spatial Presaturatino, 
     #    FS = Fat Saturation
     # 0018,0022 Scan Options (optional)
-    # ds.ScanOptions
+    ds.ScanOptions = 'SP'
+#    if 'dgdelay' in procpar.keys() and re.search('CARIAC GATING', procpar['dgdelay']) 
+    if 'seqfil' in procpar.keys() and re.search('cine', procpar['seqfil']):
+        ds.ScanOptions = 'CG'
+        ds.PatientSex = ds.PatientsSex
+                                                 
     
     
     # Determine acquisition dimensionality:  MR Acquisition Type: 2D, 3D
@@ -1141,7 +1597,15 @@ if __name__ == "__main__":
 
     #TR    
     #0018,0080 Repetition Time (in ms) (optional)
-    ds.RepetitionTime  = str(procpar['tr']*1000.0)
+# The period of time in msec between the
+# beginning of a pulse sequence and the
+# beginning of the succeeding (essentially
+# identical) pulse sequence. Required
+# except when Scanning Sequence
+# (0018,0020) is EP and Sequence Variant
+# (0018,0021) is not SK.
+    if not SEQUENCE == "ASL" or not (ds.ScanningSequence == "EP" and not ds.SequenceVariant == "SK"):
+        ds.RepetitionTime  = str(procpar['tr']*1000.0)
     
     #TE
     # 0018,0081 Echo Time (in ms) (optional)
@@ -1152,12 +1616,18 @@ if __name__ == "__main__":
     if 'etl' in procpar.keys():
         ds.EchoTrainLength = procpar['etl']                                        
 
-    #TI
-    # 0018,0082 Inversion Time (optional)
-    ds.InversionTime = str(procpar['ti']*1000.0)                                                                    
-    # Angio Flag: Y, N
-#    ds.AngioFlag                                                                         # 0018,0026 Angio Flag (optional)
-#    ds.NumberOfAVerages                                                                  # 0018,0083 Number of Averages (optional)
+
+    # Angio Flag         (0018,0025) 3 Angio Image Indicator. Primary image for
+    #                             Angio processing. Enumerated Values:
+    #                                     Y = Image is Angio
+    #                                     N = Image is not Angio
+    ds.AngioFlag = 'N'  ##TODO 
+
+    # Number of Averages (0018,0083) 3 Number of times a given pulse sequence
+    #                             is repeated before any parameter is
+    #                             changed
+##TODO    ds.NumberOfAVerages = procpar['nav_echo']
+
 
     #H1reffreq
     # 0018,0084 Imaging Frequency (optional)
@@ -1180,7 +1650,7 @@ if __name__ == "__main__":
     #NPHASE
     # 0018,0089 Number of Phase Encoding Steps (optional)
     if 'nphase' in procpar.keys():
-        ds.NumberOfPhaseEncodingSteps   = procpar['nphase']                                               
+        ds.NumberOfPhaseEncodingSteps  = procpar['nphase']                                               
     #ds.PercentSampling                                                                   # 0018,0093 Percent Sampling (optional)
     #ds.PercentPhaseFieldOfView                                                           # 0018,0094 PercentPhase Field of View (optional)
 
@@ -1190,7 +1660,7 @@ if __name__ == "__main__":
 
     #rfcoil
     # 0018,1250 Receive Coil Name (optional)
-    ds.ReceiveCoilName  = procpar['rfcoil']                                                                
+    ds.ReceiveCoilName  = procpar['rfcoil'][:15]
     
     ## From code below
 # FIXME
@@ -1252,13 +1722,35 @@ if __name__ == "__main__":
             #        $value='['+$pes+']'
             #      endif
 
-## FIXME   where is the flip list!!@#
-#    ds.FlipAngle                                                                         # 0018,1314 Flip Angle (optional)
-    #ds.VariableFlipAngleFlag                                                             # 0018,1315 Variable Flip Angle Flag (optional)
+
+        # In-plane Phase Encoding Direction (0018,1312) 3 The axis of phase encoding with respect to
+        #                                        the image. Enumerated Values:
+        #                                                ROW = phase encoded in rows.
+        #                                                COL = phase encoded in columns.
+    ds.InPhaseEncodingDirection = "ROW" ##TODO
+
+
+## FIXME   where is the flip list!!@#  procpar fliplist
+# 0018,1314 Flip Angle (optional)
+# (0018,1314) 3 Steady state angle in degrees to which the
+#              magnetic vector is flipped from the
+#              magnetic vector of the primary field.
+    ds.FlipAngle = int(procpar['flip1'])                                        
+# 0018,1315   3  Variable Flip Angle Flag (optional)
+#  Flip angle variation applied during image
+#              acquisition. Enumerated Values:
+#                       Y = yes
+#                       N = no
+    if 'fliplist' in procpar.keys() and len(procpar['fliplist'])>1:
+        ds.VariableFlipAngleFlag ='Y'
+    else:
+        ds.VariableFlipAngleFlag='N'
+
     #ds.TemporalPositionIdentifier                                                        # 0020,0100 Temporal Position Identifier (optional)
     #ds.NumberOfTemporalPositions                                                         # 0020,0105 Number of Temporal Positions (optional)
 
     #ds.TemporalResolution                                                                # 0020,0110 Temporal Resolution (optional)
+
 
     # Samples Per Pixel: should be 1 for MR
     # 0028,0002 Samples Per Pixel (mandatory)
@@ -1301,6 +1793,8 @@ if __name__ == "__main__":
 
 
 
+
+
     #-------------------------------------------------------------------------------------
     # Iterate through FDF files
     #
@@ -1330,6 +1824,7 @@ if __name__ == "__main__":
 
 
     # Read in data from file    
+    volume=1
     for filename in fdffiles:
         if args.verbose:
             print 'Converting ' + filename
@@ -1338,38 +1833,19 @@ if __name__ == "__main__":
         if args.verbose:
             print 'Image_data shape:'
             print image_data.shape
+
+
+## Per frame implementation
+
+        # PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
+        PixelSpacing = map(lambda x,y: x*10.0/y, fdf_properties['roi'][0:2],fdf_properties['matrix'][0:2])
+        ds.PixelSpacing =  [str(PixelSpacing[0]),str(PixelSpacing[1])]        #(0028,0030) Pixel Spacing
+
+
         #---------------------------------------------------------------------------------
         # General implementation checks
         
-        if SEQUENCE == "ASL":         
-            if fdf_properties["asltag"] == 1:
-                ds.MRArterialSpinLabelingSequence.ASLContext  = 'LABEL'   # (0018,9257)      1C  The purpose of the Arterial Spin Labeling.
-            elif  fdf_properties["asltag"] == -1:            #   Enumerated Values:
-                ds.MRArterialSpinLabelingSequence.ASLContext  = 'CONTROL'                   #           LABEL
-#                                                                    CONTROL
-            else:
-                ds.MRArterialSpinLabelingSequence.ASLContext = 'M_ZERO_SCAN'                #            M_ZERO_SCAN
-#                                                           Required if Frame Type (0008,9007) is
-#                                                           ORIGINAL. May be present otherwise.
-#                                                           See C.8.13.5.14.1 for further
-#                                                           explanation. 
-            #FIX ME : this could be either array_index or slice_no
-            # ds.MRArterialSpinLabelingSequence.ASLSlabSequence[0].ASLSlabNumber  = fdf_properties["array_index"]
-
-        if SEQUENCE=='MULTIECHO' and fdf_properties['echoes'] > 1:
-            print 'Multi-echo sequence'
-            # TE 0018,0081 Echo Time (in ms) (optional)
-            if 'TE' in fdf_properties.keys():
-                ds.EchoTime  = str(fdf_properties['TE'])                                                              
-            # 0018,0086 Echo Number (optional)
-            if 'echo_no' in fdf_properties.keys():
-                ds.EchoNumber = fdf_properties['echo_no']            
-           
-        else:
-            if 'te' in procpar.keys():
-                ds.EchoTime  = str(procpar['te']*1000.0)
-            if 'echo' in procpar.keys():
-                ds.EchoNumber =procpar['echo']                                                  
+                
 
         # File dimensionality
         fdfdims = fdf_properties['rank']
@@ -1396,13 +1872,58 @@ if __name__ == "__main__":
 
 
         #TODO Quick hack to avoid assert errors for diffusion and 3D magnitude images
-        if ! ('diff' in procpar.keys() and procpar["diff"] == 'y'): 
+        if not ('diff' in procpar.keys() and procpar["diff"] == 'y'): 
             if MRAcquisitionType == '3D':
                 print 'Not testing slicethickness in diffusion and 3D MR FDFs'
             else:
                 AssertImplementation(ds.SliceThickness != fdfthk, filename, CommentStr, AssumptionStr)
 
 
+
+# C.7.3.1.1.2        Patient Position
+
+# Patient Position (0018,5100) specifies the position of the patient
+# relative to the imaging equipment space. This attribute is intended
+# for annotation purposes only. It does not provide an exact
+# mathematical relationship of the patient to the imaging equipment.
+# When facing the front of the imaging equipment, Head First is
+# defined as the patient's head being positioned toward the front of
+# the imaging equipment. Feet First is defined as the patient's feet
+# being positioned toward the front of the imaging equipment. Prone is
+# defined as the patient's face - Standard - PS 3.3 - 2011 Page 390
+# being positioned in a downward (gravity) direction. Supine is
+# defined as the patient's face being in an upward
+# direction. Decubitus Right is defined as the patient's right side
+# being in a downward direction. Decubitus Left is defined as the
+# patient's left side being in a downward direction.  The Defined
+# Terms are: HFP = Head First-Prone HFS = Head First-Supine HFDR =
+# Head First-Decubitus Right HFDL = Head First-Decubitus Left FFDR =
+# Feet First-Decubitus Right FFDL = Feet First-Decubitus Left FFP =
+# Feet First-Prone FFS = Feet First-Supine
+
+        ds.PatientPosition = '123'   # default 'HFS'
+        if 'position1' in procpar.keys() and not procpar['position1'] == '':
+            if re.search('head',procpar['position1']):
+                ds.PatientPosition.replace('12', 'HF')
+            if re.search('feet',procpar['position1']):
+                ds.PatientPosition.replace('12', 'FF')
+#            if re.search('first',procpar['position1']):
+#                ds.PatientPosition.replace('2', 'F')
+        else:
+            ds.PatientPosition.replace('12', 'HF')
+#            ds.PatientPosition.replace('2', 'F')
+            
+        if 'position2' in procpar.keys() and not procpar['position2'] == '':
+            if re.search('prone',procpar['position2']):
+                ds.PatientPosition.replace('3','P')
+            if re.search('supine',procpar['position2']):
+                ds.PatientPosition.replace('3','S')
+        else:
+            ds.PatientPosition.replace('3','S')
+        if args.verbose:
+            print 'Patient Position: ', ds.PatientPosition
+        ds.PatientPosition='HFS'
+            
         #---------------------------------------------------------------------------------
         # GROUP 0020: Relationship
 
@@ -1461,7 +1982,10 @@ if __name__ == "__main__":
         ImageOrientationPatient[4] *= -1
         ImageOrientationPatient[5] *= -1
 
+
+        
         ds.ImagePositionPatient = [str(ImagePositionPatient[0]),str(ImagePositionPatient[1]),str(ImagePositionPatient[2])]              # (0020,0032) Image Patient Position
+
         ds.ImageOrientationPatient = [str(ImageOrientationPatient[0]),str(ImageOrientationPatient[1]),str(ImageOrientationPatient[2]),str(ImageOrientationPatient[3]),str(ImageOrientationPatient[4]),str(ImageOrientationPatient[5])]                  #(0020,0037) Image Patient Orientation
 
         #---------------------------------------------------------------------------------
@@ -1511,42 +2035,118 @@ if __name__ == "__main__":
 
         #if fdfdims == 3:
         #    ds.NumberOfFrames = fdf_properties['matrix'][2]
-        # dicom3tool uses frames to create enhanced MR
+ 
+       # dicom3tool uses frames to create enhanced MR
         # ds.NumberOfFrames = fdf_properties['slices']
         # ds.FrameAcquisitionNumber = fdf_properties['slice_no']
 
-        if 'ne' in procpar.keys() and procpar['ne'] > 1:
-            print 'Processing multi-echo sequence image'
+#        if 'ne' in procpar.keys() and procpar['ne'] > 1:
+#            print 'Processing multi-echo sequence image'
+
+
+        if SEQUENCE=="MULTIECHO" and fdf_properties['echoes'] > 1:
+            print 'Multi-echo sequence'
+            # TE 0018,0081 Echo Time (in ms) (optional)
+            if 'TE' in fdf_properties.keys():
+                ds.EchoTime  = str(fdf_properties['TE']) 
+            # 0018,0086 Echo Number (optional)
+            if 'echo_no' in fdf_properties.keys():
+                ds.EchoNumber = fdf_properties['echo_no']            
+           
+        else:
+            if 'te' in procpar.keys():
+                ds.EchoTime  = str(procpar['te']*1000.0)
+            if 'echo' in procpar.keys():
+                ds.EchoNumber =procpar['echo']                                  
+
+        if SEQUENCE == "ASL":         
+            if fdf_properties["asltag"] == 1:
+                ds.MRArterialSpinLabelingSequence[0].ASLContext  = 'LABEL'   # (0018,9257)      1C  The purpose of the Arterial Spin Labeling.
+            elif  fdf_properties["asltag"] == -1:            #   Enumerated Values:
+                ds.MRArterialSpinLabelingSequence[0].ASLContext  = 'CONTROL'                   #           LABEL
+#                                                                    CONTROL
+            else:
+                ds.MRArterialSpinLabelingSequence[0].ASLContext = 'M_ZERO_SCAN'                #            M_ZERO_SCAN
+#                                                           Required if Frame Type (0008,9007) is
+#                                                           ORIGINAL. May be present otherwise.
+#                                                           See C.8.13.5.14.1 for further
+#                                                           explanation. 
+
+
+            #FIX ME : this could be either array_index or slice_no
+            ds.MRArterialSpinLabelingSequence[0].ASLSlabSequence.ASLSlabNumber  = fdf_properties["array_index"]
+
+            #ASL Mid slab position
+# The Image Plane Attributes, in conjunction with the Pixel Spacing Attribute, describe the position
+# and orientation of the image slices relative to the patient-based coordinate system. In each image
+# frame the Image Position (Patient) (0020,0032) specifies the origin of the image with respect to
+# the patient-based coordinate system. RCS and the Image Orientation (Patient) (0020,0037)
+# attribute values specify the orientation of the image frame rows and columns. The mapping of
+# pixel location i, j to the RCS is calculated as follows:
+#                                        X x i Yx j 0 S x
+#                               Px                                i        i
+#                                        X y i Yy j 0 S y
+#                               Py                                j        j
+#                                                                   =M
+#                                        X z i Yz j 0 S z         0        0
+#                               Pz
+#                               1          0       0      01      1        1
+# Where:
+#        Pxyz The coordinates of the voxel (i,j) in the frame's image plane in units of mm.
+#        Sxyz The three values of the Image Position (Patient) (0020,0032) attributes. It is the
+#              location in mm from the origin of the RCS.
+#        Xxyz The values from the row (X) direction cosine of the Image Orientation (Patient)
+#              (0020,0037) attribute.
+#        Yxyz The values from the column (Y) direction cosine of the Image Orientation (Patient)
+#              (0020,0037) attribute.
+#        i     Column index to the image plane. The first column is index zero.
+#          i Column pixel resolution of the Pixel Spacing (0028,0030) attribute in units of mm.
+#        j     Row index to the image plane. The first row index is zero.
+#          j Row pixel resolution of the Pixel Spacing (0028,0030) attribute in units of mm.
+
+
+#            ds.MRArterialSpinLabelingSequence.ASLSlabSequence[0].ASLMidSlabPosition  = [str(ImagePositionPatient[0]),str(ImagePositionPatient[1]),str(ImagePositionPatient[2]+(islice-1)*SliceThickness))]
+
+#            print ImagePositionPatient
+ #           M = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], PixelSpacing[1] * ImageOrientationPatient[1], SliceThinkness * ImageOrientationPatient[2]  ImagePositionPatient[0]],                              [PixelSpacing[0] * ImageOrientationPatient[3], PixelSpacing[1] * ImageOrientationPatient[4], SliceThinkness * ImageOrientationPatient[5]  ImagePositionPatient[1]],                              [PixelSpacing[0] * ImageOrientationPatient[6], PixelSpacing[1] * ImageOrientationPatient[8], SliceThinkness * ImageOrientationPatient[8]  ImagePositionPatient[2]],                              [0,0,0,1]])
+ #           pos = numpy.matrix([[ceil(ds.Rows / 2)],[ ceil(ds.Columns / 2],[fdf_properties['slice_no'],[1]])
+ #           Pxyz = M * pos
+
+ #           ds.MRArterialSpinLabelingSequence.ASLSlabSequence[0].ASLMidSlabPosition  = [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0]))]
+
+
+
 
 
         if SEQUENCE == 'Diffusion':
-            print 'Processing diffusion image'
+            if args.verbose:
+                print 'Processing diffusion image'
 
             # Per frame Diffusion macro
             if (math.fabs(Bvalue[ fdf_properties['array_index']*2 ] - fdf_properties['bvalue']) > 0.005):
                 print 'Procpar and fdf B-value mismatch: procpar value ', Bvalue[ fdf_properties['array_index']*2 ], ' and  local fdf value ', fdf_properties['bvalue']
 ## MR Diffusion Sequence (0018,9117) see DiffusionMacro.txt
-            diffusionseq = dicom.dataset.Dataset()
+            diffusionseq = Dataset()
             diffusionseq.DiffusionBValue=fdf_properties['bvalue']
             diffusionseq.DiffusionDirectionality = 'DIRECTIONAL' #One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
             diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' # One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
 
             ### Diffusion Gradient Direction Sequence (0018,9076) 
-            diffgraddirseq = dicom.dataset.Dataset()            
+            diffgraddirseq = Dataset()            
             diffgraddirseq.DiffusionGradientOrientation= [ fdf_properties['dro'],  fdf_properties['dpe'],  fdf_properties['dsl']]
-            diffusionseq.DiffusionGradientDirectionSequence = dicom.sequence.Sequence([diffgraddirseq])
+            diffusionseq.DiffusionGradientDirectionSequence = Sequence([diffgraddirseq])
 
             ### Diffusion b-matrix Sequence (0018,9601) 
-            diffbmatseq = dicom.dataset.Dataset()
+            diffbmatseq = Dataset()
             diffbmatseq.DiffusionBValueXX = BvalueRR[ fdf_properties['array_index']*2 ]
             diffbmatseq.DiffusionBValueXY =  BvalueRP[ fdf_properties['array_index']*2 ] 
             diffbmatseq.DiffusionBValueXZ =  BvalueRS[ fdf_properties['array_index']*2 ]
             diffbmatseq.DiffusionBValueYY =  BvaluePP[ fdf_properties['array_index']*2 ]
             diffbmatseq.DiffusionBValueYZ =  BvalueSP[ fdf_properties['array_index']*2 ]
             diffbmatseq.DiffusionBValueZZ =  BvalueSS[ fdf_properties['array_index']*2 ]
-            diffusionseq.DiffusionGradientDirectionSequence = dicom.sequence.Sequence([diffbmatseq])
+            diffusionseq.DiffusionGradientDirectionSequence = Sequence([diffbmatseq])
 
-            ds.MRDiffusionSequence= dicom.sequence.Sequence([diffusionseq])
+            ds.MRDiffusionSequence= Sequence([diffusionseq])
 ##
         
         #if 'echoes' in fdf_properties.keys() and fdf_properties['echoes'] > 1 and fdf_properties['array_dim'] == 1:
@@ -1593,7 +2193,9 @@ if __name__ == "__main__":
         # In procpar, for 3D datasets number of rows is either fn1/2 or nv.
         # For 2D datasets, number of rows is fn/2.0 or np.'
         # AssertImplementation(ds.Rows != fdf_properties['matrix'][1], filename, CommentStr, AssumptionStr)
-    
+        if args.verbose:
+            print 'Rows', MRAcquisitionType, procpar['fn']/2, procpar['fn1']/2, procpar['nv'], procpar['np'], ds.Rows
+
 
         #---------------------------------------------------------------------------------
         # Number of columns
@@ -1626,7 +2228,7 @@ if __name__ == "__main__":
         ## Implementation check
         # CommentStr = 'Number of columns does not match between fdf and procpar'
         # AssumptionStr = 'In FDF, number of columns is defined by matrix[0]. \nIn procpar, for 3D datasets number of columns is either fn/2 or np.\nFor 2D datasets, number of rows is fn1/2.0 or nv.'
-        # AssertImplementation(ds.Rows != fdf_properties['matrix'][0], filename, CommentStr, AssumptionStr)
+        # AssertImplementation(ds.Columns != fdf_properties['matrix'][0], filename, CommentStr, AssumptionStr)
         
         #---------------------------------------------------------------------------------
         # Pixel spacing
@@ -1648,9 +2250,6 @@ if __name__ == "__main__":
             #         $value='['+$rs+'\\'+$ps+']' 
             #       endif
 
-        # PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
-        PixelSpacing = map(lambda x,y: x*10.0/y, fdf_properties['roi'][0:2],fdf_properties['matrix'][0:2])
-        ds.PixelSpacing =  [str(PixelSpacing[0]),str(PixelSpacing[1])]        #(0028,0030) Pixel Spacing
         
         ds.SamplesPerPixel = 1                                                #(0028,0002) Samples Per Pixel
         ds.PhotometricInterpretation = "MONOCHROME2"                          #(0028,0004) Photometric Interpretation
@@ -1658,6 +2257,55 @@ if __name__ == "__main__":
         ds.BitsStored = 16                                                    #(0028,0101) Bits Stored
         ds.HighBit = 15                                                       #(0028,0102) High Bit
         ds.PixelRepresentation = 0                                            #(0028,0103) Pixel Representation
+
+
+## Multi dimension Organisation and Index module
+
+        DimOrgSeq = Dataset()
+
+#        ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
+
+        if SEQUENCE == "MULTIECHO":
+            DimensionOrganizationUID = [CreateUID(UID_Type_DimensionIndex1,[],[],args.verbose), CreateUID(UID_Type_DimensionIndex2,[],[],args.verbose)]
+            DimOrgSeq.add_new((0x0020,0x9164), 'UI',DimensionOrganizationUID)
+            ds.DimensionOrganizationType='3D_TEMPORAL'  #or 3D_TEMPORAL
+        else:
+            DimensionOrganizationUID = CreateUID(UID_Type_DimensionIndex1,[],[],args.verbose)
+            if args.verbose:
+                print "DimUID", DimensionOrganizationUID
+            DimOrgSeq.add_new((0x0020,0x9164), 'UI',[DimensionOrganizationUID])
+            ds.DimensionOrganizationType='3D'  #or 3D_TEMPORAL
+                
+        ds.DimensionOrganizationSequence= Sequence([DimOrgSeq])
+
+
+        if SEQUENCE == 'MULTIECHO':
+            DimIndexSeq1 = Dataset()
+            DimIndexSeq1.DimensionIndexPointer = (0x0020,0x0032)  # Image position patient 20,32 or 20,12 
+    # #DimIndexSeq1.DimensionIndexPrivateCreator=
+    # #DimIndexSeq1.FunctionalGroupPointer=
+    # #DimIndexSeq1.FunctionalGroupPrivateCreator=
+            DimIndexSeq1.add_new((0x0020,0x9164), 'UI',DimOrgSeq.DimensionOrganizationUID[0])
+            DimIndexSeq1.DimensionDescriptionLabel='Third Spatial dimension'
+
+            DimIndexSeq2 = Dataset()
+            DimIndexSeq2.DimensionIndexPointer=(0x0018,0x0081)  # Echo Time
+    #DimIndexSeq2.DimensionIndexPrivateCreator=
+    #DimIndexSeq2.FunctionalGroupPointer=
+    #DimIndexSeq2.FunctionalGroupPrivateCreator=
+            DimIndexSeq2.add_new((0x0020,0x9164), 'UI',DimOrgSeq.DimensionOrganizationUID[1])
+            DimIndexSeq2.DimensionDescriptionLabel='Fourth dimension (multiecho)'
+            ds.DimensionIndexSequence = Sequence([DimIndexSeq2, DimIndexSeq1])
+        else:
+            DimIndexSeq1 = Dataset()
+            DimIndexSeq1.DimensionIndexPointer = (0x0020,0x0032)  # Image position patient 20,32 or 20,12 
+        # #DimIndexSeq1.DimensionIndexPrivateCreator=
+    # #DimIndexSeq1.FunctionalGroupPointer=
+    # #DimIndexSeq1.FunctionalGroupPrivateCreator=
+            DimIndexSeq1.add_new((0x0020,0x9164), 'UI',[DimensionOrganizationUID])
+            DimIndexSeq1.DimensionDescriptionLabel='Third Spatial dimension'
+            ds.DimensionIndexSequence = Sequence([DimIndexSeq1])
+        
 
 
 
@@ -1690,6 +2338,23 @@ if __name__ == "__main__":
                                                                                          # Defined Terms: 1D 2D 3D
 
 
+        FrameContentSequence=Dataset()
+        #FrameContentSequence.FrameAcquisitionNumber = '1' #fdf_properties['slice_no']
+    #FrameContentSequence.FrameReferenceDateTime
+    #FrameContentSequence.FrameAcquisitionDateTime
+    #FrameContentSequence.FrameAcquisitionDuration
+    #FrameContentSequence.CardiacCyclePosition
+    #FrameContentSequence.RespiratoryCyclePosition
+        #FrameContentSequence.DimensionIndexValues = 1 #islice # fdf_properties['array_no']
+        #FrameContentSequence.TemporalPositionIndex = 1
+        FrameContentSequence.StackID = [str(1)] # fourthdimid
+        FrameContentSequence.InStackPositionNumber = [int(1)] #fourthdimindex
+        FrameContentSequence.FrameComments= 'fdf2dcm frame content'
+        FrameContentSequence.FrameLabel='DimX'
+        ds.FrameContentSequence = Sequence([FrameContentSequence])
+
+
+
         #---------------------------------------------------------------------------------
         # GROUP 7FE0: Image data
         if acqndims == 3:
@@ -1712,11 +2377,35 @@ if __name__ == "__main__":
                 else:
                     image_number=1
                 new_filename = "slice%03dimage%03decho%03d.dcm" % (islice,image_number,fdf_properties['echo_no'])
+                #Fix 3rd dimension position 
+                #ds.ImagePositionPatient[2] = str(ImagePositionPatient[2] + (islice-1)*SliceThickness)
+
+                M = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], PixelSpacing[1] * ImageOrientationPatient[1], SliceThickness * ImageOrientationPatient[2],  ImagePositionPatient[0]],
+                                  [PixelSpacing[0] * ImageOrientationPatient[3], PixelSpacing[1] * ImageOrientationPatient[4], SliceThickness * ImageOrientationPatient[5],  ImagePositionPatient[1]],
+                                  [PixelSpacing[0] * ImageOrientationPatient[6], PixelSpacing[1] * ImageOrientationPatient[8], SliceThickness * ImageOrientationPatient[8],  ImagePositionPatient[2]],                         
+                                  [0,0,0,1]])
+                pos = numpy.matrix([[0],[0],[islice],[1]])
+                Pxyz = M * pos
+                ds.ImagePositionPatient= [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0])]
+
+                ds.FrameContentSequence[0].StackID = [str(volume)] # fourthdimid
+                ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)] #fourthdimindex
+                ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber
+#                ds.InStackPosition = islice #str(islice)
+
+
+                #Save DICOM
                 ds.save_as(os.path.join(outdir, new_filename))
+
+                
+
+
         else:
             # Common export format
             ds.PixelData = image_data.tostring()                                        #(7fe0,0010) Pixel Data
-    
+
+            #Save DICOM
             ds.save_as(os.path.join(outdir, os.path.splitext(filename)[0] + '.dcm'))
 
-        
+        if SEQUENCE=="MULTIECHO":
+            volume=volume+1
