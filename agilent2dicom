@@ -432,9 +432,10 @@ if __name__ == "__main__":
     # Reference: DICOM Part 3: Information Object Definitions C.7.2.1 
 
     ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar,[],args.verbose)                     # 0020,000D Study Instance UID (mandatory)
-    ds.StudyDate = procpar['studyid_'][2:]                                               # 0008,0020 Study Date (optional)
+    ds.StudyDate = procpar['studyid_'][2:]                          # 0008,0020 Study Date (optional)
     ds.StudyTime = procpar['time_submitted'][9:]                                                                     # 0008,0030 Study Time (optional)
-    ds.StudyID = procpar['studyid_']                                                     # 0020,0010 Study ID (optional)
+    ds.StudyID =  procpar['name']                                   # 0020,0010 Study ID (optional)
+# Cannot use procpar['studyid_'] because DaRIS needs both the Patient name and studyid to be of the form 'DARIS^X.X.X.X', dpush will actually overwrite these fields as well
     
     ds.ReferringPhysiciansName = procpar['operator_']  # or  ['investigator']
 
@@ -448,18 +449,18 @@ if __name__ == "__main__":
     # Module: General Series (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.3.1 
 
-    ds.Modality = "MR"                                                                   # 0008,0060 Modality (mandatory)
+    ds.Modality = "MR"                                                 # 0008,0060 Modality (mandatory)
     ds.SeriesInstanceUID = CreateUID(UID_Type_SeriesInstance, procpar,[],args.verbose)                   # 0020,000E Series Instance UID (mandatory)
-    ds.SeriesNumber = 1                                                                    # 0020,0011 Series Number (optional)
-    # ds.SeriesDate                                                                      # 0008,0021 Series Date (optional)
-    # ds.SeriesTime                                                                      # 0008,0031 Series Time (optional)
-    ds.ProtocolName = procpar['pslabel']                                                 # 0018,1030 Protocol Name (optional)
-    ds.SeriesDescription = procpar['comment']                                            # 0008,103E Series Description (optional)
-    ds.OperatorName = procpar['operator_']                                               # 0008,1070 Operator Name (optional)
+    ds.SeriesNumber = 1                                                # 0020,0011 Series Number (optional)
+    # ds.SeriesDate                                                    # 0008,0021 Series Date (optional)
+    # ds.SeriesTime                                                    # 0008,0031 Series Time (optional)
+    ds.ProtocolName = procpar['pslabel']                               # 0018,1030 Protocol Name (optional)
+    ds.SeriesDescription = procpar['comment']                          # 0008,103E Series Description (optional)
+    ds.OperatorName = procpar['operator_']                             # 0008,1070 Operator Name (optional)
     
     # include procpar in dicom header as "Series Comments"
     # This is a retired field, so probably shouldn't be used. But, oh well.
-    ds.add_new((0x0018,0x1000), 'UT', procpartext)                                       # 0018,1000 Series Comments (retired)
+    ds.add_new((0x0018,0x1000), 'UT', procpartext)                     # 0018,1000 Series Comments (retired)
 
     
     #-------------------------------------------------------------------------------------
@@ -594,7 +595,7 @@ if __name__ == "__main__":
     # Frame Anatomy Macro C.7.6.16.2.8 M - Implement later if required.
 
     FrameAnatSeq = Dataset()
-    FrameAnatSeq.FrameLaterality="B"
+    FrameAnatSeq.FrameLaterality="R"
     GeneralAnatMandatoryMacro = Dataset()
 
     # CodeSeqMacro = Dataset()
@@ -697,12 +698,12 @@ if __name__ == "__main__":
 
 ##TODO
     MRFOVSeq = Dataset()
-    MRFOVSeq.InPlanePhaseEncodingDirection=['ROW']
+    MRFOVSeq.InPlanePhaseEncodingDirection='ROW'
     #MRFOVSeq.MRAcquisitionFrequencyEncodingSteps
     #MRFOVSeq.MRAcquisitionPhaseEncodingStepsinplane
     #MRFOVSeq.PercentSampling
     #MRFOVSeq.PercentPhaseFieldofView
-    ds.MRFOVGeonmetrySequence = Sequence([MRFOVSeq])
+    ds.MRFOVGeometrySequence = Sequence([MRFOVSeq])
 
     #MR Receive Coil C.8.13.5.7 C
     # MR Receive Coil Sequence (0018,9042) 1 # A sequence that provides information about each receive coil used.
@@ -1615,7 +1616,8 @@ if __name__ == "__main__":
     # 0018,0091 Echo Train Length (optional)
     if 'etl' in procpar.keys():
         ds.EchoTrainLength = procpar['etl']                                        
-
+    else:
+        ds.EchoTrainLength='1'
 
     # Angio Flag         (0018,0025) 3 Angio Image Indicator. Primary image for
     #                             Angio processing. Enumerated Values:
