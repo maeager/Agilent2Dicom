@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #  -*- mode:python -*-
 
 # - Michael Eager (michael.eager@monash.edu
@@ -10,6 +10,7 @@ import os,sys,re
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
+
 
 def ReadProcpar(procparfilename):
     f = open(procparfilename,'r')
@@ -46,6 +47,12 @@ def ReadProcpar(procparfilename):
     procpartext = f.readlines()
     return (procpar, procpartext)
 
+def check_dir(dpath):
+    if os.path.isdir(dpath) and os.path.exists(os.join(dpath,'0001.dcm')):
+        return True
+    else:
+        return False
+
 
 def senddaris(*args):
     try:
@@ -56,13 +63,29 @@ def senddaris(*args):
     except ValueError:
         pass
 
-def convert(*args):
+
+
+def convert(send_button):
     try:
+        import os
         input_dir = inputdir.get()
         output_dir = outputdir.get()
-        thispath = os.path.dirname(__file__)
-        print(thispath)
-        os.system(os.join(thispath,'fdf2dcm.sh') + ' -i ' + input_dir + ' -o ' + output_dir)
+        thispath = os.path.dirname(os.path.abspath(__file__))
+        print ('dconvert path: ' + thispath)
+        cmd1 = os.path.join(thispath,'fdf2dcm.sh') + ' -i ' + input_dir + ' -o ' + output_dir
+        print(cmd1)
+        cmd='(if test ${MASSIVEUSERNAME+defined} \n\
+then \n\
+  echo ''On Massive'' \n\
+  module unload python/3.3.5-gcc \n\
+  module load python \n\
+fi \n\
+echo ''Done''\n ' + cmd1 +')'
+        print(cmd)
+        os.system(cmd)
+        if check_dir(output_dir):
+            send_button.foreground="dark green"
+            send_button.state='active'
     except ValueError:
         pass
 
@@ -92,6 +115,12 @@ def loadoutputdir(*args):
     dir_ = filedialog.askdirectory(initialdir=outputdir.get(), title="Choose DICOM directory",mustexist=False) # parent,
     outputdir.set(dir_)
 
+def toggle_debug():
+    d = debug.get()
+    if d == 0:
+        debug.set(1)
+    else:
+        debug.set(0)
 
 
 root = Tk()
@@ -102,6 +131,20 @@ mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
 mainframe.columnconfigure(0, weight=1)
 mainframe.rowconfigure(0, weight=1)
 
+
+menu = Menu(root)
+root.config(menu=menu)
+filemenu = Menu(menu)
+menu.add_cascade(label="Settings", menu=filemenu)
+
+filemenu.add_command(label="Toggle debug", command=toggle_debug)
+
+filemenu.add_command(label="Exit", command=root.quit)
+
+
+
+debug = IntVar()
+debug.set(0)
 
 inputdir = StringVar()
 outputdir = StringVar()
@@ -125,13 +168,17 @@ outputdir_entry.grid(column=2, row=2, sticky=(W, E))
 darisid_entry = Entry(mainframe, width=25, textvariable=darisid)
 darisid_entry.grid(column=2, row=3, sticky=(W, E))
 
+Radiobutton(mainframe,text="Debug",variable=debug,padx=10).grid(column=1,row=4,sticky=W)
 
 #Label(mainframe, textvariable=outputdir).grid(column=2, row=2, sticky=(W, E))
 Button(mainframe, text="Choose Dir", command=loadinputdir).grid(column=3,row=1,sticky=W)
 Button(mainframe, text="Choose Dir", command=loadoutputdir).grid(column=3,row=2,sticky=W)
 
-Button(mainframe, text="Convert", command=convert).grid(column=2, row=4, sticky=E)
-Button(mainframe, text="Send", command=senddaris).grid(column=3, row=4, sticky=W)
+send_button = Button(mainframe, text="Send", command=senddaris,state='disabled',foreground="red").grid(column=3, row=3, sticky=W)
+#send_button.config()
+Button(mainframe, text="Convert", command=convert(send_button)).grid(column=2, row=4, sticky=E)
+Button(mainframe,text="Cancel",command=root.destroy).grid(column=3,row=4,sticky=W)
+
 
 Label(mainframe, text="Input dir (FDF img)").grid(column=1, row=1, sticky=W)
 Label(mainframe, text="DCM directory").grid(column=1, row=2, sticky=E)
