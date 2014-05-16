@@ -1,0 +1,175 @@
+#!/bin/bash
+# filename: dpush
+# description: push all DICOM files to DaRIS
+# input: cid, directory of DICOM file
+# Toan Nguyen, June 2012
+# last modified: May 2014 Michael Eager
+
+#     Copyright © 2012-2013 Toan Nguyen <toan.nguyen@monash.edu>
+#     Copyright © 2014-  Michael Eager ,michael.eager@monash.edu>
+#
+#     This file is part of Agilent2Dicom.
+# 
+#     This is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+# 
+#     This is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+# 
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# # check if java exists
+# if [[ ! -z $JAVA_HOME ]]; then
+# 	export PATH=$JAVA_HOME/bin:$PATH
+# fi
+# if [[ -z $(which java) ]]; then
+# 	echo "Error: could not find java."
+# 	exit 1
+# fi
+
+# # check if java version is equal to or greater than 1.5 
+# JAVA_VERSION=$(java -version 2>&1 | grep "java version" | awk '{print $3}' | tr -d \" | awk '{split($0, array, ".")} END{print array[2]}')
+# if [[ $JAVA_VERSION -lt 5 ]]; then
+# 	echo "Error: java version is lower than 1.5."
+# 	exit 1
+# fi
+
+
+
+usage() {
+    echo "Usage: dpush -c cid -s server dicom_dir"
+}
+
+#parse input
+while getopts c:s:h OPTION
+do
+     case $OPTION in
+         h) usage
+            exit 1
+            ;;
+
+         c) ASSET_CID=$OPTARG
+            ;;
+			
+		 s) SERVER_STR=$OPTARG
+		    ;;
+
+         ?) usage
+            exit 1
+            ;;
+     esac
+done
+shift $(($OPTIND - 1))
+DICOM_DIR=$1
+
+
+if [ -z $ASSET_CID ]
+then {
+    echo "Error: must input asset cid"
+    exit 1;
+}
+fi
+
+if [ -z $DICOM_DIR ]
+then {
+    echo "Error: must input DICOM directory"
+    exit 1;
+}
+fi
+
+if [ -z $SERVER_STR ]
+then {
+    echo "Error: must input server string (e.g. titanium, daris059)"
+    exit 1;
+}
+fi
+
+if [ ! -f `which storescu` ]; then
+    echo "cannot find dcmtool's storescu in PATH"
+	exit 1;
+fi
+
+if [ ! -f daris.cfg ]; then
+    echo "cannot find daris.cfg in Agilent2Dicom folder"
+    exit 1;
+fi
+
+
+# parse information in .daris file for sending DICOM
+SUCCESS=0
+for strline in $(cat daris.cfg); do
+    substrings=${strline//:/ }
+    set -- $substrings
+    if [ $1 == ${SERVER_STR} ]; then
+       
+        DICOM_SERVER=$2
+	DICOM_PORT=$4
+        DICOM_CALLING_AET=$7
+        DICOM_CALLED_AET=$8
+        DICOM_PORT=$9
+
+        MFHOSTNAME=$1
+        MFLUX_SID_FILE=~/.MFLUX_SID_$MFHOSTNAME;
+
+        SUCCESS=1
+
+        break
+    fi
+done
+
+if [ $SUCCESS == 0 ]; then
+    echo "Error: cannot find setting, check server name again"
+    exit 1
+fi
+
+
+
+if [[ ! -f "`dirname $0`/../lib/dcmtools.jar" ]]; then
+        echo "Error: could not find dcmtools.jar file." >&2
+        exit 1
+fi
+
+if [[ -z "`which java`" ]]; then
+        echo "Error: could not find java." >&2
+        exit 1
+fi
+
+# check if java version is equal to or greater than 1.5 
+JAVA_VERSION=`java -version 2>&1 | grep "java version" | awk '{print $3}' | tr -d \" | awk '{split($0, array, ".")} END{print array[2]}'`
+if [[ $JAVA_VERSION -lt 5 ]]; then
+	echo "Error: java version is lower than 1.5."
+	exit 1
+fi
+
+
+# load dcm tools
+# DCMODIFY=./dcmtools/bin/DCMODIFY
+
+STORESCU=`which storescu` #"java -cp `dirname $0`/../lib/dcmtools.jar nig.dicom.util.StoreSCU"
+
+files=$(find $DICOM_DIR -type f -name "*.dcm")
+
+# echo "Modify meta-data with DCMTOOLS"
+# $DCMODIFY  "(0010,0010)=DARIS^$ASSET_CID" $files || (echo "DCMODIFY failed." && exit 1)
+# $DCMODIFY  "(0020,0010)=DARIS^$ASSET_CID" $files || exit 1
+
+echo "Upload to DaRIS"
+$STORESCU -callingAETitle $DICOM_CALLING_AET -calledAETitle $DICOM_CALLED_AET -host $DICOM_SERVER  -port $DICOM_PORT  $files || (echo "STORESCU failed." && exit 1 )
+echo "File upload to DaRIS completed."
+
+
+
+
+
+
+
+                  
+                  
+                  
+                  
+                  
