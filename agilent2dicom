@@ -438,7 +438,7 @@ if __name__ == "__main__":
     ds.StudyID =  procpar['name']                                   # 0020,0010 Study ID (optional)
 # Cannot use procpar['studyid_'] because DaRIS needs both the Patient name and studyid to be of the form 'DARIS^X.X.X.X', dpush will actually overwrite these fields as well
     
-    ds.ReferringPhysiciansName = procpar['operator_']  # or  ['investigator']
+    ds.ReferringPhysiciansName = '' # procpar['operator_']  # or  ['investigator']
 
 
     
@@ -1394,7 +1394,7 @@ if __name__ == "__main__":
     if ('asl' in procpar.keys() and procpar["asl"] == "y"):
         ds.ImageType = ["ORIGINAL","PRIMARY","ASL","NONE"]         
         
-# TODO must have sequence to start ASL macro
+# must have sequence to start ASL macro
         MRASLSeq = Dataset()
 
 # (0018,9250) 1C Arterial Spin Labeling contrast technique.
@@ -1441,13 +1441,13 @@ if __name__ == "__main__":
 # respect to the patient. See C.7.6.2.1.1 for
 # further explanation.
 #        print procpar["asltheta"], procpar["aslphi"], procpar["aslpsi"]
-        ASLSlabSequence.ASLSlabOrientation  =  str([procpar["asltheta"], procpar["aslphi"], procpar["aslpsi"]])    
+        ASLSlabSequence.ASLSlabOrientation = [procpar["asltheta"], procpar["aslphi"], procpar["aslpsi"]]    
 
 # (0018,9256)  ASLMidSlabPosition 1 The x, y, and z coordinates of the
 # midpoint of the slab in mm with respect to
 # the patient. See C.7.6.2.1.1 for further
 # explanation.
-        ASLSlabSequence.ASLMidSlabPosition =  [str(0.0),str(0.0),str(0.0)]
+        ASLSlabSequence.ASLMidSlabPosition =  [0.0,0.0,0.0]
 
 # (0018,9258) ASLPulseTrainDuration  1 Duration (in milliseconds) of the Label or
 # Control pulse.
@@ -1501,7 +1501,7 @@ if __name__ == "__main__":
 
         
         ## Put into all together
-        ds.MRArterialSpinLabelingSequence=Sequence([MRASLSeq])
+        ds.MRArterialSpinLabeling=Sequence([MRASLSeq])
 ### END ASL SECTION ###
 
 
@@ -1635,7 +1635,7 @@ if __name__ == "__main__":
     #H1reffreq
     # 0018,0084 Imaging Frequency (optional)
     ds.ImagingFrequencey = str(procpar['H1reffrq'])                                                                
-    #TN
+    # TN
     # 0018,0085 Imaged Nucleus (eg 1H) (optional)
     if 'tn' in procpar.keys():
         ds.ImagedNucleus = procpar['tn']
@@ -2064,12 +2064,12 @@ if __name__ == "__main__":
 
         if SEQUENCE == "ASL":         
             if fdf_properties["asltag"] == 1:
-                ds.MRArterialSpinLabelingSequence[0].ASLContext  = 'LABEL'   # (0018,9257)      1C  The purpose of the Arterial Spin Labeling.
+                ds.MRArterialSpinLabeling[0].ASLContext  = 'LABEL'   # (0018,9257)      1C  The purpose of the Arterial Spin Labeling.
             elif  fdf_properties["asltag"] == -1:            #   Enumerated Values:
-                ds.MRArterialSpinLabelingSequence[0].ASLContext  = 'CONTROL'                   #           LABEL
+                ds.MRArterialSpinLabeling[0].ASLContext  = 'CONTROL'                   #           LABEL
 #                                                                    CONTROL
             else:
-                ds.MRArterialSpinLabelingSequence[0].ASLContext = 'M_ZERO_SCAN'                #            M_ZERO_SCAN
+                ds.MRArterialSpinLabeling[0].ASLContext = 'M_ZERO_SCAN'                #            M_ZERO_SCAN
 #                                                           Required if Frame Type (0008,9007) is
 #                                                           ORIGINAL. May be present otherwise.
 #                                                           See C.8.13.5.14.1 for further
@@ -2077,9 +2077,9 @@ if __name__ == "__main__":
 
 
             #FIX ME : this could be either array_index or slice_no
-            ds.MRArterialSpinLabelingSequence[0].ASLSlabSequence.ASLSlabNumber  = fdf_properties["array_index"]
+            ds.MRArterialSpinLabeling[0].ASLSlabSequence[0].ASLSlabNumber  = fdf_properties["array_index"]
 
-            #ASL Mid slab position
+            # ASL Mid slab position
 # The Image Plane Attributes, in conjunction with the Pixel Spacing Attribute, describe the position
 # and orientation of the image slices relative to the patient-based coordinate system. In each image
 # frame the Image Position (Patient) (0020,0032) specifies the origin of the image with respect to
@@ -2116,9 +2116,6 @@ if __name__ == "__main__":
  #           Pxyz = M * pos
 
  #           ds.MRArterialSpinLabelingSequence.ASLSlabSequence[0].ASLMidSlabPosition  = [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0]))]
-
-
-
 
 
         if SEQUENCE == 'Diffusion':

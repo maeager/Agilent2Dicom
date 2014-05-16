@@ -15,8 +15,8 @@ MODIFY=1
 FDF2DCMPATH=$(dirname $0)
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.2.6.35.x8664/"
 if [ ! -d ${DCM3TOOLS} ]; then
-   echo "${DCM3TOOLS} not found"
-   exit 1
+    echo "${DCM3TOOLS} not found"
+    exit 1
 elif [ ! -f ${DCM3TOOLS}/dcmulti ]; then
     echo "Unable to find dcmulti"
     exit 1
@@ -31,14 +31,14 @@ DCMULTI="dcmulti -v -makestack -sortby ImagePositionPatient -dimension StackID F
 # Print usage information and exit
 print_usage(){
     echo -e "\n" \
-    "usage: ./fdf2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p]\n" \
-    "\n" \
-    "-i <inputdir>  FDF source directory\n" \
-    "-o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm. \n" \
-    "-v             verbose output. \n" \
-    "-m,-p          Enable magnitude and phase subdirectory conversion.  These flags are passed to agilent2dicom and should only be used from within fdf2dcm or with knowledge of input fdf data. \n" \
-    "-h             this help\n" \
-    "\n" 
+	"usage: ./fdf2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p]\n" \
+	"\n" \
+	"-i <inputdir>  FDF source directory\n" \
+	"-o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm. \n" \
+	"-v             verbose output. \n" \
+	"-m,-p          Enable magnitude and phase subdirectory conversion.  These flags are passed to agilent2dicom and should only be used from within fdf2dcm or with knowledge of input fdf data. \n" \
+	"-h             this help\n" \
+	"\n" 
     # && exit 1
 }
 
@@ -55,44 +55,44 @@ fi
 
 # Parge arguments
 while getopts ":i:o:hmpdv" opt; do
-  case $opt in
-    i)
-      echo "Input dir:  $OPTARG" >&2
-      input_dir="$OPTARG"
-      ;;
-    o)
-      echo "Output dir: $OPTARG" >&2
-      output_dir="$OPTARG"
-      ;;
-    h)
-      print_usage
-      exit 0
-      ;;
-    m)
-      echo "Implementing magnitude component of FDF to DICOM conversion."
-      ;;
-    p)
-      echo "Implementing phase component of FDF to DICOM conversion."
-      ;;
-    d)
-      MODIFY=0
-      echo " Disable dcmodify correction."
-      ;;
-    v)
-      echo "Setting verbose to 1."
-      VERBOSE=1
-      ;;
-    \?)
-      echo "Invalid option: -$OPTARG" >&2
-      print_usage
-      exit $E_BADARGS
-      ;;
-    :)
-      echo "Option -$OPTARG requires an argument." >&2
-      print_usage
-      exit $E_BADARGS
-      ;;
-  esac
+    case $opt in
+	i)
+	    echo "Input dir:  $OPTARG" >&2
+	    input_dir="$OPTARG"
+	    ;;
+	o)
+	    echo "Output dir: $OPTARG" >&2
+	    output_dir="$OPTARG"
+	    ;;
+	h)
+	    print_usage
+	    exit 0
+	    ;;
+	m)
+	    echo "Implementing magnitude component of FDF to DICOM conversion."
+	    ;;
+	p)
+	    echo "Implementing phase component of FDF to DICOM conversion."
+	    ;;
+	d)
+	    MODIFY=0
+	    echo " Disable dcmodify correction."
+	    ;;
+	v)
+	    echo "Setting verbose to 1."
+	    VERBOSE=1
+	    ;;
+	\?)
+	    echo "Invalid option: -$OPTARG" >&2
+	    print_usage
+	    exit $E_BADARGS
+	    ;;
+	:)
+	    echo "Option -$OPTARG requires an argument." >&2
+	    print_usage
+	    exit $E_BADARGS
+	    ;;
+    esac
 done
 
 
@@ -120,11 +120,12 @@ fi
 magphflag=`ls ${input_dir}/magnitude.img ${input_dir}/phase.img` 2> /dev/null
 if [ $? -eq 0 ]; then  
     echo "Input directory has 'magnitude.img' and 'phase.img' "
-    $0 -m -i ${input_dir}/magnitude.img/ -o ${output_dir}/magnitude.dcm
+    verb=''; if [ "$VERBOSE" -eq 1 ]; then verb=' -v '; fi 
+    $0 $verb -m -i ${input_dir}/magnitude.img/ -o ${output_dir}/magnitude.dcm/
     if [ "$VERBOSE" -eq 1 ] && ! yesno "Magnitude complete. Continue converting phase?"; then
 	echo "fdf2dcm completed without phase." && exit 0
     fi	
-    $0 -p -i ${input_dir}/phase.img -o ${output_dir}/phase.dcm
+    $0 $verb -p -i ${input_dir}/phase.img/ -o ${output_dir}/phase.dcm/
     exit 0
 fi
 
@@ -178,70 +179,76 @@ else
     ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm)
 fi
 
-
+##COMMON FIXES to enhanced DICOMs
 DCMODIFY="dcmodify --no-backup " # --ignore-errors" 
-files=$(find ${output_dir} -name "*.dcm" | grep -v tmp)
+files=$(find ${output_dir} -type f -name "*.dcm" | grep -v tmp)
  # ${DCMODIFY} -m "(0020,0060)=" $files  # Laterality  # fixed in agilent2dicom
 # In-plane phase encoding direction
 ${DCMODIFY} -i "(5200,9229)[0].(0018,9125)[0].(0018,1312)=ROW" $files 
 # Transmit Coil Type
   #   > (0x0018,0x9051) CS Transmit Coil Type      VR=<CS>   VL=<0x0008>  <UNKNOWN >
-  transcoiltype=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Transmit Coil Type' | awk '{print $9}' | tr -d '<>' ) 
-   echo "Fixing Receive Coil Type :" $transcoiltype
- ${DCMODIFY} -m "(5200,9229)[0].(0018,9049)[0].(0018,9051)=$transcoiltype" $files
+transcoiltype=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Transmit Coil Type' | awk '{print $9}' | tr -d '<>' ) 
+echo "Fixing Receive Coil Type :" $transcoiltype
+${DCMODIFY} -m "(5200,9229)[0].(0018,9049)[0].(0018,9051)=$transcoiltype" $files
 # Tranmitter Frequency
   # > (0x0018,0x9098) FD Transmitter Frequency   VR=<FD>   VL=<0x0008>  {0}
-  transfrq=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Transmitter Frequency' | sed 's/^.*{\(.*\)} *$/\1/' )
-     echo "Fixing Tranmitter Frequency :" $transfrq 
-   ${DCMODIFY} -m "(5200,9229)[0].(0018,9006)[0].(0018,9098)=$transfrq" $files
+transfrq=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Transmitter Frequency' | sed 's/^.*{\(.*\)} *$/\1/' )
+echo "Fixing Tranmitter Frequency :" $transfrq 
+${DCMODIFY} -m "(5200,9229)[0].(0018,9006)[0].(0018,9098)=$transfrq" $files
 
  # > (0x0018,0x9042) SQ MR Receive Coil Sequence        VR=<SQ>   VL=<0xffffffff>
-  #    > (0x0018,0x9043) CS Receive Coil Type       VR=<CS>   VL=<0x0008>  <UNKNOWN >
-   reccoiltype=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Receive Coil Type' | awk '{print $9}' | tr -d '<>' ) 
-   echo "Fixing Receive Coil Type :" $reccoiltype
-   ${DCMODIFY} -m "(5200,9229)[0].(0018,9042)[0].(0018,9043)=$reccoiltype" $files
+ #    > (0x0018,0x9043) CS Receive Coil Type       VR=<CS>   VL=<0x0008>  <UNKNOWN >
+reccoiltype=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Receive Coil Type' | awk '{print $9}' | tr -d '<>' ) 
+echo "Fixing Receive Coil Type :" $reccoiltype
+${DCMODIFY} -m "(5200,9229)[0].(0018,9042)[0].(0018,9043)=$reccoiltype" $files
 
 
 
 if [[ $output_dir == *cine* ]]
 then
-  echo "Disabling Frame anatomy modiufication in CINE";
-  MODIFY=0
+    echo "Disabling Frame anatomy modiufication in CINE";
+    MODIFY=0
 fi
+
+# multiple spin echo (0018,9011) - not in diffusion
 
 if [[ $MODIFY -eq 1 ]]; then
 #"$(dirname $0)/dmodify"
 
-firsttmpdcm=$(ls -1 ${output_dir}/tmp/*.dcm| head -1)
-dcdump ${firsttmpdcm} 2>&1 >/dev/null | grep '(0x0008,0x010' | awk -F'>' '/</ {print $4}'| tr -d '<' > anatomy.tmp
-declare -a FrameAnatomySequence
-let i=0;while IFS=$'\r\n' read -r line_data; do 
-    FrameAnatomySequence[i]="${line_data}"; ((++i)); 
-done < anatomy.tmp
-rm anatomy.tmp
+    firsttmpdcm=$(ls -1 ${output_dir}/tmp/*.dcm| head -1)
+    dcdump ${firsttmpdcm} 2>&1 >/dev/null | grep '(0x0008,0x010' | awk -F'>' '/</ {print $4}'| tr -d '<' > ${output_dir}/anatomy.tmp
+    if [ -f  ${output_dir}/anatomy.tmp ]; then
+	declare -a FrameAnatomySequence
+	let i=0;while IFS=$'\r\n' read -r line_data; do 
+	    FrameAnatomySequence[i]="${line_data}"; ((++i)); 
+	done < ${output_dir}/anatomy.tmp
+	rm ${output_dir}/anatomy.tmp
+    else
+	echo "Cannot find anatomy.tmp in output dir"
+    fi
 
-echo "Frame Anatomy Seq: " ${firsttmpdcm} " size: " ${#FrameAnatomySequence[*]}
-if [[ ${#FrameAnatomySequence[*]} -ne 8 ]];then
-    echo "DCM modification error. Not enough Frame Anatomy Sequence parameters."
-    echo " Ignoring Anatomy modifications."
-else
-echo "FrameAnt 7: " ${FrameAnatomySequence[7]}
-${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2218)[0].(0008,0100)=${FrameAnatomySequence[0]}" $files
-${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2218)[0].(0008,0104)=${FrameAnatomySequence[1]}" $files   #CodeMeaning=
-${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2218)[0].(0008,0102)=SRT" $files
+    echo "Frame Anatomy Seq: " ${firsttmpdcm} " size: " ${#FrameAnatomySequence[*]}
+    if [[ ${#FrameAnatomySequence[*]} -ne 8 ]];then
+	echo "DCM modification error. Not enough Frame Anatomy Sequence parameters."
+	echo " Ignoring Anatomy modifications."
+    else
+	echo "FrameAnt 7: " ${FrameAnatomySequence[7]}
+	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2218)[0].(0008,0100)=${FrameAnatomySequence[0]}" $files
+	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2218)[0].(0008,0104)=${FrameAnatomySequence[1]}" $files   #CodeMeaning=
+	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2218)[0].(0008,0102)=SRT" $files
 # ${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2220)[0].(0008,0100)=${FrameAnatomySequence[2]}" $files   #CodeValue=
 # ${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2220)[0].(0008,0104)=${FrameAnatomySequence[3]}" $files
 # ${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2220)[0].(0008,0102)=SRT" $files
-${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2228)[0].(0008,0100)=${FrameAnatomySequence[4]}" $files
-${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2228)[0].(0008,0104)=${FrameAnatomySequence[5]}" $files
-${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2228)[0].(0008,0102)=SRT" $files
+	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2228)[0].(0008,0100)=${FrameAnatomySequence[4]}" $files
+	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2228)[0].(0008,0104)=${FrameAnatomySequence[5]}" $files
+	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2228)[0].(0008,0102)=SRT" $files
 # ${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2230)[0].(0008,0100)=${FrameAnatomySequence[6]}" $files
 # ${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2230)[0].(0008,0104)=${FrameAnatomySequence[7]}" $files
 # ${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2230)[0].(0008,0102)=SRT" $files
-${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0020,9072)=R" $files
+	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0020,9072)=R" $files
 #${DCMODIFY} -i "(0018,9125)[0].(0018,1312)=ROW" $files
-fi # array check
-echo "DCModify done"
+    fi # array check
+    echo "DCModify done"
 fi #debugging modify
 
 

@@ -40,7 +40,7 @@ run_me3d:
 
 test_me3d:
 	dciodvfy -dump ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
-	dciodvfy -dump ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
+	dciodvfy -dump ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Warn'
 
 
 ## Multi-echo 2D Mag and phase
@@ -54,8 +54,8 @@ run_me2d:
 
 test_me2d:
 	dciodvfy -dump ../output_data/multiecho2d_magandphase/magnitude.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
-	dciodvfy -dump ../output_data/multiecho2d_magandphase/phase.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
 	dciodvfy -dump ../output_data/multiecho2d_magandphase/magnitude.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
+	dciodvfy -dump ../output_data/multiecho2d_magandphase/phase.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
 	dciodvfy -dump ../output_data/multiecho2d_magandphase/phase.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
 
 
@@ -74,7 +74,7 @@ test_cine:
 
 ## ASL
 run_asl:
-	./fdf2dcm.sh -v -i ./example_data/1008.2.40.4.1.1/ASL_se_06.img -o ../output_data/ASL_se_06.dcm
+	./fdf2dcm.sh -v -i ../example_data/1008.2.40.4.1.1/ASL_se_06.img -o ../output_data/ASL_se_06.dcm
 	-rm -f ../output_nii/ASL.nii
 	mrconvert -info  ../output_data/ASL_se_06.dcm/ ../output_nii/ASL.nii
 	fslview ../output_nii/ASL.nii
@@ -86,6 +86,7 @@ test_asl:
 ## Diffusion
 run_diffusion:
 	./fdf2dcm.sh -v -i ~/Monash016/amanda/ExampleAgilentData/diffusion/ -o ../output_data/diffusion
+	-rm -f ../output_nii/Diffusion.nii
 	mrconvert -info  ../output_data/diffusion/ ../output_nii/Diffusion.nii
 	fslview ../output_nii/Diffusion.nii
 
