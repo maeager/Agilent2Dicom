@@ -11,6 +11,7 @@ set -o nounset  # shortform: -u
 
 # Set config variables
 VERBOSE=0
+MODIFY=1
 FDF2DCMPATH=$(dirname $0)
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.2.6.35.x8664/"
 if [ ! -d ${DCM3TOOLS} ]; then
@@ -24,8 +25,8 @@ export PATH=${PATH}:${DCM3TOOLS}
 E_BADARGS=65
 source ${FDF2DCMPATH}/yesno.sh
 
-DCMULTI="dcmulti -v  -makestack -sortby ImagePositionPatient  -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
-
+DCMULTI="dcmulti -v -makestack -sortby ImagePositionPatient -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
+#-makestack
 
 # Print usage information and exit
 print_usage(){
@@ -53,7 +54,7 @@ fi
 
 
 # Parge arguments
-while getopts ":i:o:hmpv" opt; do
+while getopts ":i:o:hmpdv" opt; do
   case $opt in
     i)
       echo "Input dir:  $OPTARG" >&2
@@ -72,6 +73,10 @@ while getopts ":i:o:hmpv" opt; do
       ;;
     p)
       echo "Implementing phase component of FDF to DICOM conversion."
+      ;;
+    d)
+      MODIFY=0
+      echo " Disable dcmodify correction."
       ;;
     v)
       echo "Setting verbose to 1."
@@ -134,8 +139,8 @@ if [ $? -ne 0 ]; then  #-o "$procfiles" == ""
     exit 1
 fi
 
-set -o errexit  # -e
-set -o pipefail
+# set -o errexit  # -e
+# set -o pipefail
 
 
 ## Crux of script
@@ -173,17 +178,49 @@ else
     ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm)
 fi
 
-#if 0
-#then
 
-DCMODIFY=`which dcmodify`  #"$(dirname $0)/dmodify"
-files=$(find ${output_dir} -name "*.dcm")
+DCMODIFY="dcmodify --no-backup " # --ignore-errors" 
+files=$(find ${output_dir} -name "*.dcm" | grep -v tmp)
  # ${DCMODIFY} -m "(0020,0060)=" $files  # Laterality  # fixed in agilent2dicom
- ${DCMODIFY} -i "(5200,9229)[0].(0018,9125)[0].(0018,1312)=ROW" $files # In-plane phase encoding direction
+# In-plane phase encoding direction
+${DCMODIFY} -i "(5200,9229)[0].(0018,9125)[0].(0018,1312)=ROW" $files 
+# Transmit Coil Type
+  #   > (0x0018,0x9051) CS Transmit Coil Type      VR=<CS>   VL=<0x0008>  <UNKNOWN >
+  transcoiltype=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Transmit Coil Type' | awk '{print $9}' | tr -d '<>' ) 
+   echo "Fixing Receive Coil Type :" $transcoiltype
+ ${DCMODIFY} -m "(5200,9229)[0].(0018,9049)[0].(0018,9051)=$transcoiltype" $files
+# Tranmitter Frequency
+  # > (0x0018,0x9098) FD Transmitter Frequency   VR=<FD>   VL=<0x0008>  {0}
+  transfrq=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Transmitter Frequency' | sed 's/^.*{\(.*\)} *$/\1/' )
+     echo "Fixing Tranmitter Frequency :" $transfrq 
+   ${DCMODIFY} -m "(5200,9229)[0].(0018,9006)[0].(0018,9098)=$transfrq" $files
+
+ # > (0x0018,0x9042) SQ MR Receive Coil Sequence        VR=<SQ>   VL=<0xffffffff>
+  #    > (0x0018,0x9043) CS Receive Coil Type       VR=<CS>   VL=<0x0008>  <UNKNOWN >
+   reccoiltype=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Receive Coil Type' | awk '{print $9}' | tr -d '<>' ) 
+   echo "Fixing Receive Coil Type :" $reccoiltype
+   ${DCMODIFY} -m "(5200,9229)[0].(0018,9042)[0].(0018,9043)=$reccoiltype" $files
+
+
+
+if [[ $output_dir == *cine* ]]
+then
+  echo "Disabling Frame anatomy modiufication in CINE";
+  MODIFY=0
+fi
+
+if [[ $MODIFY -eq 1 ]]; then
+#"$(dirname $0)/dmodify"
 
 firsttmpdcm=$(ls -1 ${output_dir}/tmp/*.dcm| head -1)
-declare -a FrameAnatomySequence=(`dcdump ${firsttmpdcm} 2>&1 >/dev/null | grep '(0x0008,0x010' | awk -F'>' '/</ {print $4}'| tr -d '<'`)
-echo "Frame Anatomy Seq: size: " ${#FrameAnatomySequence[*]}
+dcdump ${firsttmpdcm} 2>&1 >/dev/null | grep '(0x0008,0x010' | awk -F'>' '/</ {print $4}'| tr -d '<' > anatomy.tmp
+declare -a FrameAnatomySequence
+let i=0;while IFS=$'\r\n' read -r line_data; do 
+    FrameAnatomySequence[i]="${line_data}"; ((++i)); 
+done < anatomy.tmp
+rm anatomy.tmp
+
+echo "Frame Anatomy Seq: " ${firsttmpdcm} " size: " ${#FrameAnatomySequence[*]}
 if [[ ${#FrameAnatomySequence[*]} -ne 8 ]];then
     echo "DCM modification error. Not enough Frame Anatomy Sequence parameters."
     echo " Ignoring Anatomy modifications."
@@ -205,7 +242,7 @@ ${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0020,9072)=R" $files
 #${DCMODIFY} -i "(0018,9125)[0].(0018,1312)=ROW" $files
 fi # array check
 echo "DCModify done"
-# fi #debugging
+fi #debugging modify
 
 
 
