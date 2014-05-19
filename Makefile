@@ -10,7 +10,7 @@ run_kidney:
 	./fdf2dcm.sh -v -i ~/Monash016/RatKidney/Agilent/20120522/kidney512iso_01.img -o ../output_data/kidney512iso.dcm
 
 test_kidney:
-	dciodvfy -dump ../output_data/kidney512iso.dcm/0001.dcm 2>&1 >/dev/null | grep Err 
+	dciodvfy   ../output_data/kidney512iso.dcm/0001.dcm 2>&1 >/dev/null | grep Err 
 
 setup:
 	mkdir ../output_data
@@ -28,8 +28,8 @@ run_standard2d:
 	fslview ../output_nii/standard2d.nii
 
 test_standard2d:
-	dciodvfy -dump ../output_data/standard2d/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
-	dciodvfy -dump ../output_data/standard2d/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
+	-dciodvfy   ../output_data/standard2d/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
+	-dciodvfy   ../output_data/standard2d/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
 
 ## Multi-echo 3D
 run_me3d:
@@ -39,8 +39,8 @@ run_me3d:
 	fslview ../output_nii/ME3d.nii
 
 test_me3d:
-	dciodvfy -dump ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
-	dciodvfy -dump ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Warn'
+	-dciodvfy   ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
+	-dciodvfy  ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Warn'
 
 
 ## Multi-echo 2D Mag and phase
@@ -53,10 +53,10 @@ run_me2d:
 
 
 test_me2d:
-	dciodvfy -dump ../output_data/multiecho2d_magandphase/magnitude.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
-	dciodvfy -dump ../output_data/multiecho2d_magandphase/magnitude.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
-	dciodvfy -dump ../output_data/multiecho2d_magandphase/phase.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
-	dciodvfy -dump ../output_data/multiecho2d_magandphase/phase.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
+	-dciodvfy   ../output_data/multiecho2d_magandphase/magnitude.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
+	-dciodvfy   ../output_data/multiecho2d_magandphase/magnitude.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
+	-dciodvfy   ../output_data/multiecho2d_magandphase/phase.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
+	-dciodvfy   ../output_data/multiecho2d_magandphase/phase.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
 
 
 
@@ -68,8 +68,8 @@ run_cine:
 	fslview ../output_nii/CINE.nii
 
 test_cine:
-	dciodvfy -dump ../output_data/cine/0001.dcm 2>&1 >/dev/null | grep Err
-	dciodvfy -dump ../output_data/cine/0001.dcm 2>&1 >/dev/null | grep Warning
+	-dciodvfy   ../output_data/cine/0001.dcm 2>&1 >/dev/null | grep -e '^Err'
+	-dciodvfy   ../output_data/cine/0001.dcm 2>&1 >/dev/null | grep -e '^Warn'
 
 
 ## ASL
@@ -80,7 +80,8 @@ run_asl:
 	fslview ../output_nii/ASL.nii
 
 test_asl:
-	dciodvfy -dump ../output_data/ASL_se_06.dcm/0001.dcm 2>&1 >/dev/null | grep Err
+	-dciodvfy   ../output_data/ASL_se_06.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
+	-dciodvfy   ../output_data/ASL_se_06.dcm/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
 
 
 ## Diffusion
@@ -91,5 +92,9 @@ run_diffusion:
 	fslview ../output_nii/Diffusion.nii
 
 test_diffusion:
-	dciodvfy -dump ../output_data/diffusion/0001.dcm 2>&1 >/dev/null | grep Err
+	-dciodvfy  ../output_data/diffusion/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
+	-dciodvfy  ../output_data/diffusion/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
 
+
+
+test_all: test_standard2d test_me3d test_me2d test_cine test_asl test_diffusion
