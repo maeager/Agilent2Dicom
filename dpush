@@ -23,23 +23,17 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-# # check if java exists
-# if [[ ! -z $JAVA_HOME ]]; then
-# 	export PATH=$JAVA_HOME/bin:$PATH
-# fi
-# if [[ -z $(which java) ]]; then
-# 	echo "Error: could not find java."
-# 	exit 1
-# fi
+if test ${MASSIVEUSERNAME+defined}; then 
+FDF2DCMPATH=$(dirname $0)
+else
 
-# # check if java version is equal to or greater than 1.5 
-# JAVA_VERSION=$(java -version 2>&1 | grep "java version" | awk '{print $3}' | tr -d \" | awk '{split($0, array, ".")} END{print array[2]}')
-# if [[ $JAVA_VERSION -lt 5 ]]; then
-# 	echo "Error: java version is lower than 1.5."
-# 	exit 1
-# fi
-
-
+DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
+FDF2DCMPATH="/home/vnmr1/src/Agilent2Dicom"
+# load dcm tools
+# DCMODIFY=./dcmtools/bin/DCMODIFY
+export PATH=${PATH}:${DCMTK}
+fi
+STORESCU="storescu" #`which storescu` #"java -cp `dirname $0`/../lib/dcmtools.jar nig.dicom.util.StoreSCU"
 
 usage() {
     echo "Usage: dpush -c cid -s server dicom_dir"
@@ -94,15 +88,16 @@ if [ ! -f `which storescu` ]; then
 	exit 1;
 fi
 
-if [ ! -f daris.cfg ]; then
+if [ ! -f  ${FDF2DCMPATH}/daris.cfg ]; then
     echo "cannot find daris.cfg in Agilent2Dicom folder"
     exit 1;
 fi
 
 
 # parse information in .daris file for sending DICOM
+
 SUCCESS=0
-for strline in $(cat daris.cfg); do
+for strline in $( cat ${FDF2DCMPATH}/daris.cfg ); do
     substrings=${strline//:/ }
     set -- $substrings
     if [ $1 == ${SERVER_STR} ]; then
@@ -129,29 +124,6 @@ fi
 
 
 
-if [[ ! -f "`dirname $0`/../lib/dcmtools.jar" ]]; then
-        echo "Error: could not find dcmtools.jar file." >&2
-        exit 1
-fi
-
-if [[ -z "`which java`" ]]; then
-        echo "Error: could not find java." >&2
-        exit 1
-fi
-
-# check if java version is equal to or greater than 1.5 
-JAVA_VERSION=`java -version 2>&1 | grep "java version" | awk '{print $3}' | tr -d \" | awk '{split($0, array, ".")} END{print array[2]}'`
-if [[ $JAVA_VERSION -lt 5 ]]; then
-	echo "Error: java version is lower than 1.5."
-	exit 1
-fi
-
-
-# load dcm tools
-# DCMODIFY=./dcmtools/bin/DCMODIFY
-
-STORESCU=`which storescu` #"java -cp `dirname $0`/../lib/dcmtools.jar nig.dicom.util.StoreSCU"
-
 files=$(find $DICOM_DIR -type f -name "*.dcm")
 
 # echo "Modify meta-data with DCMTOOLS"
@@ -159,7 +131,7 @@ files=$(find $DICOM_DIR -type f -name "*.dcm")
 # $DCMODIFY  "(0020,0010)=DARIS^$ASSET_CID" $files || exit 1
 
 echo "Upload to DaRIS"
-$STORESCU -callingAETitle $DICOM_CALLING_AET -calledAETitle $DICOM_CALLED_AET -host $DICOM_SERVER  -port $DICOM_PORT  $files || (echo "STORESCU failed." && exit 1 )
+$STORESCU --aetitle $DICOM_CALLING_AET --call $DICOM_CALLED_AET  $DICOM_SERVER  $DICOM_PORT   --scan-pattern "*.dcm" --scan-directories $DICOM_DIR || (echo "STORESCU failed." && exit 1 )
 echo "File upload to DaRIS completed."
 
 

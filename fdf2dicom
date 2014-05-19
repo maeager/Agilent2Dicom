@@ -8,7 +8,8 @@
 import os,sys,re
 
 from Tkinter import *
-from Tkinter import tkFileDialog
+#from Tkinter 
+import tkFileDialog
 
 
 def ReadProcpar(procparfilename):
@@ -47,7 +48,7 @@ def ReadProcpar(procparfilename):
     return (procpar, procpartext)
 
 def check_dir(dpath):
-    if os.path.isdir(dpath) and os.path.exists(os.join(dpath,'0001.dcm')):
+    if os.path.isdir(dpath) and os.path.exists(os.path.join(dpath,'0001.dcm')):
         return True
     else:
         return False
@@ -57,19 +58,20 @@ def senddaris(*args):
     try:
         daris_ID = darisid.get()
         dicom_dir = outputdir.get()
-        cmd = './dpush -c ' + daris_ID + ' -s mf-erc ' + dicom_dir
+        thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
+        cmd = os.path.join(thispath,'dpush') + ' -c ' + daris_ID + ' -s mf-erc ' + dicom_dir
         os.system(cmd)
     except ValueError:
         pass
 
 
 
-def convert(send_button):
+def convert(*args):  #send_button):
     try:
         import os
         input_dir = inputdir.get()
         output_dir = outputdir.get()
-        thispath = os.path.dirname(os.path.abspath(__file__))
+        thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
         print ('dconvert path: ' + thispath)
         cmd1 = os.path.join(thispath,'fdf2dcm.sh') + ' -i ' + input_dir + ' -o ' + output_dir
         print(cmd1)
@@ -83,8 +85,9 @@ echo ''Done''\n ' + cmd1 +')'
         print(cmd)
         os.system(cmd)
         if check_dir(output_dir):
-            send_button.foreground="dark green"
-            send_button.state='active'
+            print 'Ready to send dicoms to DaRIS'
+ #           send_button.foreground="dark green"
+ #           send_button.state='active'
     except ValueError:
         pass
 
@@ -101,7 +104,7 @@ def GetDarisID(*args):
 
 
 def loadinputdir(*args):
-    dir_ = FileDialog.askdirectory(initialdir=inputdir.get(), title="Choose FDF directory", mustexist=True) # parent,
+    dir_ = tkFileDialog.askdirectory(initialdir=inputdir.get(), title="Choose FDF directory", mustexist=True) # parent,
     if re.search('img',dir_):
         out = re.sub('img','dcm',dir_)
     else:
@@ -111,7 +114,7 @@ def loadinputdir(*args):
     darisid.set(GetDarisID())
 
 def loadoutputdir(*args):
-    dir_ = FileDialog.askdirectory(initialdir=outputdir.get(), title="Choose DICOM directory",mustexist=False) # parent,
+    dir_ = tkFileDialog.askdirectory(initialdir=outputdir.get(), title="Choose DICOM directory",mustexist=False) # parent,
     outputdir.set(dir_)
 
 def toggle_debug():
@@ -124,7 +127,8 @@ def toggle_debug():
 
 root = Tk()
 root.title("FDF to Dicom/3.0 (MBI Agilent)")
-
+thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
+print(thispath)
 mainframe = Frame(root)
 mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
 mainframe.columnconfigure(0, weight=1)
@@ -167,15 +171,15 @@ outputdir_entry.grid(column=2, row=2, sticky=(W, E))
 darisid_entry = Entry(mainframe, width=25, textvariable=darisid)
 darisid_entry.grid(column=2, row=3, sticky=(W, E))
 
-Radiobutton(mainframe,text="Debug",variable=debug,padx=10).grid(column=1,row=4,sticky=W)
+# Radiobutton(mainframe,text="Debug",variable=debug,padx=10).grid(column=1,row=4,sticky=W)
 
 #Label(mainframe, textvariable=outputdir).grid(column=2, row=2, sticky=(W, E))
 Button(mainframe, text="Choose Dir", command=loadinputdir).grid(column=3,row=1,sticky=W)
 Button(mainframe, text="Choose Dir", command=loadoutputdir).grid(column=3,row=2,sticky=W)
 
-send_button = Button(mainframe, text="Send", command=senddaris,state='disabled',foreground="red").grid(column=3, row=3, sticky=W)
+send_button = Button(mainframe, text="Send", command=senddaris,state='active',foreground="red").grid(column=3, row=3, sticky=W)
 #send_button.config()
-Button(mainframe, text="Convert", command=convert(send_button)).grid(column=2, row=4, sticky=E)
+Button(mainframe, text="Convert", command=convert).grid(column=2, row=4, sticky=E)
 Button(mainframe,text="Cancel",command=root.destroy).grid(column=3,row=4,sticky=W)
 
 

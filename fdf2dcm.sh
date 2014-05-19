@@ -13,7 +13,15 @@ set -o nounset  # shortform: -u
 VERBOSE=0
 MODIFY=1
 FDF2DCMPATH=$(dirname $0)
+if test ${MASSIVEUSERNAME+defined}; then
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.2.6.35.x8664/"
+export PATH=${PATH}:${DCM3TOOLS}
+else
+DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.2.6.32.x8664/"
+DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
+
+export PATH=${PATH}:${DCM3TOOLS}:${DCMTK}
+fi
 if [ ! -d ${DCM3TOOLS} ]; then
     echo "${DCM3TOOLS} not found"
     exit 1
@@ -21,7 +29,7 @@ elif [ ! -f ${DCM3TOOLS}/dcmulti ]; then
     echo "Unable to find dcmulti"
     exit 1
 fi 
-export PATH=${PATH}:${DCM3TOOLS}
+
 E_BADARGS=65
 source ${FDF2DCMPATH}/yesno.sh
 

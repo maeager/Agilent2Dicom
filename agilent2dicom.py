@@ -413,17 +413,17 @@ if __name__ == "__main__":
     ds.PatientName = procpar['name']                                                     # 0010,0010 Patient Name (optional)
     ds.PatientID = procpar['ident']                                                      # 0010,0020 Patient Id (optional)
     if procpar['birthday'][0] == '':
-        ds.PatientsBirthDate  = '20010101' #str(["01", "01", "01"])                        
+        ds.PatientBirthDate  = '20010101' #str(["01", "01", "01"])                        
     else:
-        ds.PatientsBirthDate  = procpar["birthday"]                                          # 0010,0030 Patient's Birth Date (optional)
+        ds.PatientBirthDate  = procpar["birthday"]                                          # 0010,0030 Patient's Birth Date (optional)
     # 0010,0040 Patient's Sex (optional)  #(M = male, F = Female, O = other) 
     if 'gender' in procpar.keys():
         if procpar['gender'] == 'male':
-            ds.PatientsSex  = 'M' 
+            ds.PatientSex  = 'M' 
         elif  procpar['gender'] == 'female':
-            ds.patientsSex = 'F'
+            ds.PatientSex = 'F'
         else:
-            ds.PatientsSex= 'O'
+            ds.PatientSex= 'O'
     
     #-------------------------------------------------------------------------------------
     # IE: Study
@@ -438,7 +438,7 @@ if __name__ == "__main__":
     ds.StudyID =  procpar['name']                                   # 0020,0010 Study ID (optional)
 # Cannot use procpar['studyid_'] because DaRIS needs both the Patient name and studyid to be of the form 'DARIS^X.X.X.X', dpush will actually overwrite these fields as well
     
-    ds.ReferringPhysiciansName = '' # procpar['operator_']  # or  ['investigator']
+    ds.ReferringPhysicianName = '' # procpar['operator_']  # or  ['investigator']
 
 
     
@@ -1081,9 +1081,11 @@ if __name__ == "__main__":
     # Defined Terms: 1H 3HE 7LI 13C 19F 23NA 31P 129XE
     # Required if Image Type (0008,0008) Value 1 is ORIGINAL or MIXED. 
     # May be present otherwise.
-    
-    ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)       # 0018,0087 Magnetic Field Strength (optional)
-                                                                                         #Nominal field strength of the MR Magnet, in Tesla.
+    ds.ResonantNucleus='1H'
+  #  ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)       
+
+    # 0018,0087 Magnetic Field Strength (optional)
+    # Nominal field strength of the MR Magnet, in Tesla.
     
     #Image Comments (0020,4000) 3
    # User-defined comments about the image.
@@ -1208,9 +1210,9 @@ if __name__ == "__main__":
 #                                                Required if Image Type (0008,0008)
 #                                                Value 1 is ORIGINAL or MIXED. May be
 #                                                present otherwise.
-    ds.MultiplanarExcitation="NO"
+    ds.MultiPlanarExcitation="NO"
     if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
-        ds.MultiplanarExcitation="YES"
+        ds.MultiPlanarExcitation="YES"
 # Phase Contrast                  (0018,9014) 1C Phase Contrast Pulse sequence is a pulse
 #                                                sequence in which the flowing spins are
 #                                                velocity encoded in phase.
@@ -1239,7 +1241,7 @@ if __name__ == "__main__":
 #                                                Required if Image Type (0008,0008)
 #                                                Value 1 is ORIGINAL or MIXED. May be
 #                                                present otherwise.
-    ds.TimeofFlightContrast = "NO"
+    ds.TimeOfFlightContrast = "NO"
 # Arterial Spin Labeling Contrast (0018,9250) 1C Arterial Spin Labeling contrast technique.
 #                                                Enumerated Values:
 #                                                         CONTINUOUS = a single long low
@@ -1645,7 +1647,10 @@ if __name__ == "__main__":
 #    if 'echo' in procpar.keys():
 #        ds.EchoNumber =procpar['echo']                                                  
     # 0018,0087 Magnetic Field Strength (optional)             
-    ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)      
+#    if 'H1reffrq' in procpar.keys() and not procpar['H1reffrq'] == "":
+#        ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)      
+
+    ds.MagneticFieldStrength = str(procpar['B0'])
 
     # find this from the distance between positions of slices (or Thickness thk)
     # ds.SpacingBetweenSlices  # procpar['thk']*1000                                                              # 0018,0088 Spacing Between Slices (optional)
@@ -1859,7 +1864,7 @@ if __name__ == "__main__":
         if args.verbose:
             print 'Acqdim (type): ' + MRAcquisitionType
             print acqndims
-        AssertImplementation(acqndims != fdfdims, filename, CommentStr, AssumptionStr)
+        #AssertImplementation(acqndims != fdfdims, filename, CommentStr, AssumptionStr)
         
         # Slice thickness
         if acqndims == 3:
@@ -1878,8 +1883,8 @@ if __name__ == "__main__":
         if not ('diff' in procpar.keys() and procpar["diff"] == 'y'): 
             if MRAcquisitionType == '3D':
                 print 'Not testing slicethickness in diffusion and 3D MR FDFs'
-            else:
-                AssertImplementation(ds.SliceThickness != fdfthk, filename, CommentStr, AssumptionStr)
+         #   else:
+         #       AssertImplementation(ds.SliceThickness != fdfthk, filename, CommentStr, AssumptionStr)
 
 
 
