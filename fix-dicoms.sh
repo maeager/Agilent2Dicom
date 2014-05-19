@@ -1,6 +1,6 @@
 
 output_dir=$1
-
+MODIFY=1
 ##COMMON FIXES to enhanced DICOMs
 DCMODIFY="dcmodify --no-backup " # --ignore-errors" 
 files=$(find ${output_dir} -type f -name "*.dcm" | grep -v tmp)
@@ -42,12 +42,16 @@ then
 
 fi
 
+firsttmpdcm=$(ls -1 ${output_dir}/tmp/*.dcm| head -1)
+
 # multiple spin echo (0018,9011) - not in diffusion or asl
+multspinecho=`dcdump $firsttmpdcm 2>&1 | grep 'Multiple Spin Echo' | awk '{print $8}' | tr -d '<>'`
+${DCMODIFY} -i "(0018,9011)=$multspinecho" $files
 
 if [[ $MODIFY -eq 1 ]]; then
 #"$(dirname $0)/dmodify"
 
-    firsttmpdcm=$(ls -1 ${output_dir}/tmp/*.dcm| head -1)
+    
     dcdump ${firsttmpdcm} 2>&1 >/dev/null | grep '(0x0008,0x010' | awk -F'>' '/</ {print $4}'| tr -d '<' > ${output_dir}/anatomy.tmp
     if [ -f  ${output_dir}/anatomy.tmp ]; then
 	declare -a FrameAnatomySequence
@@ -82,3 +86,14 @@ if [[ $MODIFY -eq 1 ]]; then
     fi # array check
     echo "DCModify done"
 fi #debugging modify
+
+
+## Remove Per-frame Anatomy sequences
+index=0
+
+while [ `dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l` -gt 0 ]; do
+
+dcmodify -ea "(5200,9230)[$index].(0020,9071)" $files
+((++index))
+
+done
