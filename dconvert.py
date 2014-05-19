@@ -48,6 +48,7 @@ def ReadProcpar(procparfilename):
     return (procpar, procpartext)
 
 def check_dir(dpath):
+    print 'Checking dicom directory'
     if os.path.isdir(dpath) and os.path.exists(os.join(dpath,'0001.dcm')):
         return True
     else:
@@ -58,8 +59,12 @@ def senddaris(*args):
     try:
         daris_ID = darisid.get()
         dicom_dir = outputdir.get()
-        cmd = './dpush -c ' + daris_ID + ' -s mf-erc ' + dicom_dir
-        os.system(cmd)
+        if check_dir(dicom_dir):
+            cmd = './dpush -c ' + daris_ID + ' -s mf-erc ' + dicom_dir
+            os.system(cmd)
+        else:
+            print 'FDF2Dicom converter: Error in dicom directory - not found.'
+
     except ValueError:
         pass
 
@@ -144,7 +149,7 @@ filemenu.add_command(label="Exit", command=root.quit)
 
 
 debug = IntVar()
-debug.set(0)
+debug.set(1)
 
 inputdir = StringVar()
 outputdir = StringVar()
@@ -168,15 +173,17 @@ outputdir_entry.grid(column=2, row=2, sticky=(W, E))
 darisid_entry = Entry(mainframe, width=25, textvariable=darisid)
 darisid_entry.grid(column=2, row=3, sticky=(W, E))
 
-Radiobutton(mainframe,text="Debug",variable=debug,padx=10).grid(column=1,row=4,sticky=W)
+# Radiobutton(mainframe,text="Debug",variable=debug,padx=10).grid(column=1,row=4,sticky=W)
 
 #Label(mainframe, textvariable=outputdir).grid(column=2, row=2, sticky=(W, E))
 Button(mainframe, text="Choose Dir", command=loadinputdir).grid(column=3,row=1,sticky=W)
 Button(mainframe, text="Choose Dir", command=loadoutputdir).grid(column=3,row=2,sticky=W)
 
-send_button = Button(mainframe, text="Send", command=senddaris,state='disabled',foreground="red").grid(column=3, row=3, sticky=W)
+#send_button = Button(mainframe, text="Send", command=senddaris,state='disabled',foreground="red").grid(column=3, row=3, sticky=W)
 #send_button.config()
-Button(mainframe, text="Convert", command=convert(send_button)).grid(column=2, row=4, sticky=E)
+send_button = Button(mainframe, text="Send", command=senddaris,state='active',foreground="red").grid(column=3, row=3, sticky=W)
+
+Button(mainframe, text="Convert", command=convert).grid(column=2, row=4, sticky=E)
 Button(mainframe,text="Cancel",command=root.destroy).grid(column=3,row=4,sticky=W)
 
 
