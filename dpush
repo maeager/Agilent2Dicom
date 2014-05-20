@@ -23,17 +23,20 @@
 #     You should have received a copy of the GNU General Public License
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-if test ${MASSIVEUSERNAME+defined}; then 
-FDF2DCMPATH=$(dirname $0)
-else
 
-DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
-FDF2DCMPATH="/home/vnmr1/src/Agilent2Dicom"
+#Check whether we are on MASSIVE or the Agilent console (Redhat 6.5)
+if test ${MASSIVEUSERNAME+defined}; then 
+    DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
+    FDF2DCMPATH="/home/vnmr1/src/Agilent2Dicom"
 # load dcm tools
 # DCMODIFY=./dcmtools/bin/DCMODIFY
-export PATH=${PATH}:${DCMTK}
+    export PATH=${PATH}:${DCMTK}
+else
+    FDF2DCMPATH=$(dirname $0)
+    # export PATH=${PATH}:${DCMTK}
 fi
-STORESCU="storescu" #`which storescu` #"java -cp `dirname $0`/../lib/dcmtools.jar nig.dicom.util.StoreSCU"
+STORESCU="storescu --debug --arguments --verbose " 
+#"java -cp `dirname $0`/../lib/dcmtools.jar nig.dicom.util.StoreSCU"
 
 usage() {
     echo "Usage: dpush -c cid -s server dicom_dir"
@@ -84,7 +87,7 @@ then {
 fi
 
 if [ ! -f `which storescu` ]; then
-    echo "cannot find dcmtool's storescu in PATH"
+    echo "cannot find dcmtk's storescu in PATH"
 	exit 1;
 fi
 
@@ -124,7 +127,7 @@ fi
 
 
 
-files=$(find $DICOM_DIR -type f -name "*.dcm")
+# files=$(find $DICOM_DIR -type f -name "*.dcm")
 
 # echo "Modify meta-data with DCMTOOLS"
 # $DCMODIFY  "(0010,0010)=DARIS^$ASSET_CID" $files || (echo "DCMODIFY failed." && exit 1)
