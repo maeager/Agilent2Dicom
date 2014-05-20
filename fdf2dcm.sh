@@ -13,13 +13,18 @@ set -o nounset  # shortform: -u
 VERBOSE=0
 MODIFY=1
 FDF2DCMPATH=$(dirname $0)
-if test ${MASSIVEUSERNAME+defined}; then
-DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.2.6.32.x8664/"
-DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
-export PATH=${PATH}:${DCM3TOOLS}:${DCMTK}
-else
-DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.2.6.35.x8664/"
+KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
+DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
 export PATH=${PATH}:${DCM3TOOLS}
+
+# Check DCMTK on MASSIVE or Agilent console
+if test ${MASSIVEUSERNAME+defined}; then
+    DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
+    export PATH=${PATH}:${DCMTK}
+else
+    if [ ! -f `which dcmodify` ]; then
+	module load dcmtk
+    fi
 fi
 
 if [ ! -d ${DCM3TOOLS} ]; then
@@ -189,6 +194,8 @@ DCMULTI="dcmulti -v -makestack -sortby EchoTime -dimension StackID FrameContentS
 
     rm -f ${output_dir}/MULTIECHO
 else
+
+    # Dcmulti config is dependent on order of files.  The 2D standard dicoms are sorted by echo time, image number then slice number. 
     ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 fi
 
