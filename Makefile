@@ -98,3 +98,39 @@ test_diffusion:
 
 
 test_all: test_standard2d test_me3d test_me2d test_cine test_asl test_diffusion
+
+
+## Diffusion DTI
+run_dti:
+	./fdf2dcm.sh -v -i ../example_data/s_2014051208/DTI_EPIP_J30_01.img/ -o ../output_data/dti/
+	-rm -f ../output_nii/DTI.nii
+	mrconvert -info  ../output_data/dti/ ../output_nii/DTI.nii
+	fslview ../output_nii/DTI.nii
+
+test_dti:
+	-dciodvfy  ../output_data/dti/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
+	-dciodvfy  ../output_data/dti/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
+
+
+## Diffusion DTI
+run_epip:
+	./fdf2dcm.sh -v -i ../example_data/s_2014051208/epip_axi_300TR_01.img/ -o ../output_data/epip/
+	-rm -f ../output_nii/EPI.nii
+	mrconvert -info  ../output_data/epip/ ../output_nii/EPI.nii
+	fslview ../output_nii/EPI.nii
+
+test_epip:
+	-dciodvfy  ../output_data/epip/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
+	-dciodvfy  ../output_data/epip/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
+
+
+## Diffusion DTI
+run_J6:
+	./fdf2dcm.sh -v -i ../example_data/J6-500_01.img/ -o ../output_data/j6/
+	-rm -f ../output_nii/J6.nii
+	mrconvert -info  ../output_data/j6/ ../output_nii/J6.nii
+	fslview ../output_nii/J6.nii
+
+test_j6:
+	-dciodvfy  ../output_data/j6/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
+	-dciodvfy  ../output_data/j6/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
