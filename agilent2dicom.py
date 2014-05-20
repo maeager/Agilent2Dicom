@@ -433,7 +433,7 @@ if __name__ == "__main__":
     # Reference: DICOM Part 3: Information Object Definitions C.7.2.1 
 
     ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar,[],args.verbose)                     # 0020,000D Study Instance UID (mandatory)
-    ds.StudyDate = procpar['studyid_'][2:]                          # 0008,0020 Study Date (optional)
+    ds.StudyDate = procpar['studyid_'][2:10]                          # 0008,0020 Study Date (optional)
     ds.StudyTime = procpar['time_submitted'][9:]                                                                     # 0008,0030 Study Time (optional)
     ds.StudyID =  procpar['name']                                   # 0020,0010 Study ID (optional)
 # Cannot use procpar['studyid_'] because DaRIS needs both the Patient name and studyid to be of the form 'DARIS^X.X.X.X', dpush will actually overwrite these fields as well
@@ -697,9 +697,9 @@ if __name__ == "__main__":
 
     # >Percent Phase Field of View (0018,0094) 1C Ratio of field of view dimension in phase direction to field of view dimension in frequency direction, expressed as a percent.
 
-##TODO
+
     MRFOVSeq = Dataset()
-    MRFOVSeq.InPlanePhaseEncodingDirection='ROW'
+    MRFOVSeq.InPlanePhaseEncodingDirection='ROW'      #TODO   ROW or COL
     #MRFOVSeq.MRAcquisitionFrequencyEncodingSteps
     #MRFOVSeq.MRAcquisitionPhaseEncodingStepsinplane
     #MRFOVSeq.PercentSampling
@@ -1183,7 +1183,7 @@ if __name__ == "__main__":
 #                                                      Required if Image Type (0008,0008)
 #                                                      Value 1 is ORIGINAL or MIXED. May be
 #                                                      present otherwise.
-    ds.EchoPulseSequence = 'SPIN'  ##TODO
+    ds.EchoPulseSequence = 'SPIN'  ##TODO  SPIN GRADIENT BOTH
 # Multiple Spin Echo               (0018,9011)     1C  Multiple Spin Echo category of pulse
 #                                                      sequence used to collect different lines in
 #                                                      k-space for a single frame.
@@ -1222,7 +1222,7 @@ if __name__ == "__main__":
 #                                                Required if Image Type (0008,0008)
 #                                                Value 1 is ORIGINAL or MIXED. May be
 #                                                present otherwise.
-    ds.PhaseContrast = "NO"  ##TODO
+    ds.PhaseContrast = "NO"  ##TODO  YES or NO
 # Velocity Encoding Acquisition   (0018,9092) 1C Velocity encoding directions used for
 # Sequence                                       acquisition.
 #                                                Required if Phase Contrast (0018,9014)
@@ -1241,7 +1241,7 @@ if __name__ == "__main__":
 #                                                Required if Image Type (0008,0008)
 #                                                Value 1 is ORIGINAL or MIXED. May be
 #                                                present otherwise.
-    ds.TimeOfFlightContrast = "NO"
+    ds.TimeOfFlightContrast = "NO" #TODO : YES or NO
 # Arterial Spin Labeling Contrast (0018,9250) 1C Arterial Spin Labeling contrast technique.
 #                                                Enumerated Values:
 #                                                         CONTINUOUS = a single long low
@@ -1254,8 +1254,7 @@ if __name__ == "__main__":
 #                                                Required if Image Type (0008,0008) Value
 #                                                3 is ASL. May be present otherwise.
     if ('asl' in procpar.keys() and procpar['asl'] == 'y'):
-        ds.ArterialSpinLabelingContrast = 'CONTINUOUS' 
-#FIXME##TODO: not well defined mapping see ASL section below
+        ds.ArterialSpinLabelingContrast = 'CONTINUOUS'  #TODO: CONTINUOUS PSEUDOCONTINUOUS PULSED
 
 # Steady State Pulse Sequence (0018,9017)     1C Steady State Sequence.
 #                                                Defined Terms:
@@ -1268,7 +1267,7 @@ if __name__ == "__main__":
 #                                                                       Page 861
 #                                           Value 1 is ORIGINAL or MIXED. May be
 #                                           present otherwise.
-    ds.SteadyStatePulseSequence = "FREE_PRECESSION"  ##TODO
+    ds.SteadyStatePulseSequence = "FREE_PRECESSION"  ##TODO one of: FREE_PRECESSION TRANSVERSE TIME_REVERSED LONGITUDINAL NONE
 # Echo Planar Pulse Sequence (0018,9018) 1C Echo Planar category of Pulse
 #                                           Sequences.
 #                                           Enumerated Values:
@@ -1277,7 +1276,7 @@ if __name__ == "__main__":
 #                                           Required if Image Type (0008,0008)
 #                                           Value 1 is ORIGINAL or MIXED. May be
 #                                           present otherwise.
-    ds.EchoPlanarPulseSequence = "NO"  ##TODO
+    ds.EchoPlanarPulseSequence = "NO"  ##TODO one of: YES NO
 # Saturation Recovery        (0018,9024) 1C Saturation recovery pulse sequence.
 #                                           Enumerated Values:
 #                                                   YES
@@ -1285,7 +1284,7 @@ if __name__ == "__main__":
 #                                           Required if Image Type (0008,0008)
 #                                           Value 1 is ORIGINAL or MIXED. May be
 #                                           present otherwise.
-    ds.SaturationRecovery = "NO"  ##TODO
+    ds.SaturationRecovery = "NO"  ##TODO one of YES NO
 # Spectrally Selected Suppression     (0018,9025) 1C Spectrally Selected Suppression.
 #                                                    Defined Terms:
 #                                                             FAT
@@ -1296,7 +1295,7 @@ if __name__ == "__main__":
 #                                                    Required if Image Type (0008,0008)
 #                                                    Value 1 is ORIGINAL or MIXED. May be
 #                                                    present otherwise.
-    ds.SpectrallySelectedSuppression = "NO" ##TODO
+    ds.SpectrallySelectedSuppression = "NO" ##TODO one of: FAT WATER FAT_AND_WATER SILICON_GEL NONE
 # Oversampling Phase                  (0018,9029) 1C Oversampling Phase.
 #                                                    Enumerated Values:
 #                                                             2D           = phase direction
@@ -1307,7 +1306,7 @@ if __name__ == "__main__":
 #                                                    Required if Image Type (0008,0008)
 #                                                    Value 1 is ORIGINAL or MIXED. May be
 #                                                    present otherwise.
-    ds.OversamplingPhase= "NONE" ##TODO
+    ds.OversamplingPhase= "NONE" ##TODO one of 2D 3D 2D_3D NONE
 # Geometry of k-Space Traversal       (0018,9032) 1C Geometry category of k-Space traversal.
 #                                                    Defined Terms:
 #                                                             RECTILINEAR
@@ -1316,7 +1315,7 @@ if __name__ == "__main__":
 #                                                    Required if Image Type (0008,0008)
 #                                                    Value 1 is ORIGINAL or MIXED. May be
 #                                                    present otherwise.
-#    ds.GeometryofkSpaceTraversal = "RECTILINEAR" ##TODO
+#    ds.GeometryofkSpaceTraversal = "RECTILINEAR" ##TODO one of RECTILINEAR RADIAL SPIRAL
 # Rectilinear Phase Encode Reordering (0018,9034) 1C Rectilinear phase encode reordering.
 #                                                    Defined Terms:
 #                                                             LINEAR
@@ -1332,7 +1331,7 @@ if __name__ == "__main__":
 #                                               (0008,0008) Value 1 is DERIVED and
 #                                               Geometry of k-Space Traversal
 #                                               (0018,9032) equals RECTILINEAR.
-#    ds.RectilinearPhaseEncodeReordering= "LINEAR"  ##TODO
+#    ds.RectilinearPhaseEncodeReordering= "LINEAR"  ##TODO one of: LINEAR CENTRIC SEGMENTED REVERSE_LINEAR REVERSE_CENTRIC
 # Segmented k-Space Traversal    (0018,9033) 1C Segmented k-Space traversal. If
 #                                               Geometry of k-Space Traversal is
 #                                               rectilinear, multiple lines can be acquired
@@ -1348,7 +1347,7 @@ if __name__ == "__main__":
 #                                               Required if Image Type (0008,0008)
 #                                               Value 1 is ORIGINAL or MIXED. May be
 #                                               present otherwise.
-#    ds.SegmentedkSpaceTraversal = "SINGLE"
+#    ds.SegmentedkSpaceTraversal = "SINGLE"  #TODO one of  SINGLE PARTIAL FULL
 # Coverage of k-Space            (0018,9094) 1C Coverage of k-Space in the ky-kz plane.
 #                                                Defined Terms:
 #                                                        FULL
@@ -1361,12 +1360,12 @@ if __name__ == "__main__":
 #                                               Otherwise may be present if Image Type
 #                                               (0008,0008) Value 1 is DERIVED and MR
 #                                               Acquisition Type (0018,0023) equals 3D.
-#    ds.CoverageofkSpace = "FULL" ##TODO
+#    ds.CoverageofkSpace = "FULL" ##TODO one of FULL CYLINDRICAL ELLIPSOIDAL WEIGHTED
 # Number of k-Space Trajectories (0018,9093) 1C Number of interleaves or shots.
 #                                               Required if Image Type (0008,0008)
 #                                               Value 1 is ORIGINAL or MIXED. May be
 #                                               present otherwise.
-#    ds.NumberofkSpaceTrajectories='1'
+#    ds.NumberofkSpaceTrajectories='1'  #TODO  arbitrary number
 
 ## END MR Pulse Seqence Macro
 
@@ -1401,8 +1400,7 @@ if __name__ == "__main__":
 
 # (0018,9250) 1C Arterial Spin Labeling contrast technique.
 #  Enumerated Values:  CONTINUOUS,  PSEUDOCONTINUOUS, PULSED
-#FIXME##TODO: not well defined mapping
-        MRASLSeq.ArterialSpinLabelingContrast = 'CONTINUOUS' 
+        MRASLSeq.ArterialSpinLabelingContrast = 'CONTINUOUS'   #TODO:  CONTINUOUS,  PSEUDOCONTINUOUS, PULSED not well defined mapping IN PROCPAR
 
 #ASL Technique Description:  FAIR, EPISTAR, PICORE http://www.nmr.mgh.harvard.edu/~jjchen/ASL.html
         MRASLSeq.ASLTechniqueDescription=procpar["asltype"]  
@@ -1546,16 +1544,17 @@ if __name__ == "__main__":
         
 
     # MRImage Module
-    # Scanning sequence: SE = spin echo, IR = inversion recovery, GR = gradient recalled, 
+    #0018,0020 (mandatory) Scanning sequence: SE = spin echo, IR = inversion recovery, GR = gradient recalled, 
     #    EP = echo planar, RM = research mode
-    ds.ScanningSequence = "SE"  # 0018,0020 (mandatory)
+    ds.ScanningSequence = "EP"  #TODO one of SE = spin echo, IR = inversion recovery, GR = gradient recalled EP = echo planar, RM = research mode
+    if 'spinecho' in procpar.keys() and procpar['spinecho'] == 'y':
+        ds.ScanningSequence = "SE"        
     if 'seqfil' in procpar.keys():
         if procpar["seqfil"] == 'epip':
-            ds.ScanningSequence   =  'EP'  # 0018,0020 (mandatory)
+            ds.ScanningSequence   =  "EP"  # 0018,0020 (mandatory)
         if re.search('ge3d',procpar["seqfil"]):  # apptype im3D 
-            ds.ScanningSequence =  'GR'  # 0018,0020 (mandatory)
+            ds.ScanningSequence =  "GR"  # 0018,0020 (mandatory)
 
-##TODO
     if ds.ScanningSequence == "IR":
     # 0018,0082 Inversion Time (optional)
     #Inversion Time (0018,0082) 2C Time in msec after the middle of inverting
@@ -1571,12 +1570,11 @@ if __name__ == "__main__":
     # Sequence variant: SK = segmented k-space, MTC = magnetization transfor contrast, 
     #    SS = steady state, TRSS = time reversed steady state, MP = MAG prepared, 
     #    OSP = oversamplying phase, NONE = no sequence variant
-    #TODO: Is 'SK' always the case? #procpar['ncnnn']?                                             
     # 0018,0021 Sequence Variant (mandatory)
-    ds.SequenceVariant  =  'SK'               
+    ds.SequenceVariant  =  'SK'   #TODO: one of SK MTC SS TRSS MP OSP NONE 
 
     # 0018,0024 Sequence Name (user-defined) (optional)
-    ds.SequenceName     = procpar['pslabel'][:15]        
+    ds.SequenceName = procpar['pslabel'][:15]        
     
 
     # Scan options: PER = Phase Encode Reordering, RG = Respiratory Gating, CG = Cardiac 
@@ -1584,7 +1582,7 @@ if __name__ == "__main__":
     #    Fourier - Frequency, PFP = Partial Fourier - Phase, SP = Spatial Presaturatino, 
     #    FS = Fat Saturation
     # 0018,0022 Scan Options (optional)
-    ds.ScanOptions = 'SP'
+    ds.ScanOptions = 'SP'  #TODO one of  PER RG CG PPG FC PFF PFP SP FS
 #    if 'dgdelay' in procpar.keys() and re.search('CARIAC GATING', procpar['dgdelay']) 
     if 'seqfil' in procpar.keys() and re.search('cine', procpar['seqfil']):
         ds.ScanOptions = 'CG'
@@ -1626,12 +1624,12 @@ if __name__ == "__main__":
     #                             Angio processing. Enumerated Values:
     #                                     Y = Image is Angio
     #                                     N = Image is not Angio
-    ds.AngioFlag = 'N'  ##TODO 
+    ds.AngioFlag = 'N'  ##TODO Y or N
 
     # Number of Averages (0018,0083) 3 Number of times a given pulse sequence
     #                             is repeated before any parameter is
     #                             changed
-##TODO    ds.NumberOfAVerages = procpar['nav_echo']
+#fix    ds.NumberOfAVerages = procpar['nav_echo']
 
 
     #H1reffreq
@@ -1671,7 +1669,7 @@ if __name__ == "__main__":
     ds.ReceiveCoilName  = procpar['rfcoil'][:15]
     
     ## From code below
-# FIXME
+#
 #    ds.AcquistionMatrix  = [ procpar['']  , procpar['']  ]                                                                # 0018,1310 Acquistion Matrix (optional)
         #---------------------------------------------------------------------------------
         # Number of rows
@@ -1735,7 +1733,7 @@ if __name__ == "__main__":
         #                                        the image. Enumerated Values:
         #                                                ROW = phase encoded in rows.
         #                                                COL = phase encoded in columns.
-    ds.InPhaseEncodingDirection = "ROW" ##TODO
+    ds.InPhaseEncodingDirection = "ROW" ##TODO either ROW or COL
 
 
 ## FIXME   where is the flip list!!@#  procpar fliplist
@@ -1762,15 +1760,15 @@ if __name__ == "__main__":
 
     # Samples Per Pixel: should be 1 for MR
     # 0028,0002 Samples Per Pixel (mandatory)
-    ds.SamplesPerPixel  =1                   
-                                              
+    ds.SamplesPerPixel  =1
+
     # Photometric Interpretation: must be MONOCHROME2
     # 0028,0004 Photometric Interpretation (mandatory)
     ds.PhotometricInterpretation = 'MONOCHROME2'
 
     # BitsAllocated: should be 16
     # 0028,0100 (mandatory)
-    ds.BitsAllocated  =16                                                                   
+    ds.BitsAllocated = 16                             
 
     # Module: Image Plane (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.6.2 
@@ -1791,7 +1789,7 @@ if __name__ == "__main__":
     if MRAcquisitionType == '3D':
         SpacingBetweenSlices = ds.SliceThickness                          
 
-    #FIXME
+    
 
     #ds.ImageOrientationPatient = fdfpar['orientation']                                                         # 0020,0037 Image Orientation (Patient) (mandatory)
     #ds.ImagePositionPatient  = fdfpar['location']                                                            # 0020,0032 Image Position (Patient) (mandatory)
@@ -1815,7 +1813,7 @@ if __name__ == "__main__":
     datamin = float("inf")
     datamax = float("-inf")
 
-    #TODO: Error in RescaleSlope of phase imgs - current hack puts 1.0 instead 
+    #FIXED BUG in RescaleSlope of phase imgs - current hack puts 1.0 instead 
     if args.phase and 'imPH' in procpar.keys() and procpar["imPH"] == 'y':
         datamin = -math.pi
         datamax = math.pi
@@ -1879,7 +1877,7 @@ if __name__ == "__main__":
             print 'SliceThinkness: ' + str(ds.SliceThickness)
 
 
-        #TODO Quick hack to avoid assert errors for diffusion and 3D magnitude images
+        #fix me Quick hack to avoid assert errors for diffusion and 3D magnitude images
         if not ('diff' in procpar.keys() and procpar["diff"] == 'y'): 
             if MRAcquisitionType == '3D':
                 print 'Not testing slicethickness in diffusion and 3D MR FDFs'
@@ -2133,8 +2131,8 @@ if __name__ == "__main__":
 ## MR Diffusion Sequence (0018,9117) see DiffusionMacro.txt
             diffusionseq = Dataset()
             diffusionseq.DiffusionBValue=fdf_properties['bvalue']
-            diffusionseq.DiffusionDirectionality = 'DIRECTIONAL' #One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
-            diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' # One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
+            diffusionseq.DiffusionDirectionality = 'DIRECTIONAL' #TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
+            diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' #TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
 
             ### Diffusion Gradient Direction Sequence (0018,9076) 
             diffgraddirseq = Dataset()            
@@ -2376,11 +2374,12 @@ if __name__ == "__main__":
                 slice_data = numpy.reshape(voldata[islice],(fdf_properties['matrix'][0]*fdf_properties['matrix'][1],1)) #numpy.squeeze(numpy.matrix(image_data[islice]))
                 # print slice_data.shape
 
-                ds.PixelData = slice_data.tostring()                                        #(7fe0,0010) Pixel Data
+                ds.PixelData = slice_data.tostring()    #(7fe0,0010) Pixel Data
                 if 'slice_no' in fdf_properties.keys():
                     image_number = fdf_properties['slice_no']
                 else:
                     image_number=1
+
                 new_filename = "slice%03dimage%03decho%03d.dcm" % (islice,image_number,fdf_properties['echo_no'])
                 #Fix 3rd dimension position 
                 #ds.ImagePositionPatient[2] = str(ImagePositionPatient[2] + (islice-1)*SliceThickness)
