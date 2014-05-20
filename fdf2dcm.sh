@@ -14,14 +14,14 @@ VERBOSE=0
 MODIFY=1
 FDF2DCMPATH=$(dirname $0)
 if test ${MASSIVEUSERNAME+defined}; then
-DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.2.6.35.x8664/"
-export PATH=${PATH}:${DCM3TOOLS}
-else
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.2.6.32.x8664/"
 DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
-
 export PATH=${PATH}:${DCM3TOOLS}:${DCMTK}
+else
+DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.2.6.35.x8664/"
+export PATH=${PATH}:${DCM3TOOLS}
 fi
+
 if [ ! -d ${DCM3TOOLS} ]; then
     echo "${DCM3TOOLS} not found"
     exit 1
@@ -33,8 +33,8 @@ fi
 E_BADARGS=65
 source ${FDF2DCMPATH}/yesno.sh
 
-DCMULTI="dcmulti -v -makestack -sortby ImagePositionPatient -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
-#-makestack
+DCMULTI="dcmulti -v -makestack -sortby AcquisitionNumber -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
+#-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
 
 # Print usage information and exit
 print_usage(){
@@ -177,19 +177,24 @@ if [ -f ${output_dir}/MULTIECHO ]; then
     echo "Contents of MULTIECHO"; cat ${output_dir}/MULTIECHO; echo '\n'
     nechos=$(cat ${output_dir}/MULTIECHO)
     echo "Multi echo sequence, $nechos echos"
-    for iecho in $(seq 1 ${nechos}); do
-	echoext=$(printf '%03d' $iecho)
-	echo "Converting echo ${iecho} using dcmulti"
-	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 ${output_dir}/tmp/*echo${echoext}.dcm)
-    done
+    # for iecho in $(seq 1 ${nechos}); do
+    # 	echoext=$(printf '%03d' $iecho)
+    # 	echo "Converting echo ${iecho} using dcmulti"
+    # 	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 ${output_dir}/tmp/*echo${echoext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+    # done
+
+DCMULTI="dcmulti -v -makestack -sortby EchoTime -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
+#-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
+ ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+
     rm -f ${output_dir}/MULTIECHO
 else
-    ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm)
+    ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 fi
 
 
 ## Corrections to dcmulti conversion
-./fix-dicoms.sh "${output_dir}"
+${FDF2DCMPATH}/fix-dicoms.sh "${output_dir}"
 
 
 ## Cleaning up
