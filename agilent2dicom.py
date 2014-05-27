@@ -700,6 +700,9 @@ if __name__ == "__main__":
 
     MRFOVSeq = Dataset()
     MRFOVSeq.InPlanePhaseEncodingDirection='ROW'      #TODO   ROW or COL
+    if procpar['dimY'] == "lpe":
+        MRFOVSeq.InPlanePhaseEncodingDirection = "COL" ##TODO either ROW or COL
+
     #MRFOVSeq.MRAcquisitionFrequencyEncodingSteps
     #MRFOVSeq.MRAcquisitionPhaseEncodingStepsinplane
     #MRFOVSeq.PercentSampling
@@ -1222,7 +1225,7 @@ if __name__ == "__main__":
 #                                                Required if Image Type (0008,0008)
 #                                                Value 1 is ORIGINAL or MIXED. May be
 #                                                present otherwise.
-    ds.PhaseContrast = "NO"  ##TODO  YES or NO
+    ds.PhaseContrast = "NO"  ##TODO  YES or NO QZ: 
 # Velocity Encoding Acquisition   (0018,9092) 1C Velocity encoding directions used for
 # Sequence                                       acquisition.
 #                                                Required if Phase Contrast (0018,9014)
@@ -1267,7 +1270,8 @@ if __name__ == "__main__":
 #                                                                       Page 861
 #                                           Value 1 is ORIGINAL or MIXED. May be
 #                                           present otherwise.
-    ds.SteadyStatePulseSequence = "FREE_PRECESSION"  ##TODO one of: FREE_PRECESSION TRANSVERSE TIME_REVERSED LONGITUDINAL NONE
+    ds.SteadyStatePulseSequence = "NONE"  ##TODO one of: FREE_PRECESSION TRANSVERSE TIME_REVERSED LONGITUDINAL NONE
+    #
 # Echo Planar Pulse Sequence (0018,9018) 1C Echo Planar category of Pulse
 #                                           Sequences.
 #                                           Enumerated Values:
@@ -1295,7 +1299,7 @@ if __name__ == "__main__":
 #                                                    Required if Image Type (0008,0008)
 #                                                    Value 1 is ORIGINAL or MIXED. May be
 #                                                    present otherwise.
-    ds.SpectrallySelectedSuppression = "NO" ##TODO one of: FAT WATER FAT_AND_WATER SILICON_GEL NONE
+    ds.SpectrallySelectedSuppression = "NONE" ##TODO one of: FAT WATER FAT_AND_WATER SILICON_GEL NONE
 # Oversampling Phase                  (0018,9029) 1C Oversampling Phase.
 #                                                    Enumerated Values:
 #                                                             2D           = phase direction
@@ -1365,7 +1369,10 @@ if __name__ == "__main__":
 #                                               Required if Image Type (0008,0008)
 #                                               Value 1 is ORIGINAL or MIXED. May be
 #                                               present otherwise.
-#    ds.NumberofkSpaceTrajectories='1'  #TODO  arbitrary number
+    if 'nseg' in procpar.keys():
+        ds.NumberofkSpaceTrajectories= procpar['nseg']
+    else:
+        ds.NumberofkSpaceTrajectories='1' 
 
 ## END MR Pulse Seqence Macro
 
@@ -1587,7 +1594,6 @@ if __name__ == "__main__":
     if 'seqfil' in procpar.keys() and re.search('cine', procpar['seqfil']):
         ds.ScanOptions = 'CG'
         ds.PatientSex = procpar['gender'][:1].upper()
-                                                 
     
     
     # Determine acquisition dimensionality:  MR Acquisition Type: 2D, 3D
@@ -1734,7 +1740,9 @@ if __name__ == "__main__":
         #                                                ROW = phase encoded in rows.
         #                                                COL = phase encoded in columns.
     ds.InPhaseEncodingDirection = "ROW" ##TODO either ROW or COL
-
+    if procpar['dimY'] == "lpe":
+        ds.InPhaseEncodingDirection = "COL" ##TODO either ROW or COL
+    
 
 ## FIXME   where is the flip list!!@#  procpar fliplist
 # 0018,1314 Flip Angle (optional)
