@@ -1,5 +1,6 @@
 
 REQUIREMENTS= ./dpush mrconvert ./fdf2dcm.sh ./agilent2dicom storescu dcmodify
+MRVIEW="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Monash016/eagerm/mrtrix-0.2.12/lib vglrun ~/Monash016/eagerm/mrtrix-0.2.12/bin/mrview"
 
 check:
 	for req in $(REQUIREMENTS); do \

@@ -64,10 +64,16 @@
                       
                       
 
+dcdump ../output_data/ASL_se_06.dcm/tmp/slice001image001echo001.dcm 2>&1| grep -A30 'MR Arterial' | sed 's/.*VL=<[^>]*>\s\(.*\)/\1/'                                
+# per frame (0x5200,0x9230)
 
 
     firsttmpdcm=$(ls -1 ${output_dir}/tmp/*.dcm| head -1)
+
+
     dcdump ${firsttmpdcm} 2>&1 >/dev/null | grep '(0x0008,0x010' | awk -F'>' '/</ {print $4}'| tr -d '<' > ${output_dir}/anatomy.tmp
+
+
     if [ -f  ${output_dir}/anatomy.tmp ]; then
 	declare -a FrameAnatomySequence
 	let i=0;while IFS=$'\r\n' read -r line_data; do 

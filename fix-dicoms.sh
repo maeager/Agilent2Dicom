@@ -92,8 +92,8 @@ fi #debugging modify
 index=0
 
 while [ `dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l` -gt 0 ]; do
-
-dcmodify -ea "(5200,9230)[$index].(0020,9071)" $files
-((++index))
+    echo "Removing Per-frame Anatomy sequence # $index"
+    dcmodify -ea "(5200,9230)[$index].(0020,9071)" $files
+    ((++index))
 
 done
