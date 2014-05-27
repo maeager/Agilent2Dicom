@@ -1557,11 +1557,13 @@ if __name__ == "__main__":
     if 'spinecho' in procpar.keys() and procpar['spinecho'] == 'y':
         ds.ScanningSequence = "SE"        
     if 'seqfil' in procpar.keys():
-        if procpar["seqfil"] == 'epip':
-            ds.ScanningSequence   =  "EP"  # 0018,0020 (mandatory)
-        if re.search('ge3d',procpar["seqfil"]):  # apptype im3D 
-            ds.ScanningSequence =  "GR"  # 0018,0020 (mandatory)
-
+        if re.search('ep',procpar["seqfil"]):
+            ds.ScanningSequence   =  "EP"  
+        if re.search('ge',procpar["seqfil"]):  # apptype im3D 
+            ds.ScanningSequence =  "GR"  
+        if re.search('se',procpar["seqfil"]):
+            ds.ScanningSequence   =  "SE"  
+        
     if ds.ScanningSequence == "IR":
     # 0018,0082 Inversion Time (optional)
     #Inversion Time (0018,0082) 2C Time in msec after the middle of inverting
@@ -2139,7 +2141,10 @@ if __name__ == "__main__":
 ## MR Diffusion Sequence (0018,9117) see DiffusionMacro.txt
             diffusionseq = Dataset()
             diffusionseq.DiffusionBValue=fdf_properties['bvalue']
-            diffusionseq.DiffusionDirectionality = 'DIRECTIONAL' #TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
+            if fdf_properties['bvalue']==0:
+                diffusionseq..DiffusionDirectionality = 'NONE'
+            else:
+                diffusionseq.DiffusionDirectionality = 'BMATRIX' #TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
             diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' #TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
 
             ### Diffusion Gradient Direction Sequence (0018,9076) 
@@ -2158,12 +2163,15 @@ if __name__ == "__main__":
             diffusionseq.DiffusionGradientDirectionSequence = Sequence([diffbmatseq])
 
             ds.MRDiffusionSequence= Sequence([diffusionseq])
+
 ##
         
+
         #if 'echoes' in fdf_properties.keys() and fdf_properties['echoes'] > 1 and fdf_properties['array_dim'] == 1:
         #    ds.AcquisitionNumber = fdf_properties['echo_no']
         #    ds.ImagesInAcquisition = fdf_properties['echoes']
         #else:
+
         ds.AcquisitionNumber = fdf_properties['array_index']
         ds.ImagesInAcquisition = fdf_properties['array_dim']
 
