@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #  -*- mode:python -*-
 
-# - Michael Eager (michael.eager@monash.edu
+# - Michael Eager (michael.eager@monash.edu)
 # - Monash Biomedical Imaging 
 # - (C) 2014 Michael Eager
 
@@ -64,6 +64,29 @@ def senddaris(*args):
     except ValueError:
         pass
 
+def check(*args):  #send_button):
+    try:
+        import os
+        output_dir = outputdir.get()
+        thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
+        print ('check path: ' + thispath)
+        cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + output_dir
+        print(cmd1)
+        cmd='(if test ${MASSIVEUSERNAME+defined} \n\
+then \n\
+  echo ''On Massive'' \n\
+  module unload python/3.3.5-gcc \n\
+  module load python \n\
+fi \n\
+echo ''Done''\n ' + cmd1 +')'
+        print(cmd)
+        os.system(cmd)
+        if check_dir(output_dir):
+            print 'Ready to send dicoms to DaRIS'
+ #           send_button.foreground="dark green"
+ #           send_button.state='active'
+    except ValueError:
+        pass
 
 
 def convert(*args):  #send_button):
@@ -73,7 +96,7 @@ def convert(*args):  #send_button):
         output_dir = outputdir.get()
         thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
         print ('dconvert path: ' + thispath)
-        cmd1 = os.path.join(thispath,'fdf2dcm.sh') + ' -i ' + input_dir + ' -o ' + output_dir
+        cmd1 = os.path.join(thispath,'fdf2dcm.sh') + ' -v  -i ' + input_dir + ' -o ' + output_dir
         print(cmd1)
         cmd='(if test ${MASSIVEUSERNAME+defined} \n\
 then \n\
@@ -177,9 +200,10 @@ darisid_entry.grid(column=2, row=3, sticky=(W, E))
 Button(mainframe, text="Choose Dir", command=loadinputdir).grid(column=3,row=1,sticky=W)
 Button(mainframe, text="Choose Dir", command=loadoutputdir).grid(column=3,row=2,sticky=W)
 
-send_button = Button(mainframe, text="Send", command=senddaris,state='active',foreground="red").grid(column=3, row=3, sticky=W)
+send_button = Button(mainframe, text="Send", command=senddaris,state='active',foreground="black").grid(column=2, row=4, sticky=E)
 #send_button.config()
-Button(mainframe, text="Convert", command=convert).grid(column=2, row=4, sticky=E)
+Button(mainframe, text="Convert", command=convert).grid(column=1, row=4, sticky=E)
+Button(mainframe, text="Check", command=check).grid(column=2, row=4, sticky=W)
 Button(mainframe,text="Cancel",command=root.destroy).grid(column=3,row=4,sticky=W)
 
 

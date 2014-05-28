@@ -3,7 +3,8 @@
 #   Front-end to agilent2dicom and dcmulti
 #
 # - Michael Eager (michael.eager@monash.edu.au)
-# - (c) 2014
+# - Monash Biomedical Imaging 
+# - (C) 2014 Michael Eager
 
 set -o nounset  # shortform: -u
 # set -o errexit  # -e
@@ -19,12 +20,11 @@ export PATH=${PATH}:${DCM3TOOLS}
 
 # Check DCMTK on MASSIVE or Agilent console
 if test ${MASSIVEUSERNAME+defined}; then
+    test -x dcmodify || module load dcmtk
+    
+else
     DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
     export PATH=${PATH}:${DCMTK}
-else
-    if [ ! -f `which dcmodify` ]; then
-	module load dcmtk
-    fi
 fi
 
 if [ ! -d ${DCM3TOOLS} ]; then

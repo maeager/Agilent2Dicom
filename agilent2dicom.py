@@ -1369,10 +1369,10 @@ if __name__ == "__main__":
 #                                               Required if Image Type (0008,0008)
 #                                               Value 1 is ORIGINAL or MIXED. May be
 #                                               present otherwise.
-    if 'nseg' in procpar.keys():
-        ds.NumberofkSpaceTrajectories= procpar['nseg']
-    else:
-        ds.NumberofkSpaceTrajectories='1' 
+#    if 'nseg' in procpar.keys():
+#        ds.NumberofkSpaceTrajectories = procpar['nseg']
+#    else:
+#        ds.NumberofkSpaceTrajectories=1 
 
 ## END MR Pulse Seqence Macro
 
@@ -2142,7 +2142,7 @@ if __name__ == "__main__":
             diffusionseq = Dataset()
             diffusionseq.DiffusionBValue=fdf_properties['bvalue']
             if fdf_properties['bvalue']==0:
-                diffusionseq..DiffusionDirectionality = 'NONE'
+                diffusionseq.DiffusionDirectionality = 'NONE'
             else:
                 diffusionseq.DiffusionDirectionality = 'BMATRIX' #TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
             diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' #TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO

@@ -1,3 +1,21 @@
+#！/usr/bin/env bash
+
+# - Michael Eager (michael.eager@monash.edu)
+# - Monash Biomedical Imaging 
+# - (C) 2014 Michael Eager
+
+# Check DCMTK on MASSIVE or Agilent console
+if test ${MASSIVEUSERNAME+defined}; then
+    test -x dcmodify || module load dcmtk
+else
+    DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
+    export PATH=${PATH}:${DCMTK}
+
+fi
+
+test -x dcmodify || (echo "dcmodify not found"; exit 1)
+
+
 
 output_dir=$1
 MODIFY=1
