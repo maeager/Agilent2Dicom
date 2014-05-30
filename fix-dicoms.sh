@@ -6,15 +6,19 @@
 
 # Check DCMTK on MASSIVE or Agilent console
 if test ${MASSIVEUSERNAME+defined}; then
-    test -x dcmodify || module load dcmtk
+    if [ ! -x `which dcmodify` ];then
+	module load dcmtk
+    fi
 else
     DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
     export PATH=${PATH}:${DCMTK}
 
 fi
 
-test -x dcmodify || (echo "dcmodify not found"; exit 1)
-
+if [ ! -x `which dcmodify` ];then
+    echo "ERROR: dcmodify not found (fix-dicoms.sh)"; 
+    exit 1
+fi
 
 
 output_dir=$1

@@ -39,6 +39,12 @@ function yesno()
     local timeout=0
     local default
     local t
+    local debug=0
+
+    if [[ "$-" == "*x*" ]]; then
+	debug=1
+	set +x
+    fi 
 
     while [[ "$1" ]]
     do
@@ -79,7 +85,7 @@ function yesno()
     fi
 
     if [[ ! "$*" ]]; then error "Missing question"; fi
-
+    echo ''
     while [[ $ok -eq 0 ]]
     do
         if [[ $timeout -ne 0 ]]; then
@@ -106,6 +112,10 @@ function yesno()
         if [[ $ok -eq 0 ]]; then warning "Valid answers are: yes y no n"; fi
     done
     [[ "$ans" = "y" || "$ans" == "yes" ]]
+
+    if [ "$debug" == "1" ]; then
+	set -x
+    fi
 }
 
 # if [[ $(basename "$0" .sh) == 'yesno' ]]; then

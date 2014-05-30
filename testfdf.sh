@@ -47,3 +47,9 @@ fslview output_nii/ASL.nii
 ./Agilent2Dicom/fdf2dcm.sh -v -i ~/Monash016/amanda/ExampleAgilentData/diffusion/ -o ./output_data/diffusion
 mrconvert -info  output_data/diffusion/ output_nii/Diffusion.nii
 fslview output_nii/Diffusion.nii
+
+
+
+
+
+
