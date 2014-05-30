@@ -6,9 +6,13 @@
 # - Monash Biomedical Imaging 
 # - (C) 2014 Michael Eager
 
+
 set -o nounset  # shortform: -u
 # set -o errexit  # -e
 # set -o pipefail
+#exec 2>> $(dirname $0)/error.log
+# set -x
+
 
 # Set config variables
 VERBOSE=0
@@ -17,7 +21,9 @@ FDF2DCMPATH=$(dirname $0)
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
 export PATH=${PATH}:${DCM3TOOLS}
-
+input_dir=""
+output_dir=""
+python_args=""
 # Check DCMTK on MASSIVE or Agilent console
 if test ${MASSIVEUSERNAME+defined}; then
     test -x dcmodify || module load dcmtk
@@ -28,10 +34,10 @@ else
 fi
 
 if [ ! -d ${DCM3TOOLS} ]; then
-    echo "${DCM3TOOLS} not found"
+    echo "${DCM3TOOLS} path not found"
     exit 1
-elif [ ! -f ${DCM3TOOLS}/dcmulti ]; then
-    echo "Unable to find dcmulti"
+elif [ ! -x ${DCM3TOOLS}/dcmulti ]; then
+    echo "Unable to find Dicom3Tool's executable dcmulti"
     exit 1
 fi 
 
@@ -40,6 +46,8 @@ source ${FDF2DCMPATH}/yesno.sh
 
 DCMULTI="dcmulti -v -makestack -sortby AcquisitionNumber -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
+
+
 
 # Print usage information and exit
 print_usage(){
@@ -83,9 +91,11 @@ while getopts ":i:o:hmpdv" opt; do
 	    ;;
 	m)
 	    echo "Implementing magnitude component of FDF to DICOM conversion."
+	    python_args="$python_args -m"
 	    ;;
 	p)
 	    echo "Implementing phase component of FDF to DICOM conversion."
+	    python_args="$python_args -p"
 	    ;;
 	d)
 	    MODIFY=0
@@ -94,6 +104,7 @@ while getopts ":i:o:hmpdv" opt; do
 	v)
 	    echo "Setting verbose to 1."
 	    VERBOSE=1
+	    python_args="$python_args -v"
 	    ;;
 	\?)
 	    echo "Invalid option: -$OPTARG" >&2
@@ -116,7 +127,7 @@ if [ ! -d "$input_dir" ]; then
 fi
 # Set output_dir if not in args, default is INPUT/.dcm
 if [ "$output_dir" == "" ]; then
-    output_dir="$(dirname ${input_dir})/$(basename ${input_dir})/.dcm"
+    output_dir="$(dirname ${input_dir})/$(basename ${input_dir} .img).dcm"
     echo "Output dir set to: " $output_dir
 fi
 if [ -d "$output_dir" ]; then
@@ -130,8 +141,7 @@ if [ -d "$output_dir" ]; then
     fi	
 fi
 
-magphflag=`ls ${input_dir}/magnitude.img ${input_dir}/phase.img` 2> /dev/null
-if [ $? -eq 0 ]; then  
+if [ -d  ${input_dir}/magnitude.img ] || [ -d ${input_dir}/phase.img ]; then
     echo "Input directory has 'magnitude.img' and 'phase.img' "
     verb=''; if [ "$VERBOSE" -eq 1 ]; then verb=' -v '; fi 
     $0 $verb -m -i ${input_dir}/magnitude.img/ -o ${output_dir}/magnitude.dcm/
@@ -142,14 +152,22 @@ if [ $? -eq 0 ]; then
     exit 0
 fi
 
-fdffiles=`ls ${input_dir}/*.fdf`
-if [ $? -ne 0 ]; then  #-o "$fdffiles" == "" 
-    echo "Error: Input directory has no FDF images"
+# Carefull with nullglob on csh  
+shopt -s nullglob
+found=0
+for i in ${input_dir}/*.fdf; do
+    ((++found))
+done
+shopt -u nullglob
+if [ $found -eq 0 ]; then  #-o "$fdffiles" == "" 
+    echo "fdf2dcm Error: Input directory has no FDF images"
     exit 1
+else
+    echo $found, " FDF files were found"
 fi
-procfiles=`ls ${input_dir}/procpar`
-if [ $? -ne 0 ]; then  #-o "$procfiles" == "" 
-    echo "Error: Input directory has no procpar file"
+
+if [ ! -f ${input_dir}/procpar ]; then
+    echo "fdf2dcm Error: Input directory has no procpar file"
     exit 1
 fi
 
@@ -159,7 +177,8 @@ fi
 
 ## Crux of script
 echo  "Calling agilent2dicom"
-${FDF2DCMPATH}/agilent2dicom.py $@
+echo ${FDF2DCMPATH}/agilent2dicom.py $python_args -i "${input_dir}" -o "${output_dir}"
+${FDF2DCMPATH}/agilent2dicom.py $python_args -i "${input_dir}" -o "${output_dir}"
 
 if [ $? -ne 0 ]; then 
     echo "Error: agilent2dicom failed"
@@ -203,6 +222,14 @@ fi
 ## Corrections to dcmulti conversion
 ${FDF2DCMPATH}/fix-dicoms.sh "${output_dir}"
 
+if [ "$VERBOSE" -eq 1 ]; then
+    echo "Verifying dicom compliance using dciodvfy."
+    if [ -f "$output_dir"/0001.dcm ]; then
+	dciodvfy $output_dir/0001.dcm &> $(dirname $output_dir)/$(basename $output_dir .dcm).log
+    else
+	echo "ERROR: could not find $output_dir/0001.dcm for verification"
+    fi
+fi
 
 ## Cleaning up
 if [ -d ${output_dir}/tmp ]; then
