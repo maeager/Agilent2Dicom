@@ -31,7 +31,7 @@ from dicom.sequence import Sequence
 from dicom.dataset import Dataset
 
 
-UID_ROOT = "2.25"
+UID_ROOT = "2.25"  # Agilent Root UID 1.3.6.1.4.1
 UID_Type_InstanceCreator = "0"
 UID_Type_MediaStorageSOPInstance = "1"
 UID_Type_StudyInstance = "2"
@@ -47,7 +47,7 @@ DICOM_Tag_InstitutionName = "Monash Biomedical Imaging"
 DICOM_Tag_ManufacturerModelName = "vnmrs"
 DICOM_Tag_DeviceSerialNumber = "unknown"
 DICOM_Tag_SoftwareVersions = "VnmrJ 3.2"
-
+Derivation_Description = "Dicom generated from FDF using MBI's inhouse converter agilent2dicom."
 SEQUENCE=''
 
 
@@ -1945,6 +1945,8 @@ if __name__ == "__main__":
 
         ds.ImageComments = fdf_properties['filetext']
  
+        ds.DerivationDescription = Derivation_Description
+
         # For further information regarding the location, orientation, roi, span, etc 
         # properties in the FDF header, see the "Agilent VNMRJ 3.2 User Programming 
         # User Guide", pgs 434-436
