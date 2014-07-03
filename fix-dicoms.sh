@@ -24,7 +24,7 @@ fi
 output_dir=$1
 MODIFY=1
 ##COMMON FIXES to enhanced DICOMs
-DCMODIFY="dcmodify --no-backup " # --ignore-errors" 
+DCMODIFY="dcmodify --no-backup  " # --ignore-errors" 
 files=$(find ${output_dir} -type f -name "*.dcm" | grep -v tmp)
 
 
@@ -110,12 +110,16 @@ if [[ $MODIFY -eq 1 ]]; then
 fi #debugging modify
 
 
-## Remove Per-frame Anatomy sequences
+echo "Removing Per-frame Anatomy sequences"
 index=0
-
-while [ `dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l` -gt 0 ]; do
-    echo "Removing Per-frame Anatomy sequence # $index"
-    dcmodify -ea "(5200,9230)[$index].(0020,9071)" $files
-    ((++index))
-
+total_anatseq=`dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l`
+echo "Total Frame Anatomy Errors ", $total_anatseq 
+current_anatseq=$total_anatseq
+while [ "$current_anatseq" -gt 0 ]; do
+    for i in $(seq $current_anatseq -1 0); do
+	echo "# $index of $total_anatseq"
+	dcmodify -ea "(5200,9230)[$index].(0020,9071)" $files
+	((++index))
+    done
+    current_anatseq=`dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l`
 done
