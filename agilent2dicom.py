@@ -7,10 +7,10 @@
   Modified by Michael Eager (michael.eager@monash.edu)
       Enhanced MR now done by dicom3tools and the fdf2dcm script
 
-
 """
 
-VersionNumber = "0.3"
+VersionNumber = "0.4"
+DVCSstamp = "$Id$"
 
 import pdb
 # import ast
@@ -852,8 +852,10 @@ if __name__ == "__main__":
             ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]  # Compulsory
 # Save procpar diffusion parameters
             Bvalue = procpar['bvalue'] # 64 element array
+            BValueSortIdx=numpy.argsort(Bvalue)
             BvalSave = procpar['bvalSave']
-            BvalVS = procpar['bvalvs']
+            if 'bvalvs' in procpar.keys():
+                BvalVS = procpar['bvalvs'] #excluded in external recons by vnmrj
             BvalueRS = procpar['bvalrs'] # 64
             BvalueRR = procpar['bvalrr'] # 64
             BvalueRP = procpar['bvalrp'] # 64
@@ -1637,7 +1639,7 @@ if __name__ == "__main__":
     # Number of Averages (0018,0083) 3 Number of times a given pulse sequence
     #                             is repeated before any parameter is
     #                             changed
-#fix    ds.NumberOfAVerages = procpar['nav_echo']
+#fix    ds.NumberOfAverages = procpar['nav_echo']
 
 
     #H1reffreq
@@ -1842,6 +1844,9 @@ if __name__ == "__main__":
     # Read in data from file    
     volume=1
     for filename in fdffiles:
+
+## Per frame implementation
+
         if args.verbose:
             print 'Converting ' + filename
         fdf_properties, image_data = ReadFDF(args.inputdir + '/' + filename)
@@ -1850,19 +1855,17 @@ if __name__ == "__main__":
             print 'Image_data shape:'
             print image_data.shape
 
+        # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3':
+        #     fdf_tmp=fdf_properties['roi']
+        #     fdf_properties['roi'][0:1] = fdf_tmp[1:2]
+        #     fdf_properties['roi'][2] = fdf_tmp[0]
+        #     fdf_tmp=fdf_properties['matrix']
+        #     fdf_properties['matrix'][0:1] = fdf_tmp[1:2]
+        #     fdf_properties['matrix'][2] = fdf_tmp[0]
 
-## Per frame implementation
-
-        # PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
-        PixelSpacing = map(lambda x,y: x*10.0/y, fdf_properties['roi'][0:2],fdf_properties['matrix'][0:2])
-        ds.PixelSpacing =  [str(PixelSpacing[0]),str(PixelSpacing[1])]        #(0028,0030) Pixel Spacing
-
-
-        #---------------------------------------------------------------------------------
+        #----------------------------------------------------------
         # General implementation checks
         
-                
-
         # File dimensionality
         fdfdims = fdf_properties['rank']
             
@@ -1893,6 +1896,13 @@ if __name__ == "__main__":
                 print 'Not testing slicethickness in diffusion and 3D MR FDFs'
          #   else:
          #       AssertImplementation(ds.SliceThickness != fdfthk, filename, CommentStr, AssumptionStr)
+
+
+
+        # PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
+        PixelSpacing = map(lambda x,y: x*10.0/y, fdf_properties['roi'][0:2],fdf_properties['matrix'][0:2])
+        ds.PixelSpacing =  [str(PixelSpacing[0]),str(PixelSpacing[1])]        #(0028,0030) Pixel Spacing
+
 
 
 
@@ -2005,6 +2015,10 @@ if __name__ == "__main__":
         ds.ImagePositionPatient = [str(ImagePositionPatient[0]),str(ImagePositionPatient[1]),str(ImagePositionPatient[2])]              # (0020,0032) Image Patient Position
 
         ds.ImageOrientationPatient = [str(ImageOrientationPatient[0]),str(ImageOrientationPatient[1]),str(ImageOrientationPatient[2]),str(ImageOrientationPatient[3]),str(ImageOrientationPatient[4]),str(ImageOrientationPatient[5])]                  #(0020,0037) Image Patient Orientation
+
+        # Change patient position and orientation in 
+        # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3':
+            
 
         #---------------------------------------------------------------------------------
         # GROUP 0028: Image Presentation
@@ -2133,13 +2147,43 @@ if __name__ == "__main__":
  #           ds.MRArterialSpinLabelingSequence.ASLSlabSequence[0].ASLMidSlabPosition  = [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0]))]
 
 
+        #if 'echoes' in fdf_properties.keys() and fdf_properties['echoes'] > 1 and fdf_properties['array_dim'] == 1:
+        #    ds.AcquisitionNumber = fdf_properties['echo_no']
+        #    ds.ImagesInAcquisition = fdf_properties['echoes']
+        #else:
+
+        ds.AcquisitionNumber = fdf_properties['array_index']
+        ds.ImagesInAcquisition = fdf_properties['array_dim']
+
+
         if SEQUENCE == 'Diffusion':
             if args.verbose:
                 print 'Processing diffusion image'
 
             # Per frame Diffusion macro
-            if (math.fabs(Bvalue[ fdf_properties['array_index']*2 ] - fdf_properties['bvalue']) > 0.005):
-                print 'Procpar and fdf B-value mismatch: procpar value ', Bvalue[ fdf_properties['array_index']*2 ], ' and  local fdf value ', fdf_properties['bvalue']
+                
+                #print fdf_properties['array_index']
+                #print len(Bvalue)
+            if procpar['recon'] == 'external':
+                diffusion_idx=0
+                while True:
+                     if (math.fabs(Bvalue[ diffusion_idx ] - fdf_properties['bvalue']) < 0.005):
+                         break
+                     diffusion_idx+=1
+                #diffusion_idx = fdf_properties['array_index'] - 1
+            else:
+                diffusion_idx = fdf_properties['array_index']*2 
+            if args.verbose:
+                print 'Diffusion index ', diffusion_idx, ' arrary index ', fdf_properties['array_index']
+
+            if diffusion_idx > len(Bvalue):
+                print 'Procpar Bvalue does not contain enough values determined by fdf_properties array_index'
+
+            ds.AcquisitionNumber = BValueSortIdx[diffusion_idx] #fdf_properties['array_index']
+            
+            if (math.fabs(Bvalue[ diffusion_idx ] - fdf_properties['bvalue']) > 0.005):
+                print 'Procpar and fdf B-value mismatch: procpar value ', Bvalue[ diffusion_idx ], ' and  local fdf value ', fdf_properties['bvalue'], ' array idx ', fdf_properties['array_index'] 
+
 ## MR Diffusion Sequence (0018,9117) see DiffusionMacro.txt
             diffusionseq = Dataset()
             diffusionseq.DiffusionBValue=fdf_properties['bvalue']
@@ -2156,12 +2200,12 @@ if __name__ == "__main__":
 
             ### Diffusion b-matrix Sequence (0018,9601) 
             diffbmatseq = Dataset()
-            diffbmatseq.DiffusionBValueXX = BvalueRR[ fdf_properties['array_index']*2 ]
-            diffbmatseq.DiffusionBValueXY =  BvalueRP[ fdf_properties['array_index']*2 ] 
-            diffbmatseq.DiffusionBValueXZ =  BvalueRS[ fdf_properties['array_index']*2 ]
-            diffbmatseq.DiffusionBValueYY =  BvaluePP[ fdf_properties['array_index']*2 ]
-            diffbmatseq.DiffusionBValueYZ =  BvalueSP[ fdf_properties['array_index']*2 ]
-            diffbmatseq.DiffusionBValueZZ =  BvalueSS[ fdf_properties['array_index']*2 ]
+            diffbmatseq.DiffusionBValueXX = BvalueRR[ diffusion_idx ]
+            diffbmatseq.DiffusionBValueXY =  BvalueRP[ diffusion_idx ] 
+            diffbmatseq.DiffusionBValueXZ =  BvalueRS[ diffusion_idx ]
+            diffbmatseq.DiffusionBValueYY =  BvaluePP[ diffusion_idx ]
+            diffbmatseq.DiffusionBValueYZ =  BvalueSP[ diffusion_idx ]
+            diffbmatseq.DiffusionBValueZZ =  BvalueSS[ diffusion_idx ]
             diffusionseq.DiffusionGradientDirectionSequence = Sequence([diffbmatseq])
 
             ds.MRDiffusionSequence= Sequence([diffusionseq])
@@ -2169,13 +2213,6 @@ if __name__ == "__main__":
 ##
         
 
-        #if 'echoes' in fdf_properties.keys() and fdf_properties['echoes'] > 1 and fdf_properties['array_dim'] == 1:
-        #    ds.AcquisitionNumber = fdf_properties['echo_no']
-        #    ds.ImagesInAcquisition = fdf_properties['echoes']
-        #else:
-
-        ds.AcquisitionNumber = fdf_properties['array_index']
-        ds.ImagesInAcquisition = fdf_properties['array_dim']
 
 
         #---------------------------------------------------------------------------------
@@ -2382,21 +2419,36 @@ if __name__ == "__main__":
             # Multi-dimension multi echo export format
 
             voldata = numpy.reshape(image_data,fdf_properties['matrix'])
+            # if procpar['recon'] == 'external':
+            # 
+            # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3':
+            #   voldata = numpy.transpose(voldata,(1,2,0))
+            
 
             print image_data.shape
             print voldata.shape
+            print "fdf properties matrix:", fdf_properties['matrix']
+            print fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
 #            slice_data = numpy.zeros_like(numpy.squeeze(image_data[:,:,1]))
 #            if 'ne' in procpar.keys():
-            for islice in xrange(1,fdf_properties['matrix'][2]):
+           
+            range_max = fdf_properties['matrix'][2]
+            num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
+            print range_max, num_slicepts
+            print voldata[1].shape
 
-                slice_data = numpy.reshape(voldata[islice],(fdf_properties['matrix'][0]*fdf_properties['matrix'][1],1)) #numpy.squeeze(numpy.matrix(image_data[islice]))
+            for islice in xrange(1,range_max):    
+                
+                slice_data = numpy.reshape(voldata[islice],(num_slicepts,1)) 
+#numpy.squeeze(numpy.matrix(image_data[islice]))
                 # print slice_data.shape
 
                 ds.PixelData = slice_data.tostring()    #(7fe0,0010) Pixel Data
+                #if acqndims == 3:
                 if 'slice_no' in fdf_properties.keys():
                     image_number = fdf_properties['slice_no']
                 else:
-                    image_number=1
+                    image_number=int(re.sub(r'^.*image(\d+).*', r'\1',filename))
 
                 new_filename = "slice%03dimage%03decho%03d.dcm" % (islice,image_number,fdf_properties['echo_no'])
                 #Fix 3rd dimension position 
