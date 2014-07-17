@@ -20,19 +20,13 @@ MODIFY=1
 FDF2DCMPATH=$(dirname $0)
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
-export PATH=${PATH}:${DCM3TOOLS}
-input_dir=""
-output_dir=""
-python_args=""
 # Check DCMTK on MASSIVE or Agilent console
 if test ${MASSIVEUSERNAME+defined}; then
-    test -x dcmodify || module load dcmtk
-    
+    test -x dcmodify || module load dcmtk 
 else
     DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
     export PATH=${PATH}:${DCMTK}
 fi
-
 if [ ! -d ${DCM3TOOLS} ]; then
     echo "${DCM3TOOLS} path not found"
     exit 1
@@ -40,11 +34,26 @@ elif [ ! -x ${DCM3TOOLS}/dcmulti ]; then
     echo "Unable to find Dicom3Tool's executable dcmulti"
     exit 1
 fi 
+export PATH=${PATH}:${DCM3TOOLS}
+input_dir=""
+output_dir=""
+python_args=""
+
 
 E_BADARGS=65
-source ${FDF2DCMPATH}/yesno.sh
+#source ${FDF2DCMPATH}/yesno.sh
+function yesno(){
+    read -r -p "$@" response
+    response=$(echo $response | awk '{print tolower($0)}')
+# response=${response,,} # tolower Bash 4.0
+    if [[ $response =~ ^(yes|y| ) ]]; then
+	return 0
+    fi
+    return 1
+}
 
 DCMULTI="dcmulti -v -makestack -sortby AcquisitionNumber -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
+DCMULTI_DTI="dcmulti -v -makestack -sortby DiffusionBValue -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
 
 
@@ -87,6 +96,7 @@ while getopts ":i:o:hmpdv" opt; do
 	    ;;
 	h)
 	    print_usage
+	    ${FDF2DCMPATH}/agilent2dicom.py -h
 	    exit 0
 	    ;;
 	m)
@@ -201,15 +211,15 @@ if [ -f ${output_dir}/MULTIECHO ]; then
     echo "Contents of MULTIECHO"; cat ${output_dir}/MULTIECHO; echo '\n'
     nechos=$(cat ${output_dir}/MULTIECHO)
     echo "Multi echo sequence, $nechos echos"
-    # for iecho in $(seq 1 ${nechos}); do
-    # 	echoext=$(printf '%03d' $iecho)
-    # 	echo "Converting echo ${iecho} using dcmulti"
-    # 	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 ${output_dir}/tmp/*echo${echoext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-    # done
+    for iecho in $(seq 1 ${nechos}); do
+     	echoext=$(printf '%03d' $iecho)
+     	echo "Converting echo ${iecho} using dcmulti"
+     	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 ${output_dir}/tmp/*echo${echoext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+    done
 
-DCMULTI="dcmulti -v -makestack -sortby EchoTime -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
+# DCMULTI="dcmulti -v -makestack -sortby EchoTime -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
- ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+#  ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
     rm -f ${output_dir}/MULTIECHO
 else
@@ -217,10 +227,12 @@ else
     # Dcmulti config is dependent on order of files.  The 2D standard dicoms are sorted by echo time, image number then slice number. 
     ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 fi
+echo "DCMULTI complete. Fixing inconsistencies."
 
 
 ## Corrections to dcmulti conversion
 ${FDF2DCMPATH}/fix-dicoms.sh "${output_dir}"
+echo "Fixing dicoms complete."
 
 if [ "$VERBOSE" -eq 1 ]; then
     echo "Verifying dicom compliance using dciodvfy."
@@ -233,12 +245,16 @@ fi
 
 ## Cleaning up
 if [ -d ${output_dir}/tmp ]; then
-
-    if [ "$VERBOSE" -eq 1 ] && ! (yesno "Remove existing tmp output directory, y or n (default y)?"); then
-	echo "fdf2dcm completed. Temporary dicoms still remain." && exit 0
+    if [ "$VERBOSE" -eq 1 ]; then
+	if yesno "Remove existing tmp output directory, y or n (default y)?"; then
+	    echo "Removing existing tmp output directory"
+	    rm -rf ${output_dir}/tmp    
+	else
+	    echo "fdf2dcm completed. Temporary dicoms still remain."
+	fi
+    else
+	echo "Removing existing tmp output directory"
+	rm -rf ${output_dir}/tmp    
     fi
-
-    echo "Removing existing tmp output directory"
-    rm -rf ${output_dir}/tmp    
-
 fi
+
