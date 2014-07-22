@@ -12,8 +12,9 @@ check:
 run_kidney:
 	./fdf2dcm.sh -v -i ~/Monash016/RatKidney/Agilent/20120522/kidney512iso_01.img -o ../output_data/kidney512iso.dcm
 
+
 test_kidney:
-	dciodvfy   ../output_data/kidney512iso.dcm/0001.dcm 2>&1 >/dev/null | grep Err 
+	-dciodvfy   ../output_data/kidney512iso.dcm/0001.dcm 2>&1 >/dev/null 
 
 setup:
 	mkdir ../output_data
@@ -139,6 +140,8 @@ test_J6:
 	-dciodvfy  ../output_data/j6/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
 
 
-
+.PHONY: all run_kidney run_standard2d run_me3d run_me2d run_cine run_asl run_diffusion run_dti run_epip run_J6
 all: run_kidney run_standard2d run_me3d run_me2d run_cine run_asl run_diffusion run_dti run_epip run_J6
 
+.PHONY: test_all test_kidney test_standard2d test_me3d test_me2d test_cine test_asl test_diffusion test_dti test_epip test_J6
+test_all: test_kidney test_standard2d test_me3d test_me2d test_cine test_asl test_diffusion test_dti test_epip test_J6
