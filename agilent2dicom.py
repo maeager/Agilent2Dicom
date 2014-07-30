@@ -2165,6 +2165,12 @@ if __name__ == "__main__":
                 
                 #print fdf_properties['array_index']
                 #print len(Bvalue)
+
+            tmp_file = open(os.path.join(args.outputdir,'DIFFUSION'),'w')
+            tmp_file.write(str(procpar['nbdirs']))
+            tmp_file.close()
+            ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]
+
             if procpar['recon'] == 'external':
                 diffusion_idx=0
                 while True:
@@ -2186,28 +2192,36 @@ if __name__ == "__main__":
                 print 'Procpar and fdf B-value mismatch: procpar value ', Bvalue[ diffusion_idx ], ' and  local fdf value ', fdf_properties['bvalue'], ' array idx ', fdf_properties['array_index'] 
 
 ## MR Diffusion Sequence (0018,9117) see DiffusionMacro.txt
+## B0 scan does not need the MR Diffusion Gradient Direction Sequence macro and its directionality should be set to NONE
+## the remaining scans relate to particular directions hence need the direction macro
             diffusionseq = Dataset()
-            diffusionseq.DiffusionBValue=fdf_properties['bvalue']
-            if fdf_properties['bvalue']==0:
+#            diffusionseq.DiffusionBValue=fdf_properties['bvalue']
+            if fdf_properties['bvalue']<30:
+                diffusionseq.DiffusionBValue=0 
                 diffusionseq.DiffusionDirectionality = 'NONE'
             else:
-                diffusionseq.DiffusionDirectionality = 'BMATRIX' #TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
-            diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' #TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
+                diffusionseq.DiffusionBValue=int(fdf_properties['bvalue'])
+                diffusionseq.DiffusionDirectionality = 'DIRECTIONAL' #TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
+            # diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' #TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
 
-            ### Diffusion Gradient Direction Sequence (0018,9076) 
-            diffgraddirseq = Dataset()            
-            diffgraddirseq.DiffusionGradientOrientation= [ fdf_properties['dro'],  fdf_properties['dpe'],  fdf_properties['dsl']]
-            diffusionseq.DiffusionGradientDirectionSequence = Sequence([diffgraddirseq])
+            ### Diffusion Gradient Direction Sequence (0018,9076)
+                diffusiongraddirseq = Dataset()
+                # Diffusion Gradient Orientation  (0018,9089)
+                #diffusiongraddirseq.add_new((0x0018,0x9089), 'FD',[ fdf_properties['dro'],  fdf_properties['dpe'],  fdf_properties['dsl']])
+                diffusiongraddirseq.DiffusionGradientOrientation= [ fdf_properties['dro'],  fdf_properties['dpe'],  fdf_properties['dsl']]
+                diffusionseq.DiffusionGradientDirectionSequence = Sequence([diffusiongraddirseq])
+                #diffusionseq.add_new((0x0018,0x9076), 'SQ',Sequence([diffusiongraddirseq]))
+#Diffusion Gradient Orientation
 
             ### Diffusion b-matrix Sequence (0018,9601) 
-            diffbmatseq = Dataset()
-            diffbmatseq.DiffusionBValueXX = BvalueRR[ diffusion_idx ]
-            diffbmatseq.DiffusionBValueXY =  BvalueRP[ diffusion_idx ] 
-            diffbmatseq.DiffusionBValueXZ =  BvalueRS[ diffusion_idx ]
-            diffbmatseq.DiffusionBValueYY =  BvaluePP[ diffusion_idx ]
-            diffbmatseq.DiffusionBValueYZ =  BvalueSP[ diffusion_idx ]
-            diffbmatseq.DiffusionBValueZZ =  BvalueSS[ diffusion_idx ]
-            diffusionseq.DiffusionGradientDirectionSequence = Sequence([diffbmatseq])
+                diffbmatseq = Dataset()
+                diffbmatseq.DiffusionBValueXX = BvalueRR[ diffusion_idx ]
+                diffbmatseq.DiffusionBValueXY =  BvalueRP[ diffusion_idx ] 
+                diffbmatseq.DiffusionBValueXZ =  BvalueRS[ diffusion_idx ]
+                diffbmatseq.DiffusionBValueYY =  BvaluePP[ diffusion_idx ]
+                diffbmatseq.DiffusionBValueYZ =  BvalueSP[ diffusion_idx ]
+                diffbmatseq.DiffusionBValueZZ =  BvalueSS[ diffusion_idx ]
+                diffusionseq.DiffusionBMatrixSequence = Sequence([diffbmatseq])
 
             ds.MRDiffusionSequence= Sequence([diffusionseq])
 
@@ -2217,10 +2231,10 @@ if __name__ == "__main__":
             MRImageFrameType.VolumetrixProperties=["VOLUME"]
             MRImageFrameType.VolumeBasedCalculationTechnique=["NONE"]
             MRImageFrameType.ComplexImageComponent=["MAGNITUDE"]
-            MRImageFrameType.AqcuisitionContrast=["DIFFUSION"]
+            MRImageFrameType.AcquisitionContrast=["DIFFUSION"]
             ds.MRImageFrameTypeSequence=Sequence([MRImageFrameType])
             
-    # Standard 3T diffusion scan 
+    # Standard 3T diffusion scan (dcmdump output)
     # (0018,9226) SQ (Sequence with undefined length #=1)     # u/l, 1 MRImageFrameTypeSequence
     #   (fffe,e000) na (Item with undefined length #=12)        # u/l, 1 Item
     #     (0008,9007) CS [ORIGINAL\PRIMARY\DIFFUSION\NONE]        #  32, 4 FrameType
@@ -2347,12 +2361,12 @@ if __name__ == "__main__":
             #       endif
 
         
-        ds.SamplesPerPixel = 1                                                #(0028,0002) Samples Per Pixel
-        ds.PhotometricInterpretation = "MONOCHROME2"                          #(0028,0004) Photometric Interpretation
-        ds.BitsAllocated = 16                                                 #(0028,0100) Bits Allocated
-        ds.BitsStored = 16                                                    #(0028,0101) Bits Stored
-        ds.HighBit = 15                                                       #(0028,0102) High Bit
-        ds.PixelRepresentation = 0                                            #(0028,0103) Pixel Representation
+        ds.SamplesPerPixel = 1                        #(0028,0002) Samples Per Pixel
+	ds.PhotometricInterpretation = "MONOCHROME2"  #(0028,0004) Photometric Interpretation
+	ds.BitsAllocated = 16			      #(0028,0100) Bits Allocated
+	ds.BitsStored = 16			      #(0028,0101) Bits Stored
+	ds.HighBit = 15				      #(0028,0102) High Bit
+	ds.PixelRepresentation = 0		      #(0028,0103) Pixel Representation
 
 
 ## Multi dimension Organisation and Index module
