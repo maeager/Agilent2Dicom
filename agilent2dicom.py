@@ -10,7 +10,7 @@ Enhanced MR now done by dicom3tools and the fdf2dcm script
 """
 
 VersionNumber = "0.5"
-DVCSstamp = "$Id: agilent2dicom.py,v 945a6f5a164c 2014/07/30 03:44:32 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v 275ae511f68c 2014/07/30 05:52:23 michael $"
 
 import pdb
 # import ast
@@ -2384,8 +2384,8 @@ if __name__ == "__main__":
             ds.DimensionOrganizationType='3D_TEMPORAL'  #or 3D_TEMPORAL
         else:
             DimensionOrganizationUID = CreateUID(UID_Type_DimensionIndex1,[],[],args.verbose)
-            if args.verbose:
-                print "DimUID", DimensionOrganizationUID
+            #if args.verbose:
+            #    print "DimUID", DimensionOrganizationUID
             DimOrgSeq.add_new((0x0020,0x9164), 'UI',[DimensionOrganizationUID])
             ds.DimensionOrganizationType='3D'  #or 3D_TEMPORAL
             
@@ -2434,10 +2434,8 @@ if __name__ == "__main__":
 
         if args.verbose:
             print "Rescale data to uint16"
-            print RescaleIntercept
-            print RescaleSlope
-            print "Current data min: ", image_data.min()
-            print "Current data max: ", image_data.max()
+            print "Intercept: ", RescaleIntercept, "  Slope: ", RescaleSlope
+            print "Current data min: ", image_data.min(), " max ", image_data.max()
         image_data = (image_data - RescaleIntercept) / RescaleSlope
         image_data = image_data.astype(numpy.int16)
         

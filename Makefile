@@ -92,6 +92,8 @@ test_asl:
 run_diffusion:
 	./fdf2dcm.sh -v -i ~/Monash016/amanda/ExampleAgilentData/diffusion/ -o ../output_data/diffusion
 	-rm -f ../output_nii/Diffusion.nii
+	-[ -d ../output_data/diffusion/tmp/ ] && ( mrconvert ../output_data/diffusion/tmp/ ../output_nii/diffusion.mif; dwi2tensor ../output_data/diffusion.mif  output_data/dwiTensor.mif)
+
 	mrconvert -info  ../output_data/diffusion/ ../output_nii/Diffusion.nii
 	$(FSLVIEW) ../output_nii/Diffusion.nii
 
