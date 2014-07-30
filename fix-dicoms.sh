@@ -1,4 +1,4 @@
-#！/usr/bin/env bash
+#!/usr/bin/env bash
 
 # - Michael Eager (michael.eager@monash.edu)
 # - Monash Biomedical Imaging 
