@@ -222,6 +222,23 @@ if [ -f ${output_dir}/MULTIECHO ]; then
 #  ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
     rm -f ${output_dir}/MULTIECHO
+elif  [ -f ${output_dir}/DIFFUSION ]; then
+    echo "Contents of DIFFUSION"; cat ${output_dir}/DIFFUSION; echo '\n'
+    nbdirs=$(cat ${output_dir}/DIFFUSION)
+    ((++nbdirs)) # increment by one for B0
+    nbdirs=$(ls -1 output_data/hearttissue.dcm/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
+    echo "Diffusion sequence, $nbdirs B-directions"
+    for ibdir in $(seq 1 ${nbdirs}); do
+     	bdirext=$(printf '%03d' $ibdir)
+     	echo "Converting bdir ${ibdir} using dcmulti"
+     	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 ${output_dir}/tmp/*image${bdirext}*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+    done
+    return
+    echo "Diffusion files compacted."
+    ${FDF2DCMPATH}/fix-diffusion.sh "${output_dir}"
+    echo "Diffusion modules fixed parameters."
+    rm -f ${output_dir}/DIFFUSION
+
 else
 
     # Dcmulti config is dependent on order of files.  The 2D standard dicoms are sorted by echo time, image number then slice number. 
@@ -233,6 +250,7 @@ echo "DCMULTI complete. Fixing inconsistencies."
 ## Corrections to dcmulti conversion
 ${FDF2DCMPATH}/fix-dicoms.sh "${output_dir}"
 echo "Fixing dicoms complete."
+
 
 if [ "$VERBOSE" -eq 1 ]; then
     echo "Verifying dicom compliance using dciodvfy."
