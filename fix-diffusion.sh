@@ -39,27 +39,24 @@ for idx in $(seq 1 ${nbdirs}); do
 	    DiffusionSequence[i]="${line_data}"; ((++i)); 
 	done < ${output_dir}/diffusion.tmp
     	
-	if [ ${#DiffusionSequence[*]} -eq 3 ]; then
-
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9075)=NONE" ${output_dir}/$(printf '%04d' $idx).dcm
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9087)=0" ${output_dir}/$(printf '%04d' $idx).dcm
-	    
+	if [ ${#DiffusionSequence[*]} -lt 3 ]; then ## BVal index differs -o ${DiffusionSequence[2]} -lt 10
+	    ## (Shared sequence)[0].(MR Diffusion Sequence)[0]
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9075)=NONE" ${output_dir}/$(printf '%04d' $idx).dcm
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9087)=0" ${output_dir}/$(printf '%04d' $idx).dcm
 	else
 	    echo "Diffusion sequence params: ",  ${DiffusionSequence[*]}
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9075)=${DiffusionSequence[0]}" ${output_dir}/$(printf '%04d' $idx).dcm  ## Directionality
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9076)[0].(0018,9089)=${DiffusionSequence[1]}" ${output_dir}/$(printf '%04d' $idx).dcm  ## Gradient Orientation
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9087)=${DiffusionSequence[2]}" ${output_dir}/$(printf '%04d' $idx).dcm  ## BValue
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9075)=${DiffusionSequence[0]}" ${output_dir}/$(printf '%04d' $idx).dcm  ## Directionality
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9076)[0].(0018,9089)=${DiffusionSequence[1]}" ${output_dir}/$(printf '%04d' $idx).dcm  ## Gradient Orientation
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9087)=${DiffusionSequence[2]}" ${output_dir}/$(printf '%04d' $idx).dcm  ## BValue
 ## B MATRIX
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9076)[0].(0018,9602)=${DiffusionSequence[3]}" ${output_dir}/$(printf '%04d' $idx).dcm
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9076)[0].(0018,9603)=${DiffusionSequence[4]}" ${output_dir}/$(printf '%04d' $idx).dcm
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9076)[0].(0018,9604)=${DiffusionSequence[5]}" ${output_dir}/$(printf '%04d' $idx).dcm
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9076)[0].(0018,9605)=${DiffusionSequence[6]}" ${output_dir}/$(printf '%04d' $idx).dcm
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9076)[0].(0018,9606)=${DiffusionSequence[7]}" ${output_dir}/$(printf '%04d' $idx).dcm
-	    ${DCMODIFY} -i "(0018,9117)[0].(0018,9076)[0].(0018,9607)=${DiffusionSequence[8]}" ${output_dir}/$(printf '%04d' $idx).dcm
-	    
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9076)[0].(0018,9602)=${DiffusionSequence[3]}" ${output_dir}/$(printf '%04d' $idx).dcm
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9076)[0].(0018,9603)=${DiffusionSequence[4]}" ${output_dir}/$(printf '%04d' $idx).dcm
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9076)[0].(0018,9604)=${DiffusionSequence[5]}" ${output_dir}/$(printf '%04d' $idx).dcm
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9076)[0].(0018,9605)=${DiffusionSequence[6]}" ${output_dir}/$(printf '%04d' $idx).dcm
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9076)[0].(0018,9606)=${DiffusionSequence[7]}" ${output_dir}/$(printf '%04d' $idx).dcm
+	    ${DCMODIFY} -i "(5200,9229)[0].(0018,9117)[0].(0018,9076)[0].(0018,9607)=${DiffusionSequence[8]}" ${output_dir}/$(printf '%04d' $idx).dcm
 	fi
     fi
-    ((++index))
 done
 
 rm -f ${output_dir}/diffusion.tmp

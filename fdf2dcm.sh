@@ -140,16 +140,7 @@ if [ "$output_dir" == "" ]; then
     output_dir="$(dirname ${input_dir})/$(basename ${input_dir} .img).dcm"
     echo "Output dir set to: " $output_dir
 fi
-if [ -d "$output_dir" ]; then
-    if [ "$VERBOSE" -eq 1 ];then
-	if yesno "Remove existing output directory, y or n (default y)?"; then
-	    echo "Removing existing output directory"
-	    rm -rf $output_dir
-	fi
-    else
-	rm -rf $output_dir
-    fi	
-fi
+
 
 if [ -d  ${input_dir}/magnitude.img ] || [ -d ${input_dir}/phase.img ]; then
     echo "Input directory has 'magnitude.img' and 'phase.img' "
@@ -162,49 +153,68 @@ if [ -d  ${input_dir}/magnitude.img ] || [ -d ${input_dir}/phase.img ]; then
     exit 0
 fi
 
-# Carefull with nullglob on csh  
-shopt -s nullglob
-found=0
-for i in ${input_dir}/*.fdf; do
-    ((++found))
-done
-shopt -u nullglob
-if [ $found -eq 0 ]; then  #-o "$fdffiles" == "" 
-    echo "fdf2dcm Error: Input directory has no FDF images"
-    exit 1
-else
-    echo $found, " FDF files were found"
+JumpToDCmulti=0
+if [ -d "${output_dir}" ]; then
+    if [ -d "${output_dir}/tmp" -a "$VERBOSE" -eq 1 ];then
+	if yesno "Remove existing output directory, y or n (default y)?"; then
+	    echo "Removing existing output directory"
+	    rm -rf ${output_dir}
+	else
+	    JumpToDCmulti=1
+	fi
+    else
+	echo "Removing existing output directory"
+	rm -rf ${output_dir}
+    fi	
 fi
 
-if [ ! -f ${input_dir}/procpar ]; then
-    echo "fdf2dcm Error: Input directory has no procpar file"
-    exit 1
-fi
+if [ $JumpToDCmulti -eq 0 ]; then
+
+# Carefull with nullglob on csh  
+    shopt -s nullglob
+    found=0
+    for i in ${input_dir}/*.fdf; do
+	((++found))
+    done
+    shopt -u nullglob
+    if [ $found -eq 0 ]; then  #-o "$fdffiles" == "" 
+	echo "fdf2dcm Error: Input directory has no FDF images"
+	exit 1
+    else
+	echo $found, " FDF files were found"
+    fi
+
+    if [ ! -f ${input_dir}/procpar ]; then
+	echo "fdf2dcm Error: Input directory has no procpar file"
+	exit 1
+    fi
 
 # set -o errexit  # -e
 # set -o pipefail
 
 
 ## Crux of script
-echo  "Calling agilent2dicom"
-echo ${FDF2DCMPATH}/agilent2dicom.py $python_args -i "${input_dir}" -o "${output_dir}"
-${FDF2DCMPATH}/agilent2dicom.py $python_args -i "${input_dir}" -o "${output_dir}"
+    echo  "Calling agilent2dicom"
+    echo " Arguments: ", ${python_args} -i "${input_dir}" -o "${output_dir}"
+    ${FDF2DCMPATH}/agilent2dicom.py ${python_args} -i "${input_dir}" -o "${output_dir}"
 
-if [ $? -ne 0 ]; then 
-    echo "Error: agilent2dicom failed"
-    exit 1
-fi
-[ ! -d $output_dir ] && (echo "Output dir not created by agilent2dicom. Shutting down fdf2dcm."; exit 1)
-dcmfiles=`ls ${output_dir}/*.dcm`
-if [ $? -ne 0 ]; then  #-o "$fdffiles" == "" 
-    echo "Error: Output directory of agilent2dicom has no DICOM images. Shutting down fdf2dcm."
-    exit 1
-fi
+    if [ $? -ne 0 ]; then 
+	echo "Error: agilent2dicom failed"
+	exit 1
+    fi
+    [ ! -d ${output_dir} ] && (echo "Output dir not created by agilent2dicom. Shutting down fdf2dcm."; exit 1)
 
-echo "Moving dicom images"
-mkdir ${output_dir}/tmp
-mv ${output_dir}/*.dcm ${output_dir}/tmp/
+    dcmfiles=`ls ${output_dir}/*.dcm`
+    if [ $? -ne 0 ]; then  #-o "$fdffiles" == "" 
+	echo "Error: Output directory of agilent2dicom has no DICOM images. Shutting down fdf2dcm."
+	exit 1
+    fi
 
+    echo "Moving dicom images"
+    mkdir ${output_dir}/tmp
+    mv ${output_dir}/*.dcm ${output_dir}/tmp/
+
+fi ## JumpToDCMulti
 
 echo "Convert dicom images to single enhanced MR dicom format image"
 if [ -f ${output_dir}/MULTIECHO ]; then
@@ -233,11 +243,7 @@ elif  [ -f ${output_dir}/DIFFUSION ]; then
      	echo "Converting bdir ${ibdir} using dcmulti"
      	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 ${output_dir}/tmp/*image${bdirext}*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     done
-    return
     echo "Diffusion files compacted."
-    ${FDF2DCMPATH}/fix-diffusion.sh "${output_dir}"
-    echo "Diffusion modules fixed parameters."
-    rm -f ${output_dir}/DIFFUSION
 
 else
 
@@ -250,6 +256,12 @@ echo "DCMULTI complete. Fixing inconsistencies."
 ## Corrections to dcmulti conversion
 ${FDF2DCMPATH}/fix-dicoms.sh "${output_dir}"
 echo "Fixing dicoms complete."
+## Additional corrections to diffusion files
+if [ -f ${output_dir}/DIFFUSION ];then
+    ${FDF2DCMPATH}/fix-diffusion.sh "${output_dir}"
+    echo "Fixed diffusion module parameters."
+    rm -f ${output_dir}/DIFFUSION
+fi
 
 
 if [ "$VERBOSE" -eq 1 ]; then
