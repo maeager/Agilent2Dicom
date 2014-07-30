@@ -2,14 +2,14 @@
 
 """agilent2dicom is used to convert Agilent FDF files to DICOM format.
 
-  Original code by Amanda Ng (amanda.ng@monash.edu)
+Original code by Amanda Ng (amanda.ng@monash.edu)
 
-  Modified by Michael Eager (michael.eager@monash.edu)
-      Enhanced MR now done by dicom3tools and the fdf2dcm script
+Modified by Michael Eager (michael.eager@monash.edu)
+Enhanced MR now done by dicom3tools and the fdf2dcm script
 
 """
 
-VersionNumber = "0.4"
+VersionNumber = "0.5"
 DVCSstamp = "$Id$"
 
 import pdb
@@ -92,7 +92,7 @@ def getColumns(inFile, delim="\t", header=True):
 
 #=========================================================================================
 # CREATEUID - Create and return Unique Identification (UID) 
-    
+
 def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
     dt = datetime.datetime.now()
     dt = dt.strftime("%Y%m%d%H%M%S") + str(dt.microsecond/1000)
@@ -121,7 +121,7 @@ def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
         uidstr = dt + '.' + str(uuid.uuid4().int)
         
     return ".".join([UID_ROOT,uid_type,uidstr]).ljust(64,'\0')
-    
+
 #=========================================================================================
 # READFDF - Read FDF file and return properties derived from fdf header and image data
 #
@@ -172,7 +172,7 @@ def ReadFDF(fdffilename):
     f.close()
     
     return (fdf_properties, data)
-    
+
 #=========================================================================================
 # READPROCPAR - Read procpar file and return procpar dictionary and text
 #
@@ -320,7 +320,7 @@ if __name__ == "__main__":
     if 'procpar' not in files:
         print 'Error: FDF folder does not contain a procpar file'
         sys.exit(1)
-       
+        
     fdffiles = [ f for f in files if f.endswith('.fdf') ]
     if len(fdffiles) == 0:
         print 'Error: FDF folder does not contain any fdf files'
@@ -477,24 +477,24 @@ if __name__ == "__main__":
     # Position Reference Indicator (0020,1040) 2 Part of the imaging target used as a
     #    reference. See C.7.4.1.1.2 for further
     #    explanation.
-# C.7.4.1.1.2        Position Reference Indicator
-# The Position Reference Indicator (0020,1040) specifies the part of the imaging target that was
-# used as a reference point associated with a specific Frame of Reference UID. The Position
-# Reference Indicator may or may not coincide with the origin of the fixed frame of reference
-# related to the Frame of Reference UID.
-# For a Patient-related Frame of Reference, this is an anatomical reference point such as the iliac
-# crest, orbital-medial, sternal notch, symphysis pubis, xiphoid, lower coastal margin, or external
-# auditory meatus, or a fiducial marker placed on the patient. The patient-based coordinate system
-# is described in C.7.6.2.1.1.
-# For a slide-related Frame of Reference, this is the slide corner as specified in C.8.12.2.1 and
-# shall be identified in this attribute with the value 'SLIDE_CORNER'. The slide-based coordinate
-# system is described in C.8.12.2.1.
-# The Position Reference Indicator shall be used only for annotation purposes and is not intended
-# to be used as a mathematical spatial reference.
-#   Note:     The Position Reference Indicator may be sent zero length when it has no meaning, for example,
-#             when the Frame of Reference Module is required to relate mammographic images of the breast
-#             acquired without releasing breast compression, but where there is no meaningful anatomical
-#             reference point as such.
+    # C.7.4.1.1.2        Position Reference Indicator
+    # The Position Reference Indicator (0020,1040) specifies the part of the imaging target that was
+    # used as a reference point associated with a specific Frame of Reference UID. The Position
+    # Reference Indicator may or may not coincide with the origin of the fixed frame of reference
+    # related to the Frame of Reference UID.
+    # For a Patient-related Frame of Reference, this is an anatomical reference point such as the iliac
+    # crest, orbital-medial, sternal notch, symphysis pubis, xiphoid, lower coastal margin, or external
+    # auditory meatus, or a fiducial marker placed on the patient. The patient-based coordinate system
+    # is described in C.7.6.2.1.1.
+    # For a slide-related Frame of Reference, this is the slide corner as specified in C.8.12.2.1 and
+    # shall be identified in this attribute with the value 'SLIDE_CORNER'. The slide-based coordinate
+    # system is described in C.8.12.2.1.
+    # The Position Reference Indicator shall be used only for annotation purposes and is not intended
+    # to be used as a mathematical spatial reference.
+    #   Note:     The Position Reference Indicator may be sent zero length when it has no meaning, for example,
+    #             when the Frame of Reference Module is required to relate mammographic images of the breast
+    #             acquired without releasing breast compression, but where there is no meaningful anatomical
+    #             reference point as such.
 
 
 
@@ -724,30 +724,30 @@ if __name__ == "__main__":
     ds.MRReceiveCoilSequence= Sequence([ReceiveCoilSeq])
 
     # MR Transmit Coil C.8.13.5.8 C 
-#                                           Table C.8-95
-#                              MR TRANSMIT COIL MACRO ATTRIBUTES
-# Attribute Name                          Tag        Type Attribute Description
-# MR Transmit Coil Sequence           (0018,9049)      1  A sequence that provides information
-#                                                         about the transmit coil used.
-#                                                         Only a single Item shall be included in
-#                                                         this sequence.
-# >Transmit Coil Name                 (0018,1251)     1C  Name of transmit coil used.
-#                                                         Required if Frame Type (0008,9007)
-#                                                         Value 1 of this frame is ORIGINAL. May
-#                                                         be present otherwise.
-# >Transmit Coil Manufacturer Name    (0018,9050)     2C  Name of manufacturer of transmit coil.
-#                                                         Required if Frame Type (0008,9007)
-#                                                         Value 1 of this frame is ORIGINAL. May
-#                                                         be present otherwise.
-# >Transmit Coil Type                 (0018,9051)     1C  Type of transmit coil used.
-#                                                         Required if Frame Type (0008,9007)
-#                                                         Value 1 of this frame is ORIGINAL. May
-#                                                         be present otherwise.
-#                                                         Defined Terms:
-#                                                                 BODY
-#                                                                 VOLUME = head, extremity,
-#                                                                                  etc.
-#                                                                 SURFACE
+    #                                           Table C.8-95
+    #                              MR TRANSMIT COIL MACRO ATTRIBUTES
+    # Attribute Name                          Tag        Type Attribute Description
+    # MR Transmit Coil Sequence           (0018,9049)      1  A sequence that provides information
+    #                                                         about the transmit coil used.
+    #                                                         Only a single Item shall be included in
+    #                                                         this sequence.
+    # >Transmit Coil Name                 (0018,1251)     1C  Name of transmit coil used.
+    #                                                         Required if Frame Type (0008,9007)
+    #                                                         Value 1 of this frame is ORIGINAL. May
+    #                                                         be present otherwise.
+    # >Transmit Coil Manufacturer Name    (0018,9050)     2C  Name of manufacturer of transmit coil.
+    #                                                         Required if Frame Type (0008,9007)
+    #                                                         Value 1 of this frame is ORIGINAL. May
+    #                                                         be present otherwise.
+    # >Transmit Coil Type                 (0018,9051)     1C  Type of transmit coil used.
+    #                                                         Required if Frame Type (0008,9007)
+    #                                                         Value 1 of this frame is ORIGINAL. May
+    #                                                         be present otherwise.
+    #                                                         Defined Terms:
+    #                                                                 BODY
+    #                                                                 VOLUME = head, extremity,
+    #                                                                                  etc.
+    #                                                                 SURFACE
     TransmitCoilSeq = Dataset()
     TransmitCoilSeq.TransmitCoilManufacturername='Agilent Technologies'
     TransmitCoilSeq.TransmitCoilName='NONAME'
@@ -769,80 +769,80 @@ if __name__ == "__main__":
 
 
     # MR Diffusion C.8.13.5.9 C 
-#                                                                             Page 878
-# MR Diffusion Sequence            (0018,9117)      1 Identifies the diffusion parameters of this
-#                                                     frame.
-#                                                     Only a single Item shall be included in
-#                                                     this sequence.
-#                                                     Diffusion sensitization factor in sec/mm2.
-# >Diffusion b-value               (0018,9087)     1C
-#                                                     This is the actual b-value for original
-#                                                     frames and those derived from frames
-#                                                     with the same b-value, or the most
-#                                                     representative b-value when derived from
-#                                                     images with different b-values.
-#                                                     Required if Frame Type (0008,9007)
-#                                                     Value 1 of this frame is ORIGINAL. May
-#                                                     be present otherwise.
-# >Diffusion Directionality        (0018,9075)     1C Specifies whether diffusion conditions for
-#                                                     the frame are directional, or isotropic with
-#                                                     respect to direction.
-#                                                     Defined Terms:
-#                                                              DIRECTIONAL
-#                                                              BMATRIX
-#                                                              ISOTROPIC
-#                                                              NONE = to be used when
-#                                                                    Frame Type (0008,9007)
-#                                                                    value 4 equals
-#                                                                    DIFFUSION_ANISO or
-#                                                                    Diffusion b-value
-#                                                                    (0018,9087) is 0 (zero).
-#                                                     Required if Frame Type (0008,9007)
-#                                                     Value 1 of this frame is ORIGINAL. May
-#                                                     be present otherwise.
-# >Diffusion Gradient Direction    (0018,9076)     1C Sequence containing orientations of all
-# Sequence                                            diffusion sensitization gradients that were
-#                                                     applied during the acquisition of this
-#                                                     frame.
-#                                                      Only a single Item shall be included in
-#                                                     this sequence.
-#                                                     Required if Diffusion Directionality
-#                                                     (0018,9075) equals DIRECTIONAL
-#                                                     May be present if Diffusion Directionality
-#                                                     (0018,9075) equals BMATRIX.
-# >>Diffusion Gradient Orientation (0018,9089)     1C The direction cosines of the diffusion
-#                                                     gradient vector with respect to the patient
-#                                                     Required if Frame Type (0008,9007)
-#                                                     Value 1 of this frame is ORIGINAL. May
-#                                                     be present otherwise.
-# >Diffusion b-matrix Sequence (0018,9601) 1C The directional diffusion sensitization
-#                                             expressed as a 3x3 matrix with diagonal
-#                                             symmetry (with six unique elements from
-#                                             which the other elements can be
-#                                             derived).
-#                                             The rows and columns of the matrix are
-#                                             the X (right to left), Y (anterior to
-#                                             posterior) and Z (foot to head) patient-
-#                                             relative orthogonal axes as defined in
-#                                             C.7.6.2.1.1.
-#                                             The values are in units of ms/mm2.
-#                                             Only a single Item shall be included in
-#                                             this sequence.
-#                                             Required if Diffusion Directionality
-#                                             (0018,9075) equals BMATRIX.
-# >>Diffusion b-value XX       (0018,9602)  1 The value of b[X,X].
-# >>Diffusion b-value XY       (0018,9603)  1 The value of b[X,Y].
-# >>Diffusion b-value XZ       (0018,9604)  1 The value of b[X,Z].
-# >>Diffusion b-value YY       (0018,9605)  1 The value of b[Y,Y].
-# >>Diffusion b-value YZ       (0018,9606)  1 The value of b[Y,Z].
-# >>Diffusion b-value ZZ       (0018,9607)  1 The value of b[Z,Z].
-# >Diffusion Anisotropy Type   (0018,9147) 1C Class of diffusion anisotropy calculation.
-#                                             Defined Terms:
-#                                                      FRACTIONAL
-#                                                      RELATIVE
-#                                                      VOLUME_RATIO
-#                                             Required if Frame Type (0008,9007)
-#                                             value 4 equals DIFFUSION_ANISO.
+    #                                                                             Page 878
+    # MR Diffusion Sequence            (0018,9117)      1 Identifies the diffusion parameters of this
+    #                                                     frame.
+    #                                                     Only a single Item shall be included in
+    #                                                     this sequence.
+    #                                                     Diffusion sensitization factor in sec/mm2.
+    # >Diffusion b-value               (0018,9087)     1C
+    #                                                     This is the actual b-value for original
+    #                                                     frames and those derived from frames
+    #                                                     with the same b-value, or the most
+    #                                                     representative b-value when derived from
+    #                                                     images with different b-values.
+    #                                                     Required if Frame Type (0008,9007)
+    #                                                     Value 1 of this frame is ORIGINAL. May
+    #                                                     be present otherwise.
+    # >Diffusion Directionality        (0018,9075)     1C Specifies whether diffusion conditions for
+    #                                                     the frame are directional, or isotropic with
+    #                                                     respect to direction.
+    #                                                     Defined Terms:
+    #                                                              DIRECTIONAL
+    #                                                              BMATRIX
+    #                                                              ISOTROPIC
+    #                                                              NONE = to be used when
+    #                                                                    Frame Type (0008,9007)
+    #                                                                    value 4 equals
+    #                                                                    DIFFUSION_ANISO or
+    #                                                                    Diffusion b-value
+    #                                                                    (0018,9087) is 0 (zero).
+    #                                                     Required if Frame Type (0008,9007)
+    #                                                     Value 1 of this frame is ORIGINAL. May
+    #                                                     be present otherwise.
+    # >Diffusion Gradient Direction    (0018,9076)     1C Sequence containing orientations of all
+    # Sequence                                            diffusion sensitization gradients that were
+    #                                                     applied during the acquisition of this
+    #                                                     frame.
+    #                                                      Only a single Item shall be included in
+    #                                                     this sequence.
+    #                                                     Required if Diffusion Directionality
+    #                                                     (0018,9075) equals DIRECTIONAL
+    #                                                     May be present if Diffusion Directionality
+    #                                                     (0018,9075) equals BMATRIX.
+    # >>Diffusion Gradient Orientation (0018,9089)     1C The direction cosines of the diffusion
+    #                                                     gradient vector with respect to the patient
+    #                                                     Required if Frame Type (0008,9007)
+    #                                                     Value 1 of this frame is ORIGINAL. May
+    #                                                     be present otherwise.
+    # >Diffusion b-matrix Sequence (0018,9601) 1C The directional diffusion sensitization
+    #                                             expressed as a 3x3 matrix with diagonal
+    #                                             symmetry (with six unique elements from
+    #                                             which the other elements can be
+    #                                             derived).
+    #                                             The rows and columns of the matrix are
+    #                                             the X (right to left), Y (anterior to
+    #                                             posterior) and Z (foot to head) patient-
+    #                                             relative orthogonal axes as defined in
+    #                                             C.7.6.2.1.1.
+    #                                             The values are in units of ms/mm2.
+    #                                             Only a single Item shall be included in
+    #                                             this sequence.
+    #                                             Required if Diffusion Directionality
+    #                                             (0018,9075) equals BMATRIX.
+    # >>Diffusion b-value XX       (0018,9602)  1 The value of b[X,X].
+    # >>Diffusion b-value XY       (0018,9603)  1 The value of b[X,Y].
+    # >>Diffusion b-value XZ       (0018,9604)  1 The value of b[X,Z].
+    # >>Diffusion b-value YY       (0018,9605)  1 The value of b[Y,Y].
+    # >>Diffusion b-value YZ       (0018,9606)  1 The value of b[Y,Z].
+    # >>Diffusion b-value ZZ       (0018,9607)  1 The value of b[Z,Z].
+    # >Diffusion Anisotropy Type   (0018,9147) 1C Class of diffusion anisotropy calculation.
+    #                                             Defined Terms:
+    #                                                      FRACTIONAL
+    #                                                      RELATIVE
+    #                                                      VOLUME_RATIO
+    #                                             Required if Frame Type (0008,9007)
+    #                                             value 4 equals DIFFUSION_ANISO.
 
     if 'diff' in procpar.keys() and procpar['diff']=='y':
         if 'bvalue' in procpar.keys() and len(procpar['bvalue']) > 1:
@@ -935,13 +935,13 @@ if __name__ == "__main__":
         
 
     # Image Laterality (0020,0062) 3 Laterality of (possibly paired) body part examined.
-                               # Enumerated Values:
-                               #          R = right
-                               #          L = left
-                               #          U = unpaired
-                               #          B = both left and right
+    # Enumerated Values:
+    #          R = right
+    #          L = left
+    #          U = unpaired
+    #          B = both left and right
     ds.Laterality="R"
-  
+    
     # Accession Number (0008,0050) 3 An identifier of the Imaging Service Request
     #                           for this Requested Procedure.
     ds.AccessionNumber = '1'
@@ -1057,8 +1057,8 @@ if __name__ == "__main__":
         # Free text description that explains the meaning of the dimension.
     
 # *** TO DO ***
-    # Module: Enhanced MR Image (mandatory)
-    # Reference: DICOM Part 3: Information Object Definitions C.8.13.1
+# Module: Enhanced MR Image (mandatory)
+# Reference: DICOM Part 3: Information Object Definitions C.8.13.1
     
     # Include ' MR Image and Spectroscopy Instance Macro' Table C.8-81
     
@@ -1087,13 +1087,13 @@ if __name__ == "__main__":
     # Required if Image Type (0008,0008) Value 1 is ORIGINAL or MIXED. 
     # May be present otherwise.
     ds.ResonantNucleus='1H'
-  #  ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)       
+#  ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)       
 
     # 0018,0087 Magnetic Field Strength (optional)
     # Nominal field strength of the MR Magnet, in Tesla.
     
     #Image Comments (0020,4000) 3
-   # User-defined comments about the image.
+    # User-defined comments about the image.
 
     # Image Type = ["ORIGINAL","PRIMARY"] (0008,0008) 1
     # Image characteristics. See C.8.16.1 and C.8.13.1.1.1.
@@ -1137,7 +1137,7 @@ if __name__ == "__main__":
     # Enumerated Values: NO
     # This means that images that contain this Module shall not contain such burned in 
     # annotations.
- 
+    
     # Lossy Image Compression = "00" (0028,2110) 1
     # Specifies whether an Image has undergone lossy compression.
     # Enumerated Values: 00 = Image has NOT been subjected to lossy compression.
@@ -1150,7 +1150,7 @@ if __name__ == "__main__":
     # defined to be P-Values.
     # Enumerated Values: IDENTITY - output is in P-Values.
     # Required if Photometric Interpretation (0028,0004) is MONOCHROME2.
-        
+    
 
 
     # Module: MR Pulse Sequence (Required if Image Type (0008,0008) Value 1 is ORIGINAL
@@ -1274,14 +1274,14 @@ if __name__ == "__main__":
 #                                           present otherwise.
     ds.SteadyStatePulseSequence = "NONE"  ##TODO one of: FREE_PRECESSION TRANSVERSE TIME_REVERSED LONGITUDINAL NONE
     #
-# Echo Planar Pulse Sequence (0018,9018) 1C Echo Planar category of Pulse
-#                                           Sequences.
-#                                           Enumerated Values:
-#                                                   YES
-#                                                   NO
-#                                           Required if Image Type (0008,0008)
-#                                           Value 1 is ORIGINAL or MIXED. May be
-#                                           present otherwise.
+    # Echo Planar Pulse Sequence (0018,9018) 1C Echo Planar category of Pulse
+    #                                           Sequences.
+    #                                           Enumerated Values:
+    #                                                   YES
+    #                                                   NO
+    #                                           Required if Image Type (0008,0008)
+    #                                           Value 1 is ORIGINAL or MIXED. May be
+    #                                           present otherwise.
     ds.EchoPlanarPulseSequence = "NO"  ##TODO one of: YES NO
 # Saturation Recovery        (0018,9024) 1C Saturation recovery pulse sequence.
 #                                           Enumerated Values:
@@ -1568,12 +1568,12 @@ if __name__ == "__main__":
             ds.ScanningSequence   =  "SE"  
         
     if ds.ScanningSequence == "IR":
-    # 0018,0082 Inversion Time (optional)
+        # 0018,0082 Inversion Time (optional)
     #Inversion Time (0018,0082) 2C Time in msec after the middle of inverting
-    #                          RF pulse to middle of excitation pulse to
-    #                          detect the amount of longitudinal
-    #                          magnetization. Required if Scanning
-    #                          Sequence (0018,0020) has values of IR.
+        #                          RF pulse to middle of excitation pulse to
+        #                          detect the amount of longitudinal
+        #                          magnetization. Required if Scanning
+        #                          Sequence (0018,0020) has values of IR.
         ds.InversionTime = str(procpar['ti']*1000.0)                     
 
 
@@ -1610,21 +1610,21 @@ if __name__ == "__main__":
 
     #TR    
     #0018,0080 Repetition Time (in ms) (optional)
-# The period of time in msec between the
-# beginning of a pulse sequence and the
-# beginning of the succeeding (essentially
-# identical) pulse sequence. Required
-# except when Scanning Sequence
-# (0018,0020) is EP and Sequence Variant
-# (0018,0021) is not SK.
+    # The period of time in msec between the
+    # beginning of a pulse sequence and the
+    # beginning of the succeeding (essentially
+    # identical) pulse sequence. Required
+    # except when Scanning Sequence
+    # (0018,0020) is EP and Sequence Variant
+    # (0018,0021) is not SK.
     if not SEQUENCE == "ASL" or not (ds.ScanningSequence == "EP" and not ds.SequenceVariant == "SK"):
         ds.RepetitionTime  = str(procpar['tr']*1000.0)
     
     #TE
     # 0018,0081 Echo Time (in ms) (optional)
     # This is overwritten if the fdf file is a multiecho
-#    if 'te' in procpar.keys():
-#        ds.EchoTime  = str(procpar['te']*1000.0)                                                                        
+    #    if 'te' in procpar.keys():
+    #        ds.EchoTime  = str(procpar['te']*1000.0)                                                                        
     # 0018,0091 Echo Train Length (optional)
     if 'etl' in procpar.keys():
         ds.EchoTrainLength = procpar['etl']                                        
@@ -1653,11 +1653,11 @@ if __name__ == "__main__":
     else:
         ds.ImagedNucleus = 'H1'
     # 0018,0086 Echo Number (optional)
-#    if 'echo' in procpar.keys():
-#        ds.EchoNumber =procpar['echo']                                                  
+    #    if 'echo' in procpar.keys():
+    #        ds.EchoNumber =procpar['echo']                                                  
     # 0018,0087 Magnetic Field Strength (optional)             
-#    if 'H1reffrq' in procpar.keys() and not procpar['H1reffrq'] == "":
-#        ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)      
+    #    if 'H1reffrq' in procpar.keys() and not procpar['H1reffrq'] == "":
+    #        ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)      
 
     ds.MagneticFieldStrength = str(procpar['B0'])
 
@@ -1680,64 +1680,64 @@ if __name__ == "__main__":
     ds.ReceiveCoilName  = procpar['rfcoil'][:15]
     
     ## From code below
-#
-#    ds.AcquistionMatrix  = [ procpar['']  , procpar['']  ]                                                                # 0018,1310 Acquistion Matrix (optional)
+    #
+    #    ds.AcquistionMatrix  = [ procpar['']  , procpar['']  ]                                                                # 0018,1310 Acquistion Matrix (optional)
         #---------------------------------------------------------------------------------
         # Number of rows
-			# DICOMHDR code:
-			#    "note: ft3d causes nv/np to be swapped"   
-			#    elseif $tag='(0028,0010)' then	 " Rows"
-			#      if($dim = 3) then	"if 3D rows = nv"
-                        #	 on('fn1'):$on
-                        #	 if($on) then
+        # DICOMHDR code:
+        #    "note: ft3d causes nv/np to be swapped"   
+        #    elseif $tag='(0028,0010)' then	 " Rows"
+        #      if($dim = 3) then	"if 3D rows = nv"
+        #	 on('fn1'):$on
+        #	 if($on) then
 
     if 'fn1' in procpar.keys() and procpar['fn1'] > 0:		
         AcqMatrix1 = procpar['fn1']/2.0         
     else:		#	   $pe = fn1/2.0
         AcqMatrix1 = procpar['nv'] #	 else
-			#	   $pe = nv
-			#	 endif	
-			#	 $pes=''	
-			#	 format($pe,0,0):$pes	
-			#	 $value='['+$pes+']'  
-			#	  
-			#      else		"if 2D no of rows = np/2"
-			#	  on('fn'):$on
-			#	  if($on) then
-			#	    $ro = fn/2.0
-			#	  else
-			#	    $ro = np/2.0
-			#	  endif		
-			#	  $ros=''	
-			#	  format($ro,0,0):$ros	
-			#	  $value='['+$ros+']'
-	                #      endif
+        #	   $pe = nv
+        #	 endif	
+        #	 $pes=''	
+        #	 format($pe,0,0):$pes	
+        #	 $value='['+$pes+']'  
+        #	  
+        #      else		"if 2D no of rows = np/2"
+        #	  on('fn'):$on
+        #	  if($on) then
+        #	    $ro = fn/2.0
+        #	  else
+        #	    $ro = np/2.0
+        #	  endif		
+        #	  $ros=''	
+        #	  format($ro,0,0):$ros	
+        #	  $value='['+$ros+']'
+        #      endif
 
         #---------------------------------------------------------------------------------
         # Number of columns
-            # DICOMHDR code: 
-            #    elseif $tag='(0028,0011)' then	" Columns  "
-            #      if($dim = 3) then	"if 3D columns = np/2"
-            #        on('fn'):$on
-            #        if($on) then
-            #          $ro = fn/2.0
-            #        else
-            #          $ro = np/2.0
-            #        endif      	
-            #        $ros=''	
-            #        format($ro,0,0):$ros	
-            #        $value='['+$ros+']'   
-            #      else     
-            #        on('fn1'):$on
-            #        if($on) then
-            #         $pe = fn1/2.0
-            #        else
-            #         $pe = nv
-            #        endif	
-            #        $pes=''	
-            #        format($pe,0,0):$pes	
-            #        $value='['+$pes+']'
-            #      endif
+        # DICOMHDR code: 
+        #    elseif $tag='(0028,0011)' then	" Columns  "
+        #      if($dim = 3) then	"if 3D columns = np/2"
+        #        on('fn'):$on
+        #        if($on) then
+        #          $ro = fn/2.0
+        #        else
+        #          $ro = np/2.0
+        #        endif      	
+        #        $ros=''	
+        #        format($ro,0,0):$ros	
+        #        $value='['+$ros+']'   
+        #      else     
+        #        on('fn1'):$on
+        #        if($on) then
+        #         $pe = fn1/2.0
+        #        else
+        #         $pe = nv
+        #        endif	
+        #        $pes=''	
+        #        format($pe,0,0):$pes	
+        #        $value='['+$pes+']'
+        #      endif
 
 
         # In-plane Phase Encoding Direction (0018,1312) 3 The axis of phase encoding with respect to
@@ -1869,7 +1869,7 @@ if __name__ == "__main__":
         
         # File dimensionality
         fdfdims = fdf_properties['rank']
-            
+        
         CommentStr = 'Acquisition dimensionality (ie 2D or 3D) does not match between fdf and procpar'
         AssumptionStr = 'procpar nv2 > 0 indicates 3D acquisition and fdf rank property indicates dimensionality'
         acqndims = procpar['acqdim']
@@ -1895,8 +1895,8 @@ if __name__ == "__main__":
         if not ('diff' in procpar.keys() and procpar["diff"] == 'y'): 
             if MRAcquisitionType == '3D':
                 print 'Not testing slicethickness in diffusion and 3D MR FDFs'
-         #   else:
-         #       AssertImplementation(ds.SliceThickness != fdfthk, filename, CommentStr, AssumptionStr)
+                #   else:
+                #       AssertImplementation(ds.SliceThickness != fdfthk, filename, CommentStr, AssumptionStr)
 
 
 
@@ -1950,12 +1950,12 @@ if __name__ == "__main__":
         if args.verbose:
             print 'Patient Position: ', ds.PatientPosition
         ds.PatientPosition='HFS'
-            
+        
         #---------------------------------------------------------------------------------
         # GROUP 0020: Relationship
 
         ds.ImageComments = fdf_properties['filetext']
- 
+        
         ds.DerivationDescription = Derivation_Description
 
         # For further information regarding the location, orientation, roi, span, etc 
@@ -2019,7 +2019,7 @@ if __name__ == "__main__":
 
         # Change patient position and orientation in 
         # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3':
-            
+        
 
         #---------------------------------------------------------------------------------
         # GROUP 0028: Image Presentation
@@ -2028,48 +2028,48 @@ if __name__ == "__main__":
 
         #---------------------------------------------------------------------------------
         # Number of frames        
-            # DICOMHDR code:
-            #     elseif $tag='(0028,0008)' then	" no of frames "
-            #       $dim = 2  "default 2D"
-            #       exists('nv2','parameter'):$ex     
-            #       if($ex > 0) then
-            #         if(nv2 > 0) then
-            #           on('fn2'):$on		"3D data"
-            #           if($on) then
-            #             $pe2 = fn2/2.0
-            #           else
-            #             $pe2 = nv2
-            #           endif         
-            #           $dim = 3
-            #         endif
-            #       endif
-            #       
-            #       if ($dim = 3) then
-            #         $f = $pe2    "no of frames for 3D"
-            #       else 
-            #         substr(seqcon,3,1):$spe1    
-            #         if($spe1 = 's') then
-            #           $f = (ns * (arraydim/nv) * ne)   "sems type"
-            #         else
-            #           $f = (ns * arraydim * ne)	"compressed gems type"
-            #         endif            
-            #         if($imagesout='single') then  
-            #           $f = $f	"single image output: frames=(no_of_slices * array_size * ne)"
-            #         else
-            #           $f = 1				" single frame"
-            #         endif
-            #       endif     
-            #      $fs='' 
-            #       format($f,0,0):$fs
-            #       $value='['+$fs+']'      
-            #       if $DEBUG then write('alpha','    new value = "%s"',$value) endif
+        # DICOMHDR code:
+        #     elseif $tag='(0028,0008)' then	" no of frames "
+        #       $dim = 2  "default 2D"
+        #       exists('nv2','parameter'):$ex     
+        #       if($ex > 0) then
+        #         if(nv2 > 0) then
+        #           on('fn2'):$on		"3D data"
+        #           if($on) then
+        #             $pe2 = fn2/2.0
+        #           else
+        #             $pe2 = nv2
+        #           endif         
+        #           $dim = 3
+        #         endif
+        #       endif
+        #       
+        #       if ($dim = 3) then
+        #         $f = $pe2    "no of frames for 3D"
+        #       else 
+        #         substr(seqcon,3,1):$spe1    
+        #         if($spe1 = 's') then
+        #           $f = (ns * (arraydim/nv) * ne)   "sems type"
+        #         else
+        #           $f = (ns * arraydim * ne)	"compressed gems type"
+        #         endif            
+        #         if($imagesout='single') then  
+        #           $f = $f	"single image output: frames=(no_of_slices * array_size * ne)"
+        #         else
+        #           $f = 1				" single frame"
+        #         endif
+        #       endif     
+        #      $fs='' 
+        #       format($f,0,0):$fs
+        #       $value='['+$fs+']'      
+        #       if $DEBUG then write('alpha','    new value = "%s"',$value) endif
 
 
 
         #if fdfdims == 3:
         #    ds.NumberOfFrames = fdf_properties['matrix'][2]
- 
-       # dicom3tool uses frames to create enhanced MR
+        
+        # dicom3tool uses frames to create enhanced MR
         # ds.NumberOfFrames = fdf_properties['slices']
         # ds.FrameAcquisitionNumber = fdf_properties['slice_no']
 
@@ -2085,7 +2085,7 @@ if __name__ == "__main__":
             # 0018,0086 Echo Number (optional)
             if 'echo_no' in fdf_properties.keys():
                 ds.EchoNumber = fdf_properties['echo_no']            
-           
+                
         else:
             if 'te' in procpar.keys():
                 ds.EchoTime  = str(procpar['te']*1000.0)
@@ -2110,42 +2110,42 @@ if __name__ == "__main__":
             ds.MRArterialSpinLabeling[0].ASLSlabSequence[0].ASLSlabNumber  = fdf_properties["array_index"]
 
             # ASL Mid slab position
-# The Image Plane Attributes, in conjunction with the Pixel Spacing Attribute, describe the position
-# and orientation of the image slices relative to the patient-based coordinate system. In each image
-# frame the Image Position (Patient) (0020,0032) specifies the origin of the image with respect to
-# the patient-based coordinate system. RCS and the Image Orientation (Patient) (0020,0037)
-# attribute values specify the orientation of the image frame rows and columns. The mapping of
-# pixel location i, j to the RCS is calculated as follows:
-#                                        X x i Yx j 0 S x
-#                               Px                                i        i
-#                                        X y i Yy j 0 S y
-#                               Py                                j        j
-#                                                                   =M
-#                                        X z i Yz j 0 S z         0        0
-#                               Pz
-#                               1          0       0      01      1        1
-# Where:
-#        Pxyz The coordinates of the voxel (i,j) in the frame's image plane in units of mm.
-#        Sxyz The three values of the Image Position (Patient) (0020,0032) attributes. It is the
-#              location in mm from the origin of the RCS.
-#        Xxyz The values from the row (X) direction cosine of the Image Orientation (Patient)
-#              (0020,0037) attribute.
-#        Yxyz The values from the column (Y) direction cosine of the Image Orientation (Patient)
-#              (0020,0037) attribute.
-#        i     Column index to the image plane. The first column is index zero.
-#          i Column pixel resolution of the Pixel Spacing (0028,0030) attribute in units of mm.
-#        j     Row index to the image plane. The first row index is zero.
-#          j Row pixel resolution of the Pixel Spacing (0028,0030) attribute in units of mm.
+            # The Image Plane Attributes, in conjunction with the Pixel Spacing Attribute, describe the position
+            # and orientation of the image slices relative to the patient-based coordinate system. In each image
+            # frame the Image Position (Patient) (0020,0032) specifies the origin of the image with respect to
+            # the patient-based coordinate system. RCS and the Image Orientation (Patient) (0020,0037)
+            # attribute values specify the orientation of the image frame rows and columns. The mapping of
+            # pixel location i, j to the RCS is calculated as follows:
+            #                                        X x i Yx j 0 S x
+            #                               Px                                i        i
+            #                                        X y i Yy j 0 S y
+            #                               Py                                j        j
+            #                                                                   =M
+            #                                        X z i Yz j 0 S z         0        0
+            #                               Pz
+            #                               1          0       0      01      1        1
+            # Where:
+            #        Pxyz The coordinates of the voxel (i,j) in the frame's image plane in units of mm.
+            #        Sxyz The three values of the Image Position (Patient) (0020,0032) attributes. It is the
+            #              location in mm from the origin of the RCS.
+            #        Xxyz The values from the row (X) direction cosine of the Image Orientation (Patient)
+            #              (0020,0037) attribute.
+            #        Yxyz The values from the column (Y) direction cosine of the Image Orientation (Patient)
+            #              (0020,0037) attribute.
+            #        i     Column index to the image plane. The first column is index zero.
+            #          i Column pixel resolution of the Pixel Spacing (0028,0030) attribute in units of mm.
+            #        j     Row index to the image plane. The first row index is zero.
+            #          j Row pixel resolution of the Pixel Spacing (0028,0030) attribute in units of mm.
 
 
 #            ds.MRArterialSpinLabelingSequence.ASLSlabSequence[0].ASLMidSlabPosition  = [str(ImagePositionPatient[0]),str(ImagePositionPatient[1]),str(ImagePositionPatient[2]+(islice-1)*SliceThickness))]
 
 #            print ImagePositionPatient
- #           M = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], PixelSpacing[1] * ImageOrientationPatient[1], SliceThinkness * ImageOrientationPatient[2]  ImagePositionPatient[0]],                              [PixelSpacing[0] * ImageOrientationPatient[3], PixelSpacing[1] * ImageOrientationPatient[4], SliceThinkness * ImageOrientationPatient[5]  ImagePositionPatient[1]],                              [PixelSpacing[0] * ImageOrientationPatient[6], PixelSpacing[1] * ImageOrientationPatient[8], SliceThinkness * ImageOrientationPatient[8]  ImagePositionPatient[2]],                              [0,0,0,1]])
- #           pos = numpy.matrix([[ceil(ds.Rows / 2)],[ ceil(ds.Columns / 2],[fdf_properties['slice_no'],[1]])
- #           Pxyz = M * pos
+#           M = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], PixelSpacing[1] * ImageOrientationPatient[1], SliceThinkness * ImageOrientationPatient[2]  ImagePositionPatient[0]],                              [PixelSpacing[0] * ImageOrientationPatient[3], PixelSpacing[1] * ImageOrientationPatient[4], SliceThinkness * ImageOrientationPatient[5]  ImagePositionPatient[1]],                              [PixelSpacing[0] * ImageOrientationPatient[6], PixelSpacing[1] * ImageOrientationPatient[8], SliceThinkness * ImageOrientationPatient[8]  ImagePositionPatient[2]],                              [0,0,0,1]])
+#           pos = numpy.matrix([[ceil(ds.Rows / 2)],[ ceil(ds.Columns / 2],[fdf_properties['slice_no'],[1]])
+#           Pxyz = M * pos
 
- #           ds.MRArterialSpinLabelingSequence.ASLSlabSequence[0].ASLMidSlabPosition  = [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0]))]
+#           ds.MRArterialSpinLabelingSequence.ASLSlabSequence[0].ASLMidSlabPosition  = [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0]))]
 
 
         #if 'echoes' in fdf_properties.keys() and fdf_properties['echoes'] > 1 and fdf_properties['array_dim'] == 1:
@@ -2161,8 +2161,12 @@ if __name__ == "__main__":
             if args.verbose:
                 print 'Processing diffusion image'
             ds.AcquisitionConstrast = ["DIFFUSION"]
-            # Per frame Diffusion macro
-                
+            ds.PixelPresentation=["MONOCHROME"]
+            ds.VolumetrixProperties=["VOLUME"]
+            ds.VolumeBasedCalculationTechnique=["NONE"]
+            ds.ComplexImageComponent=["MAGNITUDE"]
+            
+            
                 #print fdf_properties['array_index']
                 #print len(Bvalue)
 
@@ -2174,9 +2178,9 @@ if __name__ == "__main__":
             if procpar['recon'] == 'external':
                 diffusion_idx=0
                 while True:
-                     if (math.fabs(Bvalue[ diffusion_idx ] - fdf_properties['bvalue']) < 0.005):
-                         break
-                     diffusion_idx+=1
+                    if (math.fabs(Bvalue[ diffusion_idx ] - fdf_properties['bvalue']) < 0.005):
+                        break
+                    diffusion_idx+=1
                 #diffusion_idx = fdf_properties['array_index'] - 1
             else:
                 diffusion_idx = fdf_properties['array_index']*2 
@@ -2195,13 +2199,12 @@ if __name__ == "__main__":
 ## B0 scan does not need the MR Diffusion Gradient Direction Sequence macro and its directionality should be set to NONE
 ## the remaining scans relate to particular directions hence need the direction macro
             diffusionseq = Dataset()
-#            diffusionseq.DiffusionBValue=fdf_properties['bvalue']
-            if fdf_properties['bvalue']<30:
+            if fdf_properties['bvalue']<20:
                 diffusionseq.DiffusionBValue=0 
                 diffusionseq.DiffusionDirectionality = 'NONE'
             else:
                 diffusionseq.DiffusionBValue=int(fdf_properties['bvalue'])
-                diffusionseq.DiffusionDirectionality = 'DIRECTIONAL' #TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
+                diffusionseq.DiffusionDirectionality = 'BMATRIX' #TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
             # diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' #TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
 
             ### Diffusion Gradient Direction Sequence (0018,9076)
@@ -2226,7 +2229,7 @@ if __name__ == "__main__":
             ds.MRDiffusionSequence= Sequence([diffusionseq])
 
             MRImageFrameType = Dataset()
-            MRImageFrameType.FrameType=ds.ImageType
+            MRImageFrameType.FrameType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"] # same as ds.ImageType
             MRImageFrameType.PixelPresentation=["MONOCHROME"]
             MRImageFrameType.VolumetrixProperties=["VOLUME"]
             MRImageFrameType.VolumeBasedCalculationTechnique=["NONE"]
@@ -2269,31 +2272,31 @@ if __name__ == "__main__":
 
         #---------------------------------------------------------------------------------
         # Number of rows
-            # DICOMHDR code:
-            #    "note: ft3d causes nv/np to be swapped"   
-            #    elseif $tag='(0028,0010)' then	 " Rows"
-            #      if($dim = 3) then	"if 3D rows = nv"
-            #        on('fn1'):$on
-            #        if($on) then
-            #          $pe = fn1/2.0
-            #        else
-            #          $pe = nv
-            #        endif	
-            #        $pes=''	
-            #        format($pe,0,0):$pes	
-            #        $value='['+$pes+']'  
-            #         
-            #      else		"if 2D no of rows = np/2"
-            #         on('fn'):$on
-            #         if($on) then
-            #           $ro = fn/2.0
-            #         else
-            #           $ro = np/2.0
-            #         endif      	
-            #         $ros=''	
-            #         format($ro,0,0):$ros	
-            #         $value='['+$ros+']'
-            #      endif
+        # DICOMHDR code:
+        #    "note: ft3d causes nv/np to be swapped"   
+        #    elseif $tag='(0028,0010)' then	 " Rows"
+        #      if($dim = 3) then	"if 3D rows = nv"
+        #        on('fn1'):$on
+        #        if($on) then
+        #          $pe = fn1/2.0
+        #        else
+        #          $pe = nv
+        #        endif	
+        #        $pes=''	
+        #        format($pe,0,0):$pes	
+        #        $value='['+$pes+']'  
+        #         
+        #      else		"if 2D no of rows = np/2"
+        #         on('fn'):$on
+        #         if($on) then
+        #           $ro = fn/2.0
+        #         else
+        #           $ro = np/2.0
+        #         endif      	
+        #         $ros=''	
+        #         format($ro,0,0):$ros	
+        #         $value='['+$ros+']'
+        #      endif
 
         ds.Rows = fdf_properties['matrix'][1]                                   #(0028,0010) Rows
 
@@ -2309,29 +2312,29 @@ if __name__ == "__main__":
 
         #---------------------------------------------------------------------------------
         # Number of columns
-            # DICOMHDR code: 
-            #    elseif $tag='(0028,0011)' then	" Columns  "
-            #      if($dim = 3) then	"if 3D columns = np/2"
-            #        on('fn'):$on
-            #        if($on) then
-            #          $ro = fn/2.0
-            #        else
-            #          $ro = np/2.0
-            #        endif      	
-            #        $ros=''	
-            #        format($ro,0,0):$ros	
-            #        $value='['+$ros+']'   
-            #      else     
-            #        on('fn1'):$on
-            #        if($on) then
-            #         $pe = fn1/2.0
-            #        else
-            #         $pe = nv
-            #        endif	
-            #        $pes=''	
-            #        format($pe,0,0):$pes	
-            #        $value='['+$pes+']'
-            #      endif
+        # DICOMHDR code: 
+        #    elseif $tag='(0028,0011)' then	" Columns  "
+        #      if($dim = 3) then	"if 3D columns = np/2"
+        #        on('fn'):$on
+        #        if($on) then
+        #          $ro = fn/2.0
+        #        else
+        #          $ro = np/2.0
+        #        endif      	
+        #        $ros=''	
+        #        format($ro,0,0):$ros	
+        #        $value='['+$ros+']'   
+        #      else     
+        #        on('fn1'):$on
+        #        if($on) then
+        #         $pe = fn1/2.0
+        #        else
+        #         $pe = nv
+        #        endif	
+        #        $pes=''	
+        #        format($pe,0,0):$pes	
+        #        $value='['+$pes+']'
+        #      endif
             
         ds.Columns = fdf_properties['matrix'][0]                                 #(0028,0011) Columns
 
@@ -2342,23 +2345,23 @@ if __name__ == "__main__":
         
         #---------------------------------------------------------------------------------
         # Pixel spacing
-            # DICOMHDR code: 
-            #     elseif $tag='(0028,0030)' then	" pixel spacing "
-            #       if($dim = 3) then
-            #         $r=lro*10/$ro    "$ro and $pe were calculated earlier"
-            #         $p=lpe*10/$pe
-            #         $rs='' $ps=''
-            #         format($r,0,5):$rs
-            #         format($p,0,5):$ps
-            #         $value='['+$ps+'\\'+$rs+']'      "rows\cols swapped for 3D"   
-            #       else
-            #         $r=lro*10/$ro    "$ro and $pe were calculated earlier"
-            #         $p=lpe*10/$pe
-            #         $rs='' $ps=''
-            #         format($r,0,5):$rs
-            #         format($p,0,5):$ps
-            #         $value='['+$rs+'\\'+$ps+']' 
-            #       endif
+        # DICOMHDR code: 
+        #     elseif $tag='(0028,0030)' then	" pixel spacing "
+        #       if($dim = 3) then
+        #         $r=lro*10/$ro    "$ro and $pe were calculated earlier"
+        #         $p=lpe*10/$pe
+        #         $rs='' $ps=''
+        #         format($r,0,5):$rs
+        #         format($p,0,5):$ps
+        #         $value='['+$ps+'\\'+$rs+']'      "rows\cols swapped for 3D"   
+        #       else
+        #         $r=lro*10/$ro    "$ro and $pe were calculated earlier"
+        #         $p=lpe*10/$pe
+        #         $rs='' $ps=''
+        #         format($r,0,5):$rs
+        #         format($p,0,5):$ps
+        #         $value='['+$rs+'\\'+$ps+']' 
+        #       endif
 
         
         ds.SamplesPerPixel = 1                        #(0028,0002) Samples Per Pixel
@@ -2385,7 +2388,7 @@ if __name__ == "__main__":
                 print "DimUID", DimensionOrganizationUID
             DimOrgSeq.add_new((0x0020,0x9164), 'UI',[DimensionOrganizationUID])
             ds.DimensionOrganizationType='3D'  #or 3D_TEMPORAL
-                
+            
         ds.DimensionOrganizationSequence= Sequence([DimOrgSeq])
 
 
@@ -2410,8 +2413,8 @@ if __name__ == "__main__":
             DimIndexSeq1 = Dataset()
             DimIndexSeq1.DimensionIndexPointer = (0x0020,0x0032)  # Image position patient 20,32 or 20,12 
         # #DimIndexSeq1.DimensionIndexPrivateCreator=
-    # #DimIndexSeq1.FunctionalGroupPointer=
-    # #DimIndexSeq1.FunctionalGroupPrivateCreator=
+        # #DimIndexSeq1.FunctionalGroupPointer=
+        # #DimIndexSeq1.FunctionalGroupPrivateCreator=
             DimIndexSeq1.add_new((0x0020,0x9164), 'UI',[DimensionOrganizationUID])
             DimIndexSeq1.DimensionDescriptionLabel='Third Spatial dimension'
             ds.DimensionIndexSequence = Sequence([DimIndexSeq1])
@@ -2443,8 +2446,8 @@ if __name__ == "__main__":
         ds.RescaleSlope = str(RescaleSlope)[:16]                                       #(0028,1053) Rescale Slope
 
         #ds.MRAcquistionType = '2D'                                              # 0018,0023 MR Acquisition Type (optional)
-                                                                                         # Identification of spatial data encoding scheme.
-                                                                                         # Defined Terms: 1D 2D 3D
+        # Identification of spatial data encoding scheme.
+        # Defined Terms: 1D 2D 3D
 
 
         FrameContentSequence=Dataset()
@@ -2482,7 +2485,7 @@ if __name__ == "__main__":
             print fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
 #            slice_data = numpy.zeros_like(numpy.squeeze(image_data[:,:,1]))
 #            if 'ne' in procpar.keys():
-           
+            
             range_max = fdf_properties['matrix'][2]
             num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
             print range_max, num_slicepts
@@ -2492,7 +2495,7 @@ if __name__ == "__main__":
                 
                 slice_data = numpy.reshape(voldata[islice],(num_slicepts,1)) 
 #numpy.squeeze(numpy.matrix(image_data[islice]))
-                # print slice_data.shape
+# print slice_data.shape
 
                 ds.PixelData = slice_data.tostring()    #(7fe0,0010) Pixel Data
                 #if acqndims == 3:
