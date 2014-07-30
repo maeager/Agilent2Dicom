@@ -9,7 +9,7 @@ This small set of scripts aims to accurately convert FDF images from the Agilent
 * Quick summary
 * Version
 
-Agilent2Dicom is at version 0.4
+Agilent2Dicom is at version 0.5
 
 fdf2dcm is at 1.0
 
