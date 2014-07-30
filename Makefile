@@ -142,6 +142,18 @@ test_J6:
 	-dciodvfy  ../output_data/j6/0001.dcm 2>&1 >/dev/null | grep -e '^Warning'
 
 
+## Diffusion heart tissue
+heart:
+	./fdf2dcm.sh -i ../example_data/s_2014061202/epip-dir30_01.img/ -o ../output_data/hearttissue.dcm/
+	-rm -f ../output_nii/heart.nii
+	mrconvert ../output_data/hearttissue.dcm/ ../output_nii/heart.nii
+	-rm -f ../output_mif/heartdiff.mif
+	mrconvert ../output_data/hearttissue.dcm/ ../output_mif/heartdiff.mif
+	-rm -f ../output_mif/dt_DWI.mif
+	dwi2tensor ../output_mif/heartdiff.mif ../output_mif/dt_DWI.mif
+
+
+
 .PHONY: all run_kidney run_standard2d run_me3d run_me2d run_cine run_asl run_diffusion run_dti run_epip run_J6
 all: run_kidney run_standard2d run_me3d run_me2d run_cine run_asl run_diffusion run_dti run_epip run_J6
 
