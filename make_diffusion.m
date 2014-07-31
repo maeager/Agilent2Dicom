@@ -36,15 +36,14 @@ jj=jj+1;
 end
 
 
-%%
+%% Diffusion weighted image
  image.DW_scheme=DW; % a NDWx4 matrix of gradient directions [optional]
  write_mrtrix(image,'../output_mif/diff.mif')
  image.vox= hdr.voxelsize;  %        N-vector of voxel sizes (in mm) (default: { 2 }) [optional]
     % image.comments= 'Diffusion weighted image created by Agilent2Dicom in MATLAB.' %   a cell array of strings [optional]
     % image.datatype='float32';  %   the datatype specifier (default: float32) [optional]
-     image.transform = [hdr.orientation(1:3) 0; hdr.orientation(4:6) 0; hdr.orientation(7:9) 0; 0 0 0 1];   %  a 4x4 matrix [optional]
-    
-write_mrtrix(image,'../output_mif/diff2.mif')
+ image.transform = [hdr.orientation(1:3) 0; hdr.orientation(4:6) 0; hdr.orientation(7:9) 0; 0 0 0 1];   %  a 4x4 matrix [optional]
+ write_mrtrix(image,'../output_mif/diff2.mif')
 
 
 %% Write Mask
@@ -64,6 +63,18 @@ write_mrtrix(aveDwi2,'../output_mif/mask_DWI.mif')
 aveDWi2.vox= hdr.voxelsize; 
 aveDwi2.transform = [hdr.orientation(1:3) 0; hdr.orientation(4:6) 0; hdr.orientation(7:9) 0; 0 0 0 1]; 
 write_mrtrix(aveDwi2,'../output_mif/mask2_DWI.mif')
+
+
+%% ADC
+
+aveDif= mean(image.data(:,:,:,2:end),4);
+adc.data = single(aveDif./(image.data(:,:,:,1)));
+write_mrtrix(adc,'../output_mif/adc_DWI.mif')
+adc.vox= hdr.voxelsize; 
+adc.transform = [hdr.orientation(1:3) 0; hdr.orientation(4:6) 0; hdr.orientation(7:9) 0; 0 0 0 1]; 
+write_mrtrix(adc,'../output_mif/adc_DWI2.mif')
+
+
 
 
 
