@@ -10,7 +10,7 @@ Enhanced MR now done by dicom3tools and the fdf2dcm script
 """
 
 VersionNumber = "0.5"
-DVCSstamp = "$Id: agilent2dicom.py,v 275ae511f68c 2014/07/30 05:52:23 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v f12f9dbeeda7 2014/07/31 00:25:44 michael $"
 
 import pdb
 # import ast
@@ -2205,8 +2205,7 @@ if __name__ == "__main__":
             else:
                 diffusionseq.DiffusionBValue=int(fdf_properties['bvalue'])
                 diffusionseq.DiffusionDirectionality = 'BMATRIX' #TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
-            # diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' #TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
-
+            
             ### Diffusion Gradient Direction Sequence (0018,9076)
                 diffusiongraddirseq = Dataset()
                 # Diffusion Gradient Orientation  (0018,9089)
@@ -2225,7 +2224,8 @@ if __name__ == "__main__":
                 diffbmatseq.DiffusionBValueYZ =  BvalueSP[ diffusion_idx ]
                 diffbmatseq.DiffusionBValueZZ =  BvalueSS[ diffusion_idx ]
                 diffusionseq.DiffusionBMatrixSequence = Sequence([diffbmatseq])
-
+                
+            diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' #TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
             ds.MRDiffusionSequence= Sequence([diffusionseq])
 
             MRImageFrameType = Dataset()
@@ -2237,34 +2237,6 @@ if __name__ == "__main__":
             MRImageFrameType.AcquisitionContrast=["DIFFUSION"]
             ds.MRImageFrameTypeSequence=Sequence([MRImageFrameType])
             
-    # Standard 3T diffusion scan (dcmdump output)
-    # (0018,9226) SQ (Sequence with undefined length #=1)     # u/l, 1 MRImageFrameTypeSequence
-    #   (fffe,e000) na (Item with undefined length #=12)        # u/l, 1 Item
-    #     (0008,9007) CS [ORIGINAL\PRIMARY\DIFFUSION\NONE]        #  32, 4 FrameType
-    #     (0008,9205) CS [MONOCHROME]                             #  10, 1 PixelPresentation
-    #     (0008,9206) CS [VOLUME]                                 #   6, 1 VolumetricProperties
-    #     (0008,9207) CS [NONE]                                   #   4, 1 VolumeBasedCalculationTechnique
-    #     (0008,9208) CS [MAGNITUDE]                              #  10, 1 ComplexImageComponent
-    #     (0008,9209) CS [DIFFUSION]                              #  10, 1 AcquisitionContrast
-    #     (0021,0010) LO [SIEMENS MR SDI 02]                      #  18, 1 PrivateCreator
-    #     (0021,1059) IS [0\0\0]                                  #   6, 3 Unknown Tag & Data
-    #     (0021,1076) LO [ChannelMixing:ND=true_CMM=1_CDM=1\ACC1\NormalizeAlgo:PreScan] #  60, 3 Unknown Tag & Data
-    #     (0021,1077) LO [*ep_b2000#1]                            #  12, 1 Unknown Tag & Data
-    #     (0021,1078) CS [NONE\ND\NORM]                           #  12, 3 Unknown Tag & Data
-    #     (0021,1079) CS [ND]                                     #   2, 1 Unknown Tag & Data
-    #   (fffe,e00d) na (ItemDelimitationItem)                   #   0, 0 ItemDelimitationItem
-    # (fffe,e0dd) na (SequenceDelimitationItem)               #   0, 0 SequenceDelimitationItem
-    # (0020,9111) SQ (Sequence with undefined length #=1)     # u/l, 1 FrameContentSequence
-    #   (fffe,e000) na (Item with undefined length #=7)         # u/l, 1 Item
-    #     (0018,9074) DT [20140505154610.630000]                  #  22, 1 FrameAcquisitionDateTime
-    #     (0018,9151) DT [20140505154610.647500]                  #  22, 1 FrameReferenceDateTime
-    #     (0018,9220) FD 35                                       #   8, 1 FrameAcquisitionDuration
-    #     (0020,9056) SH [1]                                      #   2, 1 StackID
-    #     (0020,9057) UL 1                                        #   4, 1 InStackPositionNumber
-    #     (0020,9128) UL 2                                        #   4, 1 TemporalPositionIndex
-    #     (0020,9156) US 2                                        #   2, 1 FrameAcquisitionNumber
-    #   (fffe,e00d) na (ItemDelimitationItem)                   #   0, 0 ItemDelimitationItem
-
 ##
         
 
