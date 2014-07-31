@@ -1,9 +1,10 @@
 
-REQUIREMENTS= ./dpush mrconvert ./fdf2dcm.sh ./agilent2dicom storescu dcmodify
+REQUIREMENTS=  mrconvert storescu dcmodify dcmulti dciodfy fslhd fslview
 MRVIEW="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Monash016/eagerm/mrtrix-0.2.12/lib vglrun ~/Monash016/eagerm/mrtrix-0.2.12/bin/mrview"
 
-FSLVIEW=fslhd
+FSLVIEW=fslhd # fslview
 
+.PHONY: check
 check:
 	for req in $(REQUIREMENTS); do \
 	   which $$req > /dev/null || echo "Missing dependency $$req"; \
@@ -16,6 +17,7 @@ run_kidney:
 test_kidney:
 	-dciodvfy   ../output_data/kidney512iso.dcm/0001.dcm 2>&1 >/dev/null 
 
+.PHONY: setup
 setup:
 	mkdir ../output_data
 	mkdir ../output_nii
@@ -152,6 +154,9 @@ heart:
 	-rm -f ../output_mif/dt_DWI.mif
 	dwi2tensor ../output_mif/heartdiff.mif ../output_mif/dt_DWI.mif
 
+test_heart:
+	-dciodvfy  ../output_data/hearttissue.dcm/0001.dcm 2>&1 
+	-dciodvfy  ../output_data/hearttissue.dcm/0002.dcm 2>&1 
 
 
 .PHONY: all run_kidney run_standard2d run_me3d run_me2d run_cine run_asl run_diffusion run_dti run_epip run_J6
