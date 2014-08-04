@@ -2,13 +2,14 @@
 REQUIREMENTS=  mrconvert storescu dcmodify dcmulti dciodfy fslhd fslview
 MRVIEW="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Monash016/eagerm/mrtrix-0.2.12/lib vglrun ~/Monash016/eagerm/mrtrix-0.2.12/bin/mrview"
 
-FSLVIEW=fslhd # fslview
+FSLVIEW=fslhd # fslview, set to fslhd for non-visual check of Nifti file
 
 .PHONY: check
 check:
 	for req in $(REQUIREMENTS); do \
 	   which $$req > /dev/null || echo "Missing dependency $$req"; \
 	done
+#	test -x $$req || (echo "$$req not found"; exit 1)
 
 run_kidney:
 	./fdf2dcm.sh -v -i ~/Monash016/RatKidney/Agilent/20120522/kidney512iso_01.img -o ../output_data/kidney512iso.dcm
@@ -146,7 +147,7 @@ test_J6:
 
 ## Diffusion heart tissue
 heart:
-	./fdf2dcm.sh -i ../example_data/s_2014061202/epip-dir30_01.img/ -o ../output_data/hearttissue.dcm/
+	./fdf2dcm.sh -i ../example_data/s_2014061202/epi-dir30_01.img/ -o ../output_data/hearttissue.dcm/
 	-rm -f ../output_nii/heart.nii
 	mrconvert ../output_data/hearttissue.dcm/ ../output_nii/heart.nii
 	-rm -f ../output_mif/heartdiff.mif

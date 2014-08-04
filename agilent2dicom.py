@@ -10,7 +10,7 @@ Enhanced MR now done by dicom3tools and the fdf2dcm script
 """
 
 VersionNumber = "0.5"
-DVCSstamp = "$Id: agilent2dicom.py,v f12f9dbeeda7 2014/07/31 00:25:44 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v c242f2ef3c94 2014/08/04 00:59:01 michael $"
 
 import pdb
 # import ast
@@ -1853,8 +1853,7 @@ if __name__ == "__main__":
         fdf_properties, image_data = ReadFDF(args.inputdir + '/' + filename)
 
         if args.verbose:
-            print 'Image_data shape:'
-            print image_data.shape
+            print 'Image_data shape:', str(image_data.shape)
 
         # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3':
         #     fdf_tmp=fdf_properties['roi']
@@ -1874,8 +1873,7 @@ if __name__ == "__main__":
         AssumptionStr = 'procpar nv2 > 0 indicates 3D acquisition and fdf rank property indicates dimensionality'
         acqndims = procpar['acqdim']
         if args.verbose:
-            print 'Acqdim (type): ' + MRAcquisitionType
-            print acqndims
+            print 'Acqdim (type): ' + MRAcquisitionType + " acqndims "  + str(acqndims)
         #AssertImplementation(acqndims != fdfdims, filename, CommentStr, AssumptionStr)
         
         # Slice thickness
@@ -2441,25 +2439,26 @@ if __name__ == "__main__":
         # GROUP 7FE0: Image data
         if acqndims == 3:
             # Multi-dimension multi echo export format
-
+            print "3D DATA splitting"
             voldata = numpy.reshape(image_data,fdf_properties['matrix'])
             # if procpar['recon'] == 'external':
             # 
-            # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3':
-            #   voldata = numpy.transpose(voldata,(1,2,0))
+            if procpar['recon'] == 'external' and fdf_properties['rank'] == 3:
+                print "Transposing external recon 3D"
+                voldata = numpy.transpose(voldata,(1,2,0))
             
 
-            print image_data.shape
-            print voldata.shape
-            print "fdf properties matrix:", fdf_properties['matrix']
+            print "Image data shape: ", str(image_data.shape)
+            print "Vol data shape: ", voldata.shape
+            print "fdf properties matrix: ", fdf_properties['matrix']
             print fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
 #            slice_data = numpy.zeros_like(numpy.squeeze(image_data[:,:,1]))
 #            if 'ne' in procpar.keys():
             
             range_max = fdf_properties['matrix'][2]
             num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
-            print range_max, num_slicepts
-            print voldata[1].shape
+            print "Range max and no slice points: ", range_max, num_slicepts
+            print "Voldata[1] shape: ", voldata[1].shape
 
             for islice in xrange(1,range_max):    
                 
