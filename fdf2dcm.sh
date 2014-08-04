@@ -8,8 +8,9 @@
 
 
 set -o nounset  # shortform: -u
-# set -o errexit  # -e
+set -o errexit  # -e
 # set -o pipefail
+#touch $(dirname $0)/error.log
 #exec 2>> $(dirname $0)/error.log
 # set -x
 
@@ -236,7 +237,7 @@ elif  [ -f ${output_dir}/DIFFUSION ]; then
     echo "Contents of DIFFUSION"; cat ${output_dir}/DIFFUSION; echo '\n'
     nbdirs=$(cat ${output_dir}/DIFFUSION)
     ((++nbdirs)) # increment by one for B0
-    nbdirs=$(ls -1 output_data/hearttissue.dcm/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
+    nbdirs=$(ls -1 ${output_dir}/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
     echo "Diffusion sequence, $nbdirs B-directions"
     for ibdir in $(seq 1 ${nbdirs}); do
      	bdirext=$(printf '%03d' $ibdir)
