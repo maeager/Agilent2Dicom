@@ -10,7 +10,7 @@ Enhanced MR now done by dicom3tools and the fdf2dcm script
 """
 
 VersionNumber = "0.5"
-DVCSstamp = "$Id: agilent2dicom.py,v c242f2ef3c94 2014/08/04 00:59:01 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v e16e1ef27015 2014/08/06 01:35:04 michael $"
 
 import pdb
 # import ast
@@ -2444,8 +2444,12 @@ if __name__ == "__main__":
             # if procpar['recon'] == 'external':
             # 
             if procpar['recon'] == 'external' and fdf_properties['rank'] == 3:
-                print "Transposing external recon 3D"
-                voldata = numpy.transpose(voldata,(1,2,0))
+                if procpar['seqfil'] == "epip":
+                    print "Transposing external recon 3D"
+                    voldata = numpy.transpose(voldata,(1,2,0))
+                if procpar['seqfil'] == "fse3d":
+                    print "Transposing external recon 3D"
+                    voldata = numpy.transpose(voldata,(2,0,1))
             
 
             print "Image data shape: ", str(image_data.shape)
@@ -2457,6 +2461,13 @@ if __name__ == "__main__":
             
             range_max = fdf_properties['matrix'][2]
             num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
+            if procpar['recon'] == 'external' and fdf_properties['rank'] == 3 and procpar['seqfil'] == "fse3d":
+                range_max = fdf_properties['matrix'][0]
+                num_slicepts = fdf_properties['matrix'][1]*fdf_properties['matrix'][2]
+                ds.Columns = fdf_properties['matrix'][1]
+                ds.Rows = fdf_properties['matrix'][2]
+                ## FSE3d still producing bad dicoms
+
             print "Range max and no slice points: ", range_max, num_slicepts
             print "Voldata[1] shape: ", voldata[1].shape
 
