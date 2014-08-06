@@ -5,8 +5,8 @@
 # - (C) 2014 Michael Eager
 
 # Check DCMTK on MASSIVE or Agilent console
-if test ${MASSIVEUSERNAME+defined}; then
-    if [ ! -x `which dcmodify` ];then
+if test "${MASSIVEUSERNAME+defined}"; then
+    if [ ! -x $(which dcmodify) ];then
 	module load dcmtk
     fi
 else
@@ -15,8 +15,16 @@ else
 
 fi
 
-if [ ! -x `which dcmodify` ];then
-    echo "ERROR: dcmodify not found (fix-dicoms.sh)"; 
+if [ ! -x $(which dcmodify) ];then
+    echo "fix-dicoms.sh: dcmodify not found."; 
+    exit 1
+fi
+if [ ! -x $(which dcdump) ];then
+    echo "fix-dicoms.sh: dcdump not found."; 
+    exit 1
+fi
+if [ ! -x $(which dciodvfy) ];then
+    echo "fix-dicoms.sh: dcdump not found."; 
     exit 1
 fi
 
@@ -25,7 +33,10 @@ output_dir=$1
 MODIFY=1
 ##COMMON FIXES to enhanced DICOMs
 DCMODIFY="dcmodify --no-backup  " # --ignore-errors" 
-files=$(find ${output_dir} -type f -name "*.dcm" | grep -v tmp)
+
+# Find dcmulti converted DICOMs - do not descending into tmp directory
+files=$(find ${output_dir} -maxdepth 1 -type f -name "*.dcm")
+
 
 
  # ${DCMODIFY} -m "(0020,0060)=" $files  # Laterality  # fixed in agilent2dicom
@@ -64,10 +75,10 @@ then
 
 fi
 
-firsttmpdcm=$(ls -1 ${output_dir}/tmp/*.dcm| head -1)
+firsttmpdcm=$(find ${output_dir}/tmp/ -name "*.dcm"  | head -1)
 
 # multiple spin echo (0018,9011) - not in diffusion or asl
-multspinecho=`dcdump $firsttmpdcm 2>&1 | grep 'Multiple Spin Echo' | awk '{print $8}' | tr -d '<>'`
+multspinecho=$(dcdump $firsttmpdcm 2>&1 | grep 'Multiple Spin Echo' | awk '{print $8}' | tr -d '<>')
 ${DCMODIFY} -i "(0018,9011)=$multspinecho" $files
 
 if [[ $MODIFY -eq 1 ]]; then
@@ -112,7 +123,7 @@ fi #debugging modify
 
 echo "Removing Per-frame Anatomy sequences"
 index=0
-total_anatseq=`dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l`
+total_anatseq=$(dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l)
 echo "Total Frame Anatomy Errors ", $total_anatseq 
 current_anatseq=$total_anatseq
 while [ "$current_anatseq" -gt 0 ]; do
@@ -121,5 +132,5 @@ while [ "$current_anatseq" -gt 0 ]; do
 	${DCMODIFY} -ea "(5200,9230)[$index].(0020,9071)" $files
 	((++index))
     done
-    current_anatseq=`dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l`
+    current_anatseq=$(dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l)
 done

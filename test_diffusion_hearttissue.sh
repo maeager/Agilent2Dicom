@@ -32,7 +32,7 @@ rm -f ${outpath}/*.tck
 matlab -nosplash -nodesktop -r "addpath "$(dirname $0)";make_diffusion;quit"
 
 mrinfo ${outpath}/diff.mif | grep 'DW scheme'
-[ $? -eq 1 ] && (echo 'Diffusion MIF file does not contain DW scheme'; exit 1)
+[ $? -ne 0 ] && (echo 'Diffusion MIF file does not contain DW scheme'; exit 1)
 
 
 ## Diffusion tensor imaging
