@@ -9,7 +9,7 @@ This small set of scripts aims to accurately convert FDF images from the Agilent
 * Quick summary
 * Version
 
-Agilent2Dicom is at version 0.4
+Agilent2Dicom is at version 0.5
 
 fdf2dcm is at 1.0
 
@@ -35,7 +35,7 @@ mkdir Agilent2Dicom
 cd Agilent2Dicom
 ```
 
-Pull the development code from Massive using:
+Pull the development code from MASSIVE using:
 
 ```
 #!bash
@@ -43,12 +43,15 @@ Pull the development code from Massive using:
 hg clone username@m2.massive.org.au://gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom
 ```
 
-or from the MBI subversion repository, using:  (Note this is a stable repo without limited version history)
+or a stable version from the MBI bitbucket repository, using:  (Note this is a stable repo without limited version history)
 
 ```
 #!bash
 
-svn checkout https://svn-vre.its.monash.edu.au/mbi/trunk/Sandbox/meager/Agilent2Dicom
+hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom
+
+## Obsolete MeRC subversion reop
+## svn checkout https://svn-vre.its.monash.edu.au/mbi/trunk/Sandbox/meager/Agilent2Dicom
 ```
 
 
