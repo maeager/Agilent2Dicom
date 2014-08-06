@@ -8,7 +8,7 @@
 
 # Check DCMTK on MASSIVE or Agilent console
 if test ${MASSIVEUSERNAME+defined}; then
-    if [ ! -x `which dcmodify` ];then
+    if [ ! -x $(which dcmodify) ];then
 	module load dcmtk
     fi
 else
@@ -17,7 +17,7 @@ else
 
 fi
 
-if [ ! -x `which dcmodify` ];then
+if [ ! -x $(which dcmodify) ];then
     echo "ERROR: dcmodify not found (fix-dicoms.sh)"; 
     exit 1
 fi

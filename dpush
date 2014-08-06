@@ -41,7 +41,7 @@ fi
 test -x storescu || (echo "storescu not found"; exit 1)
 
 STORESCU="storescu --debug --arguments --verbose " 
-#"java -cp `dirname $0`/../lib/dcmtools.jar nig.dicom.util.StoreSCU"
+#"java -cp $(dirname $0)/../lib/dcmtools.jar nig.dicom.util.StoreSCU"
 
 usage() {
     echo "Usage: dpush -c cid -s server dicom_dir"
@@ -91,7 +91,7 @@ then {
 }
 fi
 
-if [ ! -f `which storescu` ]; then
+if [ ! -f $(which storescu) ]; then
     echo "cannot find dcmtk's storescu in PATH"
 	exit 1;
 fi
