@@ -147,8 +147,6 @@ make test_all
 ```
 
 
-## Deployment instructions ##
-
 ## Basic overview ##
 
 The script fdf2dcm.sh is a wrapping bash script that cleans up the arguments and
@@ -194,7 +192,7 @@ optional arguments:
  
 ```
 
-A simple GUI interface *fdf2dicom.sh*, was developed to be used by experimental scientists on the Agilent RedHat console. 
+A simple GUI interface *fdf2dicom*, was developed to be used by experimental scientists on the Agilent RedHat console. This requires python 2.6 and Tkinter.
 
 
 
