@@ -44,6 +44,19 @@ For bugs and faults see [current issues](https://confluence-vre.its.monash.edu.a
 
 ### Summary of set up ###
 ### Configuration ###
+
+
+Create a suitable directory (e.g. Agilent2DicomProject) in your source or projects folder.
+
+```
+#!bash
+
+cd ~/src                   # on MASSIVE this is ~/Monash016/eagerm
+mkdir Agilent2DicomProject
+cd Agilent2DicomProject
+```
+
+
 ### Dependencies ###
 
  * python (2.6 or greater)
@@ -53,30 +66,8 @@ For bugs and faults see [current issues](https://confluence-vre.its.monash.edu.a
  * dcmtk
  * mrtrix (optional)
 
-### How to run tests ###
+### Setup and install ###
 
-Good FDF examples include standard 2d, multi-echo 3D, multiecho 2D complex, fast spin echo 3D, diffusion (EPI and FSE), ASL, and CINE images. Most FDF images are reconstructed from Vnmrj internally, but some can be externally reconstructed and these are slightly different and need to be tested.
-
-The Makefile contains examples to be used on MASSIVE.
-```
-#!bash
-
-make all
-make test_all
-```
-
-
-## Deployment instructions ##
-
-Create a suitable directory (e.g. Agilent2Dicom) in your source or projects folder.
-
-```
-#!bash
-
-cd ~/src                   # on MASSIVE this is ~/Monash016/eagerm
-mkdir Agilent2Dicom
-cd Agilent2Dicom
-```
 
 Pull the development code from MASSIVE using:
 
@@ -127,7 +118,7 @@ Once the dependencies have been installed, begin by downloading the latest dicom
 ```
 #!bash
 
-cd ~/src/    # cd ~/Monash016/eagerm/Agilent2Dicom
+cd ~/src/Agilent2DicomProject    # On MASSIVE use cd ~/Monash016/eagerm/Agilent2Dicom
 wget   http://www.dclunie.com/dicom3tools/workinprogress/dicom3tools_1.00.snapshot.20140306142442.tar.bz2
 tar jxvf dicom3tools_1.00.snapshot.20140306142442.tar.bz2
 cd dicom3tools_1.00.snapshot.20140306142442
@@ -141,6 +132,22 @@ make install                          # into ./bin
 make install.man                      # into ./man
  
 ```
+
+
+### How to run tests ###
+
+Good FDF examples include standard 2d, multi-echo 3D, multiecho 2D complex, fast spin echo 3D, diffusion (EPI and FSE), ASL, and CINE images. Most FDF images are reconstructed from Vnmrj internally, but some can be externally reconstructed and these are slightly different and need to be tested.
+
+The Makefile contains examples to be used on MASSIVE. These include *run_standard2d*, *run_me3d*, *run_me2d*, *run_diffusion*, *run_asl*, and *run_cine*. Their equivalent tests, replace *run_* with *test*.  To make all the examples and test them use:
+```
+#!bash
+
+make all
+make test_all
+```
+
+
+## Deployment instructions ##
 
 ## Basic overview ##
 
@@ -167,7 +174,6 @@ of input fdf data.
  -h             this help
 ```
 
- 
 The crux of the script is performed within the agilent2dicom python script. It's usage is listed below:
 
 ```
