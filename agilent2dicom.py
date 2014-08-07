@@ -10,7 +10,7 @@ Enhanced MR now done by dicom3tools and the fdf2dcm script
 """
 
 VersionNumber = "0.5"
-DVCSstamp = "$Id: agilent2dicom.py,v e16e1ef27015 2014/08/06 01:35:04 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v 892715ccb3c8 2014/08/07 00:26:00 michael $"
 
 import pdb
 # import ast
@@ -293,11 +293,11 @@ if __name__ == "__main__":
     # Parse command line arguments and validate img directory
 
     parser = argparse.ArgumentParser(usage=' agilent2dicom -i "Input FDF directory" [-o "Output directory"] [-m] [-p] [-v]',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version '+VersionNumber)
-    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent .img directory containing procpar and fdf files',required=True);
+    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
     parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
     parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
-    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
+#    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
     parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     
     # parser.add_argument("imgdir", help="Agilent .img directory containing procpar and fdf files")
@@ -607,7 +607,7 @@ if __name__ == "__main__":
     GeneralAnatMandatoryMacro.CodeMeaning = 'Head'
     thispath = os.path.dirname(__file__)
         #print(thispath)    
-    codes = file(thispath+"/AnatomyCodes.txt","r") 
+    codes = file(thispath+"/docs/AnatomyCodes.txt","r") 
     cols, indToName = getColumns(codes) 
     for codeidx in xrange(0,len(cols['Meaning'])-1):
         if re.search(procpar['anatomy'].lower(),cols['Meaning'][codeidx].lower()):
@@ -623,7 +623,7 @@ if __name__ == "__main__":
     AnatRegionModifierSeq.CodeSchemeDesignator='SRT'
     #AnatRegionModifierSeq.CodeSchemeVersion
     AnatRegionModifierSeq.CodeMeaning = 'Coronal'
-    codes = file(thispath+"/AnatomicModifier.txt","r") 
+    codes = file(thispath+"/docs/AnatomicModifier.txt","r") 
     cols, indToName = getColumns(codes) 
     for codeidx in xrange(0,len(cols['Meaning'])-1):
         if re.search(procpar['sorient'].lower(),cols['Meaning'][codeidx].lower()):
