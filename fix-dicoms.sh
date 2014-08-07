@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
-
+#
 # - Michael Eager (michael.eager@monash.edu)
 # - Monash Biomedical Imaging 
 # - (C) 2014 Michael Eager
+#
+############################################
+
+
 
 # Check DCMTK on MASSIVE or Agilent console
 if test "${MASSIVEUSERNAME+defined}"; then
@@ -66,7 +70,7 @@ ${DCMODIFY} -m "(5200,9229)[0].(0018,9042)[0].(0018,9043)=$reccoiltype" $files
 
 
 
-if [[ $output_dir == *cine* ]]
+if [[ $output_dir = *cine* ]]  ## pattern match cine in output directory string
 then
     echo "Disabling Frame anatomy modiufication in CINE";
     MODIFY=0
@@ -81,11 +85,11 @@ firsttmpdcm=$(find ${output_dir}/tmp/ -name "*.dcm"  | head -1)
 multspinecho=$(dcdump $firsttmpdcm 2>&1 | grep 'Multiple Spin Echo' | awk '{print $8}' | tr -d '<>')
 ${DCMODIFY} -i "(0018,9011)=$multspinecho" $files
 
-if [[ $MODIFY -eq 1 ]]; then
+if (( MODIFY == 1 )); then
 #"$(dirname $0)/dmodify"
 
     
-    dcdump ${firsttmpdcm} 2>&1 >/dev/null | grep '(0x0008,0x010' | awk -F'>' '/</ {print $4}'| tr -d '<' > ${output_dir}/anatomy.tmp
+    dcdump "${firsttmpdcm}" 2>&1 >/dev/null | grep '(0x0008,0x010' | awk -F'>' '/</ {print $4}'| tr -d '<' > ${output_dir}/anatomy.tmp
     if [ -f  ${output_dir}/anatomy.tmp ]; then
 	declare -a FrameAnatomySequence
 	let i=0;while IFS=$'\r\n' read -r line_data; do 
@@ -97,7 +101,7 @@ if [[ $MODIFY -eq 1 ]]; then
     fi
 
     echo "Frame Anatomy Seq: " ${firsttmpdcm} " size: " ${#FrameAnatomySequence[*]}
-    if [[ ${#FrameAnatomySequence[*]} -ne 8 ]];then
+    if [ ${#FrameAnatomySequence[*]} -ne 8 ];then
 	echo "DCM modification error. Not enough Frame Anatomy Sequence parameters."
 	echo " Ignoring Anatomy modifications."
     else
@@ -124,12 +128,12 @@ fi #debugging modify
 echo "Removing Per-frame Anatomy sequences"
 index=0
 total_anatseq=$(dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l)
-echo "Total Frame Anatomy Errors ", $total_anatseq 
+echo "Total Frame Anatomy Errors ", "$total_anatseq" 
 current_anatseq=$total_anatseq
-while [ "$current_anatseq" -gt 0 ]; do
-    for i in $(seq $current_anatseq -1 0); do
+while (( current_anatseq > 0 )); do
+    for ((i=current_anatseq;i>=0;i--)); do
 	echo "# $index of $total_anatseq"
-	${DCMODIFY} -ea "(5200,9230)[$index].(0020,9071)" $files
+	"${DCMODIFY}" -ea "(5200,9230)[$index].(0020,9071)" "$files"
 	((++index))
     done
     current_anatseq=$(dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l)
