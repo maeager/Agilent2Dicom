@@ -19,9 +19,9 @@
   <http://www.gnu.org/licenses/>.
 
 
-### What is this repository for? ###
+## What is this repository for? ##
 
-* Quick summary
+### Quick summary ###
 
 Agilent2Dicom program is a series of bash and python scripts to convert FDF
 images from the Agilent 9.4T MR scanner at MBI into enhanced MR DICOM images.
@@ -30,21 +30,21 @@ Homepage: [MBI intranet homepage](https://confluence-vre.its.monash.edu.au/displ
 Source: [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom)
 
 
-* Version
+### Version ###
 
 The internal python script agilent2dicom.py is at version 0.5.
 
 The main shell script fdf2dcm.sh and Agilent2Dicom is at version 1.1.
 
-* Current bugs and faults
+### Current bugs and faults ###
 
 For bugs and faults see [current issues](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging).
 
-### How do I get set up? ###
+## How do I get set up? ##
 
-* Summary of set up
-* Configuration
-* Dependencies
+### Summary of set up ###
+### Configuration ###
+### Dependencies ###
 
  * python (2.6 or greater)
  * python-dicom
@@ -53,7 +53,7 @@ For bugs and faults see [current issues](https://confluence-vre.its.monash.edu.a
  * dcmtk
  * mrtrix (optional)
 
-* How to run tests
+### How to run tests ###
 
 Good FDF examples include standard 2d, multi-echo 3D, multiecho 2D complex, fast spin echo 3D, diffusion (EPI and FSE), ASL, and CINE images. Most FDF images are reconstructed from Vnmrj internally, but some can be externally reconstructed and these are slightly different and need to be tested.
 
@@ -66,7 +66,7 @@ make test_all
 ```
 
 
-* Deployment instructions
+## Deployment instructions ##
 
 Create a suitable directory (e.g. Agilent2Dicom) in your source or projects folder.
 
@@ -101,7 +101,7 @@ An obsolete subversion repository is still available from the MeRC SVN service.
 svn checkout https://svn-vre.its.monash.edu.au/mbi/trunk/Sandbox/meager/Agilent2Dicom
 ```
 
-* Install Dicom3tools
+### Install Dicom3tools ###
 
 Install dicom3tools from http://www.dclunie.com/dicom3tools.html into the
 Agilent2Dicom folder.  The default settings for MBI's Agilent 9.4T MR scanner
@@ -142,7 +142,7 @@ make install.man                      # into ./man
  
 ```
 
-### Basic overview ###
+## Basic overview ##
 
 The script fdf2dcm.sh is a wrapping bash script that cleans up the arguments and
 calls a python script agilent2dicom to do the conversion of FDF files to basic
@@ -192,12 +192,12 @@ A simple GUI interface *fdf2dicom.sh*, was developed to be used by experimental 
 
 
 
-### Contribution guidelines ###
+## Contribution guidelines ##
 
 * Writing tests
 * Code review
 * Other guidelines
 
-### Who do I talk to? ###
+## Who do I talk to? ##
 
 * Michael Eager (michael.eager@monash.edu) or someone in the Imaging Team at MBI
