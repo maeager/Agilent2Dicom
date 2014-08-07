@@ -2,14 +2,14 @@
 
   Copyright 2014 Michael Eager  (michael.eager@monash.edu).
 
-  This file is part of the Agilent2Dicom program.
+  This file is part of the Agilent2Dicom package.
 
-  The Agilent2Dicom program is free software: you can redistribute it
+  The Agilent2Dicom package is free software: you can redistribute it
   and/or modify it under the terms of the GNU General Public License
   as published by the Free Software Foundation, either version 3 of
   the License, or (at your option) any later version.  
 
-  The Agilent2Dicom program is distributed in the hope that it will be
+  The Agilent2Dicom package is distributed in the hope that it will be
   useful, but WITHOUT ANY WARRANTY; without even the implied warranty
   of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
@@ -23,8 +23,8 @@
 
 ### Quick summary ###
 
-Agilent2Dicom program is a series of bash and python scripts to convert FDF
-images from the Agilent 9.4T MR scanner at MBI into enhanced MR DICOM images.
+The *Agilent2Dicom* package is a series of bash and python scripts to convert FDF
+images from the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.
 
 Homepage: [MBI intranet homepage](https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter)
 Source: [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom)
