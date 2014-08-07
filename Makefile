@@ -1,5 +1,5 @@
 
-REQUIREMENTS=  mrconvert storescu dcmodify dcmulti dciodfy fslhd fslview
+REQUIREMENTS= python mrconvert storescu dcmodify dcmulti dciodfy fslhd fslview
 MRVIEW="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Monash016/eagerm/mrtrix-0.2.12/lib vglrun ~/Monash016/eagerm/mrtrix-0.2.12/bin/mrview"
 
 FSLVIEW=fslhd # fslview, set to fslhd for non-visual check of Nifti file
@@ -10,6 +10,7 @@ check:
 	   which $$req > /dev/null || echo "Missing dependency $$req"; \
 	done
 #	test -x $$req || (echo "$$req not found"; exit 1)
+	python check.py
 
 run_kidney:
 	./fdf2dcm.sh -v -i ~/Monash016/RatKidney/Agilent/20120522/kidney512iso_01.img -o ../output_data/kidney512iso.dcm
