@@ -7,7 +7,7 @@
 # - (C) 2014 Michael Eager
 #
 #
-#  "$Id:$"
+#  "$Id: fdf2dcm.sh,v 89fe6e639230 2014/08/15 01:07:15 michael $"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #
