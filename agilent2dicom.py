@@ -10,7 +10,7 @@ Enhanced MR now done by dicom3tools and the fdf2dcm script
 """
 
 VersionNumber = "0.5"
-DVCSstamp = "$Id: agilent2dicom.py,v 892715ccb3c8 2014/08/07 00:26:00 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v d6eed4ea3807 2014/08/15 01:00:55 michael $"
 
 import pdb
 # import ast
@@ -172,6 +172,7 @@ def ReadFDF(fdffilename):
     f.close()
     
     return (fdf_properties, data)
+
 
 #=========================================================================================
 # READPROCPAR - Read procpar file and return procpar dictionary and text
@@ -410,10 +411,10 @@ if __name__ == "__main__":
     # Module: Patient (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.1.1 
     
-    ds.PatientName = procpar['name']                                                     # 0010,0010 Patient Name (optional)
-    ds.PatientID = procpar['ident']                                                      # 0010,0020 Patient Id (optional)
+    ds.PatientName = procpar['name']     # 0010,0010 Patient Name (optional)
+    ds.PatientID = procpar['ident']      # 0010,0020 Patient Id (optional)
     if procpar['birthday'][0] == '':
-        ds.PatientBirthDate  = '20010101' #str(["01", "01", "01"])                        
+        ds.PatientBirthDate  = '19010101' #str(["01", "01", "01"])                        
     else:
         ds.PatientBirthDate  = procpar["birthday"]                                          # 0010,0030 Patient's Birth Date (optional)
     # 0010,0040 Patient's Sex (optional)  #(M = male, F = Female, O = other) 
@@ -433,9 +434,9 @@ if __name__ == "__main__":
     # Reference: DICOM Part 3: Information Object Definitions C.7.2.1 
 
     ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar,[],args.verbose)                     # 0020,000D Study Instance UID (mandatory)
-    ds.StudyDate = procpar['studyid_'][2:10]                          # 0008,0020 Study Date (optional)
-    ds.StudyTime = procpar['time_submitted'][9:]                                                                     # 0008,0030 Study Time (optional)
-    ds.StudyID =  procpar['name']                                   # 0020,0010 Study ID (optional)
+    ds.StudyDate = procpar['studyid_'][2:10]      # 0008,0020 Study Date (optional)
+    ds.StudyTime = procpar['time_submitted'][9:]  # 0008,0030 Study Time (optional)
+    ds.StudyID =  procpar['name']                 # 0020,0010 Study ID (optional)
 # Cannot use procpar['studyid_'] because DaRIS needs both the Patient name and studyid to be of the form 'DARIS^X.X.X.X', dpush will actually overwrite these fields as well
     
     ds.ReferringPhysicianName = '' # procpar['operator_']  # or  ['investigator']
@@ -450,18 +451,19 @@ if __name__ == "__main__":
     # Module: General Series (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.3.1 
 
-    ds.Modality = "MR"                                                 # 0008,0060 Modality (mandatory)
+    ds.Modality = "MR"             # 0008,0060 Modality (mandatory)
     ds.SeriesInstanceUID = CreateUID(UID_Type_SeriesInstance, procpar,[],args.verbose)                   # 0020,000E Series Instance UID (mandatory)
-    ds.SeriesNumber = 1                                                # 0020,0011 Series Number (optional)
-    # ds.SeriesDate                                                    # 0008,0021 Series Date (optional)
-    # ds.SeriesTime                                                    # 0008,0031 Series Time (optional)
-    ds.ProtocolName = procpar['pslabel']                               # 0018,1030 Protocol Name (optional)
-    ds.SeriesDescription = procpar['comment']                          # 0008,103E Series Description (optional)
-    ds.OperatorName = procpar['operator_']                             # 0008,1070 Operator Name (optional)
+    ds.SeriesNumber = 1            # 0020,0011 Series Number (optional)
+    # ds.SeriesDate                # 0008,0021 Series Date (optional)
+    # ds.SeriesTime                # 0008,0031 Series Time (optional)
+    ds.ProtocolName = procpar['pslabel']      # 0018,1030 Protocol Name (optional)
+    ds.SeriesDescription = procpar['comment'] # 0008,103E Series Description (optional)
+    ds.OperatorName = procpar['operator_']    # 0008,1070 Operator Name (optional)
     
     # include procpar in dicom header as "Series Comments"
     # This is a retired field, so probably shouldn't be used. But, oh well.
-    ds.add_new((0x0018,0x1000), 'UT', procpartext)                     # 0018,1000 Series Comments (retired)
+    ds.add_new((0x0018,0x1000), 'UT', ['MBI Agilent2Dicom converter (Version ' + str(VersionNumber) ])
+#+ ', ' DVCSstamp +') \nProcpar text: '+ procpartext ]) # 0018,1000 Series Comments (retired)
 
     
     #-------------------------------------------------------------------------------------
@@ -756,14 +758,11 @@ if __name__ == "__main__":
         ds.TransmitCoil = 'BODY'
     ds.MRTransmitCoilSequence = Sequence([TransmitCoilSeq])
     
-# Transmitter Frequency (0018,9098) 1C Precession frequency in MHz of the
-#                                      nucleus being addressed for each
-#                                      spectral axis.
-#                                      See section C.8.14.1.1 for further
-#                                      explanation of the ordering.
-#                                      Required if Image Type (0008,0008)
-#                                      Value 1 is ORIGINAL. May be present
-#                                      otherwise.
+# Transmitter Frequency (0018,9098) 1C Precession frequency in MHz of
+#    the nucleus being addressed for each spectral axis.  See section
+#    C.8.14.1.1 for further explanation of the ordering.  Required if
+#    Image Type (0008,0008) Value 1 is ORIGINAL. May be present
+#    otherwise.
     if 'sfrq' in procpar.keys() and not procpar['sfrq'] == '0':
         ds.TransmitterFrequency = procpar['sfrq']
 
@@ -1793,17 +1792,20 @@ if __name__ == "__main__":
             pe2 = procpar['fn2']/2.0
         else:
             pe2 = procpar['nv2']
-        SliceThickness = procpar['lpe2']*10.0/pe2                         
+        if pe2 == 0:
+            print '3D Acquisition slice thickness: ', SliceThickness
+            SliceThickness = procpar['thk']
+        else:
+            SliceThickness = procpar['lpe2']*10.0/pe2                         
     else:
-        SliceThickness = procpar['thk']                                   
-    ds.SliceThickness = str(SliceThickness)                                                   
-
+        SliceThickness = procpar['thk']  
+            
+    ds.SliceThickness = str(SliceThickness)  
 
     if MRAcquisitionType == '3D':
         SpacingBetweenSlices = ds.SliceThickness                          
 
     
-
     #ds.ImageOrientationPatient = fdfpar['orientation']                                                         # 0020,0037 Image Orientation (Patient) (mandatory)
     #ds.ImagePositionPatient  = fdfpar['location']                                                            # 0020,0032 Image Position (Patient) (mandatory)
     
@@ -1826,7 +1828,7 @@ if __name__ == "__main__":
     datamin = float("inf")
     datamax = float("-inf")
 
-    #FIXED BUG in RescaleSlope of phase imgs - current hack puts 1.0 instead 
+    #FIXED BUG in RescaleSlope of phase imgs 
     if args.phase and 'imPH' in procpar.keys() and procpar["imPH"] == 'y':
         datamin = -math.pi
         datamax = math.pi
@@ -1836,11 +1838,10 @@ if __name__ == "__main__":
             datamin = numpy.min([datamin,data.min()])
             datamax = numpy.max([datamax,data.max()])
 
+
     RescaleIntercept = datamin
-    RescaleSlope = (datamax - datamin) / 32767 #/ 65533
-    
-
-
+    # Numpy recast to int16 with range (-32768 or 32767)
+    RescaleSlope = (datamax - datamin) / 65533 # / 32767    
 
     # Read in data from file    
     volume=1
@@ -1855,7 +1856,7 @@ if __name__ == "__main__":
         if args.verbose:
             print 'Image_data shape:', str(image_data.shape)
 
-        # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3':
+        # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3' and procpar:
         #     fdf_tmp=fdf_properties['roi']
         #     fdf_properties['roi'][0:1] = fdf_tmp[1:2]
         #     fdf_properties['roi'][2] = fdf_tmp[0]
@@ -1876,7 +1877,7 @@ if __name__ == "__main__":
             print 'Acqdim (type): ' + MRAcquisitionType + " acqndims "  + str(acqndims)
         #AssertImplementation(acqndims != fdfdims, filename, CommentStr, AssumptionStr)
         
-        # Slice thickness
+        # FDF slice thickness
         if acqndims == 3:
             fdfthk = fdf_properties['roi'][2]/fdf_properties['matrix'][2]*10
         else:
@@ -2411,15 +2412,17 @@ if __name__ == "__main__":
         
         ds.RescaleIntercept = str(RescaleIntercept)                                #(0028,1052) Rescale Intercept
         # Rescale slope string must not be longer than 16
-        ds.RescaleSlope = str(RescaleSlope)[:16]                                       #(0028,1053) Rescale Slope
+        if len(str(RescaleSlope))>16:
+            print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RscaleSlope)[:16]
+        ds.RescaleSlope = str(RescaleSlope)[:16]    #(0028,1053) Rescale Slope
 
-        #ds.MRAcquistionType = '2D'                                              # 0018,0023 MR Acquisition Type (optional)
+        #ds.MRAcquistionType = '2D'                 # 0018,0023 MR Acquisition Type (optional)
         # Identification of spatial data encoding scheme.
         # Defined Terms: 1D 2D 3D
 
 
-        FrameContentSequence=Dataset()
-        #FrameContentSequence.FrameAcquisitionNumber = '1' #fdf_properties['slice_no']
+        FrameContentSequence=Dataset()    
+    #FrameContentSequence.FrameAcquisitionNumber = '1' #fdf_properties['slice_no']
     #FrameContentSequence.FrameReferenceDateTime
     #FrameContentSequence.FrameAcquisitionDateTime
     #FrameContentSequence.FrameAcquisitionDuration
@@ -2429,7 +2432,7 @@ if __name__ == "__main__":
         #FrameContentSequence.TemporalPositionIndex = 1
         FrameContentSequence.StackID = [str(1)] # fourthdimid
         FrameContentSequence.InStackPositionNumber = [int(1)] #fourthdimindex
-        FrameContentSequence.FrameComments= 'fdf2dcm frame content'
+        FrameContentSequence.FrameComments=  fdf_properties['filetext']
         FrameContentSequence.FrameLabel='DimX'
         ds.FrameContentSequence = Sequence([FrameContentSequence])
 
@@ -2446,11 +2449,15 @@ if __name__ == "__main__":
             if procpar['recon'] == 'external' and fdf_properties['rank'] == 3:
                 if procpar['seqfil'] == "epip":
                     print "Transposing external recon 3D"
-                    voldata = numpy.transpose(voldata,(1,2,0))
+                    voldata = numpy.transpose(voldata,(1,2,0)) # 1,2,0
                 if procpar['seqfil'] == "fse3d":
                     print "Transposing external recon 3D"
-                    voldata = numpy.transpose(voldata,(2,0,1))
-            
+                    voldata = numpy.transpose(voldata,(0,2,1)) # 0,2,1 works
+#readpp.m procpar('nD') == 3            
+#        acq.FOVcm = [pps.lro pps.lpe pps.lpe2];
+#        acq.dims = [pps.nf pps.np/2 pps.nv2];
+#        acq.voxelmm = acq.FOVcm./acq.dims*10;
+
 
             print "Image data shape: ", str(image_data.shape)
             print "Vol data shape: ", voldata.shape
@@ -2461,22 +2468,23 @@ if __name__ == "__main__":
             
             range_max = fdf_properties['matrix'][2]
             num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
-            if procpar['recon'] == 'external' and fdf_properties['rank'] == 3 and procpar['seqfil'] == "fse3d":
-                range_max = fdf_properties['matrix'][0]
-                num_slicepts = fdf_properties['matrix'][1]*fdf_properties['matrix'][2]
-                ds.Columns = fdf_properties['matrix'][1]
+            if procpar['recon'] == 'external' and fdf_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
+                range_max = fdf_properties['matrix'][1]
+                num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][2]
+                ds.Columns = fdf_properties['matrix'][0]
                 ds.Rows = fdf_properties['matrix'][2]
                 ## FSE3d still producing bad dicoms
 
+            print "Columns ", ds.Columns, " Rows ", ds.Rows
             print "Range max and no slice points: ", range_max, num_slicepts
-            print "Voldata[1] shape: ", voldata[1].shape
+            print "Voldata[1] shape: ", voldata[:,:,1].shape
+
+            
 
             for islice in xrange(1,range_max):    
-                
-                slice_data = numpy.reshape(voldata[islice],(num_slicepts,1)) 
-#numpy.squeeze(numpy.matrix(image_data[islice]))
-# print slice_data.shape
-
+                #Reshape volume slice to 1D array
+                slice_data = numpy.reshape(voldata[:,:,islice],(num_slicepts,1)) 
+                #Convert Pixel data to string
                 ds.PixelData = slice_data.tostring()    #(7fe0,0010) Pixel Data
                 #if acqndims == 3:
                 if 'slice_no' in fdf_properties.keys():
@@ -2485,6 +2493,7 @@ if __name__ == "__main__":
                     image_number=int(re.sub(r'^.*image(\d+).*', r'\1',filename))
 
                 new_filename = "slice%03dimage%03decho%03d.dcm" % (islice,image_number,fdf_properties['echo_no'])
+
                 #Fix 3rd dimension position 
                 #ds.ImagePositionPatient[2] = str(ImagePositionPatient[2] + (islice-1)*SliceThickness)
 
@@ -2492,7 +2501,11 @@ if __name__ == "__main__":
                                   [PixelSpacing[0] * ImageOrientationPatient[3], PixelSpacing[1] * ImageOrientationPatient[4], SliceThickness * ImageOrientationPatient[5],  ImagePositionPatient[1]],
                                   [PixelSpacing[0] * ImageOrientationPatient[6], PixelSpacing[1] * ImageOrientationPatient[8], SliceThickness * ImageOrientationPatient[8],  ImagePositionPatient[2]],                         
                                   [0,0,0,1]])
-                pos = numpy.matrix([[0],[0],[islice],[1]])
+                if procpar['recon'] == 'external' and fdf_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
+                    pos = numpy.matrix([[0],[islice],[0],[1]])
+                else:
+                    pos = numpy.matrix([[0],[0],[islice],[1]])
+
                 Pxyz = M * pos
                 ds.ImagePositionPatient= [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0])]
 
@@ -2501,12 +2514,8 @@ if __name__ == "__main__":
                 ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber
 #                ds.InStackPosition = islice #str(islice)
 
-
                 #Save DICOM
                 ds.save_as(os.path.join(outdir, new_filename))
-
-                
-
 
         else:
             # Common export format
