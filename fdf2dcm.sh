@@ -8,8 +8,8 @@
 #
 #
 #  "$Id:"
-#  Version 0.0: Wrapper for agilent2dicom
-#  Version 1.0: Full support of FDF formats
+#  Version 0.0: Simple wrapper for agilent2dicom
+#  Version 1.0: Support for most FDF formats
 #
 ###############################################
 
@@ -64,6 +64,7 @@ function yesno(){
     fi
     return 1
 }
+
 function error_exit(){
     echo "${PROGNAME}: ${1:-Unknown error}" 1>&2
     exit 1
@@ -130,7 +131,7 @@ while getopts ":i:o:hmpdxv" opt; do
 	    ;;
 	x)
 	    set -x  ## print all commands
-	    exec 2>> $(dirname $0)/error.log
+	    exec 2> $(dirname $0)/error.log
 	    ;;
 	\?)
 	    echo "Invalid option: -$OPTARG" >&2
@@ -278,6 +279,7 @@ else
     ## based on echo time, then image number, then slice number.
     ## Only one output file is required, 0001.dcm. 
     ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+    [ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
 
 fi
 echo "DCMULTI complete. Fixing inconsistencies."
@@ -300,20 +302,32 @@ fi
 
 if (( verbosity > 0 )); then
     echo "Verifying dicom compliance using dciodvfy."
-    if [ -f "${output_dir}"/0001.dcm ]; then
+    if [ -f "${output_dir}/0001.dcm" ]; then
+	set +e
 	## Send dciodvfy stderr and stdout to log file
-	dciodvfy ${output_dir}/0001.dcm &> $(dirname ${output_dir})/$(basename ${output_dir} .dcm).log  
+	dciodvfy "${output_dir}/0001.dcm" &> $(dirname ${output_dir})/$(basename ${output_dir} .dcm).log
+	set -e  
     else
+#	echo "Exiting"
 	error_exit "$LINENO: could not find ${output_dir}/0001.dcm for verification"
     fi
 fi
 
 ## Cleaning up temporary directories
-if [ -d ${output_dir}/tmp ]; then
-    if (( verbosity > 0 )); then
-	if yesno "Remove existing tmp output directory, y or n (default y)?"; then
+#if test -d "${output_dir}/tmp" && (( verbosity > 0 )) ;then
+#	if yesno "Remove existing output directory, y or n (default y)?"; then
+#	    echo "Removing existing output directory"
+#	    rm -rf ${output_dir}
+
+echo "Cleaning up."
+if [ -d "${output_dir}/tmp" ]
+then
+    if (( verbosity > 0 ))
+    then
+	if yesno "Remove existing tmp output directory, y or n (default y)?"
+	then
 	    echo "Removing existing tmp output directory"
-	    rm -rf ${output_dir}/tmp    
+	    rm -rf "${output_dir}/tmp"    
 	else
 	    echo "fdf2dcm completed. Temporary dicoms still remain."
 	    exit 0
@@ -325,3 +339,4 @@ if [ -d ${output_dir}/tmp ]; then
     [ -d ${output_dir}/tmp ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
 fi
 
+exit 0
