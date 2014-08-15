@@ -7,7 +7,7 @@
 # - (C) 2014 Michael Eager
 #
 #
-#  "$Id:"
+#  "$Id:$"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #
