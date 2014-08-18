@@ -1,4 +1,12 @@
+#!/usr/bin/env python
+
+"""ReadProcpar is used to read Agilent FDF config files
+
+   (c) 2014  Michael Eager (michael.eager@monash.edu)
+"""
 import os,sys
+import argparse
+
 
 
 def ReadProcpar(procparfilename):
@@ -98,5 +106,10 @@ Notes:
 
 if __name__ == "__main__":
 
-        procpar, procpartext = ReadProcpar(args.inputdir + '/procpar')
-        print procpar
+    parser = argparse.ArgumentParser(usage=' ReadProcpar -i "Input FDF directory" ',description='ReadProcpar is part of agilent2dicom, an FDF to Enhanced MR DICOM converter from MBI.')
+    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF directory',required=True);
+    args = parser.parse_args()
+
+
+    procpar, procpartext = ReadProcpar(args.inputdir + '/procpar')
+    print procpar
