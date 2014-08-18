@@ -1,17 +1,14 @@
 #!/usr/bin/env python
 
-"""agilent2dicom is used to convert Agilent FDF files to DICOM format.
+"""ProcparToDicom is used to map Agilent FDF config format files to DICOM format.
 
-Original code by Amanda Ng (amanda.ng@monash.edu)
-
-Modified by Michael Eager (michael.eager@monash.edu)
-     Enhanced MR now done by dicom3tools and the fdf2dcm script
+   (c)  2014 Michael Eager (michael.eager@monash.edu)
 
 """
 
 VersionNumber = "0.5"
 DVCSstamp = "$Id: agilent2dicom.py,v d6eed4ea3807 2014/08/15 01:00:55 michael $"
-
+SEQUENCE=''
 # import pdb
 # import ast
 import os
@@ -30,7 +27,7 @@ import argparse
 from dicom.sequence import Sequence
 from dicom.dataset import Dataset
 
-VersionNumber = "0.5"
+
 UID_ROOT = "2.25"  # Agilent Root UID 1.3.6.1.4.1
 UID_Type_InstanceCreator = "0"
 UID_Type_MediaStorageSOPInstance = "1"
@@ -49,7 +46,7 @@ DICOM_Tag_DeviceSerialNumber = "unknown"
 DICOM_Tag_SoftwareVersions = "VnmrJ 3.2"
 Derivation_Description = "Dicom generated from FDF using MBI's inhouse converter agilent2dicom."
 SEQUENCE=''
-
+BValue=[]
 
 def getColumns(inFile, delim="\t", header=True):
     """
@@ -131,9 +128,16 @@ def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
     return ".".join([UID_ROOT,uid_type,uidstr]).ljust(64,'\0')
 
 
-def procparmappingtodicom(procpar,args)
 
-    #=====================================================================================
+
+def ProcparToDicomMap(procpar,args):
+    """
+    Procparmappingtodicom - 
+
+    """
+    global SEQUENCE
+    global BValue
+    #================================================================
     # Create file meta dataset
 
     if args.verbose:
@@ -141,12 +145,12 @@ def procparmappingtodicom(procpar,args)
 
     # Populate required values for file meta information
     file_meta = Dataset()
-    #file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4.1"  # Enhanced MR Image SOP
-    file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4" #MR Image SOP
+    # file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4.1"  # Enhanced MR Image SOP
+    file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4" # MR Image SOP
     file_meta.MediaStorageSOPInstanceUID = CreateUID(UID_Type_MediaStorageSOPInstance,[],[],args.verbose)
     file_meta.ImplementationClassUID = "1.3.6.1.4.1.25371.1.1.2"
 
-    #=====================================================================================
+    #================================================================
     # Create dicom dataset
 
     if args.verbose:
@@ -205,12 +209,14 @@ def procparmappingtodicom(procpar,args)
 
     # Module: General Study (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.2.1 
-
-    ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar,[],args.verbose)                     # 0020,000D Study Instance UID (mandatory)
+    #        0020,000D Study Instance UID (mandatory)
+    ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar,[],args.verbose) 
     ds.StudyDate = procpar['studyid_'][2:10]      # 0008,0020 Study Date (optional)
     ds.StudyTime = procpar['time_submitted'][9:]  # 0008,0030 Study Time (optional)
     ds.StudyID =  procpar['name']                 # 0020,0010 Study ID (optional)
-# Cannot use procpar['studyid_'] because DaRIS needs both the Patient name and studyid to be of the form 'DARIS^X.X.X.X', dpush will actually overwrite these fields as well
+# Cannot use procpar['studyid_'] because DaRIS needs both the Patient
+# name and studyid to be of the form 'DARIS^X.X.X.X', dpush will
+# actually overwrite these fields as well
     
     ds.ReferringPhysicianName = '' # procpar['operator_']  # or  ['investigator']
 
@@ -277,12 +283,12 @@ def procparmappingtodicom(procpar,args)
     # Module: General Equipment (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.5.1 
 
-    #ds.Manufacturer - see Equipment - Enhanced General Equipment                        # 0008,0070 Manufacturer (optional)
-    ds.InstitutionName = DICOM_Tag_InstitutionName                                       # 0008,0080 Institution Name (optional)
-    #ds.StationName                                                                      # 0008,1010 Station Name (optional)
-    #ds.ManufacturerModelName - see Equipment - Enhanced General Equipment               # 0008,1070 Manufacturer Model Name (optional)
-    #ds.DeviceSerialNumber - see Equipment - Enhanced General Equipment                  # 0018,1000 Device Serial Number (optional)
-    #ds.SoftwareVersions - see Equipment - Enhanced General Equipment                    # 0018,1020 Software Versions (optional)
+    #ds.Manufacturer - see Equipment - Enhanced General Equipment           # 0008,0070 Manufacturer (optional)
+    ds.InstitutionName = DICOM_Tag_InstitutionName                          # 0008,0080 Institution Name (optional)
+    #ds.StationName                                                         # 0008,1010 Station Name (optional)
+    #ds.ManufacturerModelName - see Equipment - Enhanced General Equipment  # 0008,1070 Manufacturer Model Name (optional)
+    #ds.DeviceSerialNumber - see Equipment - Enhanced General Equipment     # 0018,1000 Device Serial Number (optional)
+    #ds.SoftwareVersions - see Equipment - Enhanced General Equipment       # 0018,1020 Software Versions (optional)
     
     # Module: Enhanced General Equipment (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.5.2
@@ -301,11 +307,12 @@ def procparmappingtodicom(procpar,args)
     # NOTE: THESE TAGS HAVE BEEN REORDERED (COMPARED TO DICOM 3.0 DOCUMENTATION) TO SUIT 
     # THE FDF FILE ITERATIONS I.E. TAGS COMMON TO ALL FDF FILES HAVE BEEN SET FIRST
 
+    # 0008,0008 ImageType (mandatory)
     # Image Type: MPR, T2 MAP, PHASE MAP, PHASE SUBTRACT, PROJECTION IMAGE, DIFFUSION MAP
     #    VELOCITY MAP, MODULUS SUBTRACT, T1 MAP, DENSITY MAP, IMAGE ADDITION, OTHER
     #defult image type
 
-    ds.ImageType = ["ORIGINAL","PRIMARY","OTHER"]    # 0008,0008 ImageType (mandatory)
+    ds.ImageType = ["ORIGINAL","PRIMARY","OTHER"]    
     if 'diff' in procpar.keys() and procpar['diff'] =='y':
         ds.ImageType[2]="DIFFUSION MAP"
     if 'imPH' in procpar.keys() and procpar['imPH'] =='y':
@@ -469,9 +476,9 @@ def procparmappingtodicom(procpar,args)
 
 
     MRFOVSeq = Dataset()
-    MRFOVSeq.InPlanePhaseEncodingDirection='ROW'      #TODO   ROW or COL
+    MRFOVSeq.InPlanePhaseEncodingDirection='ROW'      # ROW if lpe is dimX or COL if lpe is dimY
     if procpar['dimY'] == "lpe":
-        MRFOVSeq.InPlanePhaseEncodingDirection = "COL" ##TODO either ROW or COL
+        MRFOVSeq.InPlanePhaseEncodingDirection = "COL" 
 
     #MRFOVSeq.MRAcquisitionFrequencyEncodingSteps
     #MRFOVSeq.MRAcquisitionPhaseEncodingStepsinplane
@@ -480,7 +487,8 @@ def procparmappingtodicom(procpar,args)
     ds.MRFOVGeometrySequence = Sequence([MRFOVSeq])
 
     #MR Receive Coil C.8.13.5.7 C
-    # MR Receive Coil Sequence (0018,9042) 1 # A sequence that provides information about each receive coil used.
+    # MR Receive Coil Sequence (0018,9042) 1 
+    # A sequence that provides information about each receive coil used.
     # Only a single Item shall be included in this sequence.
     # >Receive Coil Name (0018,1250) 1C Name of receive coil used.
     ReceiveCoilSeq = Dataset()
@@ -613,10 +621,21 @@ def procparmappingtodicom(procpar,args)
 
     if 'diff' in procpar.keys() and procpar['diff']=='y':
         if 'bvalue' in procpar.keys() and len(procpar['bvalue']) > 1:
-            SEQUENCE='Diffusion'            
             if args.verbose:
                 print 'Processing Diffusion sequence'
-            ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]  # Compulsory
+            SEQUENCE='Diffusion'  
+            ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]  # Compulsory           
+            ds.AcquisitionConstrast = ["DIFFUSION"]
+            ds.PixelPresentation=["MONOCHROME"]
+            ds.VolumetrixProperties=["VOLUME"]
+            ds.VolumeBasedCalculationTechnique=["NONE"]
+            ds.ComplexImageComponent=["MAGNITUDE"]
+            
+            tmp_file = open(os.path.join(args.outputdir,'DIFFUSION'),'w')
+            tmp_file.write(str(procpar['nbdirs']))
+            tmp_file.close()
+           
+
 # Save procpar diffusion parameters
             Bvalue = procpar['bvalue'] # 64 element array
             BValueSortIdx=numpy.argsort(Bvalue)
@@ -861,6 +880,8 @@ def procparmappingtodicom(procpar,args)
     
     #Image Comments (0020,4000) 3
     # User-defined comments about the image.
+    ds.ImageComments = 'MBI Agilent2Dicom converter. '
+    
 
     # Image Type = ["ORIGINAL","PRIMARY"] (0008,0008) 1
     # Image characteristics. See C.8.16.1 and C.8.13.1.1.1.
@@ -1428,27 +1449,36 @@ def procparmappingtodicom(procpar,args)
 
     ds.MagneticFieldStrength = str(procpar['B0'])
 
-    # find this from the distance between positions of slices (or Thickness thk)
-    # ds.SpacingBetweenSlices  # procpar['thk']*1000                                                              # 0018,0088 Spacing Between Slices (optional)
 
     #NPHASE
     # 0018,0089 Number of Phase Encoding Steps (optional)
     if 'nphase' in procpar.keys():
         ds.NumberOfPhaseEncodingSteps  = procpar['nphase']                                               
+
+    # Percent Sampling (0018,0093) 3 Fraction of acquisition matrix lines
+    #                           acquired, expressed as a percent.
     #ds.PercentSampling                                                                   # 0018,0093 Percent Sampling (optional)
-    #ds.PercentPhaseFieldOfView                                                           # 0018,0094 PercentPhase Field of View (optional)
 
-    # 0018,0095 Pixel Bandwidth (optional)    
+    # Percent Phase Field of View (0018,0094) 3 Ratio of field of view dimension in phase
+    #                                      direction to field of view dimension in
+    #                                      frequency direction, expressed as a
+    #                                      percent.
+    #ds.PercentPhaseFieldOfView           # 0018,0094 PercentPhase Field of View (optional)
+
+    # Pixel Bandwidth (0018,0095) 3 Reciprocal of the total sampling period, in
+    #                          hertz per pixel.
     # SW1 or sw2 or sw3
-    ds.PixelBandwidth = str(procpar['sw1'])                                                          
+    ds.PixelBandwidth = str(procpar['sw1'])     # 0018,0095 Pixel Bandwidth (optional)                                                             
 
-    #rfcoil
+    # Receive Coil Name (0018,1250) 3 Receive coil used.
     # 0018,1250 Receive Coil Name (optional)
     ds.ReceiveCoilName  = procpar['rfcoil'][:15]
     
+    # Transmit Coil Name (0018,1251) 3 Transmit coil used.
+    ds.TransmitCoilName = procpar['rfcoil'][:15]
+
     ## From code below
     #
-    #    ds.AcquisitionMatrix  = [ procpar['']  , procpar['']  ]                                                                # 0018,1310 Acquisition Matrix (optional)
         #---------------------------------------------------------------------------------
         # Number of rows
         # DICOMHDR code:
@@ -1457,11 +1487,8 @@ def procparmappingtodicom(procpar,args)
         #      if($dim = 3) then	"if 3D rows = nv"
         #	 on('fn1'):$on
         #	 if($on) then
-
-    if 'fn1' in procpar.keys() and procpar['fn1'] > 0:		
-        AcqMatrix1 = procpar['fn1']/2.0         
-    else:		#	   $pe = fn1/2.0
-        AcqMatrix1 = procpar['nv'] #	 else
+        #	   $pe = fn1/2.0
+        #	 else
         #	   $pe = nv
         #	 endif	
         #	 $pes=''	
@@ -1479,6 +1506,19 @@ def procparmappingtodicom(procpar,args)
         #	  format($ro,0,0):$ros	
         #	  $value='['+$ros+']'
         #      endif
+    print "Rows: ", procpar['fn1']/2.0, procpar['nv'], procpar['fn']/2.0, procpar['np']/2.0
+    if  MRAcquisitionType == '3D':
+        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:		
+            AcqMatrix1 = procpar['fn1']/2.0         
+        else:
+            AcqMatrix1 = procpar['nv'] 
+        ds.Rows=str(AcqMatrix1)
+    elif  MRAcquisitionType == '2D':
+        if 'fn' in procpar.keys() and procpar['fn'] > 0:		
+            AcqMatrix1 = procpar['fn']/2.0         
+        else:
+            AcqMatrix1 = procpar['np']/2.0 
+        ds.Rows=str(AcqMatrix1)
 
         #---------------------------------------------------------------------------------
         # Number of columns
@@ -1505,12 +1545,63 @@ def procparmappingtodicom(procpar,args)
         #        format($pe,0,0):$pes	
         #        $value='['+$pes+']'
         #      endif
+    print "Columns: ", procpar['fn']/2.0, procpar['np']/2.0, procpar['fn1']/2.0, procpar['nv']
+    if  MRAcquisitionType == '3D':
+        if 'fn' in procpar.keys() and procpar['fn'] > 0:		
+            AcqMatrix2 = procpar['fn']/2.0         
+        else:
+            AcqMatrix2 = procpar['np']/2.0 
+        ds.Columns=str(AcqMatrix2)
+    elif  MRAcquisitionType == '2D':
+        if 'fn1' in procpar.keys() and procpar['fn1'] > 0 and procpar['fn1']/2.0 == procpar['nv']:		
+            AcqMatrix2 = procpar['fn1']/ 2.0         
+        else:
+            AcqMatrix2 = procpar['nv'] 
+        ds.Columns=str(AcqMatrix2)
 
 
-        # In-plane Phase Encoding Direction (0018,1312) 3 The axis of phase encoding with respect to
-        #                                        the image. Enumerated Values:
-        #                                                ROW = phase encoded in rows.
-        #                                                COL = phase encoded in columns.
+    # Acquisition Matrix (0018,1310) 3 Dimensions of the acquired frequency
+    #                                  /phase data before reconstruction.
+    #                                  Multi-valued: frequency rows\frequency
+    #                                  columns\phase rows\phase columns.
+
+    ds.AcquisitionMatrix  = [ AcqMatrix1  , AcqMatrix2  ]   # 0018,1310 Acquisition Matrix (optional)
+
+
+    #---------------------------------------------------------------------------------
+    # Pixel spacing
+    # DICOMHDR code: 
+    #	  elseif $tag='(0028,0030)' then	" pixel spacing "
+    #	    if($dim = 3) then
+    #	      $r=lro*10/$ro    "$ro and $pe were calculated earlier"
+    #	      $p=lpe*10/$pe
+    #	      $rs='' $ps=''
+    #	      format($r,0,5):$rs
+    #	      format($p,0,5):$ps
+    #	      $value='['+$ps+'\\'+$rs+']'      "rows\cols swapped for 3D"   
+    #	    else
+    #	      $r=lro*10/$ro    "$ro and $pe were calculated earlier"
+    #	      $p=lpe*10/$pe
+    #	      $rs='' $ps=''
+    #	      format($r,0,5):$rs
+    #	      format($p,0,5):$ps
+    #	      $value='['+$rs+'\\'+$ps+']' 
+    #	    endif
+
+        ## These pixel spacing lines are identical due to the code used for ds.Rows and ds.Columns
+    if  MRAcquisitionType == '3D':
+        #if 'lro' in procpar.keys() and 'lpe' in procpar.keys():
+        ds.PixelSpacing=[ str( procpar['lro']*10/AcqMatrix1 ), str( procpar['lpe']*10/AcqMatrix2) ]
+    elif  MRAcquisitionType == '2D':
+        #if 'lro' in procpar.keys() and 'lpe' in procpar.keys():
+        ds.PixelSpacing=[ str( procpar['lro']*10/AcqMatrix1 ), str( procpar['lpe']*10/AcqMatrix2) ]
+
+
+
+    # In-plane Phase Encoding Direction (0018,1312) 3 The axis of phase encoding with respect to
+    #                                        the image. Enumerated Values:
+    #                                                ROW = phase encoded in rows.
+    #                                                COL = phase encoded in columns.
     ds.InPhaseEncodingDirection = "ROW" ##TODO either ROW or COL
     if procpar['dimY'] == "lpe":
         ds.InPhaseEncodingDirection = "COL" ##TODO either ROW or COL
@@ -1550,10 +1641,15 @@ def procparmappingtodicom(procpar,args)
     # 0028,0100 (mandatory)
     ds.BitsAllocated = 16                             
 
+    ds.BitsStored = 16			      #(0028,0101) Bits Stored
+    ds.HighBit = 15				      #(0028,0102) High Bit
+    ds.PixelRepresentation = 0		      #(0028,0103) Pixel Representation
+
+
     # Module: Image Plane (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.6.2 
     
-    # Slice Thinckness
+    # Slice Thickness
     # 0018,0050 Slice Thickness (optional)
     if MRAcquisitionType == '3D':
         if 'fn2' in procpar.keys() and procpar['fn2'] > 0:
@@ -1561,7 +1657,7 @@ def procparmappingtodicom(procpar,args)
         else:
             pe2 = procpar['nv2']
         if pe2 == 0:
-            print '3D Acquisition slice thickness: ', SliceThickness
+            print '3D Acquisition slice thickness (error pe2=0): ', SliceThickness
             SliceThickness = procpar['thk']
         else:
             SliceThickness = procpar['lpe2']*10.0/pe2                         
@@ -1570,8 +1666,13 @@ def procparmappingtodicom(procpar,args)
             
     ds.SliceThickness = str(SliceThickness)  
 
+
+    # Spacing Between Slices (0018,0088) 3 Spacing between slices, in mm. The
+    #                                 spacing is measured from the center-to-
+    #                                 center of each slice.
+    ## Find this from the distance between positions of slices (or Thickness thk)
     if MRAcquisitionType == '3D':
-        SpacingBetweenSlices = ds.SliceThickness                          
+        ds.SpacingBetweenSlices = ds.SliceThickness                          
 
     
     #ds.ImageOrientationPatient = fdfpar['orientation']                                                         # 0020,0037 Image Orientation (Patient) (mandatory)
@@ -1579,14 +1680,80 @@ def procparmappingtodicom(procpar,args)
     
     #ds.SliceLocation                                                                    # 0020,1041 Slice Location (optional)
 
-    return ds,MRAcquisitionType,SEQUENCE,BValue,
+
+
+# C.7.3.1.1.2        Patient Position
+
+# Patient Position (0018,5100) specifies the position of the patient
+# relative to the imaging equipment space. This attribute is intended
+# for annotation purposes only. It does not provide an exact
+# mathematical relationship of the patient to the imaging equipment.
+# When facing the front of the imaging equipment, Head First is
+# defined as the patient's head being positioned toward the front of
+# the imaging equipment. Feet First is defined as the patient's feet
+# being positioned toward the front of the imaging equipment. Prone is
+# defined as the patient's face - Standard - PS 3.3 - 2011 Page 390
+# being positioned in a downward (gravity) direction. Supine is
+# defined as the patient's face being in an upward
+# direction. Decubitus Right is defined as the patient's right side
+# being in a downward direction. Decubitus Left is defined as the
+# patient's left side being in a downward direction.  The Defined
+# Terms are: HFP = Head First-Prone HFS = Head First-Supine HFDR =
+# Head First-Decubitus Right HFDL = Head First-Decubitus Left FFDR =
+# Feet First-Decubitus Right FFDL = Feet First-Decubitus Left FFP =
+# Feet First-Prone FFS = Feet First-Supine
+
+    ds.PatientPosition = '123'   # default 'HFS'
+    if 'position1' in procpar.keys() and not procpar['position1'] == '':
+        if re.search('head',procpar['position1']):
+            ds.PatientPosition.replace('12', 'HF')
+        if re.search('feet',procpar['position1']):
+            ds.PatientPosition.replace('12', 'FF')
+#       if re.search('first',procpar['position1']):
+#           ds.PatientPosition.replace('2', 'F')
+    else:
+        ds.PatientPosition.replace('12', 'HF')
+#            ds.PatientPosition.replace('2', 'F')
+            
+    if 'position2' in procpar.keys() and not procpar['position2'] == '':
+        if re.search('prone',procpar['position2']):
+            ds.PatientPosition.replace('3','P')
+        if re.search('supine',procpar['position2']):
+            ds.PatientPosition.replace('3','S')
+    else:
+        ds.PatientPosition.replace('3','S')
+    if args.verbose:
+        print 'Patient Position: ', ds.PatientPosition
+    ds.PatientPosition='HFS'
+        
+    ds.DerivationDescription = Derivation_Description
+
+
+    return ds,MRAcquisitionType,SEQUENCE,BValue
+
 
 
 if __name__ == "__main__":
 
-    ds,MRAcq_type,SEQUENCE, BValue = procparmappingtodicom(args.inputdir)
+    parser = argparse.ArgumentParser(usage=' procpartodicommapping -i "Input FDF directory"',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' + VersionNumber)
+    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
+    parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
+    parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
+    parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
+    args = parser.parse_args()
+    from ReadProcpar import ReadProcpar
 
-    print ds
+    procpar, procpartext = ReadProcpar(args.inputdir+'/procpar')
+    ds,MRAcq_type,SEQUENCE,BValue = ProcparToDicomMap(procpar, args)
+
+    print "Slice thickness: ", ds.SliceThickness
+    print "Patient Name: ", ds.PatientName
+    print "Patient ID: ", ds.PatientID
+    print "StudyID: ",  ds.StudyID
+    print "Protocol name: ", ds.ProtocolName
+    print "Series Desc: ", ds.SeriesDescription
+    print "Acq Matrix:", ds.AcquisitionMatrix
+    print "Pixel Spacing: ", ds.PixelSpacing
     print 'Image type:', ds.ImageType
     print 'MR Acquisition Type: ', MRAcq_type
     print 'Sequence type: ', SEQUENCE
