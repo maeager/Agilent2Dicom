@@ -1,4 +1,13 @@
+#!/usr/bin/env python
+
+"""ReadFDF is used to read Agilent FDF image files
+
+   (c) 2014  Michael Eager (michael.eager@monash.edu)
+"""
+
 import os,sys
+import numpy
+import argparse
 
 def ReadFDF(fdffilename):
     """
@@ -61,8 +70,16 @@ def ReadFDF(fdffilename):
 
 if __name__ == "__main__":
 
-    fdf_properties, image_data = ReadFDF(args.inputdir + '/' + filename)
+    parser = argparse.ArgumentParser(usage=' ReadFDF -i "Input FDF file" ',description='ReadFDF is part of agilent2dicom, an FDF to Enhanced MR DICOM converter from MBI.')
+    parser.add_argument('-i','--inputfile', help='Input file name. Must be an Agilent FDF file',required=True);
+    args = parser.parse_args()
+
+    fdf_properties, image_data = ReadFDF(args.inputfile)
 
     print 'Image_data shape:', str(image_data.shape)
-    print fdf_properties
-
+    print "Origin: ", fdf_properties['origin']
+    print "ROI: ",fdf_properties['roi']
+    print "Orientation: ", fdf_properties['orientation']
+    print "StudyID: ", fdf_properties['studyid']
+    print "Slice ", fdf_properties['slice_no'], " of ", fdf_properties['slices']
+    print "Matrix size", fdf_properties['matrix']
