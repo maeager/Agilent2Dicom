@@ -2,14 +2,20 @@
 
 """agilent2dicom is used to convert Agilent FDF files to DICOM format.
 
-Original code by Amanda Ng (amanda.ng@monash.edu)
-
-Modified by Michael Eager (michael.eager@monash.edu)
 Enhanced MR now done by dicom3tools and the fdf2dcm script
 
+Version 0.1: Original code by Amanda Ng (amanda.ng@monash.edu)
+Version 0.2: Standard 2d Dicom by Michael Eager
+Version 0.3: Multi echo 3D, multiecho mag and phase
+Version 0.4: Combine with bash wrapper fdf2dcm.sh
+Version 0.5: Major fixes to diffusion and other sequences
+Version 0.6: Major rewrite, external recon 
+
+
+ (c) 2014 Michael Eager  (michael.eager@monash.edu)
 """
 
-VersionNumber = "0.5"
+VersionNumber = "0.6"
 DVCSstamp = "$Id$"
 
 import pdb
@@ -90,10 +96,18 @@ def getColumns(inFile, delim="\t", header=True):
                 
     return cols, indexToName
 
-#=========================================================================================
-# CREATEUID - Create and return Unique Identification (UID) 
+
+
 
 def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
+    """CREATEUID - Create and return Unique Identification (UID) 
+
+    :param uid_type: UID type instance 
+    :param procpar:  dictionary of procpar label/values
+    :param study_id: list of study IDs
+    :params verbose: if 1, print more descriptions
+    :returns: Dicom UID string
+    """    
     dt = datetime.datetime.now()
     dt = dt.strftime("%Y%m%d%H%M%S") + str(dt.microsecond/1000)
     
@@ -101,7 +115,7 @@ def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
         uidstr = InstanceCreatorId
     elif uid_type == UID_Type_StudyInstance:
         if verbose:
-            print procpar
+            #print procpar
             print study_id
         # if not procpar or study_id not in procpar.keys():
         #    raise ValueError("Parameter 'procpar' either not passed or invalid")
@@ -122,24 +136,33 @@ def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
         
     return ".".join([UID_ROOT,uid_type,uidstr]).ljust(64,'\0')
 
-#=========================================================================================
-# READFDF - Read FDF file and return properties derived from fdf header and image data
-#
-# Infomation on header parameters can be found in the "Agilent VNMRJ 3.2 User Programming 
-# User Guide"
+
 
 def ReadFDF(fdffilename):
-    f = open(fdffilename,'r')
+    """
+    READFDF - Read FDF file and return properties derived from fdf header and image data
     
+    Infomation on header parameters can be found in the "Agilent VNMRJ 3.2 User Programming User Guide"
+    :param fdffilename: Name string of FDF file
+    :return properties: Label/value dictionary of FDF header properties
+    :return image data: 1D float array of pixel data 
+    """
+    f = open(fdffilename,'r')
+    # print fdffilename
     # Read in dataset properties
     fdftext = ''
     fdf_properties = dict()
     line = f.readline()
-    while line[0] != '\x0c':
+    while line[0] != '\x0c': # or line[0] != '\x00':
         fdftext = fdftext + line
         if line[0] == '#':
             line = f.readline()
             continue
+##FIXME for fse3d images
+#        # print line
+#        if line.find("=") == -1 and line[0] != '\n':
+#            print 'Unknown header line in fdf.'
+#            continue
         tokens = line.strip(' ;\n').split(' ',1)
         tokens = tokens[1].strip().split('=')
         tokens[0] = tokens[0].strip(' *[]')
@@ -173,64 +196,68 @@ def ReadFDF(fdffilename):
     
     return (fdf_properties, data)
 
+                      
 
-#=========================================================================================
-# READPROCPAR - Read procpar file and return procpar dictionary and text
-#
-# Procpar element format
-#
-# First line: name subtype basictype maxvalue minvalue stepsize Ggroup Dgroup protection active intptr
-#   name: string
-#   subtype: 0 (undefined), 1 (real), 2 (string), 3 (delay), 4 (flag), 5 (frequency), 6 (pulse), 7 (integer).
-#   basictype: 0 (undefined), 1 (real), 2 (string).
-#   maxvalue: the maximum value that the parameter can contain, or an index to a maximum 
-#             value in the parameter parmax (found in /vnmr/conpar). Applies to both 
-#             string and real types of parameters.
-#   minvalue: the minimum value that the parameter can contain or an index to a minimum 
-#             value in the parameter parmin (found in /vnmr/conpar). Applies to real types 
-#             of parameters only.
-#   stepsize: a real number for the step size in which parameters can be entered or index 
-#             to a step size in the parameter parstep (found in /vnmr/conpar). If stepsize 
-#             is 0, it is ignored. Applies to real types only.
-#   Ggroup: 0 (ALL), 1 (SAMPLE), 2 (ACQUISITION), 3 (PROCESSING), 4 (DISPLAY), 5 (SPIN).
-#   Dgroup: The specific application determines the usage of this integer.
-#   protection: a 32-bit word made up of the following bit masks, which are summed to form 
-#               the full mask:
-#                   0  1    Cannot array the parameter
-#                   1  2    Cannot change active/not active status
-#                   2  4    Cannot change the parameter value
-#                   3  8    Causes _parameter macro to be executed (e.g., if parameter is named sw, the macro _sw is executed when sw is changed)
-#                   4  16   Avoids automatic redisplay
-#                   5  32   Cannot delete parameter
-#                   6  64   System parameter for spectrometer or data station
-#                   7  128  Cannot copy parameter from tree to tree
-#                   8  256  Cannot set array parameter
-#                   9  512  Cannot set parameter enumeral values
-#                   10 1024 Cannot change the parameter's group
-#                   11 2048 Cannot change protection bits
-#                   12 4096 Cannot change the display group
-#                   13 8192 Take max, min, step from /vnmr/conpar parameters parmax, parmin, parstep.
-#   active: 0 (not active), 1 (active).
-#   intptr: not used (generally set to 64).
-#
-# if basictype = 1, 
-#   Second line: numvalues value1 [value2] [value3] ... 
-#
-# if basictype = 2, 
-#   Second line: numvalues value1  
-#   [Third line: value2]
-#   [Fourth line: value3]
-#   ...
-#
-# Last line: 0, or if subtype = 4 (flag), an array of possible flag values formatted as
-#    numvalues flag1 [flag2] [flag3]
-#
-# Notes:
-# 1. All strings are enclosed in double quotes.
-# 2. Floating point values have been found associated with the subtype 'integer', 
-#    therefore it is advised to read these values as floats.
+
 
 def ReadProcpar(procparfilename):
+    """READPROCPAR - Read procpar file and return procpar dictionary and text
+
+Procpar element format
+
+First line: name subtype basictype maxvalue minvalue stepsize Ggroup Dgroup protection active intptr
+  name: string
+  subtype: 0 (undefined), 1 (real), 2 (string), 3 (delay), 4 (flag), 5 (frequency), 6 (pulse), 7 (integer).
+  basictype: 0 (undefined), 1 (real), 2 (string).
+  maxvalue: the maximum value that the parameter can contain, or an index to a maximum 
+            value in the parameter parmax (found in /vnmr/conpar). Applies to both 
+            string and real types of parameters.
+  minvalue: the minimum value that the parameter can contain or an index to a minimum 
+            value in the parameter parmin (found in /vnmr/conpar). Applies to real types 
+            of parameters only.
+  stepsize: a real number for the step size in which parameters can be entered or index 
+            to a step size in the parameter parstep (found in /vnmr/conpar). If stepsize 
+            is 0, it is ignored. Applies to real types only.
+  Ggroup: 0 (ALL), 1 (SAMPLE), 2 (ACQUISITION), 3 (PROCESSING), 4 (DISPLAY), 5 (SPIN).
+  Dgroup: The specific application determines the usage of this integer.
+  protection: a 32-bit word made up of the following bit masks, which are summed to form 
+              the full mask:
+                  0  1    Cannot array the parameter
+                  1  2    Cannot change active/not active status
+                  2  4    Cannot change the parameter value
+                  3  8    Causes _parameter macro to be executed (e.g., if parameter is named sw, the macro _sw is executed when sw is changed)
+                  4  16   Avoids automatic redisplay
+                  5  32   Cannot delete parameter
+                  6  64   System parameter for spectrometer or data station
+                  7  128  Cannot copy parameter from tree to tree
+                  8  256  Cannot set array parameter
+                  9  512  Cannot set parameter enumeral values
+                  10 1024 Cannot change the parameter's group
+                  11 2048 Cannot change protection bits
+                  12 4096 Cannot change the display group
+                  13 8192 Take max, min, step from /vnmr/conpar parameters parmax, parmin, parstep.
+  active: 0 (not active), 1 (active).
+  intptr: not used (generally set to 64).
+
+if basictype = 1, 
+  Second line: numvalues value1 [value2] [value3] ... 
+
+if basictype = 2, 
+  Second line: numvalues value1  
+  [Third line: value2]
+  [Fourth line: value3]
+  ...
+
+Last line: 0, or if subtype = 4 (flag), an array of possible flag values formatted as
+   numvalues flag1 [flag2] [flag3]
+
+Notes:
+1. All strings are enclosed in double quotes.
+2. Floating point values have been found associated with the subtype 'integer', 
+   therefore it is advised to read these values as floats.
+
+    """
+
     f = open(procparfilename,'r')
     line = f.readline()
     procpar = {}
@@ -265,15 +292,15 @@ def ReadProcpar(procparfilename):
     procpartext = f.readlines()
     return (procpar, procpartext)
 
-#=========================================================================================
-# ASSERTIMPLEMENTATION - Check FDF properties match up with interpretation of procpar
-# 
-# Due to lack of documentation on the use of the procpar file, the interpretation 
-# implemented in this script is based on various documents and scripts and may have errors.
-# This function seeks to double check some of the interpretations against the fdf
-# properties.
+
 
 def AssertImplementation(testval, fdffilename, comment, assumption):
+    """ASSERTIMPLEMENTATION - Check FDF properties match up with interpretation of procpar
+  Due to lack of documentation on the use of the procpar file, the interpretation 
+ implemented in this script is based on various documents and scripts and may have errors.
+ This function seeks to double check some of the interpretations against the fdf
+ properties.
+    """
     if testval:   
         if len(fdffilename) > 0:
             FDFStr = "fdf file: " + fdffilename + "\n"
@@ -281,7 +308,7 @@ def AssertImplementation(testval, fdffilename, comment, assumption):
             FDFStr = ""
     
         print "\n\nImplementation check error:\n" + FDFStr + comment + '\nAssumption:' + assumption + '\n\n'
-        sys.exit(1)
+        # sys.exit(1)
 
 
 
@@ -326,7 +353,7 @@ if __name__ == "__main__":
     if len(fdffiles) == 0:
         print 'Error: FDF folder does not contain any fdf files'
         sys.exit(1)
-    
+    print "Number of FDF files: ", len(fdffiles)
     # Check output directory
     if not args.outputdir:
         outdir = os.path.splitext(args.inputdir)[0]
@@ -357,8 +384,8 @@ if __name__ == "__main__":
 
     # Read in data procpar
     procpar, procpartext = ReadProcpar(args.inputdir + '/procpar')
-    if args.verbose:
-        print procpar
+    # if args.verbose:
+    #    print procpar
 
     #=====================================================================================
     # Create file meta dataset
@@ -373,7 +400,7 @@ if __name__ == "__main__":
     file_meta.MediaStorageSOPInstanceUID = CreateUID(UID_Type_MediaStorageSOPInstance,[],[],args.verbose)
     file_meta.ImplementationClassUID = "1.3.6.1.4.1.25371.1.1.2"
 
-    #=====================================================================================
+    #================================================================
     # Create dicom dataset
 
     if args.verbose:
@@ -432,17 +459,17 @@ if __name__ == "__main__":
 
     # Module: General Study (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.2.1 
-
-    ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar,[],args.verbose)                     # 0020,000D Study Instance UID (mandatory)
+    #        0020,000D Study Instance UID (mandatory)
+    ds.StudyInstanceUID = CreateUID(UID_Type_StudyInstance, procpar,[],args.verbose) 
     ds.StudyDate = procpar['studyid_'][2:10]      # 0008,0020 Study Date (optional)
     ds.StudyTime = procpar['time_submitted'][9:]  # 0008,0030 Study Time (optional)
     ds.StudyID =  procpar['name']                 # 0020,0010 Study ID (optional)
-# Cannot use procpar['studyid_'] because DaRIS needs both the Patient name and studyid to be of the form 'DARIS^X.X.X.X', dpush will actually overwrite these fields as well
+# Cannot use procpar['studyid_'] because DaRIS needs both the Patient
+# name and studyid to be of the form 'DARIS^X.X.X.X', dpush will
+# actually overwrite these fields as well
     
     ds.ReferringPhysicianName = '' # procpar['operator_']  # or  ['investigator']
 
-
-    
 
     #-------------------------------------------------------------------------------------
     # IE: Series
@@ -452,7 +479,8 @@ if __name__ == "__main__":
     # Reference: DICOM Part 3: Information Object Definitions C.7.3.1 
 
     ds.Modality = "MR"             # 0008,0060 Modality (mandatory)
-    ds.SeriesInstanceUID = CreateUID(UID_Type_SeriesInstance, procpar,[],args.verbose)                   # 0020,000E Series Instance UID (mandatory)
+                                   # 0020,000E Series Instance UID (mandatory)
+    ds.SeriesInstanceUID = CreateUID(UID_Type_SeriesInstance, procpar,[],args.verbose)
     ds.SeriesNumber = 1            # 0020,0011 Series Number (optional)
     # ds.SeriesDate                # 0008,0021 Series Date (optional)
     # ds.SeriesTime                # 0008,0031 Series Time (optional)
@@ -499,9 +527,6 @@ if __name__ == "__main__":
     #             reference point as such.
 
 
-
-
-
     #-------------------------------------------------------------------------------------
     # IE: Equipment
     # 
@@ -533,11 +558,12 @@ if __name__ == "__main__":
     # NOTE: THESE TAGS HAVE BEEN REORDERED (COMPARED TO DICOM 3.0 DOCUMENTATION) TO SUIT 
     # THE FDF FILE ITERATIONS I.E. TAGS COMMON TO ALL FDF FILES HAVE BEEN SET FIRST
 
+    # 0008,0008 ImageType (mandatory)
     # Image Type: MPR, T2 MAP, PHASE MAP, PHASE SUBTRACT, PROJECTION IMAGE, DIFFUSION MAP
     #    VELOCITY MAP, MODULUS SUBTRACT, T1 MAP, DENSITY MAP, IMAGE ADDITION, OTHER
     #defult image type
 
-    ds.ImageType = ["ORIGINAL","PRIMARY","OTHER"]    # 0008,0008 ImageType (mandatory)
+    ds.ImageType = ["ORIGINAL","PRIMARY","OTHER"]    
     if 'diff' in procpar.keys() and procpar['diff'] =='y':
         ds.ImageType[2]="DIFFUSION MAP"
     if 'imPH' in procpar.keys() and procpar['imPH'] =='y':
@@ -701,9 +727,9 @@ if __name__ == "__main__":
 
 
     MRFOVSeq = Dataset()
-    MRFOVSeq.InPlanePhaseEncodingDirection='ROW'      #TODO   ROW or COL
+    MRFOVSeq.InPlanePhaseEncodingDirection='ROW'      # ROW if lpe is dimX or COL if lpe is dimY
     if procpar['dimY'] == "lpe":
-        MRFOVSeq.InPlanePhaseEncodingDirection = "COL" ##TODO either ROW or COL
+        MRFOVSeq.InPlanePhaseEncodingDirection = "COL" 
 
     #MRFOVSeq.MRAcquisitionFrequencyEncodingSteps
     #MRFOVSeq.MRAcquisitionPhaseEncodingStepsinplane
@@ -712,7 +738,8 @@ if __name__ == "__main__":
     ds.MRFOVGeometrySequence = Sequence([MRFOVSeq])
 
     #MR Receive Coil C.8.13.5.7 C
-    # MR Receive Coil Sequence (0018,9042) 1 # A sequence that provides information about each receive coil used.
+    # MR Receive Coil Sequence (0018,9042) 1 
+    # A sequence that provides information about each receive coil used.
     # Only a single Item shall be included in this sequence.
     # >Receive Coil Name (0018,1250) 1C Name of receive coil used.
     ReceiveCoilSeq = Dataset()
@@ -845,10 +872,21 @@ if __name__ == "__main__":
 
     if 'diff' in procpar.keys() and procpar['diff']=='y':
         if 'bvalue' in procpar.keys() and len(procpar['bvalue']) > 1:
-            SEQUENCE='Diffusion'            
             if args.verbose:
                 print 'Processing Diffusion sequence'
-            ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]  # Compulsory
+            SEQUENCE='Diffusion'  
+            ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]  # Compulsory           
+            ds.AcquisitionConstrast = ["DIFFUSION"]
+            ds.PixelPresentation=["MONOCHROME"]
+            ds.VolumetrixProperties=["VOLUME"]
+            ds.VolumeBasedCalculationTechnique=["NONE"]
+            ds.ComplexImageComponent=["MAGNITUDE"]
+            
+            tmp_file = open(os.path.join(args.outputdir,'DIFFUSION'),'w')
+            tmp_file.write(str(procpar['nbdirs']))
+            tmp_file.close()
+           
+
 # Save procpar diffusion parameters
             Bvalue = procpar['bvalue'] # 64 element array
             BValueSortIdx=numpy.argsort(Bvalue)
@@ -1605,7 +1643,7 @@ if __name__ == "__main__":
     if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
         MRAcquisitionType = '3D'
     # 0018,0023 MR Acquisition Type (optional)
-    #ds.MRAcquistionType = MRAcquisitionType                     
+    #ds.MRAcquisitionType = MRAcquisitionType                     
 
     #TR    
     #0018,0080 Repetition Time (in ms) (optional)
@@ -1660,27 +1698,36 @@ if __name__ == "__main__":
 
     ds.MagneticFieldStrength = str(procpar['B0'])
 
-    # find this from the distance between positions of slices (or Thickness thk)
-    # ds.SpacingBetweenSlices  # procpar['thk']*1000                                                              # 0018,0088 Spacing Between Slices (optional)
 
     #NPHASE
     # 0018,0089 Number of Phase Encoding Steps (optional)
     if 'nphase' in procpar.keys():
         ds.NumberOfPhaseEncodingSteps  = procpar['nphase']                                               
+
+    # Percent Sampling (0018,0093) 3 Fraction of acquisition matrix lines
+    #                           acquired, expressed as a percent.
     #ds.PercentSampling                                                                   # 0018,0093 Percent Sampling (optional)
-    #ds.PercentPhaseFieldOfView                                                           # 0018,0094 PercentPhase Field of View (optional)
 
-    # 0018,0095 Pixel Bandwidth (optional)    
+    # Percent Phase Field of View (0018,0094) 3 Ratio of field of view dimension in phase
+    #                                      direction to field of view dimension in
+    #                                      frequency direction, expressed as a
+    #                                      percent.
+    #ds.PercentPhaseFieldOfView           # 0018,0094 PercentPhase Field of View (optional)
+
+    # Pixel Bandwidth (0018,0095) 3 Reciprocal of the total sampling period, in
+    #                          hertz per pixel.
     # SW1 or sw2 or sw3
-    ds.PixelBandwidth = str(procpar['sw1'])                                                          
+    ds.PixelBandwidth = str(procpar['sw1'])     # 0018,0095 Pixel Bandwidth (optional)                                                             
 
-    #rfcoil
+    # Receive Coil Name (0018,1250) 3 Receive coil used.
     # 0018,1250 Receive Coil Name (optional)
     ds.ReceiveCoilName  = procpar['rfcoil'][:15]
     
+    # Transmit Coil Name (0018,1251) 3 Transmit coil used.
+    ds.TransmitCoilName = procpar['rfcoil'][:15]
+
     ## From code below
     #
-    #    ds.AcquistionMatrix  = [ procpar['']  , procpar['']  ]                                                                # 0018,1310 Acquistion Matrix (optional)
         #---------------------------------------------------------------------------------
         # Number of rows
         # DICOMHDR code:
@@ -1689,11 +1736,8 @@ if __name__ == "__main__":
         #      if($dim = 3) then	"if 3D rows = nv"
         #	 on('fn1'):$on
         #	 if($on) then
-
-    if 'fn1' in procpar.keys() and procpar['fn1'] > 0:		
-        AcqMatrix1 = procpar['fn1']/2.0         
-    else:		#	   $pe = fn1/2.0
-        AcqMatrix1 = procpar['nv'] #	 else
+        #	   $pe = fn1/2.0
+        #	 else
         #	   $pe = nv
         #	 endif	
         #	 $pes=''	
@@ -1711,6 +1755,19 @@ if __name__ == "__main__":
         #	  format($ro,0,0):$ros	
         #	  $value='['+$ros+']'
         #      endif
+    print "Rows: ", procpar['fn1']/2.0, procpar['nv'], procpar['fn']/2.0, procpar['np']/2.0
+    if  MRAcquisitionType == '3D':
+        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:		
+            AcqMatrix1 = procpar['fn1']/2.0         
+        else:
+            AcqMatrix1 = procpar['nv'] 
+        ds.Rows=str(AcqMatrix1)
+    elif  MRAcquisitionType == '2D':
+        if 'fn' in procpar.keys() and procpar['fn'] > 0:		
+            AcqMatrix1 = procpar['fn']/2.0         
+        else:
+            AcqMatrix1 = procpar['np']/2.0 
+        ds.Rows=str(AcqMatrix1)
 
         #---------------------------------------------------------------------------------
         # Number of columns
@@ -1737,12 +1794,65 @@ if __name__ == "__main__":
         #        format($pe,0,0):$pes	
         #        $value='['+$pes+']'
         #      endif
+    print "Columns: ", procpar['fn']/2.0, procpar['np']/2.0, procpar['fn1']/2.0, procpar['nv']
+    if  MRAcquisitionType == '3D':
+        if 'fn' in procpar.keys() and procpar['fn'] > 0:		
+            AcqMatrix2 = procpar['fn']/2.0         
+        else:
+            AcqMatrix2 = procpar['np']/2.0 
+        
+        ds.Columns=str(AcqMatrix2)
+    elif  MRAcquisitionType == '2D':
+        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:  
+            # and procpar['fn1']/2.0 == procpar['nv']:		
+            AcqMatrix2 = procpar['fn1']/ 2.0         
+        else:
+            AcqMatrix2 = procpar['nv'] 
+        ds.Columns=str(AcqMatrix2)
 
 
-        # In-plane Phase Encoding Direction (0018,1312) 3 The axis of phase encoding with respect to
-        #                                        the image. Enumerated Values:
-        #                                                ROW = phase encoded in rows.
-        #                                                COL = phase encoded in columns.
+    # Acquisition Matrix (0018,1310) 3 Dimensions of the acquired frequency
+    #                                  /phase data before reconstruction.
+    #                                  Multi-valued: frequency rows\frequency
+    #                                  columns\phase rows\phase columns.
+
+    # ds.AcquisitionMatrix  = [ AcqMatrix1  , AcqMatrix2  ]   # 0018,1310 Acquisition Matrix (optional)
+
+
+    #---------------------------------------------------------------------------------
+    # Pixel spacing
+    # DICOMHDR code: 
+    #	  elseif $tag='(0028,0030)' then	" pixel spacing "
+    #	    if($dim = 3) then
+    #	      $r=lro*10/$ro    "$ro and $pe were calculated earlier"
+    #	      $p=lpe*10/$pe
+    #	      $rs='' $ps=''
+    #	      format($r,0,5):$rs
+    #	      format($p,0,5):$ps
+    #	      $value='['+$ps+'\\'+$rs+']'      "rows\cols swapped for 3D"   
+    #	    else
+    #	      $r=lro*10/$ro    "$ro and $pe were calculated earlier"
+    #	      $p=lpe*10/$pe
+    #	      $rs='' $ps=''
+    #	      format($r,0,5):$rs
+    #	      format($p,0,5):$ps
+    #	      $value='['+$rs+'\\'+$ps+']' 
+    #	    endif
+
+        ## These pixel spacing lines are identical due to the code used for ds.Rows and ds.Columns
+    if  MRAcquisitionType == '3D':
+        #if 'lro' in procpar.keys() and 'lpe' in procpar.keys():
+        ds.PixelSpacing=[ str( procpar['lro']*10/AcqMatrix1 ), str( procpar['lpe']*10/AcqMatrix2) ]
+    elif  MRAcquisitionType == '2D':
+        #if 'lro' in procpar.keys() and 'lpe' in procpar.keys():
+        ds.PixelSpacing=[ str( procpar['lro']*10/AcqMatrix1 ), str( procpar['lpe']*10/AcqMatrix2) ]
+
+
+
+    # In-plane Phase Encoding Direction (0018,1312) 3 The axis of phase encoding with respect to
+    #                                        the image. Enumerated Values:
+    #                                                ROW = phase encoded in rows.
+    #                                                COL = phase encoded in columns.
     ds.InPhaseEncodingDirection = "ROW" ##TODO either ROW or COL
     if procpar['dimY'] == "lpe":
         ds.InPhaseEncodingDirection = "COL" ##TODO either ROW or COL
@@ -1782,10 +1892,15 @@ if __name__ == "__main__":
     # 0028,0100 (mandatory)
     ds.BitsAllocated = 16                             
 
+    ds.BitsStored = 16			      #(0028,0101) Bits Stored
+    ds.HighBit = 15				      #(0028,0102) High Bit
+    ds.PixelRepresentation = 0		      #(0028,0103) Pixel Representation
+
+
     # Module: Image Plane (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.6.2 
     
-    # Slice Thinckness
+    # Slice Thickness
     # 0018,0050 Slice Thickness (optional)
     if MRAcquisitionType == '3D':
         if 'fn2' in procpar.keys() and procpar['fn2'] > 0:
@@ -1793,7 +1908,7 @@ if __name__ == "__main__":
         else:
             pe2 = procpar['nv2']
         if pe2 == 0:
-            print '3D Acquisition slice thickness: ', SliceThickness
+            print '3D Acquisition slice thickness (error pe2=0): ', SliceThickness
             SliceThickness = procpar['thk']
         else:
             SliceThickness = procpar['lpe2']*10.0/pe2                         
@@ -1802,14 +1917,67 @@ if __name__ == "__main__":
             
     ds.SliceThickness = str(SliceThickness)  
 
+
+    # Spacing Between Slices (0018,0088) 3 Spacing between slices, in mm. The
+    #                                 spacing is measured from the center-to-
+    #                                 center of each slice.
+    ## Find this from the distance between positions of slices (or Thickness thk)
     if MRAcquisitionType == '3D':
-        SpacingBetweenSlices = ds.SliceThickness                          
+        ds.SpacingBetweenSlices = ds.SliceThickness                          
 
     
     #ds.ImageOrientationPatient = fdfpar['orientation']                                                         # 0020,0037 Image Orientation (Patient) (mandatory)
     #ds.ImagePositionPatient  = fdfpar['location']                                                            # 0020,0032 Image Position (Patient) (mandatory)
     
     #ds.SliceLocation                                                                    # 0020,1041 Slice Location (optional)
+
+
+
+# C.7.3.1.1.2        Patient Position
+
+# Patient Position (0018,5100) specifies the position of the patient
+# relative to the imaging equipment space. This attribute is intended
+# for annotation purposes only. It does not provide an exact
+# mathematical relationship of the patient to the imaging equipment.
+# When facing the front of the imaging equipment, Head First is
+# defined as the patient's head being positioned toward the front of
+# the imaging equipment. Feet First is defined as the patient's feet
+# being positioned toward the front of the imaging equipment. Prone is
+# defined as the patient's face - Standard - PS 3.3 - 2011 Page 390
+# being positioned in a downward (gravity) direction. Supine is
+# defined as the patient's face being in an upward
+# direction. Decubitus Right is defined as the patient's right side
+# being in a downward direction. Decubitus Left is defined as the
+# patient's left side being in a downward direction.  The Defined
+# Terms are: HFP = Head First-Prone HFS = Head First-Supine HFDR =
+# Head First-Decubitus Right HFDL = Head First-Decubitus Left FFDR =
+# Feet First-Decubitus Right FFDL = Feet First-Decubitus Left FFP =
+# Feet First-Prone FFS = Feet First-Supine
+
+    ds.PatientPosition = '123'   # default 'HFS'
+    if 'position1' in procpar.keys() and not procpar['position1'] == '':
+        if re.search('head',procpar['position1']):
+            ds.PatientPosition.replace('12', 'HF')
+        if re.search('feet',procpar['position1']):
+            ds.PatientPosition.replace('12', 'FF')
+#       if re.search('first',procpar['position1']):
+#           ds.PatientPosition.replace('2', 'F')
+    else:
+        ds.PatientPosition.replace('12', 'HF')
+#            ds.PatientPosition.replace('2', 'F')
+            
+    if 'position2' in procpar.keys() and not procpar['position2'] == '':
+        if re.search('prone',procpar['position2']):
+            ds.PatientPosition.replace('3','P')
+        if re.search('supine',procpar['position2']):
+            ds.PatientPosition.replace('3','S')
+    else:
+        ds.PatientPosition.replace('3','S')
+    if args.verbose:
+        print 'Patient Position: ', ds.PatientPosition
+    ds.PatientPosition='HFS'
+        
+    ds.DerivationDescription = Derivation_Description
 
 
 
@@ -1875,10 +2043,21 @@ if __name__ == "__main__":
         acqndims = procpar['acqdim']
         if args.verbose:
             print 'Acqdim (type): ' + MRAcquisitionType + " acqndims "  + str(acqndims)
-        #AssertImplementation(acqndims != fdfdims, filename, CommentStr, AssumptionStr)
+        AssertImplementation(acqndims != fdfdims, filename, CommentStr, AssumptionStr)
         
+
+        # PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
+        PixelSpacing = map(lambda x,y: x*10.0/y, fdf_properties['roi'][0:2],fdf_properties['matrix'][0:2])
+        if PixelSpacing[0] != ds.PixelSpacing[0] or PixelSpacing[1] != ds.PixelSpacing[1]:
+            print "Pixel spacing mismatch, procpar ", ds.PixelSpacing , " fdf spacing ", str(PixelSpacing[0]),',', str(PixelSpacing[1])
+        if args.verbose:
+            print "Pixel Spacing : Procpar   ", ds.PixelSpacing
+            print "Pixel Spacing : FDF props ", PixelSpacing 
+        ds.PixelSpacing =  [str(PixelSpacing[0]),str(PixelSpacing[1])]        #(0028,0030) Pixel Spacing
+
+
         # FDF slice thickness
-        if acqndims == 3:
+        if fdfdims == 3:
             fdfthk = fdf_properties['roi'][2]/fdf_properties['matrix'][2]*10
         else:
             fdfthk = fdf_properties['roi'][2]*10.0
@@ -1889,74 +2068,36 @@ if __name__ == "__main__":
             print 'fdfthk : ' + str(fdfthk)
             print 'SliceThinkness: ' + str(ds.SliceThickness)
 
+        SliceThickness= float(ds.SliceThickness)
 
         #fix me Quick hack to avoid assert errors for diffusion and 3D magnitude images
-        if not ('diff' in procpar.keys() and procpar["diff"] == 'y'): 
-            if MRAcquisitionType == '3D':
-                print 'Not testing slicethickness in diffusion and 3D MR FDFs'
+        #if not ('diff' in procpar.keys() and procpar["diff"] == 'y'): 
+        #    if MRAcquisitionType == '3D':
+        #        print 'Not testing slicethickness in diffusion and 3D MR FDFs'
                 #   else:
-                #       AssertImplementation(ds.SliceThickness != fdfthk, filename, CommentStr, AssumptionStr)
-
-
-
-        # PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
-        PixelSpacing = map(lambda x,y: x*10.0/y, fdf_properties['roi'][0:2],fdf_properties['matrix'][0:2])
-        ds.PixelSpacing =  [str(PixelSpacing[0]),str(PixelSpacing[1])]        #(0028,0030) Pixel Spacing
+        AssertImplementation(SliceThickness != fdfthk, filename, CommentStr, AssumptionStr)
 
 
 
 
-# C.7.3.1.1.2        Patient Position
+        # Slice Thickness 0018,0050 Slice Thickness (optional)
+        if MRAcquisitionType == '3D':
+            if len(PixelSpacing) != 3:
+                print "Slice thickness: 3D procpar spacing not available, fdfthk ", fdfthk
+            else:
+                if PixelSpacing[2] != ds.SliceThickness:
+                    print "Slice Thickness mismatch, procpar ", ds.SliceThickness , " fdf spacing ", PixelSpacing[2], fdfthk
 
-# Patient Position (0018,5100) specifies the position of the patient
-# relative to the imaging equipment space. This attribute is intended
-# for annotation purposes only. It does not provide an exact
-# mathematical relationship of the patient to the imaging equipment.
-# When facing the front of the imaging equipment, Head First is
-# defined as the patient's head being positioned toward the front of
-# the imaging equipment. Feet First is defined as the patient's feet
-# being positioned toward the front of the imaging equipment. Prone is
-# defined as the patient's face - Standard - PS 3.3 - 2011 Page 390
-# being positioned in a downward (gravity) direction. Supine is
-# defined as the patient's face being in an upward
-# direction. Decubitus Right is defined as the patient's right side
-# being in a downward direction. Decubitus Left is defined as the
-# patient's left side being in a downward direction.  The Defined
-# Terms are: HFP = Head First-Prone HFS = Head First-Supine HFDR =
-# Head First-Decubitus Right HFDL = Head First-Decubitus Left FFDR =
-# Feet First-Decubitus Right FFDL = Feet First-Decubitus Left FFP =
-# Feet First-Prone FFS = Feet First-Supine
+        # Force slice thickness to be from fdf props
+        ds.SliceThickness = str(fdfthk)  
+        SliceThickness = fdfthk
 
-        ds.PatientPosition = '123'   # default 'HFS'
-        if 'position1' in procpar.keys() and not procpar['position1'] == '':
-            if re.search('head',procpar['position1']):
-                ds.PatientPosition.replace('12', 'HF')
-            if re.search('feet',procpar['position1']):
-                ds.PatientPosition.replace('12', 'FF')
-#            if re.search('first',procpar['position1']):
-#                ds.PatientPosition.replace('2', 'F')
-        else:
-            ds.PatientPosition.replace('12', 'HF')
-#            ds.PatientPosition.replace('2', 'F')
-            
-        if 'position2' in procpar.keys() and not procpar['position2'] == '':
-            if re.search('prone',procpar['position2']):
-                ds.PatientPosition.replace('3','P')
-            if re.search('supine',procpar['position2']):
-                ds.PatientPosition.replace('3','S')
-        else:
-            ds.PatientPosition.replace('3','S')
-        if args.verbose:
-            print 'Patient Position: ', ds.PatientPosition
-        ds.PatientPosition='HFS'
-        
+
         #---------------------------------------------------------------------------------
         # GROUP 0020: Relationship
 
-        ds.ImageComments = fdf_properties['filetext']
+        ds.ImageComments = ds.ImageComments +'\n'+ fdf_properties['filetext']
         
-        ds.DerivationDescription = Derivation_Description
-
         # For further information regarding the location, orientation, roi, span, etc 
         # properties in the FDF header, see the "Agilent VNMRJ 3.2 User Programming 
         # User Guide", pgs 434-436
@@ -2159,21 +2300,6 @@ if __name__ == "__main__":
         if SEQUENCE == 'Diffusion':
             if args.verbose:
                 print 'Processing diffusion image'
-            ds.AcquisitionConstrast = ["DIFFUSION"]
-            ds.PixelPresentation=["MONOCHROME"]
-            ds.VolumetrixProperties=["VOLUME"]
-            ds.VolumeBasedCalculationTechnique=["NONE"]
-            ds.ComplexImageComponent=["MAGNITUDE"]
-            
-            
-                #print fdf_properties['array_index']
-                #print len(Bvalue)
-
-            tmp_file = open(os.path.join(args.outputdir,'DIFFUSION'),'w')
-            tmp_file.write(str(procpar['nbdirs']))
-            tmp_file.close()
-            ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]
-
             if procpar['recon'] == 'external':
                 diffusion_idx=0
                 while True:
@@ -2240,107 +2366,30 @@ if __name__ == "__main__":
         
 
 
-
-        #---------------------------------------------------------------------------------
-        # Number of rows
-        # DICOMHDR code:
-        #    "note: ft3d causes nv/np to be swapped"   
-        #    elseif $tag='(0028,0010)' then	 " Rows"
-        #      if($dim = 3) then	"if 3D rows = nv"
-        #        on('fn1'):$on
-        #        if($on) then
-        #          $pe = fn1/2.0
-        #        else
-        #          $pe = nv
-        #        endif	
-        #        $pes=''	
-        #        format($pe,0,0):$pes	
-        #        $value='['+$pes+']'  
-        #         
-        #      else		"if 2D no of rows = np/2"
-        #         on('fn'):$on
-        #         if($on) then
-        #           $ro = fn/2.0
-        #         else
-        #           $ro = np/2.0
-        #         endif      	
-        #         $ros=''	
-        #         format($ro,0,0):$ros	
-        #         $value='['+$ros+']'
-        #      endif
-
-        ds.Rows = fdf_properties['matrix'][1]                                   #(0028,0010) Rows
-
         ## Implementation check
-        # CommentStr = 'Number of rows does not match between fdf and procpar'
-        # AssumptionStr = 'In FDF, number of rows is defined by matrix[1]. 
-        # In procpar, for 3D datasets number of rows is either fn1/2 or nv.
-        # For 2D datasets, number of rows is fn/2.0 or np.'
-        # AssertImplementation(ds.Rows != fdf_properties['matrix'][1], filename, CommentStr, AssumptionStr)
+        CommentStr = 'Number of rows does not match between fdf and procpar'
+        AssumptionStr = 'In FDF, number of rows is defined by matrix[1]. \n'+\
+         'In procpar, for 3D datasets number of rows is either fn1/2 or nv. \n'+\
+         'For 2D datasets, number of rows is fn/2.0 or np.'
+        AssertImplementation(ds.Rows != fdf_properties['matrix'][1], filename, CommentStr, AssumptionStr)
         if args.verbose:
-            print 'Rows', MRAcquisitionType, procpar['fn']/2, procpar['fn1']/2, procpar['nv'], procpar['np'], ds.Rows
-
-
-        #---------------------------------------------------------------------------------
-        # Number of columns
-        # DICOMHDR code: 
-        #    elseif $tag='(0028,0011)' then	" Columns  "
-        #      if($dim = 3) then	"if 3D columns = np/2"
-        #        on('fn'):$on
-        #        if($on) then
-        #          $ro = fn/2.0
-        #        else
-        #          $ro = np/2.0
-        #        endif      	
-        #        $ros=''	
-        #        format($ro,0,0):$ros	
-        #        $value='['+$ros+']'   
-        #      else     
-        #        on('fn1'):$on
-        #        if($on) then
-        #         $pe = fn1/2.0
-        #        else
-        #         $pe = nv
-        #        endif	
-        #        $pes=''	
-        #        format($pe,0,0):$pes	
-        #        $value='['+$pes+']'
-        #      endif
+            print 'Rows', MRAcquisitionType, procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0
+            print '   Procpar: rows ', ds.Rows
+            print '   FDF prop rows ', fdf_properties['matrix'][1]
+        ds.Rows = fdf_properties['matrix'][1]                                   #(0028,0010) Rows
             
-        ds.Columns = fdf_properties['matrix'][0]                                 #(0028,0011) Columns
+
 
         ## Implementation check
-        # CommentStr = 'Number of columns does not match between fdf and procpar'
-        # AssumptionStr = 'In FDF, number of columns is defined by matrix[0]. \nIn procpar, for 3D datasets number of columns is either fn/2 or np.\nFor 2D datasets, number of rows is fn1/2.0 or nv.'
-        # AssertImplementation(ds.Columns != fdf_properties['matrix'][0], filename, CommentStr, AssumptionStr)
+        CommentStr = 'Number of columns does not match between fdf and procpar'
+        AssumptionStr = 'In FDF, number of columns is defined by matrix[0]. \nIn procpar, for 3D datasets number of columns is either fn/2 or np.\nFor 2D datasets, number of rows is fn1/2.0 or nv.'
+        AssertImplementation(ds.Columns != fdf_properties['matrix'][0], filename, CommentStr, AssumptionStr)
+        if args.verbose:
+            print 'Columns', MRAcquisitionType, procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0, fdf_properties['matrix'][0]
+            print '   Procpar: Cols ', ds.Rows
+            print '   FDF prop Cols ', fdf_properties['matrix'][0]
+        ds.Columns = fdf_properties['matrix'][0]                                 #(0028,0011) Columns
         
-        #---------------------------------------------------------------------------------
-        # Pixel spacing
-        # DICOMHDR code: 
-        #     elseif $tag='(0028,0030)' then	" pixel spacing "
-        #       if($dim = 3) then
-        #         $r=lro*10/$ro    "$ro and $pe were calculated earlier"
-        #         $p=lpe*10/$pe
-        #         $rs='' $ps=''
-        #         format($r,0,5):$rs
-        #         format($p,0,5):$ps
-        #         $value='['+$ps+'\\'+$rs+']'      "rows\cols swapped for 3D"   
-        #       else
-        #         $r=lro*10/$ro    "$ro and $pe were calculated earlier"
-        #         $p=lpe*10/$pe
-        #         $rs='' $ps=''
-        #         format($r,0,5):$rs
-        #         format($p,0,5):$ps
-        #         $value='['+$rs+'\\'+$ps+']' 
-        #       endif
-
-        
-        ds.SamplesPerPixel = 1                        #(0028,0002) Samples Per Pixel
-	ds.PhotometricInterpretation = "MONOCHROME2"  #(0028,0004) Photometric Interpretation
-	ds.BitsAllocated = 16			      #(0028,0100) Bits Allocated
-	ds.BitsStored = 16			      #(0028,0101) Bits Stored
-	ds.HighBit = 15				      #(0028,0102) High Bit
-	ds.PixelRepresentation = 0		      #(0028,0103) Pixel Representation
 
 
 ## Multi dimension Organisation and Index module
@@ -2391,9 +2440,6 @@ if __name__ == "__main__":
             ds.DimensionIndexSequence = Sequence([DimIndexSeq1])
         
 
-
-
-
         # Module: Image Pixel (mandatory)
         # Reference: DICOM Part 3: Information Object Definitions C.7.6.3 
         # ds.Rows                                                              # 0028,0010 Rows (mandatory)
@@ -2416,7 +2462,7 @@ if __name__ == "__main__":
             print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RscaleSlope)[:16]
         ds.RescaleSlope = str(RescaleSlope)[:16]    #(0028,1053) Rescale Slope
 
-        #ds.MRAcquistionType = '2D'                 # 0018,0023 MR Acquisition Type (optional)
+        #ds.MRAcquisitionType = '2D'                 # 0018,0023 MR Acquisition Type (optional)
         # Identification of spatial data encoding scheme.
         # Defined Terms: 1D 2D 3D
 
@@ -2446,14 +2492,15 @@ if __name__ == "__main__":
             voldata = numpy.reshape(image_data,fdf_properties['matrix'])
             # if procpar['recon'] == 'external':
             # 
+            # pdb.set_trace()
             if procpar['recon'] == 'external' and fdf_properties['rank'] == 3:
                 if procpar['seqfil'] == "epip":
                     print "Transposing external recon 3D"
                     voldata = numpy.transpose(voldata,(1,2,0)) # 1,2,0
                 if procpar['seqfil'] == "fse3d":
                     print "Transposing external recon 3D"
-                    voldata = numpy.transpose(voldata,(0,2,1)) # 0,2,1 works
-#readpp.m procpar('nD') == 3            
+                    voldata = numpy.transpose(voldata,(2,0,1)) # 0,2,1 works
+# readpp.m procpar('nD') == 3            
 #        acq.FOVcm = [pps.lro pps.lpe pps.lpe2];
 #        acq.dims = [pps.nf pps.np/2 pps.nv2];
 #        acq.voxelmm = acq.FOVcm./acq.dims*10;
@@ -2471,38 +2518,42 @@ if __name__ == "__main__":
             if procpar['recon'] == 'external' and fdf_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
                 range_max = fdf_properties['matrix'][1]
                 num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][2]
-                ds.Columns = fdf_properties['matrix'][0]
-                ds.Rows = fdf_properties['matrix'][2]
-                ## FSE3d still producing bad dicoms
+                ds.Columns = fdf_properties['matrix'][2]
+                ds.Rows = fdf_properties['matrix'][0]
+                ##FIXME FSE3d still producing bad dicoms
 
             print "Columns ", ds.Columns, " Rows ", ds.Rows
             print "Range max and no slice points: ", range_max, num_slicepts
-            print "Voldata[1] shape: ", voldata[:,:,1].shape
+            print "Voldata[1] shape: ", voldata[:,:,0].shape
 
-            
-
-            for islice in xrange(1,range_max):    
-                #Reshape volume slice to 1D array
+            ## Indexing in numpy matrix begins at 0, fdf/dicom filenames begin at 1
+            for islice in xrange(0,range_max):    
+                # Reshape volume slice to 1D array
                 slice_data = numpy.reshape(voldata[:,:,islice],(num_slicepts,1)) 
-                #Convert Pixel data to string
+                # Convert Pixel data to string
                 ds.PixelData = slice_data.tostring()    #(7fe0,0010) Pixel Data
+
                 #if acqndims == 3:
                 if 'slice_no' in fdf_properties.keys():
                     image_number = fdf_properties['slice_no']
                 else:
                     image_number=int(re.sub(r'^.*image(\d+).*', r'\1',filename))
 
-                new_filename = "slice%03dimage%03decho%03d.dcm" % (islice,image_number,fdf_properties['echo_no'])
+                new_filename = "slice%03dimage%03decho%03d.dcm" % (islice+1,image_number,fdf_properties['echo_no'])
 
-                #Fix 3rd dimension position 
-                #ds.ImagePositionPatient[2] = str(ImagePositionPatient[2] + (islice-1)*SliceThickness)
-
-                M = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], PixelSpacing[1] * ImageOrientationPatient[1], SliceThickness * ImageOrientationPatient[2],  ImagePositionPatient[0]],
-                                  [PixelSpacing[0] * ImageOrientationPatient[3], PixelSpacing[1] * ImageOrientationPatient[4], SliceThickness * ImageOrientationPatient[5],  ImagePositionPatient[1]],
-                                  [PixelSpacing[0] * ImageOrientationPatient[6], PixelSpacing[1] * ImageOrientationPatient[8], SliceThickness * ImageOrientationPatient[8],  ImagePositionPatient[2]],                         
+                # Fix 3rd dimension position using transformation matrix
+                M = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], 
+                                   PixelSpacing[1] * ImageOrientationPatient[1], 
+                                   SliceThickness * ImageOrientationPatient[2],  ImagePositionPatient[0]],
+                                  [PixelSpacing[0] * ImageOrientationPatient[3], 
+                                   PixelSpacing[1] * ImageOrientationPatient[4], 
+                                   SliceThickness * ImageOrientationPatient[5],  ImagePositionPatient[1]],
+                                  [PixelSpacing[0] * ImageOrientationPatient[6], 
+                                   PixelSpacing[1] * ImageOrientationPatient[7], 
+                                   SliceThickness * ImageOrientationPatient[8],  ImagePositionPatient[2]], 
                                   [0,0,0,1]])
                 if procpar['recon'] == 'external' and fdf_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
-                    pos = numpy.matrix([[0],[islice],[0],[1]])
+                    pos = numpy.matrix([[0],[0],[islice],[1]])
                 else:
                     pos = numpy.matrix([[0],[0],[islice],[1]])
 
@@ -2514,14 +2565,14 @@ if __name__ == "__main__":
                 ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber
 #                ds.InStackPosition = islice #str(islice)
 
-                #Save DICOM
+                # Save DICOM
                 ds.save_as(os.path.join(outdir, new_filename))
 
         else:
             # Common export format
-            ds.PixelData = image_data.tostring()                                        #(7fe0,0010) Pixel Data
+            ds.PixelData = image_data.tostring()         # (7fe0,0010) Pixel Data
 
-            #Save DICOM
+            # Save DICOM
             ds.save_as(os.path.join(outdir, os.path.splitext(filename)[0] + '.dcm'))
 
         if SEQUENCE=="MULTIECHO":

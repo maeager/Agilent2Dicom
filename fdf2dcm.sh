@@ -334,9 +334,9 @@ then
 	fi
     else
 	echo "Removing existing tmp output directory"
-	rm -rf ${output_dir}/tmp    
+	rm -rf "${output_dir}/tmp"    
     fi
-    [ -d ${output_dir}/tmp ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
+    [ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
 fi
 
 exit 0
