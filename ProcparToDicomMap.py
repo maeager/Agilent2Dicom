@@ -6,7 +6,7 @@
 
 """
 
-VersionNumber = "0.5"
+VersionNumber = "0.6"
 DVCSstamp = "$Id: agilent2dicom.py,v d6eed4ea3807 2014/08/15 01:00:55 michael $"
 SEQUENCE=''
 # import pdb
@@ -106,7 +106,7 @@ def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
         uidstr = InstanceCreatorId
     elif uid_type == UID_Type_StudyInstance:
         if verbose:
-            print procpar
+            #print procpar
             print study_id
         # if not procpar or study_id not in procpar.keys():
         #    raise ValueError("Parameter 'procpar' either not passed or invalid")
@@ -229,7 +229,8 @@ def ProcparToDicomMap(procpar,args):
     # Reference: DICOM Part 3: Information Object Definitions C.7.3.1 
 
     ds.Modality = "MR"             # 0008,0060 Modality (mandatory)
-    ds.SeriesInstanceUID = CreateUID(UID_Type_SeriesInstance, procpar,[],args.verbose)                   # 0020,000E Series Instance UID (mandatory)
+                                   # 0020,000E Series Instance UID (mandatory)
+    ds.SeriesInstanceUID = CreateUID(UID_Type_SeriesInstance, procpar,[],args.verbose)
     ds.SeriesNumber = 1            # 0020,0011 Series Number (optional)
     # ds.SeriesDate                # 0008,0021 Series Date (optional)
     # ds.SeriesTime                # 0008,0031 Series Time (optional)
@@ -456,6 +457,17 @@ def ProcparToDicomMap(procpar,args):
     # >Gradient Echo Train Length (0018,9241) 1C
     # Number of gradient echoes collected per RF echo per shot (or excitation) per frame. A value of zero shall correspond to a pure RF echo frame. If RF Echo Train Length (0018,9240) is non zero and Gradient Echo Train Length is as well then only the central echo will be an RF Spin Echo, all others will be gradient echoes. See section C.8.13.5.2.1.
     # Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL. May be present otherwise.
+
+#    MRTiming = Dataset()
+#    MRTiming.RepetitionTime
+#    MRTiming.FlipAngle
+#    MRTiming.EchoTrainLength
+#    MRTiming.RFEchoTrainLength
+#    MRTiming.GradientEchoLength
+#    ds.MRTimingandRelatedParametersSequence = Sequence([MRTiming])
+
+
+
 
 
     # MR FOV/Geometry C.8.13.5.3 Macro
@@ -1411,8 +1423,9 @@ def ProcparToDicomMap(procpar,args):
     #TE
     # 0018,0081 Echo Time (in ms) (optional)
     # This is overwritten if the fdf file is a multiecho
-    #    if 'te' in procpar.keys():
-    #        ds.EchoTime  = str(procpar['te']*1000.0)                                                                        
+    if 'te' in procpar.keys():
+        ds.EchoTime  = str(procpar['te']*1000.0)                                                                        
+
     # 0018,0091 Echo Train Length (optional)
     if 'etl' in procpar.keys():
         ds.EchoTrainLength = procpar['etl']                                        
@@ -1551,9 +1564,11 @@ def ProcparToDicomMap(procpar,args):
             AcqMatrix2 = procpar['fn']/2.0         
         else:
             AcqMatrix2 = procpar['np']/2.0 
+        
         ds.Columns=str(AcqMatrix2)
     elif  MRAcquisitionType == '2D':
-        if 'fn1' in procpar.keys() and procpar['fn1'] > 0 and procpar['fn1']/2.0 == procpar['nv']:		
+        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:  
+            # and procpar['fn1']/2.0 == procpar['nv']:		
             AcqMatrix2 = procpar['fn1']/ 2.0         
         else:
             AcqMatrix2 = procpar['nv'] 

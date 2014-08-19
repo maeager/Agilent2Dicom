@@ -1,7 +1,7 @@
 
 REQUIREMENTS= python mrconvert storescu dcmodify dcmulti dciodfy fslhd fslview
 MRVIEW="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Monash016/eagerm/mrtrix-0.2.12/lib vglrun ~/Monash016/eagerm/mrtrix-0.2.12/bin/mrview"
-MRCONVERT= mrconvert -info -datatype float32
+MRCONVERT=mrconvert -info -datatype float32 
 FSLVIEW=fslhd # fslview, set to fslhd for non-visual check of Nifti file
 
 .PHONY: check
@@ -51,7 +51,7 @@ run_me3d:
 	mrinfo ../output_data/multiecho3d_magonly 2> /dev/null | grep 'Dimensions'
 
 test_me3d:
-	-dciodvfy   ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
+	-dciodvfy  ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
 	-dciodvfy  ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Warn'
 
 
@@ -59,15 +59,13 @@ test_me3d:
 run_me2d:
 	./fdf2dcm.sh -v -i ~/Monash016/amanda/ExampleAgilentData/multiecho2d_magandphase/ -o  ../output_data/multiecho2d_magandphase
 	-rm -f ../output_nii/ME2d_mag.nii ../output_nii/ME2d_phase.nii
-	$(MRCONVERT)  ../output_data/multiecho2d_magandphase/magnitude.dcm/ ../output_nii/ME2d_mag.nii 
-	$(MRCONVERT)  ../output_data/multiecho2d_magandphase/phase.dcm/ ../output_nii/ME2d_phase.nii 
+	$(MRCONVERT)   ../output_data/multiecho2d_magandphase/magnitude.dcm/ ../output_nii/ME2d_mag.nii 
+	$(MRCONVERT)   ../output_data/multiecho2d_magandphase/phase.dcm/ ../output_nii/ME2d_phase.nii 
 	$(FSLVIEW) ../output_nii/ME2d_mag.nii ../output_nii/ME2d_phase.nii
 	fslhd ../output_nii/ME2d_mag.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
 	mrinfo ../output_data/multiecho2d_magandphase/magnitude.dcm 2> /dev/null | grep 'Dimensions'
 	fslhd ../output_nii/ME2d.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
 	mrinfo ../output_data/multiecho2d_magandphase/phase.dcm 2> /dev/null | grep 'Dimensions'
-
-
 
 
 test_me2d:

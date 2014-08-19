@@ -7,7 +7,7 @@
 # - (C) 2014 Michael Eager
 #
 #
-#  "$Id: fdf2dcm.sh,v 89fe6e639230 2014/08/15 01:07:15 michael $"
+#  "$Id: fdf2dcm.sh,v 111574f30bae 2014/08/19 04:11:18 michael $"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #
@@ -334,9 +334,9 @@ then
 	fi
     else
 	echo "Removing existing tmp output directory"
-	rm -rf ${output_dir}/tmp    
+	rm -rf "${output_dir}/tmp"    
     fi
-    [ -d ${output_dir}/tmp ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
+    [ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
 fi
 
 exit 0
