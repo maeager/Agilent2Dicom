@@ -16,7 +16,7 @@ Version 0.6: Major rewrite, external recon
 """
 
 VersionNumber = "0.6"
-DVCSstamp = "$Id: agilent2dicom.py,v 111574f30bae 2014/08/19 04:11:18 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v 0a7940540dd5 2014/08/20 12:59:27 michael $"
 
 import pdb
 # import ast
@@ -1660,8 +1660,8 @@ if __name__ == "__main__":
     #TE
     # 0018,0081 Echo Time (in ms) (optional)
     # This is overwritten if the fdf file is a multiecho
-    #    if 'te' in procpar.keys():
-    #        ds.EchoTime  = str(procpar['te']*1000.0)                                                                        
+    if 'te' in procpar.keys():
+        ds.EchoTime  = str(procpar['te']*1000.0)                                                                        
     # 0018,0091 Echo Train Length (optional)
     if 'etl' in procpar.keys():
         ds.EchoTrainLength = procpar['etl']                                        
@@ -1689,9 +1689,10 @@ if __name__ == "__main__":
         ds.ImagedNucleus = procpar['tn']
     else:
         ds.ImagedNucleus = 'H1'
+
     # 0018,0086 Echo Number (optional)
-    #    if 'echo' in procpar.keys():
-    #        ds.EchoNumber =procpar['echo']                                                  
+    if 'echo' in procpar.keys():
+        ds.EchoNumber =procpar['echo']                                                  
     # 0018,0087 Magnetic Field Strength (optional)             
     #    if 'H1reffrq' in procpar.keys() and not procpar['H1reffrq'] == "":
     #        ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)      
