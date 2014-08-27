@@ -1,5 +1,5 @@
 
-REQUIREMENTS= python mrconvert storescu dcmodify dcmulti dciodfy fslhd fslview
+REQUIREMENTS= python mrconvert storescu dcmodify dcmulti dciodvfy fslhd fslview
 MRVIEW="LD_LIBRARY_PATH=$LD_LIBRARY_PATH:~/Monash016/eagerm/mrtrix-0.2.12/lib vglrun ~/Monash016/eagerm/mrtrix-0.2.12/bin/mrview"
 MRCONVERT=mrconvert -info -datatype float32 
 FSLVIEW=fslhd # fslview, set to fslhd for non-visual check of Nifti file
@@ -32,10 +32,10 @@ run_standard2d:
 # [ -f ../output_nii/standard2d.nii ] 
 	-rm -f ../output_nii/standard2d.nii
 	echo "MRTIX convert to Nifti"
-	$(MRCONVERT)   ../output_data/standard2d/ ../output_nii/standard2d.nii
-	$(FSLVIEW) ../output_nii/standard2d.nii
-	fslhd ../output_nii/standard2d.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
-	mrinfo ../output_data/standard2d 2> /dev/null | grep 'Dimensions'
+	$(MRCONVERT)   ../output_data/standard2d/ ../output_nii/standard2d.nii > /dev/null
+# 	$(FSLVIEW) ../output_nii/standard2d.nii
+	-fslhd ../output_nii/standard2d.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/standard2d 2> /dev/null | grep 'Dimensions'
 
 test_standard2d:
 	-dciodvfy   ../output_data/standard2d/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
@@ -45,10 +45,10 @@ test_standard2d:
 run_me3d:
 	./fdf2dcm.sh -v -i  ~/Monash016/amanda/ExampleAgilentData/multiecho3d_magonly/ -o ../output_data/multiecho3d_magonly
 	-rm -f ../output_nii/ME3d.nii
-	$(MRCONVERT)   ../output_data/multiecho3d_magonly/ ../output_nii/ME3d.nii 
-	$(FSLVIEW) ../output_nii/ME3d.nii
-	fslhd ../output_nii/ME3d.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
-	mrinfo ../output_data/multiecho3d_magonly 2> /dev/null | grep 'Dimensions'
+	$(MRCONVERT)   ../output_data/multiecho3d_magonly/ ../output_nii/ME3d.nii > /dev/null 
+#	$(FSLVIEW) ../output_nii/ME3d.nii
+	-fslhd ../output_nii/ME3d.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/multiecho3d_magonly 2> /dev/null | grep 'Dimensions'
 
 test_me3d:
 	-dciodvfy  ../output_data/multiecho3d_magonly/0001.dcm 2>&1 >/dev/null | grep -e '^Error'
@@ -61,11 +61,11 @@ run_me2d:
 	-rm -f ../output_nii/ME2d_mag.nii ../output_nii/ME2d_phase.nii
 	$(MRCONVERT)   ../output_data/multiecho2d_magandphase/magnitude.dcm/ ../output_nii/ME2d_mag.nii 
 	$(MRCONVERT)   ../output_data/multiecho2d_magandphase/phase.dcm/ ../output_nii/ME2d_phase.nii 
-	$(FSLVIEW) ../output_nii/ME2d_mag.nii ../output_nii/ME2d_phase.nii
-	fslhd ../output_nii/ME2d_mag.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
-	mrinfo ../output_data/multiecho2d_magandphase/magnitude.dcm 2> /dev/null | grep 'Dimensions'
-	fslhd ../output_nii/ME2d.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
-	mrinfo ../output_data/multiecho2d_magandphase/phase.dcm 2> /dev/null | grep 'Dimensions'
+#	$(FSLVIEW) ../output_nii/ME2d_mag.nii ../output_nii/ME2d_phase.nii
+	-fslhd ../output_nii/ME2d_mag.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/multiecho2d_magandphase/magnitude.dcm 2> /dev/null | grep 'Dimensions'
+	-fslhd ../output_nii/ME2d.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/multiecho2d_magandphase/phase.dcm 2> /dev/null | grep 'Dimensions'
 
 
 test_me2d:
@@ -82,8 +82,8 @@ run_cine:
 	-rm -f ../output_nii/CINE.nii
 	$(MRCONVERT)   ../output_data/cine/ ../output_nii/CINE.nii
 	$(FSLVIEW) ../output_nii/CINE.nii
-	fslhd ../output_nii/CINE.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
-	mrinfo ../output_data/cine 2> /dev/null | grep 'Dimensions'
+	-fslhd ../output_nii/CINE.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/cine 2> /dev/null | grep 'Dimensions'
 
 
 test_cine:
@@ -97,8 +97,8 @@ run_asl:
 	-rm -f ../output_nii/ASL.nii
 	$(MRCONVERT)   ../output_data/ASL_se_06.dcm/ ../output_nii/ASL.nii
 	$(FSLVIEW) ../output_nii/ASL.nii
-	fslhd ../output_nii/ASL.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
-	mrinfo ../output_data/ASL_se_06.dcm 2> /dev/null | grep 'Dimensions'
+	-fslhd ../output_nii/ASL.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/ASL_se_06.dcm 2> /dev/null | grep 'Dimensions'
 
 
 
@@ -115,8 +115,8 @@ run_diffusion:
 
 	$(MRCONVERT)   ../output_data/diffusion/ ../output_nii/Diffusion.nii
 	$(FSLVIEW) ../output_nii/Diffusion.nii
-	fslhd ../output_nii/Diffusion.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
-	mrinfo ../output_data/diffusion 2> /dev/null | grep 'Dimensions'
+	fslhd ../output_nii/Diffusion.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/diffusion 2> /dev/null | grep 'Dimensions'
 
 test_diffusion:
 	-dciodvfy  ../output_data/diffusion/0001.dcm 2>&1 >/dev/null 
@@ -134,8 +134,8 @@ run_dti:
 	-rm -f ../output_nii/DTI.nii
 	$(MRCONVERT)   ../output_data/dti/ ../output_nii/DTI.nii
 	$(FSLVIEW) ../output_nii/DTI.nii
-	fslhd ../output_nii/DTI.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
-	mrinfo ../output_data/dti 2> /dev/null | grep 'Dimensions'
+	-fslhd ../output_nii/DTI.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/dti 2> /dev/null | grep 'Dimensions'
 
 
 
@@ -150,8 +150,8 @@ run_epip:
 	-rm -f ../output_nii/EPI.nii
 	$(MRCONVERT)   ../output_data/epip/ ../output_nii/EPI.nii
 	$(FSLVIEW) ../output_nii/EPI.nii
-	fslhd ../output_nii/EPI.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
-	mrinfo ../output_data/epip 2> /dev/null | grep 'Dimensions'
+	-fslhd ../output_nii/EPI.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/epip 2> /dev/null | grep 'Dimensions'
 
 
 test_epip:
@@ -165,8 +165,8 @@ run_J6:
 	-rm -f ../output_nii/J6.nii
 	$(MRCONVERT)  ../output_data/j6/ ../output_nii/J6.nii
 	$(FSLVIEW) ../output_nii/J6.nii
-	fslhd ../output_nii/J6.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("FSL Dim: "); for (i=0;i<4;++i){printf("%d ",a[i])}; printf("\n")}' 
-	mrinfo ../output_data/j6 2> /dev/null | grep 'Dimensions'
+	fslhd ../output_nii/J6.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/j6 2> /dev/null | grep 'Dimensions'
 
 
 
@@ -184,6 +184,8 @@ heart:
 	$(MRCONVERT) ../output_data/hearttissue.dcm/ ../output_mif/heartdiff.mif
 	-rm -f ../output_mif/dt_DWI.mif
 	dwi2tensor ../output_mif/heartdiff.mif ../output_mif/dt_DWI.mif
+	-fslhd ../output_nii/heart.nii | grep -e '^dim[1234]' | awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' 
+	-printf "DICOM";mrinfo ../output_data/hearttissue.dcm 2> /dev/null | grep 'Dimensions'
 
 
 test_heart:
