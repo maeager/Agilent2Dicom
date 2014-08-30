@@ -29,10 +29,11 @@ def ReadFDF(fdffilename):
         if line[0] == '#':
             line = f.readline()
             continue
-        # print line
-        if line.find("=") == -1 and line[0] != '\n':
-            # print 'Unknown header line in fdf.'
-            continue
+##FIXME for fse3d images
+#        # print line
+#        if line.find("=") == -1 and line[0] != '\n':
+#            print 'Unknown header line in fdf.'
+#            continue
         tokens = line.strip(' ;\n').split(' ',1)
         tokens = tokens[1].strip().split('=')
         tokens[0] = tokens[0].strip(' *[]')
