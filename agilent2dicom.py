@@ -16,7 +16,7 @@ Version 0.6: Major rewrite, external recon
 """
 
 VersionNumber = "0.6"
-DVCSstamp = "$Id: agilent2dicom.py,v 0a7940540dd5 2014/08/20 12:59:27 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v 57afb2713753 2014/08/30 03:56:21 michael $"
 
 import pdb
 # import ast
@@ -144,7 +144,7 @@ def ReadFDF(fdffilename):
     
     Infomation on header parameters can be found in the "Agilent VNMRJ 3.2 User Programming User Guide"
     :param fdffilename: Name string of FDF file
-    :return properties: Label/value dictionary of FDF header properties
+    :return fdf_properties: Label/value dictionary of FDF header properties
     :return image data: 1D float array of pixel data 
     """
     f = open(fdffilename,'r')
@@ -307,7 +307,7 @@ def AssertImplementation(testval, fdffilename, comment, assumption):
         else:
             FDFStr = ""
     
-        print "\n\nImplementation check error:\n" + FDFStr + comment + '\nAssumption:' + assumption + '\n\n'
+        print "\nImplementation check error:\n" + FDFStr + comment + '\nAssumption:' + assumption + '\n'
         # sys.exit(1)
 
 
@@ -708,6 +708,17 @@ if __name__ == "__main__":
     # Number of gradient echoes collected per RF echo per shot (or excitation) per frame. A value of zero shall correspond to a pure RF echo frame. If RF Echo Train Length (0018,9240) is non zero and Gradient Echo Train Length is as well then only the central echo will be an RF Spin Echo, all others will be gradient echoes. See section C.8.13.5.2.1.
     # Required if Frame Type (0008,9007) Value 1 of this frame is ORIGINAL. May be present otherwise.
 
+#    MRTiming = Dataset()
+#    MRTiming.RepetitionTime
+#    MRTiming.FlipAngle
+#    MRTiming.EchoTrainLength
+#    MRTiming.RFEchoTrainLength
+#    MRTiming.GradientEchoLength
+#    ds.MRTimingandRelatedParametersSequence = Sequence([MRTiming])
+
+
+
+
 
     # MR FOV/Geometry C.8.13.5.3 Macro
     # MR FOV/Geometry Sequence (0018,9125) 1 Identifies the geometry parameters of this frame.
@@ -907,6 +918,7 @@ if __name__ == "__main__":
     #Only a single Item shall be included in this sequence.
     # >Number of Averages (0018,0083) 1C # Maximum number of times any point in k- space is acquired.
 
+    #procpar['nav']
 
     # MR Arterial Spin Labeling C.8.13.5.14 C Required if Image Type (0008,0008) Value 3 is ASL. May be present otherwise.
     if 'asltag' in procpar.keys() and procpar['asltag'] != 0:
@@ -1112,6 +1124,20 @@ if __name__ == "__main__":
     # Required if Image Type (0008,0008) Value 1 is ORIGINAL or MIXED. 
     # May be present otherwise.
 
+        # 'at'               Acquisition time (P)
+        #    Description Length of time during which each FID is acquired. Since the sampling rate
+        #                is determined by the spectral width sw, the total number of data points to
+        #                be acquired (2*sw*at) is automatically determined and displayed as the
+        #                parameter np. at can be entered indirectly by using the parameter np.
+        #        Values  Number, in seconds. A value that gives a number of data points that is not
+        #                a multiple of 2 is readjusted automatically to be a multiple of 2.
+        #                NMR Spectroscopy User Guide; VnmrJ User Programming
+        #       See also
+        #        Related np             Number of data points (P)
+        #                               Spectral width in directly detected dimension (P)
+        #                sw
+
+
     #Acquisition Duration(0018,9073) 1C 
     # The time in seconds needed to run the prescribed pulse sequence. 
     # See C.7.6.16.2.2.1 for further explanation.
@@ -1131,6 +1157,8 @@ if __name__ == "__main__":
     
     #Image Comments (0020,4000) 3
     # User-defined comments about the image.
+    ds.ImageComments = 'MBI Agilent2Dicom converter. '
+    
 
     # Image Type = ["ORIGINAL","PRIMARY"] (0008,0008) 1
     # Image characteristics. See C.8.16.1 and C.8.13.1.1.1.
@@ -1214,9 +1242,10 @@ if __name__ == "__main__":
 #                                                      Value 1 is ORIGINAL or MIXED. May be
 #                                                      present otherwise.
     MRAcquisitionType = '2D'
-    if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
+    if ('nv2' in procpar.keys() and procpar['nv2'] > 0) and ('nD' in procpar.keys() and procpar['nD'] == 3 ):
         MRAcquisitionType = '3D'
     ds.add_new((0x0018,0x0023), 'CS', MRAcquisitionType)
+
 # Echo Pulse Sequence              (0018,9008)     1C  Echo category of pulse sequences.
 #                                                      Enumerated Values:
 #                                                               SPIN
@@ -1589,6 +1618,37 @@ if __name__ == "__main__":
     if args.phase or procpar['imPH']=='y':
         ds.ComplexImageComponent = 'PHASE'
         
+# C.8.13.3.1.2     Acquisition Contrast
+# Table C.8-86 specifies the Defined Terms for Acquisition Contrast attribute (0008,9209).
+#                                             Table C.8-86
+#                              ACQUISITION CONTRAST VALUES
+#    Defined Term Name             Defined Term Description
+#    DIFFUSION                     Diffusion weighted contrast
+#    FLOW_ENCODED                  Flow Encoded contrast
+#    FLUID_ATTENUATED              Fluid Attenuated T2 weighted contrast
+#    PERFUSION                     Perfusion weighted contrast
+#    PROTON_DENSITY                Proton Density weighted contrast
+#    STIR                          Short Tau Inversion Recovery
+#    TAGGING                       Superposition of thin saturation bands onto image
+#    T1                            T1 weighted contrast
+#    T2                            T2 weighted contrast
+#    T2_STAR                       T2* weighted contrast
+#    TOF                           Time Of Flight weighted contrast
+#    UNKNOWN                       Value should be UNKNOWN if acquisition contrasts were
+#                                  combined resulting in an unknown contrast. Also this value
+#                                  should be used when the contrast is not known.
+#    MIXED                         Used only as a value in Acquisition Contrast (0008,9209)
+#                                  attribute in the Enhanced MR Image Type Module if frames
+#                                  within the image SOP Instance contain different values for
+#                                  the Acquisition Contrast attribute in the MR Frame Type
+#                                  Functional Group.
+
+    if SEQUENCE=='Diffusion':
+        ds.AcquisitionConstrast = ["DIFFUSION"]
+        ds.ComplexImageComponent=["MAGNITUDE"]
+
+
+
 
     # MRImage Module
     #0018,0020 (mandatory) Scanning sequence: SE = spin echo, IR = inversion recovery, GR = gradient recalled, 
@@ -1642,6 +1702,10 @@ if __name__ == "__main__":
     MRAcquisitionType = '2D'
     if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
         MRAcquisitionType = '3D'
+        # dcmulti does not like NumberOfFrames greater than 1
+        # ds.NumberOfFrames = procpar['nv2'] # or procpar['nf']
+    else:
+        ds.NumberOfFrames = 1
     # 0018,0023 MR Acquisition Type (optional)
     #ds.MRAcquisitionType = MRAcquisitionType                     
 
@@ -1677,14 +1741,21 @@ if __name__ == "__main__":
     # Number of Averages (0018,0083) 3 Number of times a given pulse sequence
     #                             is repeated before any parameter is
     #                             changed
-#fix    ds.NumberOfAverages = procpar['nav_echo']
+    #TODO    ds.NumberOfAverages = procpar['nav_echo']
 
 
     #H1reffreq
     # 0018,0084 Imaging Frequency (optional)
-    ds.ImagingFrequencey = str(procpar['H1reffrq'])                                                                
+    # this maps to H1reffreq, reffreq, sreffreq,reffreq1,reffreq2,sfrq
+    # Other image nuclei frequencies map to dreffreq,dfrq, dfrq2,dfrq3,dfrq4
+    # other fequencies include sfrq:3,tof:1,resto:1,wsfrq:1,satfrq:1;
+    ds.ImagingFrequency = str(procpar['H1reffrq'])
+
     # TN
     # 0018,0085 Imaged Nucleus (eg 1H) (optional)
+    # This maps to tn in procpar
+    # Other imaged nuclei include dn, dn2, dn3, dn4
+    # The Agilent 9.4T MR generally has dn=C13,dfrq=100.534,df=reffreq=100.525
     if 'tn' in procpar.keys():
         ds.ImagedNucleus = procpar['tn']
     else:
@@ -1717,8 +1788,16 @@ if __name__ == "__main__":
 
     # Pixel Bandwidth (0018,0095) 3 Reciprocal of the total sampling period, in
     #                          hertz per pixel.
-    # SW1 or sw2 or sw3
-    ds.PixelBandwidth = str(procpar['sw1'])     # 0018,0095 Pixel Bandwidth (optional)                                                             
+    # SW1 or sw2 or sw3 are the spectral widths in 1st, 2nd and 3rd indirectly detected dimension
+    ds.PixelBandwidth = str(procpar['sw1'])     # 0018,0095 Pixel Bandwidth (optional) 
+    # Spectral Width (0018,9052) 1C Spectral width in Hz.
+    #                               See section C.8.14.1.1 for further
+    #                               explanation of the ordering.
+    #                               Required if Image Type (0008,0008)
+    #                               Value 1 is ORIGINAL or MIXED. May be
+    #                               present otherwise.
+    # ds.SpectralWidth = procpar['sw'] 
+                                                            
 
     # Receive Coil Name (0018,1250) 3 Receive coil used.
     # 0018,1250 Receive Coil Name (optional)
@@ -1726,6 +1805,39 @@ if __name__ == "__main__":
     
     # Transmit Coil Name (0018,1251) 3 Transmit coil used.
     ds.TransmitCoilName = procpar['rfcoil'][:15]
+
+
+    # Image data dimensions   p.340 Command&Parameter_Reference.pdf
+    # 'fn'        Fourier number in directly detected dimension (P)
+    #    Description  Selects the Fourier number for the Fourier transformation along the
+    #                 directly detected dimension. This dimension is often referred to as the f2
+    #                 dimension in 2D data sets, the f3 dimension in 3D data sets, etc.
+    #                 'n' or a number equal to a power of 2 (minimum is 32). If fn is not entered
+    #        Values
+    #                 exactly as a power of 2, it is automatically rounded to the nearest higher
+    #                 power of 2 (e.g., setting fn=32000 gives fn=32768). fn can be less than,
+    #                 equal to, or greater than np, the number of directly detected data points:
+    #                -If fn is less than np, only fn points are transformed.
+    #                -If fn is greater than np, fn minus np zeros are added to the data table
+    #                 ('zero-filling').
+    #                -If fn='n', fn is automatically set to the power of 2 greater than or equal
+    #                 to np.
+    # 'fn1'       Fourier number in 1st indirectly detected dimension (P)
+    #     Description Selects the Fourier number for the Fourier transformation along the first
+    #                 indirectly detected dimension. This dimension is often referred to as the
+    #                 f1 dimension of a multi-dimensional data set. The number of increments
+    #                 along this dimension is controlled by the parameter ni.
+    #  Values  fn1 is set in a manner analogous to the parameter fn, with np being
+    #          substituted by 2*ni.
+    #          NMR Spectroscopy User Guide
+    # See also
+    #  Related fn       Fourier number in directly detected dimension (P)
+    #          fn2         Fourier number in 2nd indirectly detected dimension (P)
+    #          ni         Number of increments in 1st indirectly detected dimension (P)
+    #          np         Number of data points (P)
+
+
+
 
     ## From code below
     #
@@ -1797,14 +1909,14 @@ if __name__ == "__main__":
         #      endif
     print "Columns: ", procpar['fn']/2.0, procpar['np']/2.0, procpar['fn1']/2.0, procpar['nv']
     if  MRAcquisitionType == '3D':
-        if 'fn' in procpar.keys() and procpar['fn'] > 0:		
+        if 'fn' in procpar.keys() and procpar['fn'] > 0 and procpar['fn'] < procpar['np']:		
             AcqMatrix2 = procpar['fn']/2.0         
         else:
             AcqMatrix2 = procpar['np']/2.0 
         
         ds.Columns=str(AcqMatrix2)
     elif  MRAcquisitionType == '2D':
-        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:  
+        if 'fn1' in procpar.keys() and procpar['fn1'] > 0 and procpar['fn1'] > procpar['nv']:  
             # and procpar['fn1']/2.0 == procpar['nv']:		
             AcqMatrix2 = procpar['fn1']/ 2.0         
         else:
@@ -1816,8 +1928,7 @@ if __name__ == "__main__":
     #                                  /phase data before reconstruction.
     #                                  Multi-valued: frequency rows\frequency
     #                                  columns\phase rows\phase columns.
-
-    # ds.AcquisitionMatrix  = [ AcqMatrix1  , AcqMatrix2  ]   # 0018,1310 Acquisition Matrix (optional)
+#    ds.AcquisitionMatrix  = [ AcqMatrix1  , AcqMatrix2  ]   # 0018,1310 Acquisition Matrix (optional)
 
 
     #---------------------------------------------------------------------------------
@@ -1892,9 +2003,20 @@ if __name__ == "__main__":
     # BitsAllocated: should be 16
     # 0028,0100 (mandatory)
     ds.BitsAllocated = 16                             
-
     ds.BitsStored = 16			      #(0028,0101) Bits Stored
     ds.HighBit = 15				      #(0028,0102) High Bit
+    # FIDs are stored as either 16- or 32-bit integer binary data files, depending on whether the
+    # data acquisition was performed with dp='n' or dp='y', respectively.
+
+
+
+
+    # Pixel Representation (0028,0103) is either unsigned (0) or
+    # signed (1). The default is unsigned. There's an anecdotal issue
+    # here with VR codes of US and SS and this attribute because when
+    # it is set to signed then all the attributes of group 0028 should
+    # be encoded as Signed Shorts (SS) and when it's unsigned they
+    # should be unsigned (US) too.
     ds.PixelRepresentation = 0		      #(0028,0103) Pixel Representation
 
 
@@ -2012,18 +2134,17 @@ if __name__ == "__main__":
     # Numpy recast to int16 with range (-32768 or 32767)
     RescaleSlope = (datamax - datamin) / 65533 # / 32767    
 
-    # Read in data from file    
+    ## Per frame implementation
+    # Read in data from fdf file, if 3D split frames    
     volume=1
     for filename in fdffiles:
 
-## Per frame implementation
-
         if args.verbose:
-            print 'Converting ' + filename
+            print 'Filename: ' + filename
         fdf_properties, image_data = ReadFDF(args.inputdir + '/' + filename)
 
         if args.verbose:
-            print 'Image_data shape:', str(image_data.shape)
+            print 'Image_data shape: ', str(image_data.shape)
 
         # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3' and procpar:
         #     fdf_tmp=fdf_properties['roi']
@@ -2036,19 +2157,49 @@ if __name__ == "__main__":
         #----------------------------------------------------------
         # General implementation checks
         
-        # File dimensionality
-        fdfdims = fdf_properties['rank']
-        
+    # File dimensionality or Rank fields
+    # rank is a positive integer value (1, 2, 3, 4,...) giving the
+    # number of dimensions in the data file (e.g., int rank=2;).
+        fdfrank = fdf_properties['rank']
+        acqndims = procpar['acqdim']        
         CommentStr = 'Acquisition dimensionality (ie 2D or 3D) does not match between fdf and procpar'
-        AssumptionStr = 'procpar nv2 > 0 indicates 3D acquisition and fdf rank property indicates dimensionality'
-        acqndims = procpar['acqdim']
+        AssumptionStr = 'procpar nv2 > 0 indicates 3D acquisition and fdf rank property indicates dimensionality.\n'+\
+        'Using local FDF value '+str(fdfrank)+' instead of procpar value '+str(acqndims)+'.'
+ 
         if args.verbose:
             print 'Acqdim (type): ' + MRAcquisitionType + " acqndims "  + str(acqndims)
-        AssertImplementation(acqndims != fdfdims, filename, CommentStr, AssumptionStr)
+        AssertImplementation(acqndims != fdfrank, filename, CommentStr, AssumptionStr)
         
 
-        # PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
-        PixelSpacing = map(lambda x,y: x*10.0/y, fdf_properties['roi'][0:2],fdf_properties['matrix'][0:2])
+    # matrix is a set of rank integers giving the number of data
+    # points in each dimension (e.g., for rank=2, float
+    # matrix[]={256,256};)
+        fdf_size_matrix = fdf_properties['matrix'][0:2]
+
+    # spatial_rank is a string ("none", "voxel", "1dfov", "2dfov",
+    # "3dfov") for the type of data (e.g., char
+    # *spatial_rank="2dfov";).
+        spatial_rank = fdf_properties['spatial_rank']
+
+    # Data Content Fields
+    # The following entries define the data type and size.
+    #  - storage is a string ("integer", "float") that defines the data type (e.g., char
+    # *storage="float";).
+    #  - bits is an integer (8, 16, 32, or 64) that defines the size of the data (e.g.,
+    # float bits=32;).
+    # - type is a string ("real", "imag", "absval", "complex") that defines the
+    # numerical data type (e.g., char *type="absval";).
+
+    # roi is the size of the acquired data volume (three floating
+    # point values), in centimeters, in the user's coordinate frame,
+    # not the magnet frame (e.g., float roi[]={10.0,15.0,0.208};). Do
+    # not confuse this roi with ROIs that might be specified inside
+    # the data set.
+        roi = fdf_properties['roi'][0:2]
+
+
+        ## PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
+        PixelSpacing = map(lambda x,y: x*10.0/y, roi,fdf_size_matrix)
         if PixelSpacing[0] != ds.PixelSpacing[0] or PixelSpacing[1] != ds.PixelSpacing[1]:
             print "Pixel spacing mismatch, procpar ", ds.PixelSpacing , " fdf spacing ", str(PixelSpacing[0]),',', str(PixelSpacing[1])
         if args.verbose:
@@ -2057,21 +2208,23 @@ if __name__ == "__main__":
         ds.PixelSpacing =  [str(PixelSpacing[0]),str(PixelSpacing[1])]        #(0028,0030) Pixel Spacing
 
 
-        # FDF slice thickness
-        if fdfdims == 3:
+        ## FDF slice thickness
+        if fdfrank == 3:
             fdfthk = fdf_properties['roi'][2]/fdf_properties['matrix'][2]*10
         else:
             fdfthk = fdf_properties['roi'][2]*10.0
 
         CommentStr = 'Slice thickness does not match between fdf and procpar'
-        AssumptionStr = 'In fdf, slice thickness defined by roi[2] for 2D or roi[2]/matrix[2].\nIn procpar, slice thickness defined by thk (2D) or lpe2*10/(fn2/2) or lpe2*10/nv2'
+        AssumptionStr = 'In fdf, slice thickness defined by roi[2] for 2D or roi[2]/matrix[2].\n'+\
+        'In procpar, slice thickness defined by thk (2D) or lpe2*10/(fn2/2) or lpe2*10/nv2.\n'+\
+        'Using local FDF value '+str(fdfthk)+' instead of procpar value '+str(ds.SliceThickness)+'.'
         if args.verbose:
             print 'fdfthk : ' + str(fdfthk)
             print 'SliceThinkness: ' + str(ds.SliceThickness)
 
         SliceThickness= float(ds.SliceThickness)
 
-        #fix me Quick hack to avoid assert errors for diffusion and 3D magnitude images
+        # Quick hack to avoid assert errors for diffusion and 3D magnitude images
         #if not ('diff' in procpar.keys() and procpar["diff"] == 'y'): 
         #    if MRAcquisitionType == '3D':
         #        print 'Not testing slicethickness in diffusion and 3D MR FDFs'
@@ -2098,25 +2251,41 @@ if __name__ == "__main__":
         # GROUP 0020: Relationship
 
         ds.ImageComments = ds.ImageComments +'\n'+ fdf_properties['filetext']
-        
-        # For further information regarding the location, orientation, roi, span, etc 
-        # properties in the FDF header, see the "Agilent VNMRJ 3.2 User Programming 
-        # User Guide", pgs 434-436
-        
-        # Orientation defines the user frame of reference, and is defined according to the 
-        # magnet frame of reference (X,Y,Z), where
-        #   Z is along the bore, from cable end to sample end
-        #   Y is bottom to top, and
-        #   X is right to left, looking along positive Z
-        # ref: "Agilent VnmrJ 3 Imaging User Guide" pg 679
-        #
-        # Location defines the position of the centre of the acquired data volume, 
-        # relative to the magnet centre, in the user frame of reference.
-        #
-        # ROI is the size of the acquired data volume in cm in the user frame of reference.
-        #
-        # Origin is the coordinates of the first point in the data set, in the user frame 
-        # of reference.
+    
+    # For further information regarding the location, orientation, roi, span, etc 
+    # properties in the FDF header, see the "Agilent VNMRJ 3.2 User Programming 
+    # User Guide", pgs 434-436.  Also see VNMRJ Programming.pdf Ch5 Data Location
+    # and Orientation Fields p 292.
+    
+    # Orientation defines the user frame of reference, and is defined according to the 
+    # magnet frame of reference (X,Y,Z), where
+    #	Z is along the bore, from cable end to sample end
+    #	Y is bottom to top, and
+    #	X is right to left, looking along positive Z
+    # ref: "Agilent VnmrJ 3 Imaging User Guide" pg 679
+    #
+    # Location defines the position of the centre of the acquired data volume, 
+    # relative to the magnet centre, in the user frame of reference.
+    #
+    # ROI is the size of the acquired data volume in cm in the user frame of reference.
+    #
+    # Origin is the coordinates of the first point in the data set, in the user frame 
+    # of reference.
+    #
+    # 'abscissa' is a set of rank strings ("hz", "s", "cm", "cm/s",
+    # "cm/s2", "deg", "ppm1", "ppm2", "ppm3") that identifies the
+    # units that apply to each dimension (e.g., char
+    # *abscissa[]={"cm","cm"};).
+    #
+    # 'span' is a set of rank floating point values for the signed
+    # length of each axis, in user units. A positive value means the
+    # value of the particular coordinate increases going away from the
+    # first point (e.g., float span[]={10.000,-15.000};).
+    # 
+    # ordinate is a string ("intensity", "s", "deg") that gives the units
+    # that apply to the numbers in the binary part of the file (e.g.,char
+    # *ordinate[]={"intensity"};).
+
         
         orientation = numpy.matrix(fdf_properties['orientation']).reshape(3,3)
         location = numpy.matrix(fdf_properties['location'])*10
@@ -2152,20 +2321,83 @@ if __name__ == "__main__":
         ImageOrientationPatient[4] *= -1
         ImageOrientationPatient[5] *= -1
 
+    # (0020,0032) Image Patient Position
+        ds.ImagePositionPatient = [str(ImagePositionPatient[0]),\
+                                       str(ImagePositionPatient[1]),\
+                                       str(ImagePositionPatient[2])]	      
 
-        
-        ds.ImagePositionPatient = [str(ImagePositionPatient[0]),str(ImagePositionPatient[1]),str(ImagePositionPatient[2])]              # (0020,0032) Image Patient Position
+    #(0020,0037) Image Patient Orientation
+        ds.ImageOrientationPatient = [str(ImageOrientationPatient[0]),\
+                                          str(ImageOrientationPatient[1]),\
+                                          str(ImageOrientationPatient[2]),\
+                                          str(ImageOrientationPatient[3]),\
+                                          str(ImageOrientationPatient[4]),\
+                                          str(ImageOrientationPatient[5])]			
 
-        ds.ImageOrientationPatient = [str(ImageOrientationPatient[0]),str(ImageOrientationPatient[1]),str(ImageOrientationPatient[2]),str(ImageOrientationPatient[3]),str(ImageOrientationPatient[4]),str(ImageOrientationPatient[5])]                  #(0020,0037) Image Patient Orientation
 
-        # Change patient position and orientation in 
-        # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3':
-        
 
-        #---------------------------------------------------------------------------------
-        # GROUP 0028: Image Presentation
-        # A good short description of this section can be found here: 
-        # http://dicomiseasy.blogspot.com.au/2012/08/chapter-12-pixel-data.html
+
+    # Nuclear Data Fields
+    # Data fields may contain data generated by interactions between more than one nucleus
+    # (e.g., a 2D chemical shift correlation map between protons and carbon). Such data requires
+    # interpreting the term ppm for the specific nucleus, if ppm to frequency conversions are
+    # necessary, and properly labeling axes arising from different nuclei. To properly interpret
+    # ppm and label axes, the identity of the nucleus in question and the corresponding nuclear
+    # resonance frequency are needed. These fields are related to the abscissa values
+    # "ppm1", "ppm2", and "ppm3" in that the 1, 2, and 3 are indices into the nucleus and
+    # nucfreq fields. That is, the nucleus for the axis with abscissa string "ppm1" is the
+    # first entry in the nucleus field.
+    #   - nucleus is one entry ("H1", "F19", same as VNMR tn parameter) for each rf
+    #       channel (e.g., char *nucleus[]={"H1","H1"};).
+    #   - nucfreq is the nuclear frequency (floating point) used for each rf channel (e.g.,
+    #       float nucfreq[]={200.067,200.067};).
+
+        if fdf_properties['nucleus'][0] != ds.ImagedNucleus:
+            print 'Imaged nucleus mismatch: ', fdf_properties['nucleus'], ds.ImagedNucleus
+        if fdf_properties['nucfreq'][0] != ds.ImagingFrequency:
+            print 'Imaging frequency mismatch: ', fdf_properties['nucfreq'], ds.ImagingFrequency
+
+
+
+
+    # Change patient position and orientation in 
+    # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3':
+    
+
+    #---------------------------------------------------------------------------------
+    # GROUP 0028: Image Presentation
+    # A good short description of this section can be found here: 
+    # http://dicomiseasy.blogspot.com.au/2012/08/chapter-12-pixel-data.html
+
+
+        ## Implementation check
+        CommentStr = 'Number of rows does not match between fdf and procpar'
+        AssumptionStr = 'In FDF, number of rows is defined by matrix[1]. \n'+\
+            'In procpar, for 3D datasets number of rows is either fn1/2 or nv. ('+str(procpar['fn1']/2.0)+','+str(procpar['nv'])+').\n'+\
+            'For 2D datasets, number of rows is fn/2.0 or np ('+str(procpar['fn']/2.0)+','+str(procpar['np'])+').\n'+\
+            'Using local FDF value '+str(fdf_properties['matrix'][1])+' instead of procpar value '+str(ds.Rows)+'.'
+        AssertImplementation(int(float(ds.Rows)) != int(fdf_properties['matrix'][1]), filename, CommentStr, AssumptionStr)
+        if args.verbose:
+            print 'Rows', MRAcquisitionType, procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0
+            print '   Procpar: rows ', ds.Rows
+            print '   FDF prop rows ', fdf_properties['matrix'][1]
+        ds.Rows = fdf_properties['matrix'][1]                                   #(0028,0010) Rows
+            
+
+
+        ## Implementation check
+        CommentStr = 'Number of columns does not match between fdf and procpar'
+        AssumptionStr = 'In FDF, number of columns is defined by matrix[0]. \n'+\
+        'In procpar, for 3D datasets number of columns is either fn/2 or np ('+str(procpar['fn']/2.0)+','+str(procpar['np'])+').\n'+\
+        'For 2D datasets, number of rows is fn1/2.0 or nv ('+str(procpar['fn1']/2.0)+','+str(procpar['nv'])+').\n'+\
+        'Using local FDF value '+str(fdf_properties['matrix'][0])+' instead of procpar value '+str(ds.Columns)+'.'
+        AssertImplementation(int(float(ds.Columns)) != int(fdf_properties['matrix'][0]), filename, CommentStr, AssumptionStr)
+        if args.verbose:
+            print 'Columns', MRAcquisitionType, procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0, fdf_properties['matrix'][0]
+            print '   Procpar: Cols ', ds.Rows
+            print '   FDF prop Cols ', fdf_properties['matrix'][0]
+        ds.Columns = fdf_properties['matrix'][0]                                 #(0028,0011) Columns
+
 
         #---------------------------------------------------------------------------------
         # Number of frames        
@@ -2209,7 +2441,6 @@ if __name__ == "__main__":
 
         #if fdfdims == 3:
         #    ds.NumberOfFrames = fdf_properties['matrix'][2]
-        
         # dicom3tool uses frames to create enhanced MR
         # ds.NumberOfFrames = fdf_properties['slices']
         # ds.FrameAcquisitionNumber = fdf_properties['slice_no']
@@ -2220,13 +2451,15 @@ if __name__ == "__main__":
 
         if SEQUENCE=="MULTIECHO" and fdf_properties['echoes'] > 1:
             print 'Multi-echo sequence'
+            
+            ds.AcquisitionNumber = fdf_properties['echo_no']
+            ds.ImagesInAcquisition = fdf_properties['echoes']
             # TE 0018,0081 Echo Time (in ms) (optional)
             if 'TE' in fdf_properties.keys():
                 ds.EchoTime  = str(fdf_properties['TE']) 
             # 0018,0086 Echo Number (optional)
             if 'echo_no' in fdf_properties.keys():
-                ds.EchoNumber = fdf_properties['echo_no']            
-                
+                ds.EchoNumber = fdf_properties['echo_no']
         else:
             if 'te' in procpar.keys():
                 ds.EchoTime  = str(procpar['te']*1000.0)
@@ -2339,7 +2572,7 @@ if __name__ == "__main__":
                 diffusiongraddirseq.DiffusionGradientOrientation= [ fdf_properties['dro'],  fdf_properties['dpe'],  fdf_properties['dsl']]
                 diffusionseq.DiffusionGradientDirectionSequence = Sequence([diffusiongraddirseq])
                 #diffusionseq.add_new((0x0018,0x9076), 'SQ',Sequence([diffusiongraddirseq]))
-#Diffusion Gradient Orientation
+
 
             ### Diffusion b-matrix Sequence (0018,9601) 
                 diffbmatseq = Dataset()
@@ -2367,39 +2600,14 @@ if __name__ == "__main__":
         
 
 
-        ## Implementation check
-        CommentStr = 'Number of rows does not match between fdf and procpar'
-        AssumptionStr = 'In FDF, number of rows is defined by matrix[1]. \n'+\
-         'In procpar, for 3D datasets number of rows is either fn1/2 or nv. \n'+\
-         'For 2D datasets, number of rows is fn/2.0 or np.'
-        AssertImplementation(ds.Rows != fdf_properties['matrix'][1], filename, CommentStr, AssumptionStr)
-        if args.verbose:
-            print 'Rows', MRAcquisitionType, procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0
-            print '   Procpar: rows ', ds.Rows
-            print '   FDF prop rows ', fdf_properties['matrix'][1]
-        ds.Rows = fdf_properties['matrix'][1]                                   #(0028,0010) Rows
-            
-
-
-        ## Implementation check
-        CommentStr = 'Number of columns does not match between fdf and procpar'
-        AssumptionStr = 'In FDF, number of columns is defined by matrix[0]. \nIn procpar, for 3D datasets number of columns is either fn/2 or np.\nFor 2D datasets, number of rows is fn1/2.0 or nv.'
-        AssertImplementation(ds.Columns != fdf_properties['matrix'][0], filename, CommentStr, AssumptionStr)
-        if args.verbose:
-            print 'Columns', MRAcquisitionType, procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0, fdf_properties['matrix'][0]
-            print '   Procpar: Cols ', ds.Rows
-            print '   FDF prop Cols ', fdf_properties['matrix'][0]
-        ds.Columns = fdf_properties['matrix'][0]                                 #(0028,0011) Columns
         
 
 
-## Multi dimension Organisation and Index module
-
+        ## Multi dimension Organisation and Index module
         DimOrgSeq = Dataset()
+        # ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
-#        ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
-
-        if SEQUENCE == "MULTIECHO":
+        if SEQUENCE == "MULTIECHO": # or SEQUENCE == "Diffusion":
             DimensionOrganizationUID = [CreateUID(UID_Type_DimensionIndex1,[],[],args.verbose), CreateUID(UID_Type_DimensionIndex2,[],[],args.verbose)]
             DimOrgSeq.add_new((0x0020,0x9164), 'UI',DimensionOrganizationUID)
             ds.DimensionOrganizationType='3D_TEMPORAL'  #or 3D_TEMPORAL
@@ -2416,6 +2624,7 @@ if __name__ == "__main__":
         if SEQUENCE == 'MULTIECHO':
             DimIndexSeq1 = Dataset()
             DimIndexSeq1.DimensionIndexPointer = (0x0020,0x0032)  # Image position patient 20,32 or 20,12 
+
     # #DimIndexSeq1.DimensionIndexPrivateCreator=
     # #DimIndexSeq1.FunctionalGroupPointer=
     # #DimIndexSeq1.FunctionalGroupPrivateCreator=
@@ -2488,6 +2697,7 @@ if __name__ == "__main__":
         #---------------------------------------------------------------------------------
         # GROUP 7FE0: Image data
         if acqndims == 3:
+
             # Multi-dimension multi echo export format
             print "3D DATA splitting"
             voldata = numpy.reshape(image_data,fdf_properties['matrix'])
@@ -2545,13 +2755,16 @@ if __name__ == "__main__":
                 # Fix 3rd dimension position using transformation matrix
                 M = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], 
                                    PixelSpacing[1] * ImageOrientationPatient[1], 
-                                   SliceThickness * ImageOrientationPatient[2],  ImagePositionPatient[0]],
+                                   SliceThickness * ImageOrientationPatient[2],  
+                                   ImagePositionPatient[0]],
                                   [PixelSpacing[0] * ImageOrientationPatient[3], 
                                    PixelSpacing[1] * ImageOrientationPatient[4], 
-                                   SliceThickness * ImageOrientationPatient[5],  ImagePositionPatient[1]],
+                                   SliceThickness * ImageOrientationPatient[5],  
+                                   ImagePositionPatient[1]],
                                   [PixelSpacing[0] * ImageOrientationPatient[6], 
                                    PixelSpacing[1] * ImageOrientationPatient[7], 
-                                   SliceThickness * ImageOrientationPatient[8],  ImagePositionPatient[2]], 
+                                   SliceThickness * ImageOrientationPatient[8],  
+                                   ImagePositionPatient[2]], 
                                   [0,0,0,1]])
                 if procpar['recon'] == 'external' and fdf_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
                     pos = numpy.matrix([[0],[0],[islice],[1]])
