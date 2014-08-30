@@ -12,8 +12,9 @@ import argparse
 # Numpy recast to int16 with range (-32768 or 32767)
 UInt16MaxRange = 65533
 
+import ReadFDF
 
-def RescaleFDF(procpar,args):
+def RescaleFDF(fdffiles,ds,procpar,args):
     """RescaleFDF
      Calculate the max and min throughout all fdf iles in dataset;
      calculate the intercept and slope for casting to UInt16
@@ -29,12 +30,14 @@ def RescaleFDF(procpar,args):
     datamax = float("-inf")
 
     # RescaleSlope of phase imgs set to [-pi,pi]
-    if args.phase and 'imPH' in procpar.keys() and procpar["imPH"] == 'y':
+    if ds.ImageType[2] == "PHASE MAP" or \
+            (hasattr(ds,'ComplexImageComponent') and ds.ComplexImageComponent == 'PHASE'):
+        # this implies either args.phase is on or procpar['imPH']=='y'
         datamin = -math.pi
         datamax = math.pi
     else:
         for filename in fdffiles:
-            fdf_properties, data = ReadFDF(args.inputdir + '/' + filename)
+            fdf_properties, data = ReadFDF.ReadFDF(args.inputdir + '/' + filename)
             datamin = numpy.min([datamin,data.min()])
             datamax = numpy.max([datamax,data.max()])
 
@@ -50,6 +53,25 @@ def RescaleFDF(procpar,args):
     return RescaleIntercept,RescaleSlope
 
 
+def RescaleImage(image_data,RescaleIntercept,RescaleSlope,args):
+
+    if args.verbose:
+        print "Rescale data to uint16"
+        print "Intercept: ", RescaleIntercept, "  Slope: ", RescaleSlope
+        print "Current data min: ", image_data.min(), " max ", image_data.max()
+    image_data = (image_data - RescaleIntercept) / RescaleSlope
+    image_data = image_data.astype(numpy.int16)
+    
+    ds.RescaleIntercept = str(RescaleIntercept)                                #(0028,1052) Rescale Intercept
+    # Rescale slope string must not be longer than 16
+    if len(str(RescaleSlope))>16:
+        print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RescaleSlope)[:16]
+    ds.RescaleSlope = str(RescaleSlope)[:16]    #(0028,1053) Rescale Slope
+
+    return ds,image_data
+
+
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(usage=' procpartodicommapping -i "Input FDF directory"',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' + VersionNumber)
@@ -59,15 +81,18 @@ if __name__ == "__main__":
     parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     args = parser.parse_args()
     
-    from ReadFDF import ReadFDF
-    from ReadProcpar import ReadProcpar
-#    from ProcparToDicomMap import ProcparToDicomMap
+
+    import ReadProcpar as rp
+    import ProcparToDicomMap as ptd
 #    from ProcparToDicomMap import CreateUID
 
-    procpar, procpartext = ReadProcpar(args.inputdir+'/procpar')
-#    ds,MRAcq_type,SEQUENCE,BValue = ProcparToDicomMap(procpar, args)
+    procpar, procpartext = rp.ReadProcpar(args.inputdir+'/procpar')
+    ds,MRAcq_type = ptd.ProcparToDicomMap(procpar, args)
 
-    RescaleIntercept,RescaleSlope = RescaleFDF(procpar,args)
+    files = os.listdir(args.inputdir)
+    fdffiles = [ f for f in files if f.endswith('.fdf') ]
+
+    RescaleIntercept,RescaleSlope = RescaleFDF(fdffiles,ds,procpar,args)
 
     print "Intercept: ", RescaleIntercept
     print "Slope: ", RescaleSlope

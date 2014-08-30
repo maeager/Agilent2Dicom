@@ -8,9 +8,39 @@
    (c) 2014  Michael Eager (michael.eager@monash.edu)
 """
 
-import os,sys,math
+import os,sys
+import math
 import numpy
 import argparse
+
+from dicom.sequence import Sequence
+from dicom.dataset import Dataset
+
+UID_Type_DimensionIndex1 = "5"
+UID_Type_DimensionIndex2 = "6"
+# SEQUENCE=''
+
+import ProcparToDicomMap
+
+
+
+def AssertImplementation(testval, fdffilename, comment, assumption):
+    """ASSERTIMPLEMENTATION - Check FDF properties match up with interpretation of procpar
+  Due to lack of documentation on the use of the procpar file, the interpretation 
+ implemented in this script is based on various documents and scripts and may have errors.
+ This function seeks to double check some of the interpretations against the fdf
+ properties.
+    """
+    if testval:   
+        if len(fdffilename) > 0:
+            FDFStr = "fdf file: " + fdffilename + "\n"
+        else:
+            FDFStr = ""
+    
+        print "\nImplementation check error:\n" + FDFStr + comment + '\nAssumption:' + assumption + '\n'
+        # sys.exit(1)
+
+
 
 
 def ParseDiffusionFDF(ds,procpar,fdf_properties,args):
@@ -34,7 +64,7 @@ def ParseDiffusionFDF(ds,procpar,fdf_properties,args):
     else:
         diffusion_idx = fdf_properties['array_index']*2 
 
-# Get procpar diffusion parameters
+    # Get procpar diffusion parameters
     Bvalue = procpar['bvalue'] # 64 element array
     BValueSortIdx=numpy.argsort(Bvalue)
     BvalSave = procpar['bvalSave']
@@ -60,9 +90,9 @@ def ParseDiffusionFDF(ds,procpar,fdf_properties,args):
     if (math.fabs(Bvalue[ diffusion_idx ] - fdf_properties['bvalue']) > 0.005):
         print 'Procpar and fdf B-value mismatch: procpar value ', Bvalue[ diffusion_idx ], ' and  local fdf value ', fdf_properties['bvalue'], ' array idx ', fdf_properties['array_index'] 
 
-## MR Diffusion Sequence (0018,9117) see DiffusionMacro.txt
-## B0 scan does not need the MR Diffusion Gradient Direction Sequence macro and its directionality should be set to NONE
-## the remaining scans relate to particular directions hence need the direction macro
+    ## MR Diffusion Sequence (0018,9117) see DiffusionMacro.txt
+    ## B0 scan does not need the MR Diffusion Gradient Direction Sequence macro and its directionality should be set to NONE
+    ## the remaining scans relate to particular directions hence need the direction macro
     diffusionseq = Dataset()
     if fdf_properties['bvalue']<20:
         diffusionseq.DiffusionBValue=0 
@@ -78,8 +108,7 @@ def ParseDiffusionFDF(ds,procpar,fdf_properties,args):
         diffusiongraddirseq.DiffusionGradientOrientation= [ fdf_properties['dro'],  fdf_properties['dpe'],  fdf_properties['dsl']]
         diffusionseq.DiffusionGradientDirectionSequence = Sequence([diffusiongraddirseq])
         #diffusionseq.add_new((0x0018,0x9076), 'SQ',Sequence([diffusiongraddirseq]))
-#Diffusion Gradient Orientation
-
+        
     ### Diffusion b-matrix Sequence (0018,9601) 
         diffbmatseq = Dataset()
         diffbmatseq.DiffusionBValueXX = BvalueRR[ diffusion_idx ]
@@ -175,8 +204,8 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     """
     #global RescaleIntercept
     #global RescaleSlope
-    global SEQUENCE
-    global BValue
+    #global SEQUENCE
+    #global BValue
 
     # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3' and procpar:
     #     fdf_tmp=fdf_properties['roi']
@@ -194,24 +223,40 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     # rank is a positive integer value (1, 2, 3, 4,...) giving the
     # number of dimensions in the data file (e.g., int rank=2;).
     fdfrank = fdf_properties['rank']
-    
-    CommentStr = 'Acquisition dimensionality (ie 2D or 3D) does not match between fdf and procpar'
-    AssumptionStr = 'procpar nv2 > 0 indicates 3D acquisition and fdf rank property indicates dimensionality'
     acqndims = procpar['acqdim']
+    CommentStr = 'Acquisition dimensionality (ie 2D or 3D) does not match between fdf and procpar'
+    AssumptionStr = 'Procpar nv2 > 0 indicates 3D acquisition and fdf rank property indicates dimensionality.\n'+\
+        'Using local FDF value '+str(fdfrank)+' instead of procpar value '+str(acqndims)+'.'
     if args.verbose:
-        print 'Acqdim (type): ' + MRAcquisitionType + " acqndims "  + str(acqndims)
+        print 'Acqdim (type): ' + ds.MRAcquisitionType + " acqndims "  + str(acqndims)
+    
     AssertImplementation(acqndims != fdfrank, filename, CommentStr, AssumptionStr)
         
 
     # matrix is a set of rank integers giving the number of data
     # points in each dimension (e.g., for rank=2, float
     # matrix[]={256,256};)
-    fdf_dim_matrix = fdf_properties['matrix'][0:2]
+    fdf_size_matrix = fdf_properties['matrix']#[0:2]
 
     # spatial_rank is a string ("none", "voxel", "1dfov", "2dfov",
     # "3dfov") for the type of data (e.g., char
     # *spatial_rank="2dfov";).
     spatial_rank = fdf_properties['spatial_rank']
+
+    #  0018,0023 MR Acquisition Type (optional)
+    # Identification of spatial data encoding scheme.
+    # Defined Terms: 1D 2D 3D
+    fdf_MRAcquisitionType = '2D'
+    if spatial_rank == "3dfov":
+       fdf_MRAcquisitionType = '3D'
+    CommentStr = 'MR Acquisition type does not match between fdf and procpar'
+    AssumptionStr = 'In fdf, MR Acquisition type defined by spatial_rank and matrix. '+\
+        'For 2D, spatial_rank="2dfov" and matrix has two elements eg. {256,256}. '+\
+        'For 3D, spatial_rank="3dfov" and matrix has three elements.\n'+\
+        'In procpar, MR Acquisition type is defined by nv2 > 0 or lpe2 > 0.\n'+\
+        'Using local FDF value '+fdf_MRAcquisitionType+' instead of procpar value '+ds.MRAcquisitionType+'.'
+    AssertImplementation( ds.MRAcquisitionType != fdf_MRAcquisitionType,  filename, CommentStr, AssumptionStr)
+    ds.MRAcquisitionType = fdf_MRAcquisitionType
 
     # Data Content Fields
     # The following entries define the data type and size.
@@ -222,16 +267,15 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     # - type is a string ("real", "imag", "absval", "complex") that defines the
     # numerical data type (e.g., char *type="absval";).
 
-
     # roi is the size of the acquired data volume (three floating
     # point values), in centimeters, in the user's coordinate frame,
     # not the magnet frame (e.g., float roi[]={10.0,15.0,0.208};). Do
     # not confuse this roi with ROIs that might be specified inside
     # the data set.
-    roi = fdf_properties['roi'][0:2]
+    roi = fdf_properties['roi']#[0:2]
     
-    # PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
-    PixelSpacing = map(lambda x,y: x*10.0/y,roi,fdf_dim_matrix)
+    ## PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
+    PixelSpacing = map(lambda x,y: x*10.0/y,roi,fdf_size_matrix)
     if PixelSpacing[0] != ds.PixelSpacing[0] or PixelSpacing[1] != ds.PixelSpacing[1]:
         print "Pixel spacing mismatch, procpar ", ds.PixelSpacing , " fdf spacing ", str(PixelSpacing[0]),',', str(PixelSpacing[1])
     if args.verbose:
@@ -240,14 +284,16 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     ds.PixelSpacing =  [str(PixelSpacing[0]),str(PixelSpacing[1])]        #(0028,0030) Pixel Spacing
 
 
-    # FDF slice thickness
+    ## FDF slice thickness
     if fdfrank == 3:
 	fdfthk = fdf_properties['roi'][2]/fdf_properties['matrix'][2]*10
     else:
 	fdfthk = fdf_properties['roi'][2]*10.0
 
     CommentStr = 'Slice thickness does not match between fdf and procpar'
-    AssumptionStr = 'In fdf, slice thickness defined by roi[2] for 2D or roi[2]/matrix[2].\nIn procpar, slice thickness defined by thk (2D) or lpe2*10/(fn2/2) or lpe2*10/nv2'
+    AssumptionStr = 'In fdf, slice thickness defined by roi[2] for 2D or roi[2]/matrix[2].\n'+\
+        'In procpar, slice thickness defined by thk (2D) or lpe2*10/(fn2/2) or lpe2*10/nv2.\n'+\
+        'Using local FDF value '+str(fdfthk)+' instead of procpar value '+str(ds.SliceThickness)+'.'
     if args.verbose:
 	print 'fdfthk : ' + str(fdfthk)
 	print 'SliceThinkness: ' + str(ds.SliceThickness)
@@ -265,7 +311,7 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 
 
     # Slice Thickness 0018,0050 Slice Thickness (optional)
-    if MRAcquisitionType == '3D':
+    if fdfrank == 3:
 	if len(PixelSpacing) != 3:
 	    print "Slice thickness: 3D procpar spacing not available, fdfthk ", fdfthk
 	else:
@@ -364,6 +410,24 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 				      str(ImageOrientationPatient[3]),\
 				      str(ImageOrientationPatient[4]),\
 				      str(ImageOrientationPatient[5])]			
+    if fdfrank == 3:
+        # Prepare to fix 3rd dimension position using transformation matrix in Save3DFDFtoDicom
+        ImageTransformationMatrix = \
+            numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], 
+                           PixelSpacing[1] * ImageOrientationPatient[1], 
+                           SliceThickness * ImageOrientationPatient[2],  
+                           ImagePositionPatient[0]],
+                          [PixelSpacing[0] * ImageOrientationPatient[3], 
+                           PixelSpacing[1] * ImageOrientationPatient[4], 
+                           SliceThickness * ImageOrientationPatient[5],  
+                           ImagePositionPatient[1]],
+                          [PixelSpacing[0] * ImageOrientationPatient[6], 
+                           PixelSpacing[1] * ImageOrientationPatient[7], 
+                           SliceThickness * ImageOrientationPatient[8],  
+                           ImagePositionPatient[2]], 
+                          [0,0,0,1]])
+    else:
+        ImageTransformationMatrix=[]
 
 
 
@@ -385,7 +449,7 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 
     if fdf_properties['nucleus'][0] != ds.ImagedNucleus:
         print 'Imaged nucleus mismatch: ', fdf_properties['nucleus'], ds.ImagedNucleus
-    if fdf_properties['nucfreq'][0] != ds.ImagingFrequencey:
+    if fdf_properties['nucfreq'][0] != ds.ImagingFrequency:
         print 'Imaging frequency mismatch: ', fdf_properties['nucfreq'], ds.ImagingFrequency
 
 
@@ -399,6 +463,36 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     # GROUP 0028: Image Presentation
     # A good short description of this section can be found here: 
     # http://dicomiseasy.blogspot.com.au/2012/08/chapter-12-pixel-data.html
+
+
+        ## Implementation check
+    CommentStr = 'Number of rows does not match between fdf and procpar'
+    AssumptionStr = 'In FDF, number of rows is defined by matrix[1]. \n'+\
+        'In procpar, for 3D datasets number of rows is either fn1/2 or nv ('+str(procpar['fn1']/2.0)+','+str(procpar['nv'])+').\n'+\
+        'For 2D datasets, number of rows is fn/2.0 or np ('+str(procpar['fn']/2.0)+','+str(procpar['np'])+').\n'+\
+        'Using local FDF value '+str(fdf_properties['matrix'][1])+' instead of procpar value '+str(ds.Rows)+'.'
+    AssertImplementation(int(float(ds.Rows)) != int(fdf_properties['matrix'][1]), filename, CommentStr, AssumptionStr)
+    if args.verbose:
+        print 'Rows ', procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0
+        print '   Procpar: rows ', ds.Rows
+        print '   FDF prop rows ', fdf_properties['matrix'][1]
+    ds.Rows = fdf_properties['matrix'][1]                                   #(0028,0010) Rows
+            
+
+
+    ## Implementation check
+    CommentStr = 'Number of columns does not match between fdf and procpar'
+    AssumptionStr = 'In FDF, number of columns is defined by matrix[0]. \n'+\
+        'In procpar, for 3D datasets number of columns is either fn/2 or np ('+str(procpar['fn']/2.0)+','+str(procpar['np'])+').\n'+\
+        'For 2D datasets, number of rows is fn1/2.0 or nv ('+str(procpar['fn1']/2.0)+','+str(procpar['nv'])+').\n'+\
+        'Using local FDF value '+str(fdf_properties['matrix'][0])+' instead of procpar value '+str(ds.Columns)+'.'
+    AssertImplementation(int(float(ds.Columns)) != int(fdf_properties['matrix'][0]), filename, CommentStr, AssumptionStr)
+    if args.verbose:
+        print 'Columns ', procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0, fdf_properties['matrix'][0]
+        print '   Procpar: Cols ', ds.Rows
+        print '   FDF prop Cols ', fdf_properties['matrix'][0]
+    ds.Columns = fdf_properties['matrix'][0]                                 #(0028,0011) Columns
+
 
     #---------------------------------------------------------------------------------
     # Number of frames	      
@@ -456,7 +550,7 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 
 
 
-    if SEQUENCE=="MULTIECHO" and fdf_properties['echoes'] > 1:
+    if ds.ImageType[2]=="MULTIECHO" and fdf_properties['echoes'] > 1:
 	print 'Multi-echo sequence'
 	# TE 0018,0081 Echo Time (in ms) (optional)
 	if 'TE' in fdf_properties.keys():
@@ -470,7 +564,7 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 	    ds.EchoNumber = fdf_properties['echo_no']		 
 
 
-    if SEQUENCE == "ASL":	  
+    if ds.ImageType[2] == "ASL":	  
         ds=ParseASL(ds,procpar,fdf_properties)
 
     #if 'echoes' in fdf_properties.keys() and fdf_properties['echoes'] > 1 and fdf_properties['array_dim'] == 1:
@@ -482,45 +576,22 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     ds.ImagesInAcquisition = fdf_properties['array_dim']
 
 
-    if SEQUENCE == 'Diffusion':
-        ParseDiffusionFDF(ds,procpar,fdf_properties,args)
+    if ds.ImageType[2] == 'DIFFUSION':
+        ds=ParseDiffusionFDF(ds,procpar,fdf_properties,args)
+
+ 
 
 
-    ## Implementation check
-    CommentStr = 'Number of rows does not match between fdf and procpar'
-    AssumptionStr = 'In FDF, number of rows is defined by matrix[1]. \n'+\
-        'In procpar, for 3D datasets number of rows is either fn1/2 or nv. \n'+\
-        'For 2D datasets, number of rows is fn/2.0 or np.'
-    AssertImplementation(ds.Rows != fdf_properties['matrix'][1], filename, CommentStr, AssumptionStr)
-    if args.verbose:
-        print 'Rows', MRAcquisitionType, procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0
-        print '   Procpar: rows ', ds.Rows
-        print '   FDF prop rows ', fdf_properties['matrix'][1]
-    ds.Rows = fdf_properties['matrix'][1]                                   #(0028,0010) Rows
-    
-
-
-    ## Implementation check
-    CommentStr = 'Number of columns does not match between fdf and procpar'
-    AssumptionStr = 'In FDF, number of columns is defined by matrix[0]. \nIn procpar, for 3D datasets number of columns is either fn/2 or np.\nFor 2D datasets, number of rows is fn1/2.0 or nv.'
-    AssertImplementation(ds.Columns != fdf_properties['matrix'][0], filename, CommentStr, AssumptionStr)
-    if args.verbose:
-        print 'Columns', MRAcquisitionType, procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0, fdf_properties['matrix'][0]
-        print '   Procpar: Cols ', ds.Rows
-        print '   FDF prop Cols ', fdf_properties['matrix'][0]
-    ds.Columns = fdf_properties['matrix'][0]                                 #(0028,0011) Columns
-    
     ## Multi dimension Organisation and Index module
-
     DimOrgSeq = Dataset()
     #ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
-    if SEQUENCE == "MULTIECHO" or SEQUENCE == 'Diffusion':
-        DimensionOrganizationUID = [CreateUID(UID_Type_DimensionIndex1,[],[],args.verbose), CreateUID(UID_Type_DimensionIndex2,[],[],args.verbose)]
+    if ds.ImageType[2] == "MULTIECHO": # or SEQUENCE == "Diffusion":
+        DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex1,[],[],args.verbose), ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex2,[],[],args.verbose)]
         DimOrgSeq.add_new((0x0020,0x9164), 'UI',DimensionOrganizationUID)
         ds.DimensionOrganizationType='3D_TEMPORAL'  #or 3D_TEMPORAL
     else:
-        DimensionOrganizationUID = CreateUID(UID_Type_DimensionIndex1,[],[],args.verbose)
+        DimensionOrganizationUID = ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex1,[],[],args.verbose)
         #if args.verbose:
         #    print "DimUID", DimensionOrganizationUID
         DimOrgSeq.add_new((0x0020,0x9164), 'UI',[DimensionOrganizationUID])
@@ -529,9 +600,10 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     ds.DimensionOrganizationSequence= Sequence([DimOrgSeq])
 
 
-    if SEQUENCE == 'MULTIECHO':
+    if ds.ImageType[2] == 'MULTIECHO':
         DimIndexSeq1 = Dataset()
         DimIndexSeq1.DimensionIndexPointer = (0x0020,0x0032)  # Image position patient 20,32 or 20,12 
+
         # #DimIndexSeq1.DimensionIndexPrivateCreator=
         # #DimIndexSeq1.FunctionalGroupPointer=
         # #DimIndexSeq1.FunctionalGroupPrivateCreator=
@@ -557,25 +629,14 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
         ds.DimensionIndexSequence = Sequence([DimIndexSeq1])
     
 
-
-    if args.verbose:
-        print "Rescale data to uint16"
-        print "Intercept: ", RescaleIntercept, "  Slope: ", RescaleSlope
-        print "Current data min: ", image_data.min(), " max ", image_data.max()
-    image_data = (image_data - RescaleIntercept) / RescaleSlope
-    image_data = image_data.astype(numpy.int16)
-    
-    ds.RescaleIntercept = str(RescaleIntercept)                                #(0028,1052) Rescale Intercept
-    # Rescale slope string must not be longer than 16
-    if len(str(RescaleSlope))>16:
-        print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RscaleSlope)[:16]
-    ds.RescaleSlope = str(RescaleSlope)[:16]    #(0028,1053) Rescale Slope
-
-
-
-    #ds.MRAcquisitionType = '2D'                 # 0018,0023 MR Acquisition Type (optional)
-    # Identification of spatial data encoding scheme.
-    # Defined Terms: 1D 2D 3D
+        # Module: Image Pixel (mandatory)
+        # Reference: DICOM Part 3: Information Object Definitions C.7.6.3 
+        # ds.Rows                                                              # 0028,0010 Rows (mandatory)
+        # ds.Columns                                                           # 0028,0011 Columns (mandatory)
+        # ds.BitsStored                                                        # 0028,0101 (mandatory)
+        # ds.HighBit                                                           # 0028,0102 (mandatory)
+        # ds.PixelRepresentation                                               # 0028,0103 Pixel Representation (mandatory)
+        # ds.PixelData                                                        # 7fe0,0010 Pixel Data (mandatory)
 
 
 
@@ -595,61 +656,136 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     ds.FrameContentSequence = Sequence([FrameContentSequence])
 
 
-    ImageTransformationMatrix=[]
-    #---------------------------------------------------------------------------------
-    # GROUP 7FE0: Image data
-    if acqndims == 3:
-        # Multi-dimension multi echo export format
-        print "3D DATA splitting"
-        voldata = numpy.reshape(image_data,fdf_properties['matrix'])
+
+    return ds,fdfrank,fdf_size_matrix,ImageTransformationMatrix
+
+def Save3dFDFtoDicom(ds,image_data,fdf_matsize,ImageTransformationMatrix,volume,args,outdir):
+    """
+    """
+    # Multi-dimension multi echo export format
+    print "3D export"
+    voldata = numpy.reshape(image_data,fdf_matsize)
+
+    # if procpar['recon'] == 'external':
+    # 
+    #        pdb.set_trace()
+    if procpar['recon'] == 'external' and fdf_properties['rank'] == 3:
+        if procpar['seqfil'] == "epip":
+            print "Transposing external recon 3D"
+            voldata = numpy.transpose(voldata,(1,2,0)) # 1,2,0
+        if procpar['seqfil'] == "fse3d":
+            print "Transposing external recon 3D"
+            voldata = numpy.transpose(voldata,(2,0,1)) # 0,2,1 works
+    # readpp.m procpar('nD') == 3            
+    #        acq.FOVcm = [pps.lro pps.lpe pps.lpe2];
+    #        acq.dims = [pps.nf pps.np/2 pps.nv2];
+    #        acq.voxelmm = acq.FOVcm./acq.dims*10;
+
+    print "Image data shape: ", str(image_data.shape)
+    print "Vol data shape: ", voldata.shape
+    print "fdf properties matrix: ", fdf_properties['matrix']
+    print "Slice points: ", fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
+    #  slice_data = numpy.zeros_like(numpy.squeeze(image_data[:,:,1]))
+    #   if 'ne' in procpar.keys():
+        
+    range_max = fdf_properties['matrix'][2]
+    num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
+    if procpar['recon'] == 'external' and fdf_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
+        range_max = fdf_properties['matrix'][1]
+        num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][2]
+        ds.Columns = fdf_properties['matrix'][2]
+        ds.Rows = fdf_properties['matrix'][0]
+        ##FIXME FSE3d still producing bad dicoms
+
+    if args.verbose:
+        print "Columns ", ds.Columns, " Rows ", ds.Rows
+        print "Range max and no slice points: ", range_max, num_slicepts
+        print "Voldata[1] shape: ", voldata[:,:,0].shape
+
+    ## Indexing in numpy matrix begins at 0, fdf/dicom filenames begin at 1
+    for islice in xrange(0,range_max):    
+        # Reshape volume slice to 1D array
+        slice_data = numpy.reshape(voldata[:,:,islice],(num_slicepts,1)) 
+            # Convert Pixel data to string
+        ds.PixelData = slice_data.tostring()    #(7fe0,0010) Pixel Data
+
+        #if acqndims == 3:
+        if 'slice_no' in fdf_properties.keys():
+            image_number = fdf_properties['slice_no']
+        else:
+            image_number=int(re.sub(r'^.*image(\d+).*', r'\1',filename))
+
+        new_filename = "slice%03dimage%03decho%03d.dcm" % (islice+1,image_number,fdf_properties['echo_no'])
+
+        if procpar['recon'] == 'external' and fdf_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
+            pos = numpy.matrix([[0],[0],[islice],[1]])
+        else:
+            pos = numpy.matrix([[0],[0],[islice],[1]])
+
+        Pxyz = ImageTransformationMatrix * pos
+        ds.ImagePositionPatient= [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0])]
+
+        ds.FrameContentSequence[0].StackID = [str(volume)] # fourthdimid
+        ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)] #fourthdimindex
+        ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber
+#        ds.InStackPosition = islice #str(islice)
+
+        # Save DICOM
+        ds.save_as(os.path.join(outdir, new_filename))
 
 
-        # Fix 3rd dimension position using transformation matrix
-        ImageTransformationMatrix = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], 
-                                                   PixelSpacing[1] * ImageOrientationPatient[1], 
-                                                   SliceThickness * ImageOrientationPatient[2],  ImagePositionPatient[0]],
-                                                  [PixelSpacing[0] * ImageOrientationPatient[3], 
-                                                   PixelSpacing[1] * ImageOrientationPatient[4], 
-                                                   SliceThickness * ImageOrientationPatient[5],  ImagePositionPatient[1]],
-                                                  [PixelSpacing[0] * ImageOrientationPatient[6], 
-                                                   PixelSpacing[1] * ImageOrientationPatient[7], 
-                                                   SliceThickness * ImageOrientationPatient[8],  ImagePositionPatient[2]], 
-                                                  [0,0,0,1]])
+def Save2dFDFtoDicom(ds,image_data,filename):
+    """
 
+    """
+    
+    # Common export format
+    ds.PixelData = image_data.tostring()         # (7fe0,0010) Pixel Data
 
-    return ds,image_data,fdfrank,ImageTransformationMatrix
+    # Save DICOM
+    ds.save_as(filename)
+    
+    return 1
 
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(usage=' ParseFDF.py -i "Input FDF directory"',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. ParseFDF takes header info from fdf files and adjusts the dicom dataset *ds* then rescales the image data.')
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
+    parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.')
     parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
     parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
     parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     args = parser.parse_args()
     
-    from ReadFDF import ReadFDF
-    from RescaleFDF import RescaleFDF
-    from ReadProcpar import ReadProcpar
-    from ProcparToDicomMap import ProcparToDicomMap
-    from ProcparToDicomMap import CreateUID
+    import ReadProcpar as rp
+    import RescaleFDF as resf
+    import ReadFDF as rf
+    import ProcparToDicomMap as ptd
 
-    procpar, procpartext = ReadProcpar(args.inputdir+'/procpar')
-    ds,MRAcq_type,SEQUENCE,BValue = ProcparToDicomMap(procpar, args)
-    RescaleIntercept,RescaleSlope = RescaleFDF(procpar,args)
+
+    procpar, procpartext = rp.ReadProcpar(args.inputdir+'/procpar')
+    ds,MRAcq_type = ptd.ProcparToDicomMap(procpar, args)
+    print "Rows: ", ds.Rows, " Columns: ", ds.Columns
+    
+
+    files = os.listdir(args.inputdir)
+    fdffiles = [ f for f in files if f.endswith('.fdf') ]
+    print "Number of FDF files ", len(fdffiles)
+    RescaleIntercept,RescaleSlope = resf.RescaleFDF(fdffiles,ds,procpar,args)
+    print "Rescale Intercept ", RescaleIntercept, " Slope ", RescaleSlope
 
     # for filename in fdffiles:
-    filename = fdffiles[0]
-    fdf_properties,image_data=ReadFDF(args.input_dir+'/'+filename)
-    ds,data,fdfrank = ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args)
-
+    filename = fdffiles[len(fdffiles)-1]
+    fdf_properties,image_data=rf.ReadFDF(args.inputdir+'/'+filename)
+    ds,fdfrank,matsize,M = ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args)
 
     print "FDF # of dims: ", fdfrank
+    print "FDF matrix:  ", matsize
     print "Patient Name: ", ds.PatientName
     print "Patient ID: ", ds.PatientID
     print "Rows: ", ds.Rows
     print "Columns: ", ds.Columns
-
+    print "Transformation matrix: ", M
     print "Stack ID: ", ds.FrameContentSequence[0].StackID
     print "InStack position: ", ds.FrameContentSequence[0].InStackPositionNumber

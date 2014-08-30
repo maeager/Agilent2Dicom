@@ -8,7 +8,7 @@
 
 VersionNumber = "0.6"
 DVCSstamp = "$Id: agilent2dicom.py,v d6eed4ea3807 2014/08/15 01:00:55 michael $"
-SEQUENCE=''
+
 # import pdb
 # import ast
 import os
@@ -34,8 +34,6 @@ UID_Type_MediaStorageSOPInstance = "1"
 UID_Type_StudyInstance = "2"
 UID_Type_SeriesInstance = "3"
 UID_Type_FrameOfReference = "4"
-UID_Type_DimensionIndex1 = "5"
-UID_Type_DimensionIndex2 = "6"
 
 # Hard coded DICOM tag values
 InstanceCreatorId = ''.join(map(str,[ord(c) for c in 'agilent2dicom'])) + '.' + VersionNumber
@@ -45,8 +43,8 @@ DICOM_Tag_ManufacturerModelName = "vnmrs"
 DICOM_Tag_DeviceSerialNumber = "unknown"
 DICOM_Tag_SoftwareVersions = "VnmrJ 3.2"
 Derivation_Description = "Dicom generated from FDF using MBI's inhouse converter agilent2dicom."
-SEQUENCE=''
-BValue=[]
+# SEQUENCE=''
+# BValue=[]
 
 def getColumns(inFile, delim="\t", header=True):
     """
@@ -135,8 +133,8 @@ def ProcparToDicomMap(procpar,args):
     Procparmappingtodicom - 
 
     """
-    global SEQUENCE
-    global BValue
+    #global SEQUENCE
+    #global BValue
     #================================================================
     # Create file meta dataset
 
@@ -491,14 +489,15 @@ def ProcparToDicomMap(procpar,args):
     MRFOVSeq.InPlanePhaseEncodingDirection='ROW'      # ROW if lpe is dimX or COL if lpe is dimY
     if procpar['dimY'] == "lpe":
         MRFOVSeq.InPlanePhaseEncodingDirection = "COL" 
-
     #MRFOVSeq.MRAcquisitionFrequencyEncodingSteps
     #MRFOVSeq.MRAcquisitionPhaseEncodingStepsinplane
     #MRFOVSeq.PercentSampling
     #MRFOVSeq.PercentPhaseFieldofView
     ds.MRFOVGeometrySequence = Sequence([MRFOVSeq])
 
-    #MR Receive Coil C.8.13.5.7 C
+
+
+    # MR Receive Coil C.8.13.5.7 C
     # MR Receive Coil Sequence (0018,9042) 1 
     # A sequence that provides information about each receive coil used.
     # Only a single Item shall be included in this sequence.
@@ -512,6 +511,7 @@ def ProcparToDicomMap(procpar,args):
             ReceiveCoilSeq.ReceiveCoilName='millipede'
             ReceiveCoilSeq.ReceiveCoilType = 'VOLUME'
     ds.MRReceiveCoilSequence= Sequence([ReceiveCoilSeq])
+
 
     # MR Transmit Coil C.8.13.5.8 C 
     #                                           Table C.8-95
@@ -635,7 +635,7 @@ def ProcparToDicomMap(procpar,args):
         if 'bvalue' in procpar.keys() and len(procpar['bvalue']) > 1:
             if args.verbose:
                 print 'Processing Diffusion sequence'
-            SEQUENCE='Diffusion'  
+            #SEQUENCE='Diffusion'  
             ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]  # Compulsory           
             ds.AcquisitionConstrast = ["DIFFUSION"]
             ds.PixelPresentation=["MONOCHROME"]
@@ -649,17 +649,17 @@ def ProcparToDicomMap(procpar,args):
            
 
 # Save procpar diffusion parameters
-            Bvalue = procpar['bvalue'] # 64 element array
-            BValueSortIdx=numpy.argsort(Bvalue)
-            BvalSave = procpar['bvalSave']
-            if 'bvalvs' in procpar.keys():
-                BvalVS = procpar['bvalvs'] #excluded in external recons by vnmrj
-            BvalueRS = procpar['bvalrs'] # 64
-            BvalueRR = procpar['bvalrr'] # 64
-            BvalueRP = procpar['bvalrp'] # 64
-            BvaluePP = procpar['bvalpp'] # 64
-            BvalueSP = procpar['bvalsp'] # 64
-            BvalueSS = procpar['bvalss'] # 64
+            # Bvalue = procpar['bvalue'] # 64 element array
+            # BValueSortIdx=numpy.argsort(Bvalue)
+            # BvalSave = procpar['bvalSave']
+            # if 'bvalvs' in procpar.keys():
+            #     BvalVS = procpar['bvalvs'] #excluded in external recons by vnmrj
+            # BvalueRS = procpar['bvalrs'] # 64
+            # BvalueRR = procpar['bvalrr'] # 64
+            # BvalueRP = procpar['bvalrp'] # 64
+            # BvaluePP = procpar['bvalpp'] # 64
+            # BvalueSP = procpar['bvalsp'] # 64
+            # BvalueSS = procpar['bvalss'] # 64
 
         
 
@@ -668,10 +668,11 @@ def ProcparToDicomMap(procpar,args):
     #Only a single Item shall be included in this sequence.
     # >Number of Averages (0018,0083) 1C # Maximum number of times any point in k- space is acquired.
 
+    #procpar['nav']
 
     # MR Arterial Spin Labeling C.8.13.5.14 C Required if Image Type (0008,0008) Value 3 is ASL. May be present otherwise.
     if 'asltag' in procpar.keys() and procpar['asltag'] != 0:
-        SEQUENCE='ASL'
+        #SEQUENCE='ASL'
         print 'Processing ASL sequence images'
         ds.ImageType = ["ORIGINAL","PRIMARY", "ASL","NONE"]
 
@@ -684,52 +685,52 @@ def ProcparToDicomMap(procpar,args):
     # the same as the number of frames in the Multi-frame image. 
     # See Section C.7.6.16.1.2 for further explanation.
     
-#     Sequences:>Include one or more Functional Group Macros
+    #     Sequences:>Include one or more Functional Group Macros
     
-#     MR Image Frame Type C.8.13.5.1 M
-#     MR Image Frame Type Sequence (0018,9226) 1
-#     Identifies the characteristics of this frame.
-#     Only a single Item shall be included in this sequence.
-#     >Frame Type (0008,9007) 1
-#     Type of Frame. A multi-valued attribute analogous to the Image Type (0008,0008).
-#     Enumerated Values and Defined Terms are the same as those for the four values of the Image Type (0008,0008) attribute, except that the value MIXED is not allowed. See C.8.16.1 and C.8.13.1.1.1.
-#     SET TO SAME AS IMAGE TYPE
+    #     MR Image Frame Type C.8.13.5.1 M
+    #     MR Image Frame Type Sequence (0018,9226) 1
+    #     Identifies the characteristics of this frame.
+    #     Only a single Item shall be included in this sequence.
+    #     >Frame Type (0008,9007) 1
+    #     Type of Frame. A multi-valued attribute analogous to the Image Type (0008,0008).
+    #     Enumerated Values and Defined Terms are the same as those for the four values of the Image Type (0008,0008) attribute, except that the value MIXED is not allowed. See C.8.16.1 and C.8.13.1.1.1.
+    #     SET TO SAME AS IMAGE TYPE
 
-#     MR Echo C.8.13.5.4 C
-#     MR Echo Sequence (0018,9114) 1 Identifies echo timing of this frame.
-#     Only a single Item shall be included in this sequence.
-#     >Effective Echo Time (0018,9082) 1C The time in ms between the middle of the excitation pulse and the peak of the echo produced for kx=0.
+    #     MR Echo C.8.13.5.4 C
+    #     MR Echo Sequence (0018,9114) 1 Identifies echo timing of this frame.
+    #     Only a single Item shall be included in this sequence.
+    #     >Effective Echo Time (0018,9082) 1C The time in ms between the middle of the excitation pulse and the peak of the echo produced for kx=0.
 
     if ('ne' in procpar.keys()) and (procpar['ne'] > 1):
         print 'Multi-echo sequence'
-        SEQUENCE='MULTIECHO'
+        #SEQUENCE='MULTIECHO'
         tmp_file = open(os.path.join(args.outputdir,'MULTIECHO'),'w')
         tmp_file.write(str(procpar['ne']))
         tmp_file.close()
         ds.ImageType=["ORIGINAL","PRIMARY","MULTIECHO"]  # Compulsory
         
 
-#     Frame Content C.7.6.16.2.2 M - May not be used as a Shared Functional Group.
+    #     Frame Content C.7.6.16.2.2 M - May not be used as a Shared Functional Group.
     
-#     Frame Content Sequence (0020,9111) 1 Identifies general characteristics of this frame. Only a single Item shall be included in this sequence.
+    #     Frame Content Sequence (0020,9111) 1 Identifies general characteristics of this frame. Only a single Item shall be included in this sequence.
     
-#     >Frame Acquisition Number (0020,9156) 3 A number identifying the single continuous gathering of data over a period of time that resulted in this frame.
+    #     >Frame Acquisition Number (0020,9156) 3 A number identifying the single continuous gathering of data over a period of time that resulted in this frame.
     
-#     >Frame Reference DateTime (0018,9151) 1C The point in time that is most representative of when data was acquired for this frame. See C.7.6.16.2.2.1 and C.7.6.16.2.2.2 for further explanation. 
-# Note: The synchronization of this time with an external clock is specified
-# in the synchronization Module in Acquisition Time synchronized (0018,1800).
+    #     >Frame Reference DateTime (0018,9151) 1C The point in time that is most representative of when data was acquired for this frame. See C.7.6.16.2.2.1 and C.7.6.16.2.2.2 for further explanation. 
+    # Note: The synchronization of this time with an external clock is specified
+    # in the synchronization Module in Acquisition Time synchronized (0018,1800).
 
-#     >Frame Acquisition DateTime (0018,9074) 1C The date and time that the acquisition of data that resulted in this frame started. See C.7.6.16.2.2.1 for further explanation.
+    #     >Frame Acquisition DateTime (0018,9074) 1C The date and time that the acquisition of data that resulted in this frame started. See C.7.6.16.2.2.1 for further explanation.
 
-#     >Frame Acquisition Duration (0018,9220) 1C The actual amount of time [in milliseconds] that was used to acquire data for this frame. See C.7.6.16.2.2.1 and C.7.6.16.2.2.3 for further explanation.
+    #     >Frame Acquisition Duration (0018,9220) 1C The actual amount of time [in milliseconds] that was used to acquire data for this frame. See C.7.6.16.2.2.1 and C.7.6.16.2.2.3 for further explanation.
 
-# >Dimension Index Values (0020,9157) 1C Contains the values of the indices defined in the Dimension Index Sequence (0020,9222) for this multi- frame header frame. The number of values is equal to the number of Items of the Dimension Index Sequence and shall be applied in the same order.
-# See section C.7.6.17.1 for a description. Required if the value of the Dimension Index Sequence (0020,9222) exists.
-# >Temporal Position Index (0020,9128) 1C Ordinal number (starting from 1) of the frame in the set of frames with different temporal positions. Required if the value of SOP Class UID (0008,0016) equals "1.2.840.10008.5.1.4.1.1.130". May be present otherwise. See C.7.6.16.2.2.6.
-#>Stack ID (0020,9056) 1C Identification of a group of frames, with different positions and/or orientations that belong together, within a dimension organization. See C.7.6.16.2.2.4 for further explanation. Required if the value of SOP Class UID (0008,0016) equals "1.2.840.10008.5.1.4.1.1.130". May be present otherwise. See C.7.6.16.2.2.7.
-# >In-Stack Position Number (0020,9057) 1C The ordinal number of a frame in a group of frames, with the same Stack ID Required if Stack ID (0020,9056) is present. See section C.7.6.16.2.2.4 for further explanation.
-# >Frame Comments (0020,9158) 3 User-defined comments about the frame.
-# >Frame Label (0020,9453) 3 Label corresponding to a specific dimension index value. Selected from a set of dimension values defined by the application. This attribute may be referenced by the Dimension Index Pointer (0020,9165) attribute in the Multi-frame Dimension Module. See C.7.6.16.2.2.5 for further explanation.
+    # >Dimension Index Values (0020,9157) 1C Contains the values of the indices defined in the Dimension Index Sequence (0020,9222) for this multi- frame header frame. The number of values is equal to the number of Items of the Dimension Index Sequence and shall be applied in the same order.
+    # See section C.7.6.17.1 for a description. Required if the value of the Dimension Index Sequence (0020,9222) exists.
+    # >Temporal Position Index (0020,9128) 1C Ordinal number (starting from 1) of the frame in the set of frames with different temporal positions. Required if the value of SOP Class UID (0008,0016) equals "1.2.840.10008.5.1.4.1.1.130". May be present otherwise. See C.7.6.16.2.2.6.
+    # >Stack ID (0020,9056) 1C Identification of a group of frames, with different positions and/or orientations that belong together, within a dimension organization. See C.7.6.16.2.2.4 for further explanation. Required if the value of SOP Class UID (0008,0016) equals "1.2.840.10008.5.1.4.1.1.130". May be present otherwise. See C.7.6.16.2.2.7.
+    # >In-Stack Position Number (0020,9057) 1C The ordinal number of a frame in a group of frames, with the same Stack ID Required if Stack ID (0020,9056) is present. See section C.7.6.16.2.2.4 for further explanation.
+    # >Frame Comments (0020,9158) 3 User-defined comments about the frame.
+    # >Frame Label (0020,9453) 3 Label corresponding to a specific dimension index value. Selected from a set of dimension values defined by the application. This attribute may be referenced by the Dimension Index Pointer (0020,9165) attribute in the Multi-frame Dimension Module. See C.7.6.16.2.2.5 for further explanation.
         
 
     # Image Laterality (0020,0062) 3 Laterality of (possibly paired) body part examined.
@@ -873,6 +874,20 @@ def ProcparToDicomMap(procpar,args):
     # Required if Image Type (0008,0008) Value 1 is ORIGINAL or MIXED. 
     # May be present otherwise.
 
+        # 'at'               Acquisition time (P)
+        #    Description Length of time during which each FID is acquired. Since the sampling rate
+        #                is determined by the spectral width sw, the total number of data points to
+        #                be acquired (2*sw*at) is automatically determined and displayed as the
+        #                parameter np. at can be entered indirectly by using the parameter np.
+        #        Values  Number, in seconds. A value that gives a number of data points that is not
+        #                a multiple of 2 is readjusted automatically to be a multiple of 2.
+        #                NMR Spectroscopy User Guide; VnmrJ User Programming
+        #       See also
+        #        Related np             Number of data points (P)
+        #                               Spectral width in directly detected dimension (P)
+        #                sw
+
+
     #Acquisition Duration(0018,9073) 1C 
     # The time in seconds needed to run the prescribed pulse sequence. 
     # See C.7.6.16.2.2.1 for further explanation.
@@ -977,7 +992,7 @@ def ProcparToDicomMap(procpar,args):
 #                                                      Value 1 is ORIGINAL or MIXED. May be
 #                                                      present otherwise.
     MRAcquisitionType = '2D'
-    if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
+    if ('nv2' in procpar.keys() and procpar['nv2'] > 0) and ('nD' in procpar.keys() and procpar['nD'] == 3 ):
         MRAcquisitionType = '3D'
     ds.add_new((0x0018,0x0023), 'CS', MRAcquisitionType)
 # Echo Pulse Sequence              (0018,9008)     1C  Echo category of pulse sequences.
@@ -1003,7 +1018,7 @@ def ProcparToDicomMap(procpar,args):
 #                                                      (0008,0008) Value 1 is DERIVED and
 #                                                      Echo Pulse sequence (0018,9008) equals
 #                                                      SPIN or BOTH.
-    if SEQUENCE=="MULTIECHO":
+    if ds.ImageType[2]=="MULTIECHO":
         ds.MultipleSpinEcho="YES"
     else:
         ds.MultipleSpinEcho="NO"
@@ -1352,6 +1367,37 @@ def ProcparToDicomMap(procpar,args):
     if args.phase or procpar['imPH']=='y':
         ds.ComplexImageComponent = 'PHASE'
         
+# C.8.13.3.1.2     Acquisition Contrast
+# Table C.8-86 specifies the Defined Terms for Acquisition Contrast attribute (0008,9209).
+#                                             Table C.8-86
+#                              ACQUISITION CONTRAST VALUES
+#    Defined Term Name             Defined Term Description
+#    DIFFUSION                     Diffusion weighted contrast
+#    FLOW_ENCODED                  Flow Encoded contrast
+#    FLUID_ATTENUATED              Fluid Attenuated T2 weighted contrast
+#    PERFUSION                     Perfusion weighted contrast
+#    PROTON_DENSITY                Proton Density weighted contrast
+#    STIR                          Short Tau Inversion Recovery
+#    TAGGING                       Superposition of thin saturation bands onto image
+#    T1                            T1 weighted contrast
+#    T2                            T2 weighted contrast
+#    T2_STAR                       T2* weighted contrast
+#    TOF                           Time Of Flight weighted contrast
+#    UNKNOWN                       Value should be UNKNOWN if acquisition contrasts were
+#                                  combined resulting in an unknown contrast. Also this value
+#                                  should be used when the contrast is not known.
+#    MIXED                         Used only as a value in Acquisition Contrast (0008,9209)
+#                                  attribute in the Enhanced MR Image Type Module if frames
+#                                  within the image SOP Instance contain different values for
+#                                  the Acquisition Contrast attribute in the MR Frame Type
+#                                  Functional Group.
+
+    if ds.ImageType[2]=='Diffusion':
+        ds.AcquisitionConstrast = ["DIFFUSION"]
+        ds.ComplexImageComponent=["MAGNITUDE"]
+
+
+
 
     # MRImage Module
     #0018,0020 (mandatory) Scanning sequence: SE = spin echo, IR = inversion recovery, GR = gradient recalled, 
@@ -1402,11 +1448,17 @@ def ProcparToDicomMap(procpar,args):
     
     
     # Determine acquisition dimensionality:  MR Acquisition Type: 2D, 3D
+    # in the 3rd dim
     MRAcquisitionType = '2D'
     if 'nv2' in procpar.keys() and procpar['nv2'] > 0:
         MRAcquisitionType = '3D'
+        # dcmulti does not like NumberOfFrames greater than 1
+        # ds.NumberOfFrames = procpar['nv2'] # or procpar['nf']
+    else:
+        ds.NumberOfFrames = 1
     # 0018,0023 MR Acquisition Type (optional)
     #ds.MRAcquisitionType = MRAcquisitionType                     
+
 
     #TR    
     #0018,0080 Repetition Time (in ms) (optional)
@@ -1417,7 +1469,7 @@ def ProcparToDicomMap(procpar,args):
     # except when Scanning Sequence
     # (0018,0020) is EP and Sequence Variant
     # (0018,0021) is not SK.
-    if not SEQUENCE == "ASL" or not (ds.ScanningSequence == "EP" and not ds.SequenceVariant == "SK"):
+    if not ds.ImageType[2] == "ASL" or not (ds.ScanningSequence == "EP" and not ds.SequenceVariant == "SK"):
         ds.RepetitionTime  = str(procpar['tr']*1000.0)
     
     #TE
@@ -1441,21 +1493,29 @@ def ProcparToDicomMap(procpar,args):
     # Number of Averages (0018,0083) 3 Number of times a given pulse sequence
     #                             is repeated before any parameter is
     #                             changed
-#fix    ds.NumberOfAverages = procpar['nav_echo']
+    #TODO    ds.NumberOfAverages = procpar['nav_echo']
 
 
     #H1reffreq
     # 0018,0084 Imaging Frequency (optional)
-    ds.ImagingFrequencey = str(procpar['H1reffrq'])                                                                
+    # this maps to H1reffreq, reffreq, sreffreq,reffreq1,reffreq2,sfrq
+    # Other image nuclei frequencies map to dreffreq,dfrq, dfrq2,dfrq3,dfrq4
+    # other fequencies include sfrq:3,tof:1,resto:1,wsfrq:1,satfrq:1;
+    ds.ImagingFrequency = str(procpar['H1reffrq'])                                                                
+
     # TN
     # 0018,0085 Imaged Nucleus (eg 1H) (optional)
+    # This maps to tn in procpar
+    # Other imaged nuclei include dn, dn2, dn3, dn4
+    # The Agilent 9.4T MR generally has dn=C13,dfrq=100.534,df=reffreq=100.525
     if 'tn' in procpar.keys():
         ds.ImagedNucleus = procpar['tn']
     else:
         ds.ImagedNucleus = 'H1'
+
     # 0018,0086 Echo Number (optional)
-    #    if 'echo' in procpar.keys():
-    #        ds.EchoNumber =procpar['echo']                                                  
+    if 'echo' in procpar.keys():
+        ds.EchoNumber =procpar['echo']                                                  
     # 0018,0087 Magnetic Field Strength (optional)             
     #    if 'H1reffrq' in procpar.keys() and not procpar['H1reffrq'] == "":
     #        ds.MagneticFieldStrength = '{:3.1f}'.format(float(procpar['H1reffrq'])/42.577)      
@@ -1480,8 +1540,16 @@ def ProcparToDicomMap(procpar,args):
 
     # Pixel Bandwidth (0018,0095) 3 Reciprocal of the total sampling period, in
     #                          hertz per pixel.
-    # SW1 or sw2 or sw3
-    ds.PixelBandwidth = str(procpar['sw1'])     # 0018,0095 Pixel Bandwidth (optional)                                                             
+    # SW1 or sw2 or sw3 are the spectral widths in 1st, 2nd and 3rd indirectly detected dimension
+    ds.PixelBandwidth = str(procpar['sw1'])     # 0018,0095 Pixel Bandwidth (optional) 
+    # Spectral Width (0018,9052) 1C Spectral width in Hz.
+    #                               See section C.8.14.1.1 for further
+    #                               explanation of the ordering.
+    #                               Required if Image Type (0008,0008)
+    #                               Value 1 is ORIGINAL or MIXED. May be
+    #                               present otherwise.
+    ds.SpectralWidth = procpar['sw'] 
+                                                            
 
     # Receive Coil Name (0018,1250) 3 Receive coil used.
     # 0018,1250 Receive Coil Name (optional)
@@ -1489,6 +1557,39 @@ def ProcparToDicomMap(procpar,args):
     
     # Transmit Coil Name (0018,1251) 3 Transmit coil used.
     ds.TransmitCoilName = procpar['rfcoil'][:15]
+
+
+    # Image data dimensions   p.340 Command&Parameter_Reference.pdf
+    # 'fn'        Fourier number in directly detected dimension (P)
+    #    Description  Selects the Fourier number for the Fourier transformation along the
+    #                 directly detected dimension. This dimension is often referred to as the f2
+    #                 dimension in 2D data sets, the f3 dimension in 3D data sets, etc.
+    #                 'n' or a number equal to a power of 2 (minimum is 32). If fn is not entered
+    #        Values
+    #                 exactly as a power of 2, it is automatically rounded to the nearest higher
+    #                 power of 2 (e.g., setting fn=32000 gives fn=32768). fn can be less than,
+    #                 equal to, or greater than np, the number of directly detected data points:
+    #                -If fn is less than np, only fn points are transformed.
+    #                -If fn is greater than np, fn minus np zeros are added to the data table
+    #                 ('zero-filling').
+    #                -If fn='n', fn is automatically set to the power of 2 greater than or equal
+    #                 to np.
+    # 'fn1'       Fourier number in 1st indirectly detected dimension (P)
+    #     Description Selects the Fourier number for the Fourier transformation along the first
+    #                 indirectly detected dimension. This dimension is often referred to as the
+    #                 f1 dimension of a multi-dimensional data set. The number of increments
+    #                 along this dimension is controlled by the parameter ni.
+    #  Values  fn1 is set in a manner analogous to the parameter fn, with np being
+    #          substituted by 2*ni.
+    #          NMR Spectroscopy User Guide
+    # See also
+    #  Related fn       Fourier number in directly detected dimension (P)
+    #          fn2         Fourier number in 2nd indirectly detected dimension (P)
+    #          ni         Number of increments in 1st indirectly detected dimension (P)
+    #          np         Number of data points (P)
+
+
+
 
     ## From code below
     #
@@ -1560,14 +1661,14 @@ def ProcparToDicomMap(procpar,args):
         #      endif
     print "Columns: ", procpar['fn']/2.0, procpar['np']/2.0, procpar['fn1']/2.0, procpar['nv']
     if  MRAcquisitionType == '3D':
-        if 'fn' in procpar.keys() and procpar['fn'] > 0:		
+        if 'fn' in procpar.keys() and procpar['fn'] > 0 and procpar['fn'] < procpar['np']:		
             AcqMatrix2 = procpar['fn']/2.0         
         else:
             AcqMatrix2 = procpar['np']/2.0 
         
         ds.Columns=str(AcqMatrix2)
     elif  MRAcquisitionType == '2D':
-        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:  
+        if 'fn1' in procpar.keys() and procpar['fn1'] > 0 and procpar['fn1'] > procpar['nv']:  
             # and procpar['fn1']/2.0 == procpar['nv']:		
             AcqMatrix2 = procpar['fn1']/ 2.0         
         else:
@@ -1655,9 +1756,20 @@ def ProcparToDicomMap(procpar,args):
     # BitsAllocated: should be 16
     # 0028,0100 (mandatory)
     ds.BitsAllocated = 16                             
-
     ds.BitsStored = 16			      #(0028,0101) Bits Stored
     ds.HighBit = 15				      #(0028,0102) High Bit
+    # FIDs are stored as either 16- or 32-bit integer binary data files, depending on whether the
+    # data acquisition was performed with dp='n' or dp='y', respectively.
+
+
+
+
+    # Pixel Representation (0028,0103) is either unsigned (0) or
+    # signed (1). The default is unsigned. There's an anecdotal issue
+    # here with VR codes of US and SS and this attribute because when
+    # it is set to signed then all the attributes of group 0028 should
+    # be encoded as Signed Shorts (SS) and when it's unsigned they
+    # should be unsigned (US) too.
     ds.PixelRepresentation = 0		      #(0028,0103) Pixel Representation
 
 
@@ -1744,7 +1856,7 @@ def ProcparToDicomMap(procpar,args):
     ds.DerivationDescription = Derivation_Description
 
 
-    return ds,MRAcquisitionType,SEQUENCE,BValue
+    return ds,MRAcquisitionType 
 
 
 
@@ -1759,7 +1871,7 @@ if __name__ == "__main__":
     from ReadProcpar import ReadProcpar
 
     procpar, procpartext = ReadProcpar(args.inputdir+'/procpar')
-    ds,MRAcq_type,SEQUENCE,BValue = ProcparToDicomMap(procpar, args)
+    ds,MRAcq_type = ProcparToDicomMap(procpar, args)
 
     print "Slice thickness: ", ds.SliceThickness
     print "Patient Name: ", ds.PatientName
@@ -1771,6 +1883,6 @@ if __name__ == "__main__":
     print "Pixel Spacing: ", ds.PixelSpacing
     print 'Image type:', ds.ImageType
     print 'MR Acquisition Type: ', MRAcq_type
-    print 'Sequence type: ', SEQUENCE
+#    print 'Sequence type: ', SEQUENCE
     
 
