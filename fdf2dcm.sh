@@ -7,7 +7,7 @@
 # - (C) 2014 Michael Eager
 #
 #
-#  "$Id: fdf2dcm.sh,v 111574f30bae 2014/08/19 04:11:18 michael $"
+#  "$Id: fdf2dcm.sh,v 516837189207 2014/08/30 04:06:53 michael $"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #
@@ -27,7 +27,11 @@ PROGNAME=$(basename $0)
 FDF2DCMPATH=$(dirname $0)
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
-## Set dcmulti and its arguments
+DCM3TOOLS="${FDF2DCMPATH}"$(/bin/ls -d ../dicom3tools_*/bin/*)
+#DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/"
+#DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
+
+## Set dcmulti's arguments
 DCMULTI="dcmulti -v -makestack -sortby AcquisitionNumber -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 DCMULTI_DTI="dcmulti -v -makestack -sortby DiffusionBValue -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
@@ -80,6 +84,7 @@ print_usage(){
 	"-o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm. \n" \
 	"-d             Disable dcmodify fixes to DICOMs.\n" \
 	"-m,-p          Enable magnitude and phase subdirectory conversion.  These flags are passed to agilent2dicom and should only be used from within fdf2dcm or with knowledge of input fdf data. \n" \
+	"-s             Sequence type (one of MULTIECHO,DIFFUSION,ASL. \n" \
 	"-x             Debug mode. \n" \
 	"-v             verbose output. \n" \
 	"-h             this help\n" \
@@ -97,7 +102,7 @@ fi
 
 
 ## Parse arguments
-while getopts ":i:o:hmpdxv" opt; do
+while getopts ":i:o:s:hmpdxv" opt; do
     case $opt in
 	i)
 	    echo "Input dir:  $OPTARG" >&2
@@ -119,6 +124,11 @@ while getopts ":i:o:hmpdxv" opt; do
 	p)
 	    echo "Implementing phase component of FDF to DICOM conversion."
 	    python_args="$python_args -p"
+	    ;;
+	s)
+	    echo "Sequence type: $OPTARG" >&2
+	    sequence="$OPTARG"
+	    python_args="$python_args -s $sequence"
 	    ;;
 	d)
 	    do_modify=0
@@ -153,13 +163,15 @@ if [ ! -d "$input_dir" ]; then
     exit $E_BADARGS
 fi
 ## Set output_dir if not in args, default is INPUT/.dcm
-if [ -z $output_dir ]; then #test for empty string
+if [ -z $output_dir ]
+then #test for empty string
     output_dir="$(dirname ${input_dir})/$(basename ${input_dir} .img).dcm"
     echo "Output dir set to: " ${output_dir}
 fi
 
 ## Check for MAG/PHASE component directories
-if [ -d  ${input_dir}/magnitude.img ] || [ -d ${input_dir}/phase.img ]; then
+if [ -d  ${input_dir}/magnitude.img ] || [ -d ${input_dir}/phase.img ]
+then
     echo "Input directory has 'magnitude.img' and 'phase.img' "
     verb=''; if (( verbosity > 0 )); then verb=' -v '; fi 
     $0 $verb -m -i ${input_dir}/magnitude.img/ -o ${output_dir}/magnitude.dcm/
@@ -173,7 +185,8 @@ fi
 ## Check output directory
 JumpToDCmulti=0
 if [ -d "${output_dir}" ]; then
-    if test -d "${output_dir}/tmp" && (( verbosity > 0 )) ;then
+    if test -d "${output_dir}/tmp" && (( verbosity > 0 ))
+    then
 	if yesno "Remove existing output directory, y or n (default y)?"; then
 	    echo "Removing existing output directory"
 	    rm -rf ${output_dir}
@@ -188,7 +201,8 @@ fi
 
 if (( JumpToDCmulti == 0 ))
 then
-    shopt -s nullglob  # Carefull with nullglob on csh  
+    # Carefull with nullglob on csh  
+    shopt -s nullglob  
     found=0
     for i in "${input_dir}"/*.fdf; do
 	if [ -e "$i" ];then 
@@ -233,7 +247,8 @@ then
 fi ## JumpToDCMulti
 
 echo "Convert dicom images to single enhanced MR dicom format image"
-if [ -f ${output_dir}/MULTIECHO ]; then
+if [ -f ${output_dir}/MULTIECHO ]
+then
     echo "Contents of MULTIECHO"; cat ${output_dir}/MULTIECHO; echo '\n'
     nechos=$(cat ${output_dir}/MULTIECHO)
     nechos=$(printf "%1.0f" $nechos)
@@ -284,14 +299,12 @@ else
 fi
 echo "DCMULTI complete. Fixing inconsistencies."
 
-
 ## Corrections to dcmulti conversion
-if [ ${do_modify} -eq 1 ]
+if (( do_modify == 1 ))
 then
-
     ${FDF2DCMPATH}/fix-dicoms.sh "${output_dir}"
     echo "Fixing dicoms complete."
-## Additional corrections to diffusion files
+    ## Additional corrections to diffusion files
     if [ -f ${output_dir}/DIFFUSION ];then
 	${FDF2DCMPATH}/fix-diffusion.sh "${output_dir}"
 	echo "Fixed diffusion module parameters."
@@ -308,17 +321,12 @@ if (( verbosity > 0 )); then
 	dciodvfy "${output_dir}/0001.dcm" &> $(dirname ${output_dir})/$(basename ${output_dir} .dcm).log
 	set -e  
     else
-#	echo "Exiting"
 	error_exit "$LINENO: could not find ${output_dir}/0001.dcm for verification"
     fi
 fi
 
-## Cleaning up temporary directories
-#if test -d "${output_dir}/tmp" && (( verbosity > 0 )) ;then
-#	if yesno "Remove existing output directory, y or n (default y)?"; then
-#	    echo "Removing existing output directory"
-#	    rm -rf ${output_dir}
 
+## Cleaning up temporary directories
 echo "Cleaning up."
 if [ -d "${output_dir}/tmp" ]
 then
