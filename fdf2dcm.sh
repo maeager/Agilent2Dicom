@@ -7,7 +7,7 @@
 # - (C) 2014 Michael Eager
 #
 #
-#  "$Id: fdf2dcm.sh,v 09873e0464ca 2014/09/05 04:04:04 michael $"
+#  "$Id: fdf2dcm.sh,v 3a89f57bb3af 2014/09/05 05:31:20 michael $"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #  Version 1.1: Supporting Diffusion and Multiecho
@@ -23,11 +23,14 @@ set -o errexit  # -e
 
 
 ## Set config variables
+source fdf2dcm_global.py
 FDF2DCMVERSION=1.1
 PROGNAME=$(basename $0)
 FDF2DCMPATH=$(dirname $0)
+AGILENT2DICOM=tmpa2d.py  #agilent2dicom.py
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
+
 # DCM3TOOLS="${FDF2DCMPATH}"/$(/bin/ls -d ../dicom3tools_*/bin/*)
 #DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/"
 #DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
@@ -230,7 +233,7 @@ then
 ## Crux of script - conversion of FDF images to standard DICOM images
     echo  "Calling agilent2dicom"
     echo " Arguments: ", "${python_args}" -i "${input_dir}" -o "${output_dir}"
-    ${FDF2DCMPATH}/agilent2dicom.py ${python_args} -i "${input_dir}" -o "${output_dir}"
+    ${FDF2DCMPATH}/$AGILENT2DICOM} ${python_args} -i "${input_dir}" -o "${output_dir}"
 
     [ $? -ne 0 ] && error_exit "$LINENO: agilent2dicom failed"
     
