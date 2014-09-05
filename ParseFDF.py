@@ -9,6 +9,7 @@
 """
 
 import os,sys
+import re
 import math
 import numpy
 import argparse
@@ -16,12 +17,9 @@ import argparse
 from dicom.sequence import Sequence
 from dicom.dataset import Dataset
 
-UID_Type_DimensionIndex1 = "5"
-UID_Type_DimensionIndex2 = "6"
-# SEQUENCE=''
 
+from fdf2dcm_global import *
 import ProcparToDicomMap
-
 
 
 def AssertImplementation(testval, fdffilename, comment, assumption):
@@ -49,6 +47,7 @@ def ParseDiffusionFDF(ds,procpar,fdf_properties,args):
     :param ds: Dicom dataset
     :param procpar: Procpar dictionary tag/value pairs
     :param fdf_properties: Tag/value pairs of local fdf file
+
     :param args: Input arguments
     :returns: Dicom struct
     """
@@ -273,6 +272,7 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     # not confuse this roi with ROIs that might be specified inside
     # the data set.
     roi = fdf_properties['roi']#[0:2]
+
     
     ## PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
     PixelSpacing = map(lambda x,y: x*10.0/y,roi,fdf_size_matrix)
@@ -546,22 +546,22 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 
 
     if 'echo_no' in fdf_properties.keys():
-	volume=fdf_properties['echo_no']
+        volume=fdf_properties['echo_no']
 
 
 
     if ds.ImageType[2]=="MULTIECHO" and fdf_properties['echoes'] > 1:
-	print 'Multi-echo sequence'
+        print 'Multi-echo sequence'
 	# TE 0018,0081 Echo Time (in ms) (optional)
-	if 'TE' in fdf_properties.keys():
+        if 'TE' in fdf_properties.keys():
             if ds.EchoTime != str(fdf_properties['TE']):
                 print "Echo Time mismatch: ",ds.EchoTime, fdf_properties['TE']
 	    ds.EchoTime	 = str(fdf_properties['TE']) 
 	# 0018,0086 Echo Number (optional)
 	if 'echo_no' in fdf_properties.keys():
-            if ds.EchoNumber != fdf_properties['echo_no']:
-                print "Echo Number mismatch: ",ds.EchoNumber, fdf_properties['echo_no']
-	    ds.EchoNumber = fdf_properties['echo_no']		 
+        if ds.EchoNumber != fdf_properties['echo_no']:
+            print "Echo Number mismatch: ",ds.EchoNumber, fdf_properties['echo_no']
+        ds.EchoNumber = fdf_properties['echo_no']		 
 
 
     if ds.ImageType[2] == "ASL":	  
@@ -659,10 +659,19 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 
     return ds,fdfrank,fdf_size_matrix,ImageTransformationMatrix
 
-def Save3dFDFtoDicom(ds,image_data,fdf_matsize,ImageTransformationMatrix,volume,args,outdir):
+def Save3dFDFtoDicom(ds,image_data,fdf_matsize,M,args,outdir):
     """
+    Multi-dimension (3D)) export of FDF format image data to DICOM
+
+    :param ds:  Baseline pydicom dataset
+    :param image_data: Pixel data of image
+    :param fdf_matsize: Matrix size of image data e.g. {256,256,256}
+    :param M: Image transformationm matrix
+    :param args: argparse struct
+    :param outdir: output directory
+    :return ds: Return the pydicom dataset
     """
-    # Multi-dimension multi echo export format
+
     print "3D export"
     voldata = numpy.reshape(image_data,fdf_matsize)
 
@@ -722,10 +731,10 @@ def Save3dFDFtoDicom(ds,image_data,fdf_matsize,ImageTransformationMatrix,volume,
         else:
             pos = numpy.matrix([[0],[0],[islice],[1]])
 
-        Pxyz = ImageTransformationMatrix * pos
+        Pxyz = M * pos
         ds.ImagePositionPatient= [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0])]
 
-        ds.FrameContentSequence[0].StackID = [str(volume)] # fourthdimid
+        # ds.FrameContentSequence[0].StackID = [str(volume)] # fourthdimid
         ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)] #fourthdimindex
         ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber
 #        ds.InStackPosition = islice #str(islice)
@@ -733,8 +742,9 @@ def Save3dFDFtoDicom(ds,image_data,fdf_matsize,ImageTransformationMatrix,volume,
         # Save DICOM
         ds.save_as(os.path.join(outdir, new_filename))
 
+        return ds
 
-def Save2dFDFtoDicom(ds,image_data,filename):
+def Save2dFDFtoDicom(ds,image_data,outdir, filename):
     """
 
     """
@@ -742,8 +752,19 @@ def Save2dFDFtoDicom(ds,image_data,filename):
     # Common export format
     ds.PixelData = image_data.tostring()         # (7fe0,0010) Pixel Data
 
+    if ds.ImageType[2]] == "ASL":
+        image_number=fdf_properties['array_index']
+        if fdf_properties["asltag"] == 1:               # Labelled
+            new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'],image_number,1)
+        elif  fdf_properties["asltag"] == -1:            #  Control
+            new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'],image_number,2)
+        else:                                            # Unknown
+            new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'],image_number,3)
+        dcmfilename=os.path.join(outdir,new_filename)
+    else:
+        dcmfilename=os.path.join(outdir, os.path.splitext(filename)[0] + '.dcm')
     # Save DICOM
-    ds.save_as(filename)
+    ds.save_as(dcmfilename)
     
     return 1
 
@@ -758,13 +779,13 @@ if __name__ == "__main__":
     parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     args = parser.parse_args()
     
-    import ReadProcpar as rp
-    import RescaleFDF as resf
+    import ReadProcpar
+    import RescaleFDF
     import ReadFDF as rf
     import ProcparToDicomMap as ptd
 
 
-    procpar, procpartext = rp.ReadProcpar(args.inputdir+'/procpar')
+    procpar, procpartext = ReadProcpar.ReadProcpar(args.inputdir+'/procpar')
     ds,MRAcq_type = ptd.ProcparToDicomMap(procpar, args)
     print "Rows: ", ds.Rows, " Columns: ", ds.Columns
     
@@ -772,14 +793,15 @@ if __name__ == "__main__":
     files = os.listdir(args.inputdir)
     fdffiles = [ f for f in files if f.endswith('.fdf') ]
     print "Number of FDF files ", len(fdffiles)
-    RescaleIntercept,RescaleSlope = resf.RescaleFDF(fdffiles,ds,procpar,args)
+    RescaleIntercept,RescaleSlope = RescaleFDF.FindScale(fdffiles,ds,procpar,args)
     print "Rescale Intercept ", RescaleIntercept, " Slope ", RescaleSlope
 
     # for filename in fdffiles:
     filename = fdffiles[len(fdffiles)-1]
     fdf_properties,image_data=rf.ReadFDF(args.inputdir+'/'+filename)
     ds,fdfrank,matsize,M = ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args)
-
+    ds,image_data =RescaleFDF.RescaleImage(image_data,RescaleIntercept,RescaleSlope,args)
+    
     print "FDF # of dims: ", fdfrank
     print "FDF matrix:  ", matsize
     print "Patient Name: ", ds.PatientName
@@ -789,3 +811,6 @@ if __name__ == "__main__":
     print "Transformation matrix: ", M
     print "Stack ID: ", ds.FrameContentSequence[0].StackID
     print "InStack position: ", ds.FrameContentSequence[0].InStackPositionNumber
+    print " Rescale slope: ", ds.RescaleSlope
+    print " Resacle intcpt: ", ds.RescaleIntercept
+    print " Image max : ", numpy.max([float("-inf"), image_data.max()])
