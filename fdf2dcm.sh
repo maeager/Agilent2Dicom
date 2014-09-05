@@ -10,6 +10,7 @@
 #  "$Id$"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
+#  Version 1.1: Supporting Diffusion and Multiecho
 #
 ###############################################
 
@@ -17,8 +18,8 @@ set -o nounset  # shortform: -u
 set -o errexit  # -e
 # set -o pipefail
 # touch $(dirname $0)/error.log
-#exec 2>> $(dirname $0)/error.log
-#set -x  # show debugging output
+# exec 2>> $(dirname $0)/error.log
+# set -x  # show debugging output
 
 
 ## Set config variables
@@ -27,7 +28,7 @@ PROGNAME=$(basename $0)
 FDF2DCMPATH=$(dirname $0)
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
-DCM3TOOLS="${FDF2DCMPATH}"$(/bin/ls -d ../dicom3tools_*/bin/*)
+# DCM3TOOLS="${FDF2DCMPATH}"/$(/bin/ls -d ../dicom3tools_*/bin/*)
 #DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/"
 #DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
 
@@ -286,6 +287,27 @@ elif  [ -f ${output_dir}/DIFFUSION ]; then
     done
     echo "Diffusion files compacted."
 
+elif  [ -f ${output_dir}/ASL ]; then
+
+    echo "Contents of ASL"; cat ${output_dir}/ASL; echo '\n'
+
+    # nbdirs=$(cat ${output_dir}/ASL)
+    # ((++nbdirs)) # increment by one for B0
+    asltags=$(ls -1 ${output_dir}/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
+
+    echo "ASL sequence"
+    for ((iasl=1;iasl<=2;iasl++)); do
+     	aslext=$(printf '%03d' $iasl)
+
+     	echo "Converting ASL tag ${iasl} using dcmulti"
+
+	## Input files are sorted by image number and slice number. 
+     	${DCMULTI} "${output_dir}/0${aslext}.dcm" $(ls -1 ${output_dir}/tmp/*echo${aslext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+
+    done
+    echo "ASL files converted."
+
+
 else
 
     ## Dcmulti config is dependent on order of files.  The 2D standard
@@ -302,16 +324,25 @@ echo "DCMULTI complete. Fixing inconsistencies."
 ## Corrections to dcmulti conversion
 if (( do_modify == 1 ))
 then
+
     ${FDF2DCMPATH}/fix-dicoms.sh "${output_dir}"
     echo "Fixing dicoms complete."
+
     ## Additional corrections to diffusion files
     if [ -f ${output_dir}/DIFFUSION ];then
 	${FDF2DCMPATH}/fix-diffusion.sh "${output_dir}"
 	echo "Fixed diffusion module parameters."
 	rm -f ${output_dir}/DIFFUSION
     fi
+    ## Additional corrections to ASL files
+    if [ -f ${output_dir}/ASL ];then
+	${FDF2DCMPATH}/fix-asl.sh "${output_dir}"
+	echo "Fixed ASL module parameters."
+	rm -f ${output_dir}/ASL
+    fi
 fi
 [ -f ${output_dir}/DIFFUSION ] && rm -f ${output_dir}/DIFFUSION
+[ -f ${output_dir}/ASL ] && rm -f ${output_dir}/ASL
 
 if (( verbosity > 0 )); then
     echo "Verifying dicom compliance using dciodvfy."
