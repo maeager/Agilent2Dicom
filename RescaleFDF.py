@@ -11,10 +11,11 @@ import argparse
 
 # Numpy recast to int16 with range (-32768 or 32767)
 UInt16MaxRange = 65533
+Int16MaxRange = 32767
 
 import ReadFDF
 
-def RescaleFDF(fdffiles,ds,procpar,args):
+def FindScale(fdffiles,ds,procpar,args):
     """RescaleFDF
      Calculate the max and min throughout all fdf iles in dataset;
      calculate the intercept and slope for casting to UInt16
@@ -45,10 +46,10 @@ def RescaleFDF(fdffiles,ds,procpar,args):
     RescaleIntercept = datamin
     # Numpy recast to int16 with range (-32768 or 32767)
     if ds.PixelRepresentation == 0:
-        slope_factor=UInt16MaxRange
+        slope_factor = UInt16MaxRange
     else:
-        slope_factor=32767
-    RescaleSlope = (datamax - datamin) / slope_factor # 65533 # / 32767    
+        slope_factor = Int16MaxRange
+    RescaleSlope = (datamax - datamin) / slope_factor 
 
     return RescaleIntercept,RescaleSlope
 
@@ -92,7 +93,7 @@ if __name__ == "__main__":
     files = os.listdir(args.inputdir)
     fdffiles = [ f for f in files if f.endswith('.fdf') ]
 
-    RescaleIntercept,RescaleSlope = RescaleFDF(fdffiles,ds,procpar,args)
+    RescaleIntercept,RescaleSlope = FindScale(fdffiles,ds,procpar,args)
 
     print "Intercept: ", RescaleIntercept
     print "Slope: ", RescaleSlope
