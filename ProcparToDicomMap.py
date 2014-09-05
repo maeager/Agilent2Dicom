@@ -1,16 +1,12 @@
 #!/usr/bin/env python
 
-"""ProcparToDicom is used to map Agilent FDF config format files to DICOM format.
+"""ProcparToDicom is used to map Agilent FDF header file (procpar)
+   to DICOM dataset format.
 
    (c)  2014 Michael Eager (michael.eager@monash.edu)
 
 """
 
-VersionNumber = "0.6"
-DVCSstamp = "$Id: agilent2dicom.py,v d6eed4ea3807 2014/08/15 01:00:55 michael $"
-
-# import pdb
-# import ast
 import os
 import sys
 import datetime
@@ -27,24 +23,10 @@ import argparse
 from dicom.sequence import Sequence
 from dicom.dataset import Dataset
 
+from fdf2dcm_global import *
 
-UID_ROOT = "2.25"  # Agilent Root UID 1.3.6.1.4.1
-UID_Type_InstanceCreator = "0"
-UID_Type_MediaStorageSOPInstance = "1"
-UID_Type_StudyInstance = "2"
-UID_Type_SeriesInstance = "3"
-UID_Type_FrameOfReference = "4"
-
-# Hard coded DICOM tag values
 InstanceCreatorId = ''.join(map(str,[ord(c) for c in 'agilent2dicom'])) + '.' + VersionNumber
-DICOM_Tag_Manufacturer = "Agilent Technologies"
-DICOM_Tag_InstitutionName = "Monash Biomedical Imaging"
-DICOM_Tag_ManufacturerModelName = "vnmrs"
-DICOM_Tag_DeviceSerialNumber = "unknown"
-DICOM_Tag_SoftwareVersions = "VnmrJ 3.2"
-Derivation_Description = "Dicom generated from FDF using MBI's inhouse converter agilent2dicom."
-# SEQUENCE=''
-# BValue=[]
+Derivation_Description = "Dicom generated from FDF dataset using MBI's in-house converter "+DVCSstamp
 
 def getColumns(inFile, delim="\t", header=True):
     """
@@ -130,11 +112,10 @@ def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
 
 def ProcparToDicomMap(procpar,args):
     """
-    Procparmappingtodicom - 
+    Procpar dictionary mapping to pydicom dataset dictionary- 
 
     """
-    #global SEQUENCE
-    #global BValue
+
     #================================================================
     # Create file meta dataset
 
@@ -672,9 +653,13 @@ def ProcparToDicomMap(procpar,args):
 
     # MR Arterial Spin Labeling C.8.13.5.14 C Required if Image Type (0008,0008) Value 3 is ASL. May be present otherwise.
     if 'asltag' in procpar.keys() and procpar['asltag'] != 0:
-        #SEQUENCE='ASL'
         print 'Processing ASL sequence images'
         ds.ImageType = ["ORIGINAL","PRIMARY", "ASL","NONE"]
+
+        tmp_file = open(os.path.join(args.outputdir,'ASL'),'w')
+        tmp_file.write(str(procpar['asltag']))
+        tmp_file.close()
+
 
 
     # Per-frame Functional Groups Sequence (5200,9230) 1
@@ -703,7 +688,6 @@ def ProcparToDicomMap(procpar,args):
 
     if ('ne' in procpar.keys()) and (procpar['ne'] > 1):
         print 'Multi-echo sequence'
-        #SEQUENCE='MULTIECHO'
         tmp_file = open(os.path.join(args.outputdir,'MULTIECHO'),'w')
         tmp_file.write(str(procpar['ne']))
         tmp_file.close()
@@ -1883,6 +1867,6 @@ if __name__ == "__main__":
     print "Pixel Spacing: ", ds.PixelSpacing
     print 'Image type:', ds.ImageType
     print 'MR Acquisition Type: ', MRAcq_type
-#    print 'Sequence type: ', SEQUENCE
+
     
 
