@@ -16,7 +16,7 @@ Version 0.6: Major rewrite, external recon
 """
 
 VersionNumber = "0.6"
-DVCSstamp = "$Id: agilent2dicom.py,v 57afb2713753 2014/08/30 03:56:21 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v 8ed5ada07364 2014/09/05 05:29:47 michael $"
 
 import pdb
 # import ast
@@ -325,6 +325,7 @@ if __name__ == "__main__":
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
     parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
     parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
+    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL.');
 #    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
     parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     
@@ -344,6 +345,8 @@ if __name__ == "__main__":
     files = os.listdir(args.inputdir)
     if args.verbose:
         print files
+    if not args.sequence:
+        args.sequence = ''
 
     if 'procpar' not in files:
         print 'Error: FDF folder does not contain a procpar file'
@@ -925,6 +928,11 @@ if __name__ == "__main__":
         SEQUENCE='ASL'
         print 'Processing ASL sequence images'
         ds.ImageType = ["ORIGINAL","PRIMARY", "ASL","NONE"]
+
+        tmp_file = open(os.path.join(args.outputdir,'ASL'),'w')
+        tmp_file.write(str(procpar['asltag']))
+        tmp_file.close()
+       
 
 
     # Per-frame Functional Groups Sequence (5200,9230) 1
@@ -2752,6 +2760,7 @@ if __name__ == "__main__":
 
                 new_filename = "slice%03dimage%03decho%03d.dcm" % (islice+1,image_number,fdf_properties['echo_no'])
 
+                
                 # Fix 3rd dimension position using transformation matrix
                 M = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], 
                                    PixelSpacing[1] * ImageOrientationPatient[1], 
@@ -2786,8 +2795,17 @@ if __name__ == "__main__":
             # Common export format
             ds.PixelData = image_data.tostring()         # (7fe0,0010) Pixel Data
 
+            if SEQUENCE == "ASL":
+                image_number=fdf_properties['array_index']
+                if fdf_properties["asltag"] == 1:               # Labelled
+                    new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'],image_number,1)
+                elif  fdf_properties["asltag"] == -1:            #  Control
+                    new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'],image_number,2)
+                else:                                            # Unknown
+                    new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'],image_number,3)
+
             # Save DICOM
-            ds.save_as(os.path.join(outdir, os.path.splitext(filename)[0] + '.dcm'))
+            ds.save_as(os.path.join(outdir, new_filename))
 
         if SEQUENCE=="MULTIECHO":
             volume=volume+1
