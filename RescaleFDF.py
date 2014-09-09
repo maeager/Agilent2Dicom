@@ -54,7 +54,7 @@ def FindScale(fdffiles,ds,procpar,args):
     return RescaleIntercept,RescaleSlope
 
 
-def RescaleImage(image_data,RescaleIntercept,RescaleSlope,args):
+def RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args):
 
     if args.verbose:
         print "Rescale data to uint16"
