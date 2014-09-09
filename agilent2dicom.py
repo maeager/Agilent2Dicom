@@ -2183,6 +2183,7 @@ if __name__ == "__main__":
     # points in each dimension (e.g., for rank=2, float
     # matrix[]={256,256};)
         fdf_size_matrix = fdf_properties['matrix'][0:2]
+        print "FDF size matrix ",fdf_size_matrix, type(fdf_size_matrix)
 
     # spatial_rank is a string ("none", "voxel", "1dfov", "2dfov",
     # "3dfov") for the type of data (e.g., char
@@ -2204,7 +2205,8 @@ if __name__ == "__main__":
     # not confuse this roi with ROIs that might be specified inside
     # the data set.
         roi = fdf_properties['roi'][0:2]
-
+        print "FDF roi ",roi, type(roi)
+    
 
         ## PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
         PixelSpacing = map(lambda x,y: x*10.0/y, roi,fdf_size_matrix)
@@ -2760,7 +2762,6 @@ if __name__ == "__main__":
 
                 new_filename = "slice%03dimage%03decho%03d.dcm" % (islice+1,image_number,fdf_properties['echo_no'])
 
-                
                 # Fix 3rd dimension position using transformation matrix
                 M = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0], 
                                    PixelSpacing[1] * ImageOrientationPatient[1], 
@@ -2795,6 +2796,7 @@ if __name__ == "__main__":
             # Common export format
             ds.PixelData = image_data.tostring()         # (7fe0,0010) Pixel Data
 
+            new_filename = os.path.splitext(filename)[0] + '.dcm'
             if SEQUENCE == "ASL":
                 image_number=fdf_properties['array_index']
                 if fdf_properties["asltag"] == 1:               # Labelled
