@@ -235,7 +235,13 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     # matrix is a set of rank integers giving the number of data
     # points in each dimension (e.g., for rank=2, float
     # matrix[]={256,256};)
-    fdf_size_matrix = fdf_properties['matrix']#[0:2]
+    if fdfrank==3:
+        fdf_size_matrix = fdf_properties['matrix'][0:3]
+    else:
+        fdf_size_matrix = fdf_properties['matrix'][0:2]
+    if args.verbose:
+        print "FDF size matrix ",fdf_size_matrix, type(fdf_size_matrix)
+    #fdf_size_matrix=numpy.array(fdf_matrix)
 
     # spatial_rank is a string ("none", "voxel", "1dfov", "2dfov",
     # "3dfov") for the type of data (e.g., char
@@ -271,8 +277,13 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     # not the magnet frame (e.g., float roi[]={10.0,15.0,0.208};). Do
     # not confuse this roi with ROIs that might be specified inside
     # the data set.
-    roi = fdf_properties['roi']#[0:2]
-
+    if fdfrank==3:
+        roi = fdf_properties['roi'][0:3]
+    else:
+        roi = fdf_properties['roi'][0:2]
+    if args.verbose:
+        print "FDF roi ",roi, type(roi)
+    #roi=numpy.array(roi_text)
     
     ## PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
     PixelSpacing = map(lambda x,y: x*10.0/y,roi,fdf_size_matrix)
@@ -449,7 +460,7 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 
     if fdf_properties['nucleus'][0] != ds.ImagedNucleus:
         print 'Imaged nucleus mismatch: ', fdf_properties['nucleus'], ds.ImagedNucleus
-    if fdf_properties['nucfreq'][0] != ds.ImagingFrequency:
+    if abs(fdf_properties['nucfreq'][0] - float(ds.ImagingFrequency)) > 0.01:
         print 'Imaging frequency mismatch: ', fdf_properties['nucfreq'], ds.ImagingFrequency
 
 
@@ -548,17 +559,15 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     if 'echo_no' in fdf_properties.keys():
         volume=fdf_properties['echo_no']
 
-
-
     if ds.ImageType[2]=="MULTIECHO" and fdf_properties['echoes'] > 1:
         print 'Multi-echo sequence'
 	# TE 0018,0081 Echo Time (in ms) (optional)
         if 'TE' in fdf_properties.keys():
             if ds.EchoTime != str(fdf_properties['TE']):
                 print "Echo Time mismatch: ",ds.EchoTime, fdf_properties['TE']
-	    ds.EchoTime	 = str(fdf_properties['TE']) 
+            ds.EchoTime	 = str(fdf_properties['TE']) 
 	# 0018,0086 Echo Number (optional)
-	if 'echo_no' in fdf_properties.keys():
+    if 'echo_no' in fdf_properties.keys():
         if ds.EchoNumber != fdf_properties['echo_no']:
             print "Echo Number mismatch: ",ds.EchoNumber, fdf_properties['echo_no']
         ds.EchoNumber = fdf_properties['echo_no']		 
@@ -578,8 +587,6 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 
     if ds.ImageType[2] == 'DIFFUSION':
         ds=ParseDiffusionFDF(ds,procpar,fdf_properties,args)
-
- 
 
 
     ## Multi dimension Organisation and Index module
@@ -659,9 +666,9 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 
     return ds,fdfrank,fdf_size_matrix,ImageTransformationMatrix
 
-def Save3dFDFtoDicom(ds,image_data,fdf_matsize,M,args,outdir):
+def Save3dFDFtoDicom(ds,procpar,image_data,fdf_properties,M,args,outdir,filename):
     """
-    Multi-dimension (3D)) export of FDF format image data to DICOM
+    Multi-dimension (3D) export of FDF format image data and metadata to DICOM
 
     :param ds:  Baseline pydicom dataset
     :param image_data: Pixel data of image
@@ -673,7 +680,7 @@ def Save3dFDFtoDicom(ds,image_data,fdf_matsize,M,args,outdir):
     """
 
     print "3D export"
-    voldata = numpy.reshape(image_data,fdf_matsize)
+    voldata = numpy.reshape(image_data,fdf_properties['matrix'])
 
     # if procpar['recon'] == 'external':
     # 
@@ -699,7 +706,7 @@ def Save3dFDFtoDicom(ds,image_data,fdf_matsize,M,args,outdir):
         
     range_max = fdf_properties['matrix'][2]
     num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][1]
-    if procpar['recon'] == 'external' and fdf_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
+    if procpar['recon'] == 'external' and procpar['seqfil'] == 'fse3d' and fdf_properties['rank'] == 3: 
         range_max = fdf_properties['matrix'][1]
         num_slicepts = fdf_properties['matrix'][0]*fdf_properties['matrix'][2]
         ds.Columns = fdf_properties['matrix'][2]
@@ -737,7 +744,7 @@ def Save3dFDFtoDicom(ds,image_data,fdf_matsize,M,args,outdir):
         # ds.FrameContentSequence[0].StackID = [str(volume)] # fourthdimid
         ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)] #fourthdimindex
         ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber
-#        ds.InStackPosition = islice #str(islice)
+        # ds.InStackPosition = islice #str(islice)
 
         # Save DICOM
         ds.save_as(os.path.join(outdir, new_filename))
@@ -746,13 +753,14 @@ def Save3dFDFtoDicom(ds,image_data,fdf_matsize,M,args,outdir):
 
 def Save2dFDFtoDicom(ds,image_data,outdir, filename):
     """
+    Export 2D image and metadata to DICOM
 
     """
     
     # Common export format
     ds.PixelData = image_data.tostring()         # (7fe0,0010) Pixel Data
 
-    if ds.ImageType[2]] == "ASL":
+    if ds.ImageType[2] == "ASL":
         image_number=fdf_properties['array_index']
         if fdf_properties["asltag"] == 1:               # Labelled
             new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'],image_number,1)
@@ -800,7 +808,7 @@ if __name__ == "__main__":
     filename = fdffiles[len(fdffiles)-1]
     fdf_properties,image_data=rf.ReadFDF(args.inputdir+'/'+filename)
     ds,fdfrank,matsize,M = ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args)
-    ds,image_data =RescaleFDF.RescaleImage(image_data,RescaleIntercept,RescaleSlope,args)
+    ds,image_data =RescaleFDF.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
     
     print "FDF # of dims: ", fdfrank
     print "FDF matrix:  ", matsize
