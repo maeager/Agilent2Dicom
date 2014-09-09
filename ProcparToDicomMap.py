@@ -25,8 +25,7 @@ from dicom.dataset import Dataset
 
 from fdf2dcm_global import *
 
-InstanceCreatorId = ''.join(map(str,[ord(c) for c in 'agilent2dicom'])) + '.' + VersionNumber
-Derivation_Description = "Dicom generated from FDF dataset using MBI's in-house converter "+DVCSstamp
+
 
 def getColumns(inFile, delim="\t", header=True):
     """
@@ -81,7 +80,7 @@ def CreateUID(uid_type, procpar=[],study_id=[],verbose=0):
     """    
     dt = datetime.datetime.now()
     dt = dt.strftime("%Y%m%d%H%M%S") + str(dt.microsecond/1000)
-    
+    InstanceCreatorId = ''.join(map(str,[ord(c) for c in 'agilent2dicom'])) + '.' + VersionNumber
     if uid_type == UID_Type_InstanceCreator:
         uidstr = InstanceCreatorId
     elif uid_type == UID_Type_StudyInstance:
@@ -125,9 +124,9 @@ def ProcparToDicomMap(procpar,args):
     # Populate required values for file meta information
     file_meta = Dataset()
     # file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4.1"  # Enhanced MR Image SOP
-    file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4" # MR Image SOP
+    file_meta.MediaStorageSOPClassUID = Standard_MR_SOPClassUID # MR Image SOP
     file_meta.MediaStorageSOPInstanceUID = CreateUID(UID_Type_MediaStorageSOPInstance,[],[],args.verbose)
-    file_meta.ImplementationClassUID = "1.3.6.1.4.1.25371.1.1.2"
+    file_meta.ImplementationClassUID = Implementation_Class_UID
 
     #================================================================
     # Create dicom dataset
@@ -486,7 +485,7 @@ def ProcparToDicomMap(procpar,args):
     ReceiveCoilSeq = Dataset()
     ReceiveCoilSeq.ReceiveCoilName='NONAME'
     ReceiveCoilSeq.ReceiveCoilType = 'VOLUME'
-    ReceiveCoilSeq.ReceiveCoilManufacturerName = 'Agilent Technologies'
+    ReceiveCoilSeq.ReceiveCoilManufacturerName = COIL_Manufacturer
     if 'rfcoil' in procpar.keys():
         if procpar['rfcoil'] == 'millipede':
             ReceiveCoilSeq.ReceiveCoilName='millipede'
@@ -520,7 +519,7 @@ def ProcparToDicomMap(procpar,args):
     #                                                                                  etc.
     #                                                                 SURFACE
     TransmitCoilSeq = Dataset()
-    TransmitCoilSeq.TransmitCoilManufacturername='Agilent Technologies'
+    TransmitCoilSeq.TransmitCoilManufacturername=COIL_Manufacturer
     TransmitCoilSeq.TransmitCoilName='NONAME'
     TransmitCoilSeq.TransmitCoilType='VOLUME'
     if 'bodycoil' in procpar.keys() and procpar['bodycoil']=='y':
@@ -891,7 +890,7 @@ def ProcparToDicomMap(procpar,args):
     
     #Image Comments (0020,4000) 3
     # User-defined comments about the image.
-    ds.ImageComments = 'MBI Agilent2Dicom converter. '
+    ds.ImageComments = FDF2DCM_Image_Comments
     
 
     # Image Type = ["ORIGINAL","PRIMARY"] (0008,0008) 1
@@ -1837,7 +1836,8 @@ def ProcparToDicomMap(procpar,args):
         print 'Patient Position: ', ds.PatientPosition
     ds.PatientPosition='HFS'
         
-    ds.DerivationDescription = Derivation_Description
+    ds.DerivationDescription = Derivation_Description + DVCSstamp
+
 
 
     return ds,MRAcquisitionType 

@@ -337,7 +337,7 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     #---------------------------------------------------------------------------------
     # GROUP 0020: Relationship
 
-    ds.ImageComments = ds.ImageComments +'\n'+ fdf_properties['filetext']
+    ds.ImageComments = FDF2DCM_Image_Comments+'\n'+fdf_properties['filetext']
     
     # For further information regarding the location, orientation, roi, span, etc 
     # properties in the FDF header, see the "Agilent VNMRJ 3.2 User Programming 
