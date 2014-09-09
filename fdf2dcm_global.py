@@ -27,5 +27,5 @@ Standard_MR_SOPClassUID="1.2.840.10008.5.1.4.1.1.4" # MR Image SOP
 Implementation_Class_UID="1.3.6.1.4.1.25371.1.1.2"
 
 Derivation_Description = "Dicom generated from Agilen2Dicom, an FDF dataset converter to Dicom. Monash Biomedical Imaging, Imaging Team. "
-COIL_Manufacturer='Agilent Technologies'
-FDF2DCM_Image_Comments='MBI Agilent2Dicom converter. '
+COIL_Manufacturer="Agilent Technologies"
+FDF2DCM_Image_Comments="MBI Agilent2Dicom converter. "
