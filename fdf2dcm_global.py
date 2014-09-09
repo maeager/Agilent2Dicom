@@ -5,7 +5,7 @@
 
 
 VersionNumber="1.0.0"
-DVCSstamp="$Id: agilent2dicom.py,v 57afb2713753 2014/08/30 03:56:21 michael $"
+DVCSstamp="$Id$"
 
 UID_ROOT="1.3.6.1.4.1" # Agilent Root UID 1.3.6.1.4.1, default "2.25"
 UID_Type_InstanceCreator="0"
@@ -21,5 +21,5 @@ DICOM_Tag_Manufacturer="Agilent Technologies"
 DICOM_Tag_InstitutionName="Monash Biomedical Imaging"
 DICOM_Tag_ManufacturerModelName="vnmrs"
 DICOM_Tag_DeviceSerialNumber="unknown"
-DICOM_Tag_SoftwareVersions="VnmrJ 3.2, Agilent2Dicom 1.0"
+DICOM_Tag_SoftwareVersions="VnmrJ 3.2, Agilent2Dicom 1.1"
 
