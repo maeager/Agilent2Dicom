@@ -460,7 +460,7 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
 
     if fdf_properties['nucleus'][0] != ds.ImagedNucleus:
         print 'Imaged nucleus mismatch: ', fdf_properties['nucleus'], ds.ImagedNucleus
-    if abs(fdf_properties['nucfreq'][0] - float(ds.ImagingFrequency)) > 0.01:
+    if math.fabs(fdf_properties['nucfreq'][0] - float(ds.ImagingFrequency)) > 0.01:
         print 'Imaging frequency mismatch: ', fdf_properties['nucfreq'], ds.ImagingFrequency
 
 

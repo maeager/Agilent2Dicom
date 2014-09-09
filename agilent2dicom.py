@@ -16,7 +16,7 @@ Version 0.6: Major rewrite, external recon
 """
 
 VersionNumber = "0.6"
-DVCSstamp = "$Id: agilent2dicom.py,v 77e5e826969a 2014/09/09 01:09:49 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v 1a0208a53c86 2014/09/09 02:07:29 michael $"
 
 import pdb
 # import ast
@@ -2183,7 +2183,8 @@ if __name__ == "__main__":
     # points in each dimension (e.g., for rank=2, float
     # matrix[]={256,256};)
         fdf_size_matrix = fdf_properties['matrix'][0:2]
-        print "FDF size matrix ",fdf_size_matrix, type(fdf_size_matrix)
+        if args.verbose and fdf_properties['slice_no'] == 1:
+            print "FDF size matrix ",fdf_size_matrix, type(fdf_size_matrix)
 
     # spatial_rank is a string ("none", "voxel", "1dfov", "2dfov",
     # "3dfov") for the type of data (e.g., char
@@ -2205,7 +2206,8 @@ if __name__ == "__main__":
     # not confuse this roi with ROIs that might be specified inside
     # the data set.
         roi = fdf_properties['roi'][0:2]
-        print "FDF roi ",roi, type(roi)
+        if args.verbose and fdf_properties['slice_no'] == 1:
+            print "FDF roi ",roi, type(roi)
     
 
         ## PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
@@ -2364,7 +2366,7 @@ if __name__ == "__main__":
 
         if fdf_properties['nucleus'][0] != ds.ImagedNucleus:
             print 'Imaged nucleus mismatch: ', fdf_properties['nucleus'], ds.ImagedNucleus
-        if fdf_properties['nucfreq'][0] != ds.ImagingFrequency:
+        if math.fabs(fdf_properties['nucfreq'][0] - float(ds.ImagingFrequency)) > 0.01:
             print 'Imaging frequency mismatch: ', fdf_properties['nucfreq'], ds.ImagingFrequency
 
 
