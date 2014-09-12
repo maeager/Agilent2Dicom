@@ -23,10 +23,12 @@
 
 ### Quick summary ###
 
-The *Agilent2Dicom* package is a series of bash and python scripts to convert FDF
-images from the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.
+The *Agilent2Dicom* package is a series of bash and python scripts to
+convert FDF images from the Agilent 9.4T MR scanner at Monash
+Biomedical Imaging (MBI) into enhanced MR DICOM images.
 
-Homepage: [MBI intranet homepage](https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter)
+Homepage: [MBI's Confluence homepage](https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter)
+
 Source: [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom)
 
 
@@ -38,7 +40,7 @@ The main shell script fdf2dcm.sh and Agilent2Dicom is at version 1.1.
 
 ### Current bugs and faults ###
 
-For bugs and faults see [current issues](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging).
+For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging) on Confluence.
 
 ## How do I get set up? ##
 
@@ -60,14 +62,15 @@ cd Agilent2DicomProject
 ### Dependencies ###
 
  * python (2.6 or greater)
- * python-dicom
- * python-numpy
+   - python-dicom
+   - python-numpy
+   - tkinter (for python 2.6 GUI fdf2dicom on Agilent console)
  * dicom3tools
  * dcmtk
- * mrtrix (optional)
+ * mrtrix (0.2.12 or mrtrix3)
+
 
 ### Setup and install ###
-
 
 Pull the development code from MASSIVE using:
 
@@ -114,7 +117,11 @@ On the Agilent console, use:
 sudo yum install imake gcc binutil-essentials
 ```
 
-Once the dependencies have been installed, begin by downloading the latest dicom3tools [bz2 tar ball](http://www.dclunie.com/dicom3tools/workinprogress/), adjust the _config/site.p-def_ file and then follow the compile instructions below: 
+Once the dependencies have been installed, begin by downloading the
+latest dicom3tools [bz2 tar ball](http://www.dclunie.com/dicom3tools/workinprogress/), adjust the
+_config/site.p-def_ file and then follow the compile instructions
+below:
+
 ```
 #!bash
 
@@ -136,9 +143,22 @@ make install.man                      # into ./man
 
 ### How to run tests ###
 
-Good FDF examples include standard 2d, multi-echo 3D, multiecho 2D complex, fast spin echo 3D, diffusion (EPI and FSE), ASL, and CINE images. Most FDF images are reconstructed from Vnmrj internally, but some can be externally reconstructed and these are slightly different and need to be tested.
+FDF examples are available on MASSIVE working repository, these
+include standard 2d, multi-echo 3D, multiecho 2D complex, fast spin
+echo 3D, diffusion (EPI and FSE), ASL, and CINE images. Most FDF
+images are reconstructed from Vnmrj internally, but some can be
+externally reconstructed and these are slightly different and need to
+be tested.
 
-The Makefile contains examples to be used on MASSIVE. These include *run_standard2d*, *run_me3d*, *run_me2d*, *run_diffusion*, *run_asl*, and *run_cine*. Their equivalent tests, replace *run_* with *test*.  To make all the examples and test them use:
+The Makefile contains examples to be used on MASSIVE. These include
+*standard2d*, *me3d*, *me2d*, *diffusion*, *asl*,
+*cine* and other specific protocol examples. These will execute:
+       - *run_{}* runs the FDF agilent to dicom process and conversion of DICOMs to NIFTI;
+       - *check_{}*, check the dimensions of the Dicom and Nifti files; and
+       - *test_{}*, runs the dciodvfy on the first dicom to validate the conversion to enhanced MR.
+ 
+To make all the examples and test them use:
+
 ```
 #!bash
 
@@ -146,6 +166,7 @@ make all
 make test_all
 ```
 
+To view dicoms use *make view_<>*.
 
 ## Basic overview ##
 
