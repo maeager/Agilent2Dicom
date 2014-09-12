@@ -19,9 +19,9 @@
   <http://www.gnu.org/licenses/>.
 
 
-## What is this repository for? ##
 
-### Quick summary ###
+
+## Quick summary ##
 
 The *Agilent2Dicom* package is a series of bash and python scripts to
 convert FDF images from the Agilent 9.4T MR scanner at Monash
@@ -32,32 +32,15 @@ Homepage: [MBI's Confluence homepage](https://confluence-vre.its.monash.edu.au/d
 Source: [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom)
 
 
-### Version ###
-
-The internal python script agilent2dicom.py is at version 0.5.
+The internal python script agilent2dicom.py is at version 0.6.
 
 The main shell script fdf2dcm.sh and Agilent2Dicom is at version 1.1.
 
-### Current bugs and faults ###
+## Current bugs and faults ##
 
 For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging) on Confluence.
 
 ## How do I get set up? ##
-
-### Summary of set up ###
-### Configuration ###
-
-
-Create a suitable directory (e.g. Agilent2DicomProject) in your source or projects folder.
-
-```
-#!bash
-
-cd ~/src                   # on MASSIVE this is ~/Monash016/eagerm
-mkdir Agilent2DicomProject
-cd Agilent2DicomProject
-```
-
 
 ### Dependencies ###
 
@@ -220,7 +203,16 @@ A simple GUI interface *fdf2dicom*, was developed to be used by experimental sci
 ## Contribution guidelines ##
 
 * Writing tests
+
+New example FDF image types should have:
+
+* a 'run_<type>' routine that converts the FDF folder to DICOM and converts the DICOMs to Nifti;
+* a check_<type>' routine that displays the dimensions of the dicom and nifti files;
+* a test_<type> routine that runs dciodvfy on the Dicom files;
+* [optional] a view_ routine for mrview and fslview to show the DICOM or NIFTI images
+
 * Code review
+
 * Other guidelines
 
 ## Who do I talk to? ##
