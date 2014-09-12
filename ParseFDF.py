@@ -810,7 +810,7 @@ if __name__ == "__main__":
     # for filename in fdffiles:
     filename = fdffiles[len(fdffiles)-1]
     fdf_properties,image_data=rf.ReadFDF(args.inputdir+'/'+filename)
-    ds,fdfrank,matsize,M = ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args)
+    ds,fdfrank,matsize,M = ParseFDF(ds,fdf_properties,procpar,args)
     ds,image_data =RescaleFDF.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
     
     print "FDF # of dims: ", fdfrank
