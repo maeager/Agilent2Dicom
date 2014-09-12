@@ -53,15 +53,6 @@ def ParseDiffusionFDF(ds,procpar,fdf_properties,args):
     """
     if args.verbose:
         print 'Processing diffusion image'
-    if procpar['recon'] == 'external':
-        diffusion_idx=0
-        while True:
-            if (math.fabs(Bvalue[ diffusion_idx ] - fdf_properties['bvalue']) < 0.005):
-                break
-            diffusion_idx+=1
-        #diffusion_idx = fdf_properties['array_index'] - 1
-    else:
-        diffusion_idx = fdf_properties['array_index']*2 
 
     # Get procpar diffusion parameters
     Bvalue = procpar['bvalue'] # 64 element array
@@ -79,6 +70,16 @@ def ParseDiffusionFDF(ds,procpar,fdf_properties,args):
 
     if args.verbose:
         print 'Diffusion index ', diffusion_idx, ' arrary index ', fdf_properties['array_index']
+
+    if procpar['recon'] == 'external':
+        diffusion_idx=0
+        while True:
+            if (math.fabs(Bvalue[ diffusion_idx ] - fdf_properties['bvalue']) < 0.005):
+                break
+            diffusion_idx+=1
+        #diffusion_idx = fdf_properties['array_index'] - 1
+    else:
+        diffusion_idx = fdf_properties['array_index']*2 
 
     if diffusion_idx > len(Bvalue):
         print 'Procpar Bvalue does not contain enough values determined by fdf_properties array_index'
@@ -194,17 +195,20 @@ def ParseASL(ds,procpar,fdf_properties):
 
 
 
-def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
+def ParseFDF(ds,fdf_properties,procpar,args):
     """
-
+    ParseFDF modify the dicom dataset structure based on FDF
+    header information.
+    
     Comment text copied from VNMRJ Programming.pdf
 
+    :param ds:       Dicom dataset
+    :param fdf_properties: Dict of fdf header label/value pairs
+    :param procpar:  Dict of procpar label/value pairs
+    :param args:     Argparse object
+    :return ds:      Return updated dicom dataset struct
     :return fdfrank: Number of dimensions (rank) of fdf file
     """
-    #global RescaleIntercept
-    #global RescaleSlope
-    #global SEQUENCE
-    #global BValue
 
     # if procpar['recon'] == 'external' and fdf_properties['rank'] == '3' and procpar:
     #     fdf_tmp=fdf_properties['roi']
@@ -662,8 +666,7 @@ def ParseFDF(ds,fdf_properties,procpar,RescaleIntercept,RescaleSlope,args):
     FrameContentSequence.FrameLabel='DimX'
     ds.FrameContentSequence = Sequence([FrameContentSequence])
 
-
-
+    
     return ds,fdfrank,fdf_size_matrix,ImageTransformationMatrix
 
 def Save3dFDFtoDicom(ds,procpar,image_data,fdf_properties,M,args,outdir,filename):
