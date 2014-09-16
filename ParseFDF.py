@@ -796,7 +796,7 @@ if __name__ == "__main__":
     import ProcparToDicomMap as ptd
 
 
-    procpar, procpartext = ReadProcpar.ReadProcpar(args.inputdir+'/procpar')
+    procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir,'procpar'))
     ds,MRAcq_type = ptd.ProcparToDicomMap(procpar, args)
     print "Rows: ", ds.Rows, " Columns: ", ds.Columns
     
@@ -809,7 +809,7 @@ if __name__ == "__main__":
 
     # for filename in fdffiles:
     filename = fdffiles[len(fdffiles)-1]
-    fdf_properties,image_data=rf.ReadFDF(args.inputdir+'/'+filename)
+    fdf_properties,image_data=rf.ReadFDF(os.path.join(args.inputdir,filename))
     ds,fdfrank,matsize,M = ParseFDF(ds,fdf_properties,procpar,args)
     ds,image_data =RescaleFDF.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
     
