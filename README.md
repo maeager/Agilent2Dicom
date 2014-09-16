@@ -55,28 +55,38 @@ For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.a
 
 ### Setup and install ###
 
-Pull the development code from MASSIVE using:
+Pull the stable version from the MBI bitbucket repository, using:
 
 ```
 #!bash
 
-hg clone username@m2.massive.org.au://gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom
+hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
 ```
 
-or a stable version from the MBI bitbucket repository, using:
+Check your python installation for the required packages using the check.py script:
 
-```
-#!bash
-
-hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom
-```
-
-An obsolete subversion repository is still available from the MeRC SVN service.
 ```
 #!bash
 
-svn checkout https://svn-vre.its.monash.edu.au/mbi/trunk/Sandbox/meager/Agilent2Dicom
+cd Agilent2Dicom
+./check.py
 ```
+
+Install the required applications and python packages your appropriate linux distribution package manager (or Pip for local python installations).
+
+On Debian/Ubuntu:
+```
+#!bash
+
+sudo apt-get install python-dicom python-numpy python-tk dcmtk
+```
+or Redhat/CentOS:
+```
+#!bash
+
+sudo yum install python-dicom python-numpy python-tk dcmtk
+```
+
 
 ### Install Dicom3tools ###
 
@@ -123,8 +133,53 @@ make install.man                      # into ./man
  
 ```
 
+### Install MRtrix ###
 
-### How to run tests ###
+MRtrix source code and documentation:  http://www.brain.org.au/software/mrtrix/
+
+For MRtrix stable version (0.2.12)
+
+```
+#!bash
+
+# For first-time installation, install required dependencies:
+#   g++, python, gtkmm, gtkglext, libgsl & a working OpenGL environment
+
+# 1. Unpack archive:
+    tar xjf mrtrix-0.2.X.tar.bz2
+
+# 2. Compile:
+    cd mrtrix-0.2.X/
+    ./build
+
+# 3. Install (as root):
+    ./build install
+
+```
+
+For mrtrix3:
+
+```
+#!bash
+
+module load python/2.7.8 qt/4.8.4 gcc/4.8.2 glew/1.10.0 glut gsl gtkglext zlib virtualgl/2.3.x pyqt4 git
+
+git clone https://github.com/jdtournier/mrtrix3
+cd mrtrix
+
+export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7
+export CFLAGS="-I/usr/include"
+python2.7 ./configure
+python2.7 ./build
+
+g++ -c -fPIC -march=native -DMRTRIX_WORD64 -DMRTRIX_USE_TR1 -Wall -Wno-unused-function -Wno-unused-parameter -O2 -DNDEBUG -Isrc -Icmd -Ilib -Icmd -I/usr/local/gsl/1.12-gcc/incl
+ude -I/usr/include -DHAVE_INLINE -DGLX_GLXEXT_PROTOTYPES src/gui/opengl/gl_core_3_3.cpp -o src/gui/opengl/gl_core_3_3.o
+
+python2.7 ./build
+```
+
+
+## How to run tests ##
 
 FDF examples are available on MASSIVE working repository, these
 include standard 2d, multi-echo 3D, multiecho 2D complex, fast spin

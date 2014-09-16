@@ -102,7 +102,7 @@ if __name__ == "__main__":
     
 
     ## Read in data procpar
-    procpar, procpartext = ReadProcpar.ReadProcpar(args.inputdir + '/procpar')
+    procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir,'procpar'))
     # if args.verbose:
     #     print procpar
 
@@ -123,13 +123,14 @@ if __name__ == "__main__":
 
         if args.verbose:
             print 'Converting ' + filename
-        fdf_properties, image_data = ReadFDF.ReadFDF(args.inputdir + '/' + filename)
+        fdf_properties, image_data = ReadFDF.ReadFDF(os.path.join(args.inputdir, filename))
 
         if args.verbose:
             print 'Image_data shape:', str(image_data.shape)
 
         # Change dicom for specific FDF header info
         ds,fdfrank,fdf_matsize,ImageTransformationMatrix = ParseFDF.ParseFDF(ds,fdf_properties,procpar,args)
+
         # Rescale image data
         ds,image_data =RescaleFDF.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
 
