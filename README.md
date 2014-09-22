@@ -162,20 +162,23 @@ For mrtrix3:
 ```
 #!bash
 
-module load python/2.7.8 qt/4.8.4 gcc/4.8.2 glew/1.10.0 glut gsl gtkglext zlib virtualgl/2.3.x pyqt4 git
+module load python/2.7.8-gcc qt/4.8.4 gcc/4.8.2 glew/1.10.0 glut gsl gtkglext zlib virtualgl/2.3.x pyqt4 git
 
 git clone https://github.com/jdtournier/mrtrix3
 cd mrtrix
 
 export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7
-export CFLAGS="-I/usr/include"
+export CFLAGS="-I/usr/include -DGLX_GLXEXT_PROTOTYPES"
 python2.7 ./configure
 python2.7 ./build
 
-g++ -c -fPIC -march=native -DMRTRIX_WORD64 -DMRTRIX_USE_TR1 -Wall -Wno-unused-function -Wno-unused-parameter -O2 -DNDEBUG -Isrc -Icmd -Ilib -Icmd -I/usr/local/gsl/1.12-gcc/incl
-ude -I/usr/include -DHAVE_INLINE -DGLX_GLXEXT_PROTOTYPES src/gui/opengl/gl_core_3_3.cpp -o src/gui/opengl/gl_core_3_3.o
-
+# Known error in the build process: run the gl_core command
+ g++ -c -fPIC -march=native -DMRTRIX_WORD64 -DMRTRIX_USE_TR1 -Wall -Wno-unused-function -Wno-unused-parameter -O2 -DNDEBUG -Isrc -Icmd -Ilib -Icmd -I/usr/local/gsl/1.12-gcc/include -I/usr/include -DHAVE_INLINE -DGLX_GLXEXT_PROTOTYPES src/gui/opengl/gl_core_3_3.cpp -o src/gui/opengl/gl_core_3_3.o
+# Then complete the build again
 python2.7 ./build
+
+## Optional: Install as root
+# sudo python ./build install
 ```
 
 
