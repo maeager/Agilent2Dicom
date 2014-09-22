@@ -17,7 +17,7 @@ Version 1.0: Pythonised modules (Michael Eager)
 
 import os
 import sys
-
+import re
 import dicom
 import numpy
 import argparse

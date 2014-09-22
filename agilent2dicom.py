@@ -16,8 +16,8 @@ Version 0.6: Major rewrite, external recon
 """
 
 VersionNumber = "0.6"
-DVCSstamp = "$Id: agilent2dicom.py,v 1a0208a53c86 2014/09/09 02:07:29 michael $"
-
+DVCSstamp = "$Id: agilent2dicom.py,v 654c374f3165 2014/09/22 04:37:37 michael $"
+from fdf2dcm_global import *
 import pdb
 # import ast
 import os
@@ -1165,7 +1165,7 @@ if __name__ == "__main__":
     
     #Image Comments (0020,4000) 3
     # User-defined comments about the image.
-    ds.ImageComments = 'MBI Agilent2Dicom converter. '
+    ds.ImageComments="MBI's FDF2DCM converter."
     
 
     # Image Type = ["ORIGINAL","PRIMARY"] (0008,0008) 1
@@ -2262,7 +2262,8 @@ if __name__ == "__main__":
         #---------------------------------------------------------------------------------
         # GROUP 0020: Relationship
 
-        ds.ImageComments = ds.ImageComments +'\n'+ fdf_properties['filetext']
+        # ds.ImageComments = str(ds.ImageComments)+'\nFDF HEADER:'+fdf_properties['filename']+'\n'+fdf_properties['filetext']
+       # ds.ImageComment=fdf_properties['filetext']+FDF2DCM_Image_Comments
     
     # For further information regarding the location, orientation, roi, span, etc 
     # properties in the FDF header, see the "Agilent VNMRJ 3.2 User Programming 

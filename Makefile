@@ -12,6 +12,7 @@ PATH+=:$(DCM3TOOLS)
 
 displenv:
 	echo $(DCM3TOOLS)
+	echo $(FDF2DCM)
 
 .PHONY: check
 check: 

@@ -18,6 +18,12 @@ import tkFileDialog
 
 from ReadProcpar import *
 
+aboutText = """<p>Sorry, there is no information about this program. It is
+running <b>Agilent2Dicom</b>.
+See <a href="http://bitbucket.org/mbi-image/agilent2dicom">Agilent2Dicom Wiki</a></p>"""
+
+
+
 def check_dir(dpath):
     if os.path.isdir(dpath) and os.path.exists(os.path.join(dpath,'0001.dcm')):
         return True
@@ -40,7 +46,7 @@ def check(*args):  #send_button):
         import os
         output_dir = outputdir.get()
         thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
-        print ('check path: ' + thispath)
+        print 'check path: %s' % thispath
         cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + output_dir
         print(cmd1)
         cmd='(if test ${MASSIVEUSERNAME+defined} \n\
@@ -66,7 +72,7 @@ def convert(*args):  #send_button):
         input_dir = inputdir.get()
         output_dir = outputdir.get()
         thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
-        print ('dconvert path: ' + thispath)
+        print 'dconvert path: %s' % thispath
         cmd1 = os.path.join(thispath,'fdf2dcm.sh') + ' -v  -i ' + input_dir + ' -o ' + output_dir
         print(cmd1)
         cmd='(if test ${MASSIVEUSERNAME+defined} \n\
@@ -118,6 +124,8 @@ def toggle_debug():
     else:
         debug.set(0)
 
+def onAbout():
+    tkMessageBox.showinfo("FDF2Dicom About", aboutText)
 
 root = Tk()
 root.title("FDF to Dicom/3.0 (MBI Agilent)")
@@ -137,6 +145,9 @@ menu.add_cascade(label="Settings", menu=filemenu)
 filemenu.add_command(label="Toggle debug", command=toggle_debug)
 
 filemenu.add_command(label="Exit", command=root.quit)
+aboutmenu = Menu(menu)
+menu.add_cascade(label="Help", menu=aboutmenu)
+filemenu.add_command(label="About FDF2Dicom", command=onAbout)
 
 
 
