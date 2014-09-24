@@ -2127,7 +2127,7 @@ if __name__ == "__main__":
     datamin = float("inf")
     datamax = float("-inf")
 
-    #FIXED BUG in RescaleSlope of phase imgs 
+    # FIXED BUG in RescaleSlope of phase imgs 
     if args.phase and 'imPH' in procpar.keys() and procpar["imPH"] == 'y':
         datamin = -math.pi
         datamax = math.pi
@@ -2183,7 +2183,7 @@ if __name__ == "__main__":
     # points in each dimension (e.g., for rank=2, float
     # matrix[]={256,256};)
         fdf_size_matrix = fdf_properties['matrix'][0:2]
-        if args.verbose and fdf_properties['slice_no'] == 1:
+        if args.verbose: # and fdf_properties['slice_no'] == 1:
             print "FDF size matrix ",fdf_size_matrix, type(fdf_size_matrix)
 
     # spatial_rank is a string ("none", "voxel", "1dfov", "2dfov",
@@ -2206,7 +2206,7 @@ if __name__ == "__main__":
     # not confuse this roi with ROIs that might be specified inside
     # the data set.
         roi = fdf_properties['roi'][0:2]
-        if args.verbose and fdf_properties['slice_no'] == 1:
+        if args.verbose: # and fdf_properties['slice_no'] == 1:
             print "FDF roi ",roi, type(roi)
     
 
@@ -2263,7 +2263,7 @@ if __name__ == "__main__":
         # GROUP 0020: Relationship
 
         # ds.ImageComments = str(ds.ImageComments)+'\nFDF HEADER:'+fdf_properties['filename']+'\n'+fdf_properties['filetext']
-       # ds.ImageComment=fdf_properties['filetext']+FDF2DCM_Image_Comments
+        # ds.ImageComment=fdf_properties['filetext']+FDF2DCM_Image_Comments
     
     # For further information regarding the location, orientation, roi, span, etc 
     # properties in the FDF header, see the "Agilent VNMRJ 3.2 User Programming 
@@ -2339,7 +2339,7 @@ if __name__ == "__main__":
                                        str(ImagePositionPatient[1]),\
                                        str(ImagePositionPatient[2])]	      
 
-    #(0020,0037) Image Patient Orientation
+    # (0020,0037) Image Patient Orientation
         ds.ImageOrientationPatient = [str(ImageOrientationPatient[0]),\
                                           str(ImageOrientationPatient[1]),\
                                           str(ImageOrientationPatient[2]),\
@@ -2682,8 +2682,8 @@ if __name__ == "__main__":
         ds.RescaleIntercept = str(RescaleIntercept)                                #(0028,1052) Rescale Intercept
         # Rescale slope string must not be longer than 16
         if len(str(RescaleSlope))>16:
-            print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RscaleSlope)[:16]
-        ds.RescaleSlope = str(RescaleSlope)[:16]    #(0028,1053) Rescale Slope
+            print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RscaleSlope)[:15]
+        ds.RescaleSlope = str(RescaleSlope)[:15]    #(0028,1053) Rescale Slope
 
         #ds.MRAcquisitionType = '2D'                 # 0018,0023 MR Acquisition Type (optional)
         # Identification of spatial data encoding scheme.
