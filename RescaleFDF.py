@@ -62,12 +62,16 @@ def RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args):
         print "Current data min: ", image_data.min(), " max ", image_data.max()
     image_data = (image_data - RescaleIntercept) / RescaleSlope
     image_data = image_data.astype(numpy.int16)
-    
-    ds.RescaleIntercept = str(RescaleIntercept)                                #(0028,1052) Rescale Intercept
+
+    ## Adjusting Dicom parameters for rescaling
+        # Rescale intercept string must not be longer than 16
+    if len(str(RescaleIntercept))>16:
+        print "Cropping rescale intercept from ", str(RescaleIntercept), " to ", str(RescaleIntercept)[:15]
+    ds.RescaleIntercept = str(RescaleIntercept)[:15]                                #(0028,1052) Rescale Intercept
     # Rescale slope string must not be longer than 16
     if len(str(RescaleSlope))>16:
-        print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RescaleSlope)[:16]
-    ds.RescaleSlope = str(RescaleSlope)[:16]    #(0028,1053) Rescale Slope
+        print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RescaleSlope)[:15]
+    ds.RescaleSlope = str(RescaleSlope)[:15]    #(0028,1053) Rescale Slope
 
     return ds,image_data
 
