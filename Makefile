@@ -2,7 +2,8 @@
 REQUIREMENTS= python mrconvert storescu dcmodify dcmulti dciodvfy fslhd fslview
 GL=vglrun # set to appropriate virtualgl 
 MRVIEW=$(GL) mrview
-MRCONVERT=mrconvert -info -datatype float32 
+MRCONVERT=time mrconvert -info -datatype float32 
+MRVERSION=$(shell mrconvert --version  | head -1 | sed 's/.*0\.2\.\([0-9]*\) .*/\1/')
 FSLHD=fslhd
 FSLVIEW=$(GL) fslview 
 DCM3TOOLS=$(shell /bin/ls -d ../dicom3tools_*/bin/*)
@@ -21,6 +22,8 @@ check:
 	done
 #	test -x $$req || (echo "$$req not found"; exit 1)
 	python check.py
+	if [[ $(MRVERSION) -ge 12  ]]; then echo "mrconvert version $(MRVERSION)"; \
+	else echo "mrconvert version too old ($(MRVERSION)). Install 0.2.12 or greater."; fi 
 
 
 .PHONY: setup
@@ -34,22 +37,22 @@ cleanup:
 # $(call a2d_convert,<inputdir>,<fullniftifile>)
 define a2d_convert
 echo "Convert Dicom to Nifti (mrconvert)";\
-if [ ! -d $1/tmp ] ;then \
-([ -f $2 ] && $(RM) $2; $(MRCONVERT) $1 $2 > /dev/null) \
-else echo "Cannot use mrconvert with tmp files."; touch $2 fi
+if [ ! -d $1/tmp ]; then \
+[ -f $2 ] && $(RM) $2; $(MRCONVERT) $1 $2 > /dev/null ;\
+else echo "Cannot use mrconvert with tmp files."; touch $2; fi
 endef
 
 # $(call a2d_check,<inputdir>,<fullniftifile>)
 define a2d_check
 echo "Agilent2Dicom Check DCM and NII"; \
 [ -f $2 ] && fslhd $2 | grep -e '^dim[1234]' | \
-awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' \
-printf "DICOM";mrinfo ../output_data/standard2d 2> /dev/null | grep 'Dimensions'
+awk 'BEGIN{i=0} {a[i]=$$2; ++i} END{printf("NIFTI  Dimensions:        "); for (i=0;i<4;++i){printf("%d ",a[i]);if (i!=3){printf("x ")}}; printf("\n")}' ;\
+printf "DICOM";mrinfo $1 2> /dev/null | grep 'Dimensions'
 endef
 
 # $(call a2d_verify,<dcmfile>)
 define a2d_verify
-echo "Verify Dicom (dciodvfy)";\
+echo "Verify Dicom (dciodvfy)"; \
 dciodvfy $1 2>&1 >/dev/null | grep -e '^Error' -e '^Warning'
 endef
 
@@ -60,7 +63,7 @@ run_standard2d:
 
 
 check_standard2d:
-	-$(call a2d_convert,../output_data/standard2d/,../output_nii/standard2d.nii)
+	-$(call a2d_check,../output_data/standard2d/,../output_nii/standard2d.nii)
 
 
 test_standard2d:
