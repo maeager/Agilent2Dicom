@@ -7,7 +7,7 @@
 # - (C) 2014 Michael Eager
 #
 #
-#  "$Id: fdf2dcm.sh,v a40bd3b1cea4 2014/09/09 03:58:38 michael $"
+#  "$Id: fdf2dcm.sh,v 910e24fc40c1 2014/09/24 06:58:08 michael $"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #  Version 1.1: Supporting Diffusion and Multiecho
@@ -31,7 +31,7 @@ AGILENT2DICOM=agilent2dicom.py #tmpa2d.py  #
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
 
-# DCM3TOOLS="${FDF2DCMPATH}"/$(/bin/ls -d ../dicom3tools_*/bin/*)
+DCM3TOOLS="${FDF2DCMPATH}"/$(/bin/ls -d ../dicom3tools_*/bin/*)
 #DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/"
 #DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
 

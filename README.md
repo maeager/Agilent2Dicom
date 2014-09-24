@@ -194,9 +194,12 @@ be tested.
 The Makefile contains examples to be used on MASSIVE. These include
 *standard2d*, *me3d*, *me2d*, *diffusion*, *asl*,
 *cine* and other specific protocol examples. These will execute:
-       - *run_{}* runs the FDF agilent to dicom process and conversion of DICOMs to NIFTI;
-       - *check_{}*, check the dimensions of the Dicom and Nifti files; and
-       - *test_{}*, runs the dciodvfy on the first dicom to validate the conversion to enhanced MR.
+
+* *run_{}* runs the FDF agilent to dicom process and conversion of DICOMs to NIFTI;
+* *check_{}*, check the dimensions of the Dicom and Nifti files; 
+* *test_{}*, runs the dciodvfy on the first dicom to validate the conversion to enhanced MR;
+* *view_{}*, view the DICOM image using mrview; and
+* *viewn_{}*, view the NIFTI formatted image.
  
 To make all the examples and test them use:
 
@@ -206,8 +209,6 @@ To make all the examples and test them use:
 make all
 make test_all
 ```
-
-To view dicoms use *make view_<>*.
 
 ## Basic overview ##
 
@@ -231,6 +232,9 @@ called .dcm in the input directory. By default the output dicom file is named
  -m,-p          Enable magnitude and phase subdirectory conversion. These flags are
 passed to agilent2dicom and should only be used from within fdf2dcm or with knowledge
 of input fdf data.
+ -s <SEQ>            Sequence type (one of MULTIECHO,DIFFUSION,ASL).
+ -x             Debug mode.
+ -v		Verbose output
  -h             this help
 ```
 
@@ -240,7 +244,7 @@ The crux of the script is performed within the agilent2dicom python script. It's
 #!bash
 
 [eagerm@m2101 Agilent2Dicom]$ ./agilent2dicom.py -h
-usage: agilent2dicom -i "Input FDF directory" [-o Output directory] [-m] [-p] [-v]
+usage: agilent2dicom -i "Input FDF directory" [-o "Output directory"] [-m] [-p] [-v] 
 agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI.
 optional arguments:
   -h, --help            show this help message and exit
@@ -251,7 +255,9 @@ optional arguments:
                         Output directory name for DICOM files.
   -m, --magnitude       Magnitude component flag.
   -p, --phase           Phase component flag.
- 
+  -s SEQUENCE, --sequence SEQUENCE
+                        Sequence type (one of Multiecho, Diffusion, ASL.
+  -v, --verbose         Verbose.) 
 ```
 
 A simple GUI interface *fdf2dicom*, was developed to be used by experimental scientists on the Agilent RedHat console. This requires python 2.6 and Tkinter.
@@ -260,18 +266,20 @@ A simple GUI interface *fdf2dicom*, was developed to be used by experimental sci
 
 ## Contribution guidelines ##
 
-* Writing tests
+*Writing tests*
 
-New example FDF image types should have:
+New example FDF image type testing procedures should have:
 
-* a 'run_<type>' routine that converts the FDF folder to DICOM and converts the DICOMs to Nifti;
-* a check_<type>' routine that displays the dimensions of the dicom and nifti files;
-* a test_<type> routine that runs dciodvfy on the Dicom files;
-* [optional] a view_ routine for mrview and fslview to show the DICOM or NIFTI images
+ * a 'run_<type>' routine that converts the FDF folder to DICOM and converts the DICOMs to Nifti;
+ * a check_<type>' routine that displays the dimensions of the dicom and nifti files;
+ * a test_<type> routine that runs dciodvfy on the Dicom files;
+ * [optional] a view_ routine for mrview and fslview to show the DICOM or NIFTI images
 
-* Code review
+See examples in Makefile.
 
-* Other guidelines
+*Code review*
+
+*Other guidelines*
 
 ## Who do I talk to? ##
 
