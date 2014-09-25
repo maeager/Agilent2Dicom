@@ -135,8 +135,12 @@ def cplxfilter(real_input, imag_input,sigma=0.707,order_=0,mode_='reflect', cval
     
     filtered_magnitude = cplxfilter(realimg,imagimg)
 
-    :param sigma:  optimal gaussian sigma = 1/sqrt(2)
-    :return filtered_image:  complex 3D array of gaussian filtered image
+    :param sigma:  optimal sigma = 1/sqrt(2).  Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.
+    :param order: {0, 1, 2, 3} or sequence from same set, optional.  The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented
+    :param mode: {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional. The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to 'constant'. Default is 'reflect'
+    :param cval: [optional] Value to fill past edges of input if mode is 'constant'. Default is 0.0
+
+    :return filtered_image:  complex 3D array of gaussian filtered image, 
     """
     # imgmag = load_untouch_nii(file1)
     # imph = load_untouch_nii(file2)
@@ -386,7 +390,7 @@ if __name__ == "__main__":
     nib.save(raw_ksp,'raw_ksp.nii.gz')
 
     
-    image_filtered = cplxfilter(image.real,image.imag)
+    image_filtered = cplxfilter(image.real,image.imag,1.0)
 
 
     new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
