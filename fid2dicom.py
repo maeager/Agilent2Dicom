@@ -18,7 +18,7 @@ from fdf2dcm_global import *
 
 import ReadProcpar
 import RescaleFDF
-import ReadFDF
+import ReadFID
 import ProcparToDicomMap
 import ParseFDF
 
@@ -29,8 +29,8 @@ if __name__ == "__main__":
 
     # Parse command line arguments and validate img directory
 
-    parser = argparse.ArgumentParser(usage=' agilent2dicom -i "Input FDF directory" [-o "Output directory"] [-m] [-p] [-v]',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version '+VersionNumber)
-    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
+    parser = argparse.ArgumentParser(usage=' fid2dicom -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Version '+VersionNumber)
+    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FID image directory containing procpar and fid files',required=True);
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
     parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
     parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     if args.verbose:
-        print "Agilent2Dicom python converter FDF to basic MR DICOM images\n Args: ", args #.accumulate(args.integers)
+        print "Agilent2Dicom python converter FID to basic MR DICOM images\n Args: ", args #.accumulate(args.integers)
 
 
     # Check input folder exists
@@ -58,14 +58,14 @@ if __name__ == "__main__":
         args.sequence = ''
 
     if 'procpar' not in files:
-        print 'Error: FDF folder does not contain a procpar file'
+        print 'Error: FID folder does not contain a procpar file'
         sys.exit(1)
         
-    fdffiles = [ f for f in files if f.endswith('.fdf') ]
+    fidfiles = [ f for f in files if f.endswith('fid') ]
     if len(fdffiles) == 0:
-        print 'Error: FDF folder does not contain any fdf files'
+        print 'Error: FID folder does not contain any fdf files'
         sys.exit(1)
-    print "Number of FDF files: ", len(fdffiles)
+    print "Number of FID files: ", len(fdffiles)
     # Check output directory
     if not args.outputdir:
         outdir = os.path.splitext(args.inputdir)[0]
@@ -110,33 +110,33 @@ if __name__ == "__main__":
  
 
     ## Per frame implementation
-    # Read in data from fdf file, if 3D split frames    
+    # Read in data from fid file, if 3D split frames    
     volume=1
-    for filename in fdffiles:
 
+    filename = fidfiles[len(fidfiles)-1]
+    procpar,hdr,dims,image_data_real,image_data_imag=ReadFID.readfid(args.inputdir,procpar)
+    image_data,ksp=recon(procpar,dims,hdr,image_data_real,image_data_imag)
+
+    
+    if args.verbose:
+        print 'Image_data shape:', str(image_data.shape)
+
+    # Change dicom for specific FID header info
+    ds,matsize,ImageTransformationMatrix = ReadFID.ParseFID(ds,fdf_properties,procpar,args)
+
+    # Rescale image data
+    ds,image_data =ReadFID.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
+
+    # Export dicom to file
+    if MRAcquisitionType == '3D':
+        ds=ParseFDF.Save3dFDFtoDicom(ds,procpar,image_data,fdf_properties,ImageTransformationMatrix,args,outdir,filename)
+    else:
+        ParseFDF.Save2dFDFtoDicom(ds,image_data, outdir, filename)
+        
+    if ds.ImageType[2]=="MULTIECHO" or re.search('slab|img_',filename):
+        print ds.FrameContentSequence[0].StackID, ds.FrameContentSequence[0].StackID[0]
+        print type(ds.FrameContentSequence[0].StackID), type(ds.FrameContentSequence[0].StackID[0])
+        ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0])+1)
         if args.verbose:
-            print 'Converting ' + filename
-        fdf_properties, image_data = ReadFDF.ReadFDF(os.path.join(args.inputdir, filename))
-
-        if args.verbose:
-            print 'Image_data shape:', str(image_data.shape)
-
-        # Change dicom for specific FDF header info
-        ds,fdfrank,fdf_matsize,ImageTransformationMatrix = ParseFDF.ParseFDF(ds,fdf_properties,procpar,args)
-
-        # Rescale image data
-        ds,image_data =RescaleFDF.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
-
-        # Export dicom to file
-        if MRAcquisitionType == '3D':
-            ds=ParseFDF.Save3dFDFtoDicom(ds,procpar,image_data,fdf_properties,ImageTransformationMatrix,args,outdir,filename)
-        else:
-            ParseFDF.Save2dFDFtoDicom(ds,image_data, outdir, filename)
-
-        if ds.ImageType[2]=="MULTIECHO" or re.search('slab|img_',filename):
-            print ds.FrameContentSequence[0].StackID, ds.FrameContentSequence[0].StackID[0]
-            print type(ds.FrameContentSequence[0].StackID), type(ds.FrameContentSequence[0].StackID[0])
-            ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0])+1)
-            if args.verbose:
-                print "Incrementing volume StackID ", ds.FrameContentSequence[0].StackID
+            print "Incrementing volume StackID ", ds.FrameContentSequence[0].StackID
 
