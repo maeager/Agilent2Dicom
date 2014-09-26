@@ -18,7 +18,13 @@ try:
 
     from dicom.sequence import Sequence
     from dicom.dataset import Dataset
+
+    from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
+    from scipy import ndimage
+    from scipy import signal
+
+
 except ImportError:
     raise ImportError("Import failed.")
     
-print "Imports successful."
+print "Python imports successful."
