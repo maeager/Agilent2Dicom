@@ -11,9 +11,9 @@ Version 0.4: Combine with bash wrapper fdf2dcm.sh
 Version 0.5: Major fixes to diffusion and other sequences
 Version 0.6: Major rewrite, external recon 
 
-
- Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
-
+"""
+"""
+  Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -27,11 +27,10 @@ Version 0.6: Major rewrite, external recon
 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 """
 
 VersionNumber = "0.6"
-DVCSstamp = "$Id: agilent2dicom.py,v b05c1c3bc04a 2014/09/28 23:13:39 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v b0a4881bbb27 2014/09/28 23:38:52 michael $"
 from fdf2dcm_global import *
 import pdb
 # import ast

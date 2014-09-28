@@ -4,7 +4,22 @@
 
 Version 0.1: Original code based on agilent2dicom FDF converter (Michael Eager)
 
- (c) 2014 Michael Eager  (michael.eager@monash.edu)
+
+  Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 
 import os
@@ -115,7 +130,7 @@ if __name__ == "__main__":
 
     filename = fidfiles[len(fidfiles)-1]
     procpar,hdr,dims,image_data_real,image_data_imag=ReadFID.readfid(args.inputdir,procpar)
-    image_data,ksp=recon(procpar,dims,hdr,image_data_real,image_data_imag)
+    image_data,ksp=ReadFID.recon(procpar,dims,hdr,image_data_real,image_data_imag)
 
     
     if args.verbose:

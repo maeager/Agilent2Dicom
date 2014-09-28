@@ -1,9 +1,25 @@
 #!/usr/bin/env bash
+# fix-dicoms corrects issues in converting 2D dicoms to
+# multi-dimensional dicoms in DCMULTI
 #
 # - Michael Eager (michael.eager@monash.edu)
 # - Monash Biomedical Imaging 
-# - (C) 2014 Michael Eager
 #
+#
+# Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ############################################
 
 
@@ -56,7 +72,7 @@ ${DCMODIFY} -m "(5200,9229)[0].(0018,9049)[0].(0018,9051)=$transcoiltype" $files
 
 
 # Tranmitter Frequency
-  # > (0x0018,0x9098) FD Transmitter Frequency   VR=<FD>   VL=<0x0008>  {0}
+# > (0x0018,0x9098) FD Transmitter Frequency   VR=<FD>   VL=<0x0008>  {0}
 transfrq=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Transmitter Frequency' | sed 's/^.*{\(.*\)} *$/\1/' )
 echo "Fixing Tranmitter Frequency :" $transfrq 
 ${DCMODIFY} -m "(5200,9229)[0].(0018,9006)[0].(0018,9098)=$transfrq" $files
