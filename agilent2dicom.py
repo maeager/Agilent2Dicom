@@ -12,11 +12,26 @@ Version 0.5: Major fixes to diffusion and other sequences
 Version 0.6: Major rewrite, external recon 
 
 
- (c) 2014 Michael Eager  (michael.eager@monash.edu)
+ Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 
 VersionNumber = "0.6"
-DVCSstamp = "$Id: agilent2dicom.py,v 6e6e94ac4c94 2014/09/24 06:56:32 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v b05c1c3bc04a 2014/09/28 23:13:39 michael $"
 from fdf2dcm_global import *
 import pdb
 # import ast
@@ -2541,9 +2556,11 @@ if __name__ == "__main__":
         #else:
 
         ds.AcquisitionNumber = fdf_properties['array_index']
-        ds.ImagesInAcquisition = fdf_properties['array_dim']
-
-
+        if 'array_dim' in fdf_properties.keys():
+            ds.ImagesInAcquisition = fdf_properties['array_dim']
+        else:
+            ds.ImagesInAcquisition = 1
+            
         if SEQUENCE == 'Diffusion':
             if args.verbose:
                 print 'Processing diffusion image'
