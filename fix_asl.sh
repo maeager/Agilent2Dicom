@@ -1,10 +1,23 @@
 #!/usr/bin/env bash
+## fix_asl - Correct DCMULTI headers for ASL sequences
+  # Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+
+  # This program is free software: you can redistribute it and/or modify
+  # it under the terms of the GNU General Public License as published by
+  # the Free Software Foundation, either version 3 of the License, or
+  # (at your option) any later version.
+
+  # This program is distributed in the hope that it will be useful,
+  # but WITHOUT ANY WARRANTY; without even the implied warranty of
+  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  # GNU General Public License for more details.
+
+  # You should have received a copy of the GNU General Public License
+  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-# dcdump ../output_data/ASL_se_06.dcm/tmp/slice001image001echo001.dcm 2>&1| grep -A30 'MR Arterial' | sed 's/.*VL=<[^>]*>\s\(.*\)/\1/'                                
-
-
+# $ dcdump ../output_data/ASL_se_06.dcm/tmp/slice001image001echo001.dcm 2>&1| grep -A30 'MR Arterial' | sed 's/.*VL=<[^>]*>\s\(.*\)/\1/'                                
 # (0x0018,0x9251) SQ MR Arterial Spin Labeling Sequence    VR=<SQ>   VL=<0xffffffff>
 #   ----:
 #     > (0x0018,0x9250) CS Arterial Spin Labeling Contrast         VR=<CS>   VL=<0x000a>  <CONTINUOUS>

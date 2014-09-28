@@ -1,7 +1,21 @@
 #!/usr/bin/env python
 
 # agilent2dicom is used to convert Agilent FDF files to DICOM format.
-# (c) 2014 Michael Eager  (michael.eager@monash.edu)
+
+  # Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+
+  # This program is free software: you can redistribute it and/or modify
+  # it under the terms of the GNU General Public License as published by
+  # the Free Software Foundation, either version 3 of the License, or
+  # (at your option) any later version.
+
+  # This program is distributed in the hope that it will be useful,
+  # but WITHOUT ANY WARRANTY; without even the implied warranty of
+  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  # GNU General Public License for more details.
+
+  # You should have received a copy of the GNU General Public License
+  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 VersionNumber="1.1.0"
@@ -26,6 +40,7 @@ DICOM_Tag_SoftwareVersions="VnmrJ 3.2, Agilent2Dicom 1.1"
 Standard_MR_SOPClassUID="1.2.840.10008.5.1.4.1.1.4" # MR Image SOP
 Implementation_Class_UID="1.3.6.1.4.1.25371.1.1.2"
 
-Derivation_Description="Dicom generated from Agilen2Dicom, an FDF dataset converter to Dicom. Monash Biomedical Imaging, Imaging Team."
+Derivation_Description="Dicom generated from Agilent2Dicom, an FDF/FID dataset converter to enhanced Dicom format. Monash Biomedical Imaging, Imaging Team."
 COIL_Manufacturer="Agilent Technologies"
 FDF2DCM_Image_Comments="MBI's FDF2DCM converter."
+FID2DCM_Image_Comments="MBI's FID2DCM converter."

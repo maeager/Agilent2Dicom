@@ -2,7 +2,23 @@
 
 """ReadFID is used to read Agilent FID image files
 
-   (c) 2014  Michael Eager (michael.eager@monash.edu)
+   -  Michael Eager (michael.eager@monash.edu)
+"""
+"""
+  Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import os,sys
@@ -101,7 +117,7 @@ def readfid(folder,pp=[]):
         raise ValueError("Cannot resolve fid header with procpar. We're probably not interpreting the procpar correctly.")
     # hdr['nChannels'] = hdr['nblocks']/hdr['acqcycles']
     hdr['nPhaseEncodes'] = hdr['ntraces']/hdr['nEchoes']
-                                               
+    hdr['rank'] = pp['nD']                                           
     # reset output structures
     RE = numpy.empty([hdr['np']/2, hdr['ntraces'], hdr['nblocks']], dtype=float)
     IM = numpy.empty([hdr['np']/2, hdr['ntraces'], hdr['nblocks']], dtype=float)
@@ -250,7 +266,7 @@ def RescaleImage(ds,image_data,args):
 def ParseFID(ds,fid_properties,procpar,args):
     """
     ParseFID modify the dicom dataset structure based on FID
-    header information.
+    header information and procpar information.
     
     Comment text copied from VNMRJ Programming.pdf
 
@@ -266,9 +282,9 @@ def ParseFID(ds,fid_properties,procpar,args):
     #     fid_tmp=fid_properties['roi']
     #     fid_properties['roi'][0:1] = fid_tmp[1:2]
     #     fid_properties['roi'][2] = fid_tmp[0]
-    #     fid_tmp=fid_properties['matrix']
-    #     fid_properties['matrix'][0:1] = fid_tmp[1:2]
-    #     fid_properties['matrix'][2] = fid_tmp[0]
+    #     fid_tmp=fid_properties['dims']
+    #     fid_properties['dims'][0:1] = fid_tmp[1:2]
+    #     fid_properties['dims'][2] = fid_tmp[0]
 
     #----------------------------------------------------------
     # General implementation checks
@@ -292,9 +308,9 @@ def ParseFID(ds,fid_properties,procpar,args):
     # points in each dimension (e.g., for rank=2, float
     # matrix[]={256,256};)
     if fidrank==3:
-        fid_size_matrix = fid_properties['matrix'][0:3]
+        fid_size_matrix = fid_properties['dims'][0:3]
     else:
-        fid_size_matrix = fid_properties['matrix'][0:2]
+        fid_size_matrix = fid_properties['dims'][0:2]
     if args.verbose:
         print "FID size matrix ",fid_size_matrix, type(fid_size_matrix)
     #fid_size_matrix=numpy.array(fid_matrix)
@@ -334,15 +350,15 @@ def ParseFID(ds,fid_properties,procpar,args):
     # not confuse this roi with ROIs that might be specified inside
     # the data set.
     if fidrank==3:
-        roi = fid_properties['roi'][0:3]
+        roi = fid_properties['FOVcm'][0:3]
     else:
-        roi = fid_properties['roi'][0:2]
+        roi = fid_properties['FOVcm'][0:2]
     if args.verbose:
         print "FID roi ",roi, type(roi)
-    #roi=numpy.array(roi_text)
+    # roi=numpy.array(roi_text)
     
     ## PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
-    PixelSpacing = map(lambda x,y: x*10.0/y,roi,fid_size_matrix)
+    PixelSpacing = fid_properties['voxelmm'] 
     if PixelSpacing[0] != ds.PixelSpacing[0] or PixelSpacing[1] != ds.PixelSpacing[1]:
         print "Pixel spacing mismatch, procpar ", ds.PixelSpacing , " fid spacing ", str(PixelSpacing[0]),',', str(PixelSpacing[1])
     if args.verbose:
@@ -353,17 +369,17 @@ def ParseFID(ds,fid_properties,procpar,args):
 
     ## FID slice thickness
     if fidrank == 3:
-	fidthk = fid_properties['roi'][2]/fid_properties['matrix'][2]*10
+        fidthk = fid_properties['FOVcm'][2]/fid_properties['dims'][2]*10
     else:
-	fidthk = fid_properties['roi'][2]*10.0
+        fidthk = fid_properties['FOVcm'][2]*10.0
 
     CommentStr = 'Slice thickness does not match between fid and procpar'
     AssumptionStr = 'In fid, slice thickness defined by roi[2] for 2D or roi[2]/matrix[2].\n'+\
         'In procpar, slice thickness defined by thk (2D) or lpe2*10/(fn2/2) or lpe2*10/nv2.\n'+\
         'Using local FID value '+str(fidthk)+' instead of procpar value '+str(ds.SliceThickness)+'.'
     if args.verbose:
-	print 'fidthk : ' + str(fidthk)
-	print 'SliceThinkness: ' + str(ds.SliceThickness)
+        print 'fidthk : ' + str(fidthk)
+        print 'SliceThinkness: ' + str(ds.SliceThickness)
 
     SliceThickness= float(ds.SliceThickness)
 
@@ -379,11 +395,11 @@ def ParseFID(ds,fid_properties,procpar,args):
 
     # Slice Thickness 0018,0050 Slice Thickness (optional)
     if fidrank == 3:
-	if len(PixelSpacing) != 3:
-	    print "Slice thickness: 3D procpar spacing not available, fidthk ", fidthk
-	else:
-	    if PixelSpacing[2] != ds.SliceThickness:
-		print "Slice Thickness mismatch, procpar ", ds.SliceThickness , " fid spacing ", PixelSpacing[2], fidthk
+        if len(PixelSpacing) != 3:
+            print "Slice thickness: 3D procpar spacing not available, fidthk ", fidthk
+    else:
+        if PixelSpacing[2] != ds.SliceThickness:
+            print "Slice Thickness mismatch, procpar ", ds.SliceThickness , " fid spacing ", PixelSpacing[2], fidthk
 
     # Force slice thickness to be from fid props
     ds.SliceThickness = str(fidthk)  
@@ -435,13 +451,13 @@ def ParseFID(ds,fid_properties,procpar,args):
     span = numpy.matrix(numpy.append(fid_properties['span'], 0)*10.0)
 
     if args.verbose:
-	print "Span: ", span, span.shape
-	print "Location: ", location, location.shape
+        print "Span: ", span, span.shape
+        print "Location: ", location, location.shape
     
     # diff = numpy.setdiff1d(span, location)
 
     if (numpy.prod(span.shape) != numpy.prod(location.shape)):
-	span=numpy.resize(span,(1,3))
+        span=numpy.resize(span,(1,3))
     # print span
     o = location - span/2.0
     
@@ -537,13 +553,13 @@ def ParseFID(ds,fid_properties,procpar,args):
     AssumptionStr = 'In FID, number of rows is defined by matrix[1]. \n'+\
         'In procpar, for 3D datasets number of rows is either fn1/2 or nv ('+str(procpar['fn1']/2.0)+','+str(procpar['nv'])+').\n'+\
         'For 2D datasets, number of rows is fn/2.0 or np ('+str(procpar['fn']/2.0)+','+str(procpar['np'])+').\n'+\
-        'Using local FID value '+str(fid_properties['matrix'][1])+' instead of procpar value '+str(ds.Rows)+'.'
-    AssertImplementation(int(float(ds.Rows)) != int(fid_properties['matrix'][1]), filename, CommentStr, AssumptionStr)
+        'Using local FID value '+str(fid_properties['dims'][1])+' instead of procpar value '+str(ds.Rows)+'.'
+    AssertImplementation(int(float(ds.Rows)) != int(fid_properties['dims'][1]), filename, CommentStr, AssumptionStr)
     if args.verbose:
         print 'Rows ', procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0
         print '   Procpar: rows ', ds.Rows
-        print '   FID prop rows ', fid_properties['matrix'][1]
-    ds.Rows = fid_properties['matrix'][1]                                   #(0028,0010) Rows
+        print '   FID prop rows ', fid_properties['dims'][1]
+    ds.Rows = fid_properties['dims'][1]                                   #(0028,0010) Rows
             
 
 
@@ -552,13 +568,13 @@ def ParseFID(ds,fid_properties,procpar,args):
     AssumptionStr = 'In FID, number of columns is defined by matrix[0]. \n'+\
         'In procpar, for 3D datasets number of columns is either fn/2 or np ('+str(procpar['fn']/2.0)+','+str(procpar['np'])+').\n'+\
         'For 2D datasets, number of rows is fn1/2.0 or nv ('+str(procpar['fn1']/2.0)+','+str(procpar['nv'])+').\n'+\
-        'Using local FID value '+str(fid_properties['matrix'][0])+' instead of procpar value '+str(ds.Columns)+'.'
-    AssertImplementation(int(float(ds.Columns)) != int(fid_properties['matrix'][0]), filename, CommentStr, AssumptionStr)
+        'Using local FID value '+str(fid_properties['dims'][0])+' instead of procpar value '+str(ds.Columns)+'.'
+    AssertImplementation(int(float(ds.Columns)) != int(fid_properties['dims'][0]), filename, CommentStr, AssumptionStr)
     if args.verbose:
-        print 'Columns ', procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0, fid_properties['matrix'][0]
+        print 'Columns ', procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0, fid_properties['dims'][0]
         print '   Procpar: Cols ', ds.Rows
-        print '   FID prop Cols ', fid_properties['matrix'][0]
-    ds.Columns = fid_properties['matrix'][0]                                 #(0028,0011) Columns
+        print '   FID prop Cols ', fid_properties['dims'][0]
+    ds.Columns = fid_properties['dims'][0]                                 #(0028,0011) Columns
 
 
     #---------------------------------------------------------------------------------
@@ -602,7 +618,7 @@ def ParseFID(ds,fid_properties,procpar,args):
 
 
     #if fidrank == 3:
-    #	 ds.NumberOfFrames = fid_properties['matrix'][2]
+    #	 ds.NumberOfFrames = fid_properties['dims'][2]
     
     # dicom3tool uses frames to create enhanced MR
     # ds.NumberOfFrames = fid_properties['slices']
@@ -735,7 +751,7 @@ def Save3dFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir,filename
     """
 
     print "3D export"
-    voldata = numpy.reshape(image_data,fid_properties['matrix'])
+    voldata = numpy.reshape(image_data,fid_properties['dims'])
 
     # if procpar['recon'] == 'external':
     # 
@@ -754,18 +770,18 @@ def Save3dFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir,filename
 
     print "Image data shape: ", str(image_data.shape)
     print "Vol data shape: ", voldata.shape
-    print "fid properties matrix: ", fid_properties['matrix']
-    print "Slice points: ", fid_properties['matrix'][0]*fid_properties['matrix'][1]
+    print "fid properties matrix: ", fid_properties['dims']
+    print "Slice points: ", fid_properties['dims'][0]*fid_properties['dims'][1]
     #  slice_data = numpy.zeros_like(numpy.squeeze(image_data[:,:,1]))
     #   if 'ne' in procpar.keys():
         
-    range_max = fid_properties['matrix'][2]
-    num_slicepts = fid_properties['matrix'][0]*fid_properties['matrix'][1]
+    range_max = fid_properties['dims'][2]
+    num_slicepts = fid_properties['dims'][0]*fid_properties['dims'][1]
     if procpar['recon'] == 'external' and procpar['seqfil'] == 'fse3d' and fid_properties['rank'] == 3: 
-        range_max = fid_properties['matrix'][1]
-        num_slicepts = fid_properties['matrix'][0]*fid_properties['matrix'][2]
-        ds.Columns = fid_properties['matrix'][2]
-        ds.Rows = fid_properties['matrix'][0]
+        range_max = fid_properties['dims'][1]
+        num_slicepts = fid_properties['dims'][0]*fid_properties['dims'][2]
+        ds.Columns = fid_properties['dims'][2]
+        ds.Rows = fid_properties['dims'][0]
         ##FIXME FSE3d still producing bad dicoms
 
     if args.verbose:
