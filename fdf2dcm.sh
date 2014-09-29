@@ -40,7 +40,7 @@ set -o errexit  # -e
 # set -x  # show debugging output
 FDF2DCMVERSION=1.1
 PROGNAME=$(basename $0)
-AGILENT2DICOM=agilent2dicom.py #tmpa2d.py  #
+AGILENT2DICOM=tmpa2d.py  # agilent2dicom.py #
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
 
@@ -352,7 +352,7 @@ then
     fi
     ## Additional corrections to ASL files
     if [ -f ${output_dir}/ASL ];then
-	${FDF2DCMPATH}/fix-asl.sh "${output_dir}"
+	${FDF2DCMPATH}/fix_asl.sh "${output_dir}"
 	echo "Fixed ASL module parameters."
 	rm -f ${output_dir}/ASL
     fi
