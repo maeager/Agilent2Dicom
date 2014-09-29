@@ -96,6 +96,21 @@ def readfid(folder,pp=[]):
     hdr['s_complex'] = int(get_bit(hdr['status'],5))
     hdr['s_hyper']   = int(get_bit(hdr['status'],6))
     print hdr # ['s_data'],hdr['s_spec'],hdr['s_32'],hdr['s_float'],hdr['s_complex'],hdr['s_hyper']
+
+
+    if hdr['s_float'] == 1:
+        # data = fread(fid,hdr.np*hdr.ntraces,'*float32')
+        dtype_str=numpy.dtype(endian+'f4') # 'float32'
+        print 'reading 32bit floats '
+    elif hdr['s_32'] == 1:
+        # data = fread(fid,hdr.np*hdr.ntraces,'*int32')
+        dtype_str='int32'
+        print 'reading 32bit int'
+    else:
+        # data = fread(fid,hdr.np*hdr.ntraces,'*int16')
+        dtype_str ='int16' 
+        str='reading 16bit int'
+
     
     dims=[0,0,0]
     # validate dimensions
@@ -111,6 +126,7 @@ def readfid(folder,pp=[]):
         dims[2] = pp['ni2'] 
     else:
         raise ValueError("Can only handle 2D or 3D files (based on procpar field nD)")   
+    print 'Dimensions: ',dims, hdr['dims']
 
     if hdr['np'] != pp['np'] or  hdr['ntraces'] != pp['nf'] or hdr['nblocks'] != pp['arraydim']:
         print 'NP ', hdr['np'], pp['np'], ' NF ', hdr['ntraces'], pp['nf'], ' Blocks ', hdr['nblocks'], pp['arraydim']
@@ -140,18 +156,6 @@ def readfid(folder,pp=[]):
         header['lvl'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         header['tlt'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         print header
-        if hdr['s_float'] == 1:
-            # data = fread(fid,hdr.np*hdr.ntraces,'*float32')
-            dtype_str=numpy.dtype(endian+'f4') # 'float32'
-            print 'reading 32bit floats '
-        elif hdr['s_32'] == 1:
-            # data = fread(fid,hdr.np*hdr.ntraces,'*int32')
-            dtype_str='int32'
-            print 'reading 32bit int'
-        else:
-            # data = fread(fid,hdr.np*hdr.ntraces,'*int16')
-            dtype_str ='int16' 
-            str='reading 16bit int'
         data = numpy.fromfile(f,count=hdr['np']*hdr['ntraces'],dtype=dtype_str)
 
         data = numpy.reshape(data, [hdr['ntraces'],hdr['np']])
