@@ -47,7 +47,7 @@ def FindScale(fdffiles,ds,procpar,args):
     datamax = float("-inf")
 
     # RescaleSlope of phase imgs set to [-pi,pi]
-    if ds.ImageType[2] == "PHASE MAP" or \
+    if (len(ds.ImageType)>=3 and ds.ImageType[2] == "PHASE MAP") or \
             (hasattr(ds,'ComplexImageComponent') and ds.ComplexImageComponent == 'PHASE'):
         # this implies either args.phase is on or procpar['imPH']=='y'
         datamin = -math.pi

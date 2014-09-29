@@ -156,7 +156,7 @@ if __name__ == "__main__":
         else:
             ParseFDF.Save2dFDFtoDicom(ds,image_data, outdir, filename)
 
-        if ds.ImageType[2]=="MULTIECHO" or re.search('slab|img_',filename):
+        if (len(ds.ImageType)>=3 and ds.ImageType[2]=="MULTIECHO") or re.search('slab|img_',filename):
             print ds.FrameContentSequence[0].StackID, ds.FrameContentSequence[0].StackID[0]
             print type(ds.FrameContentSequence[0].StackID), type(ds.FrameContentSequence[0].StackID[0])
             ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0])+1)

@@ -305,11 +305,12 @@ def ProcparToDicomMap(procpar,args):
     #    VELOCITY MAP, MODULUS SUBTRACT, T1 MAP, DENSITY MAP, IMAGE ADDITION, OTHER
     #defult image type
 
-    ds.ImageType = ["ORIGINAL","PRIMARY","OTHER"]    
+    ds.ImageType = ["ORIGINAL","PRIMARY","OTHER"]
+    # 'other'' unnecessary for simple dicoms but helps with setting sequence type checking    
     if 'diff' in procpar.keys() and procpar['diff'] =='y':
-        ds.ImageType[2]="DIFFUSION MAP"
+        ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION MAP","NONE"]
     if 'imPH' in procpar.keys() and procpar['imPH'] =='y':
-        ds.ImageType[2]="PHASE MAP"
+        ds.ImageType=["ORIGINAL","PRIMARY","PHASE MAP"]
 
 
 
@@ -630,7 +631,7 @@ def ProcparToDicomMap(procpar,args):
             if args.verbose:
                 print 'Processing Diffusion sequence'
             #SEQUENCE='Diffusion'  
-            ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]  # Compulsory           
+            ds.ImageType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"]  # Compulsory
             ds.AcquisitionConstrast = ["DIFFUSION"]
             ds.PixelPresentation=["MONOCHROME"]
             ds.VolumetrixProperties=["VOLUME"]
@@ -1015,7 +1016,7 @@ def ProcparToDicomMap(procpar,args):
 #                                                      (0008,0008) Value 1 is DERIVED and
 #                                                      Echo Pulse sequence (0018,9008) equals
 #                                                      SPIN or BOTH.
-    if ds.ImageType[2]=="MULTIECHO":
+    if len(ds.ImageType) >=3 and ds.ImageType[2]=="MULTIECHO":
         ds.MultipleSpinEcho="YES"
     else:
         ds.MultipleSpinEcho="NO"
@@ -1389,7 +1390,7 @@ def ProcparToDicomMap(procpar,args):
 #                                  the Acquisition Contrast attribute in the MR Frame Type
 #                                  Functional Group.
 
-    if ds.ImageType[2]=='Diffusion':
+    if len(ds.ImageType) >=3 and ds.ImageType[2]=='Diffusion':
         ds.AcquisitionConstrast = ["DIFFUSION"]
         ds.ComplexImageComponent=["MAGNITUDE"]
 
@@ -1466,7 +1467,7 @@ def ProcparToDicomMap(procpar,args):
     # except when Scanning Sequence
     # (0018,0020) is EP and Sequence Variant
     # (0018,0021) is not SK.
-    if not ds.ImageType[2] == "ASL" or not (ds.ScanningSequence == "EP" and not ds.SequenceVariant == "SK"):
+    if not ('asl' in procpar.keys() and procpar["asl"] == "y") or not (ds.ScanningSequence == "EP" and not ds.SequenceVariant == "SK"):
         ds.RepetitionTime  = str(procpar['tr']*1000.0)
     
     #TE
@@ -1617,16 +1618,22 @@ def ProcparToDicomMap(procpar,args):
         #	  format($ro,0,0):$ros	
         #	  $value='['+$ros+']'
         #      endif
-    print "Rows: ", procpar['fn1']/2.0, procpar['nv'], procpar['fn']/2.0, procpar['np']/2.0
+    
     if  MRAcquisitionType == '3D':
-        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:		
-            AcqMatrix1 = procpar['fn1']/2.0         
+        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:
+            print "Rows: ", procpar['fn1']/2.0, procpar['nv']
+            if procpar['fn1']/2.0 != procpar['nv']:
+                print '   Error fn1/2.0 != nv'
+            AcqMatrix1 = procpar['nv'] #fn1']/2.0         
         else:
             AcqMatrix1 = procpar['nv'] 
         ds.Rows=str(AcqMatrix1)
     elif  MRAcquisitionType == '2D':
         if 'fn' in procpar.keys() and procpar['fn'] > 0:		
-            AcqMatrix1 = procpar['fn']/2.0         
+            print "Rows: ", procpar['fn']/2.0, procpar['np']/2.0
+            if procpar['fn'] != procpar['np']:
+                print '  Error fn/2 != np/2'
+            AcqMatrix1 = procpar['np']/2.0   #fn']/2.0         
         else:
             AcqMatrix1 = procpar['np']/2.0 
         ds.Rows=str(AcqMatrix1)
@@ -1656,18 +1663,22 @@ def ProcparToDicomMap(procpar,args):
         #        format($pe,0,0):$pes	
         #        $value='['+$pes+']'
         #      endif
-    print "Columns: ", procpar['fn']/2.0, procpar['np']/2.0, procpar['fn1']/2.0, procpar['nv']
+
     if  MRAcquisitionType == '3D':
-        if 'fn' in procpar.keys() and procpar['fn'] > 0 and procpar['fn'] < procpar['np']:		
-            AcqMatrix2 = procpar['fn']/2.0         
+        if 'fn' in procpar.keys() and procpar['fn'] > 0:		
+            print "Columns: ", procpar['fn']/2.0, procpar['np']/2.0
+            if procpar['fn']/2.0 != procpar['np']/2.0:
+                print  '   Error  fn/2 != np/2 '
+            AcqMatrix2 = procpar['np']/2.0  #fn']/2.0         
         else:
             AcqMatrix2 = procpar['np']/2.0 
-        
         ds.Columns=str(AcqMatrix2)
     elif  MRAcquisitionType == '2D':
-        if 'fn1' in procpar.keys() and procpar['fn1'] > 0 and procpar['fn1'] > procpar['nv']:  
-            # and procpar['fn1']/2.0 == procpar['nv']:		
-            AcqMatrix2 = procpar['fn1']/ 2.0         
+        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:  
+            print "Columns: ", procpar['fn1']/2.0, procpar['nv']
+            if procpar['fn1']/2.0 != procpar['nv']:
+               print '   Error fn1/2 != nv'
+            AcqMatrix2 = procpar['nv']  # fn1']/ 2.0         
         else:
             AcqMatrix2 = procpar['nv'] 
         ds.Columns=str(AcqMatrix2)
