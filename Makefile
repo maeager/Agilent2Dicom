@@ -25,9 +25,6 @@ RM=/bin/rm -f
 FDF2DCM=time ./fdf2dcm.sh -v 
 PATH+=:$(DCM3TOOLS)
 
-displenv:
-	echo $(DCM3TOOLS)
-	echo $(FDF2DCM)
 
 .PHONY: check
 check: 
@@ -214,7 +211,7 @@ diffusion: run_diffusion check_diffusion test_diffusion
 
 ## Kidney 3D MGEMs
 
-run_kidney: check
+run_kidney: 
 	$(FDF2DCM) -v -i ~/Monash016/RatKidney/Agilent/20120522/kidney512iso_01.img -o ../output_data/kidney512iso.dcm
 	$(call a2d_convert,../output_data/kidney512iso.dcm/,../output_nii/Kidney512iso.nii)
 
@@ -310,7 +307,7 @@ J6: run_J6 check_J6 test_J6
 
 
 ## Diffusion EPI heart tissue - external recon
-heart:
+run_heart:
 	$(FDF2DCM) -i ../example_data/s_2014061202/epi-dir30_01.img/ -o ../atrialtissue/dcm/
 	$(call a2d_convert,../atrialtissue/dcm/,../atrialtissue/nifti/heart.nii)
 	-$(RM) ../atrialtissue/mrtrix/diff.mif
@@ -331,8 +328,10 @@ view_heart:
 viewn_heart:
 	$(FSLVIEW) ../atrialtissue/nifti/heart.nii &
 
-.PHONY: heart run_J6 check_heart test_heart view_heart
-heart: run_J6 check_heart test_heart
+.PHONY: heart run_heart check_heart test_heart view_heart
+heart: run_heart check_heart test_heart
+
+
 
 .PHONY: all 
 all: standard2d me3d me2d cine asl diffusion dti epip J6 kidney heart
@@ -341,4 +340,4 @@ all: standard2d me3d me2d cine asl diffusion dti epip J6 kidney heart
 test_all: test_kidney test_standard2d test_me3d test_me2d test_cine test_asl test_diffusion test_dti test_epip test_J6
 
 .PHONY:  check_all
-check_all: check_standard2d check_me3d check_me2d check_cine check_asl check_diffusion check_kidney check_epip
+check_all: check_standard2d check_me3d check_me2d check_cine check_asl check_diffusion check_dti check_kidney check_epip check_J6 check_heart
