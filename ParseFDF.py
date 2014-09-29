@@ -579,7 +579,7 @@ def ParseFDF(ds,fdf_properties,procpar,args):
     if 'echo_no' in fdf_properties.keys():
         volume=fdf_properties['echo_no']
 
-    if ds.ImageType[2]=="MULTIECHO" and fdf_properties['echoes'] > 1:
+    if (len(ds.ImageType)>=3 and ds.ImageType[2]=="MULTIECHO") and ('echoes' in fdf_properties.keys() and fdf_properties['echoes'] > 1):
         print 'Multi-echo sequence'
 	# TE 0018,0081 Echo Time (in ms) (optional)
         if 'TE' in fdf_properties.keys():
@@ -593,7 +593,7 @@ def ParseFDF(ds,fdf_properties,procpar,args):
         ds.EchoNumber = fdf_properties['echo_no']		 
 
 
-    if ds.ImageType[2] == "ASL":	  
+    if len(ds.ImageType)>=3 and ds.ImageType[2] == "ASL":	  
         ds=ParseASL(ds,procpar,fdf_properties)
 
     #if 'echoes' in fdf_properties.keys() and fdf_properties['echoes'] > 1 and fdf_properties['array_dim'] == 1:
@@ -607,7 +607,7 @@ def ParseFDF(ds,fdf_properties,procpar,args):
     else:
         ds.ImagesInAcquisition = 1
 
-    if ds.ImageType[2] == 'DIFFUSION':
+    if (len(ds.ImageType)>=3 and ds.ImageType[2] == 'DIFFUSION'):
         ds=ParseDiffusionFDF(ds,procpar,fdf_properties,args)
 
 
@@ -615,7 +615,7 @@ def ParseFDF(ds,fdf_properties,procpar,args):
     DimOrgSeq = Dataset()
     #ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
-    if ds.ImageType[2] == "MULTIECHO": # or SEQUENCE == "Diffusion":
+    if (len(ds.ImageType)>=3 and ds.ImageType[2] == "MULTIECHO"): # or SEQUENCE == "Diffusion":
         DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex1,[],[],args.verbose), ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex2,[],[],args.verbose)]
         DimOrgSeq.add_new((0x0020,0x9164), 'UI',DimensionOrganizationUID)
         ds.DimensionOrganizationType='3D_TEMPORAL'  #or 3D_TEMPORAL
@@ -629,7 +629,7 @@ def ParseFDF(ds,fdf_properties,procpar,args):
     ds.DimensionOrganizationSequence= Sequence([DimOrgSeq])
 
 
-    if ds.ImageType[2] == 'MULTIECHO':
+    if (len(ds.ImageType)>=3 and ds.ImageType[2] == 'MULTIECHO'):
         DimIndexSeq1 = Dataset()
         DimIndexSeq1.DimensionIndexPointer = (0x0020,0x0032)  # Image position patient 20,32 or 20,12 
 
@@ -781,7 +781,7 @@ def Save2dFDFtoDicom(ds,image_data,outdir, filename):
     # Common export format
     ds.PixelData = image_data.tostring()         # (7fe0,0010) Pixel Data
 
-    if ds.ImageType[2] == "ASL":
+    if (len(ds.ImageType)>=3 and ds.ImageType[2] == "ASL"):
         image_number=fdf_properties['array_index']
         if fdf_properties["asltag"] == 1:               # Labelled
             new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'],image_number,1)
