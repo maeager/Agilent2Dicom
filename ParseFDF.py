@@ -82,8 +82,6 @@ def ParseDiffusionFDF(ds,procpar,fdf_properties,args):
     BvalueSS = procpar['bvalss'] # 64
 
 
-    if args.verbose:
-        print 'Diffusion index ', diffusion_idx, ' arrary index ', fdf_properties['array_index']
 
     if procpar['recon'] == 'external':
         diffusion_idx=0
@@ -98,6 +96,10 @@ def ParseDiffusionFDF(ds,procpar,fdf_properties,args):
     if diffusion_idx > len(Bvalue):
         print 'Procpar Bvalue does not contain enough values determined by fdf_properties array_index'
 
+    if args.verbose:
+        print 'Diffusion index ', diffusion_idx, ' arrary index ', fdf_properties['array_index']
+
+        
     # Sort diffusion based on sorted index of Bvalue instead of fdf_properties['array_index']
     ds.AcquisitionNumber = BValueSortIdx[diffusion_idx] 
     
