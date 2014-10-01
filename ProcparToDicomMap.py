@@ -1879,7 +1879,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     from ReadProcpar import ReadProcpar
 
-    procpar, procpartext = ReadProcpar(args.inputdir+'/procpar')
+    procpar, procpartext = ReadProcpar(os.path.join(args.inputdir,'procpar'))
     ds,MRAcq_type = ProcparToDicomMap(procpar, args)
 
     print "Slice thickness: ", ds.SliceThickness
