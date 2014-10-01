@@ -36,179 +36,6 @@ The internal python script agilent2dicom.py is at version 0.6.
 
 The main shell script fdf2dcm.sh and Agilent2Dicom is at version 1.1.
 
-## Current bugs and faults ##
-
-For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging) on Confluence.
-
-## How do I get set up? ##
-
-### Dependencies ###
-
- * python (2.6 or greater)
-   - python-dicom
-   - python-numpy
-   - tkinter (for python 2.6 GUI fdf2dicom on Agilent console)
- * dicom3tools
- * dcmtk
- * mrtrix (0.2.12 or mrtrix3)
-
-
-### Setup and install ###
-
-Pull the stable version from the MBI bitbucket repository, using:
-
-```
-#!bash
-
-hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
-```
-
-Check your python installation for the required packages using the check.py script:
-
-```
-#!bash
-
-cd Agilent2Dicom
-./check.py
-```
-
-Install the required applications and python packages your appropriate linux distribution package manager (or Pip for local python installations).
-
-On Debian/Ubuntu:
-```
-#!bash
-
-sudo apt-get install python-dicom python-numpy python-tk dcmtk
-```
-or Redhat/CentOS:
-```
-#!bash
-
-sudo yum install python-dicom python-numpy python-tk dcmtk
-```
-
-
-### Install Dicom3tools ###
-
-Install dicom3tools from http://www.dclunie.com/dicom3tools.html into the
-Agilent2Dicom folder.  The default settings for MBI's Agilent 9.4T MR scanner
-are used below.  The default UID root value '1.3.6.1.4.1' is unique to the MBI
-Agilent 9.4T MR scanner and should be changed for other devices.  The dependencies for 
-compiling dicom3tools are imake, gcc and binutil-essentials.
-
-On MASSIVE use: 
-```
-#!bash
-
-module load imake gcc.  
-```
-
-On the Agilent console, use: 
-```
-#!bash
-
-sudo yum install imake gcc binutil-essentials
-```
-
-Once the dependencies have been installed, begin by downloading the
-latest dicom3tools [bz2 tar ball](http://www.dclunie.com/dicom3tools/workinprogress/), adjust the
-_config/site.p-def_ file and then follow the compile instructions
-below:
-
-```
-#!bash
-
-cd ~/src/Agilent2DicomProject    # On MASSIVE use cd ~/Monash016/eagerm/Agilent2Dicom
-wget   http://www.dclunie.com/dicom3tools/workinprogress/dicom3tools_1.00.snapshot.20140306142442.tar.bz2
-tar jxvf dicom3tools_1.00.snapshot.20140306142442.tar.bz2
-cd dicom3tools_1.00.snapshot.20140306142442
-
-sed -i 's/CLUNIE/MBIAGILENT/' config/site.p-def
-./Configure
-##            setenv IMAKEINCLUDE -I./config                              # only needed for tcsh
-imake -I./config -DInstallInTopDir -DUseMBIAGILENT1ID -DDefaultUIDRoot=1.3.6.1.4.1
-make World
-make install                          # into ./bin
-make install.man                      # into ./man
- 
-```
-
-### Install MRtrix ###
-
-MRtrix source code and documentation:  http://www.brain.org.au/software/mrtrix/
-
-For MRtrix stable version (0.2.12)
-
-```
-#!bash
-
-# For first-time installation, install required dependencies:
-#   g++, python, gtkmm, gtkglext, libgsl & a working OpenGL environment
-
-# 1. Unpack archive:
-    tar xjf mrtrix-0.2.X.tar.bz2
-
-# 2. Compile:
-    cd mrtrix-0.2.X/
-    ./build
-
-# 3. Install (as root):
-    ./build install
-
-```
-
-For mrtrix3:
-
-```
-#!bash
-
-module load python/2.7.8-gcc qt/4.8.4 gcc/4.8.2 glew/1.10.0 glut gsl gtkglext zlib virtualgl/2.3.x pyqt4 git
-
-git clone https://github.com/jdtournier/mrtrix3
-cd mrtrix
-
-export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7
-export CFLAGS="-I/usr/include -DGLX_GLXEXT_PROTOTYPES"
-python2.7 ./configure
-python2.7 ./build
-
-# Known error in the build process: run the gl_core command
- g++ -c -fPIC -march=native -DMRTRIX_WORD64 -DMRTRIX_USE_TR1 -Wall -Wno-unused-function -Wno-unused-parameter -O2 -DNDEBUG -Isrc -Icmd -Ilib -Icmd -I/usr/local/gsl/1.12-gcc/include -I/usr/include -DHAVE_INLINE -DGLX_GLXEXT_PROTOTYPES src/gui/opengl/gl_core_3_3.cpp -o src/gui/opengl/gl_core_3_3.o
-# Then complete the build again
-python2.7 ./build
-
-## Optional: Install as root
-# sudo python ./build install
-```
-
-
-## How to run tests ##
-
-FDF examples are available on MASSIVE working repository, these
-include standard 2d, multi-echo 3D, multiecho 2D complex, fast spin
-echo 3D, diffusion (EPI and FSE), ASL, and CINE images. Most FDF
-images are reconstructed from Vnmrj internally, but some can be
-externally reconstructed and these are slightly different and need to
-be tested.
-
-The Makefile contains examples to be used on MASSIVE. These include
-*standard2d*, *me3d*, *me2d*, *diffusion*, *asl*,
-*cine* and other specific protocol examples. These will execute:
-
-* *run_{}* runs the FDF agilent to dicom process and conversion of DICOMs to NIFTI;
-* *check_{}*, check the dimensions of the Dicom and Nifti files; 
-* *test_{}*, runs the dciodvfy on the first dicom to validate the conversion to enhanced MR;
-* *view_{}*, view the DICOM image using mrview; and
-* *viewn_{}*, view the NIFTI formatted image.
- 
-To make all the examples and test them use:
-
-```
-#!bash
-
-make all
-make test_all
-```
 
 ## Basic overview ##
 
@@ -263,6 +90,104 @@ optional arguments:
 A simple GUI interface *fdf2dicom*, was developed to be used by experimental scientists on the Agilent RedHat console. This requires python 2.6 and Tkinter.
 
 
+## Current bugs and faults ##
+
+For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging) on Confluence.
+
+## How do I get set up? ##
+
+See INSTALL.txt
+
+### Dependencies ###
+
+ * python (2.6 or greater)
+   - python-dicom
+   - python-numpy
+   - tkinter (for python 2.6 GUI fdf2dicom on Agilent console)
+   - pyqt4 (for FDF2DicomQt and FDF2DicomApp)
+ * dicom3tools
+ * dcmtk
+ * mrtrix (0.2.12 or mrtrix3)
+
+
+## How to run tests ##
+
+FDF examples are available on MASSIVE working repository, these
+include standard 2d, multi-echo 3D, multiecho 2D complex, fast spin
+echo 3D, diffusion (EPI and FSE), ASL, and CINE images. Most FDF
+images are reconstructed from Vnmrj internally, but some can be
+externally reconstructed and these are slightly different and need to
+be tested.
+
+The Makefile contains examples to be used on MASSIVE. These include
+*standard2d*, *me3d*, *me2d*, *diffusion*, *asl*,
+*cine* and other specific protocol examples. These will execute:
+
+* *run_{}* runs the FDF agilent to dicom process and conversion of DICOMs to NIFTI;
+* *check_{}*, check the dimensions of the Dicom and Nifti files; 
+* *test_{}*, runs the dciodvfy on the first dicom to validate the conversion to enhanced MR;
+* *view_{}*, view the DICOM image using mrview; and
+* *viewn_{}*, view the NIFTI formatted image.
+ 
+To make all the examples and test them use:
+
+```
+#!bash
+
+make all
+make test_all
+```
+
+### Python script testing ###
+
+* FDF scripts
+
+** ReadProcpar.py contains ReadProcpar method. ReadProcpar is used to read Agilent FDF config files
+
+** ProcparToDicomMap.py contains the ProcparToDicomMap, getColumns and CreatUID methods. ProcparToDicomMap is used to map Agilent FDF header file (procpar) to DICOM dataset format.
+
+Test the Procpar methods for multi-echo 3D:
+```
+#!bash
+
+python ./ProcparToDicomMap.py -v -i  ~/Monash016/amanda/ExampleAgilentData/multiecho3d_magonly/
+```
+
+** ReadFDF.py contains the ReadFDF method.
+** RescaleFDF.py contains the Rescale and FindScale methods.
+** ParseFDF.py contains the ParseFDF, ParseDiffusionFDF and ParseASL methods.
+
+Testing the ParseFDF methods for multi-echo 3D, gradient-echo 3D and diffusion examples:
+```
+#!bash
+
+python ./ParseFDF.py -v -i  ~/Monash016/amanda/ExampleAgilentData/multiecho3d_magonly/
+python ./ParseFDF.py -v -i ~/Monash016/RatKidney/Agilent/20120522/kidney512iso_01.fid
+python ./ParseFDF.py -v -i ~/Monash016/amanda/ExampleAgilentData/diffusion/
+```
+
+
+
+* Complex filtering and reconstruction of FID data
+
+cplxfilter.py includes the complex filtering methods from
+scipy.ndimage.filters gaussian_filter, median_filter, gaussian_laplace
+and the scipy.signal method wiener_filter.
+
+ReadFID.py contains the readfid and recon methods for FID data conversion.
+
+Python-scipy not supported in python/2.7.1-gcc on MASSIVE, but python-dicom not supported in python/2.7.3.
+By including the site-package path of both versions allows testing on the cplxfilter methods.
+```
+#!bash
+
+module unload python 
+module load python/2.7.3-gcc
+export PYTHONPATH=$PYTHONPATH:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages 
+python2.7 ./cplxfilter.py -i ~/Monash016/RatKidney/Agilent/20120522/kidney512iso_01.fid
+fslview raw_image.nii.gz new_image.nii.gz median_image.nii.gz
+```
+
 
 ## Contribution guidelines ##
 
@@ -270,14 +195,16 @@ A simple GUI interface *fdf2dicom*, was developed to be used by experimental sci
 
 New example FDF image type testing procedures should have:
 
- * a 'run_<type>' routine that converts the FDF folder to DICOM and converts the DICOMs to Nifti;
- * a check_<type>' routine that displays the dimensions of the dicom and nifti files;
- * a test_<type> routine that runs dciodvfy on the Dicom files;
- * [optional] a view_ routine for mrview and fslview to show the DICOM or NIFTI images
+* a 'run_<type>' routine that converts the FDF folder to DICOM and converts the DICOMs to Nifti;
+* a check_<type>' routine that displays the dimensions of the dicom and nifti files;
+* a test_<type> routine that runs dciodvfy on the Dicom files;
+* [optional] a view_ routine for mrview and fslview to show the DICOM or NIFTI images
 
 See examples in Makefile.
 
+
 *Code review*
+
 
 *Other guidelines*
 
