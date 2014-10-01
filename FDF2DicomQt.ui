@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>MBI's FDF/FID DICOM converter</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab_fdf">
     <attribute name="title">
@@ -55,13 +55,6 @@
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="3" column="4">
-       <widget class="QPushButton" name="pushButton_convert">
-        <property name="text">
-         <string>Convert</string>
-        </property>
-       </widget>
-      </item>
       <item row="3" column="1">
        <widget class="QLabel" name="label_4">
         <property name="text">
@@ -100,13 +93,6 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="4">
-       <widget class="QPushButton" name="pushButton_send2daris">
-        <property name="text">
-         <string>Send to DaRIS</string>
-        </property>
-       </widget>
-      </item>
       <item row="1" column="4">
        <widget class="QPushButton" name="pushButton_changedicom">
         <property name="toolTip">
@@ -119,6 +105,9 @@
       </item>
       <item row="2" column="3">
        <widget class="QLineEdit" name="lineEdit_darisid">
+        <property name="toolTip">
+         <string>DaRIS ID string should automatically update with new FDF folder</string>
+        </property>
         <property name="layoutDirection">
          <enum>Qt::RightToLeft</enum>
         </property>
@@ -148,38 +137,13 @@
        </widget>
       </item>
       <item row="5" column="3">
-       <layout class="QHBoxLayout" name="horizontalLayout">
-        <item>
-         <widget class="QPushButton" name="pushButton_check">
-          <property name="text">
-           <string>Check</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="pushButton_view">
-          <property name="text">
-           <string>View</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <spacer name="horizontalSpacer">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
-       </layout>
+       <layout class="QHBoxLayout" name="horizontalLayout"/>
       </item>
       <item row="3" column="3">
        <widget class="QTabWidget" name="Multiecho">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
         <property name="currentIndex">
          <number>0</number>
         </property>
@@ -221,6 +185,9 @@
          </widget>
         </widget>
         <widget class="QWidget" name="tab_diffusion">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <attribute name="title">
           <string>Diffusion</string>
          </attribute>
@@ -295,6 +262,9 @@
          </widget>
         </widget>
         <widget class="QWidget" name="tab_multiecho">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
          <attribute name="title">
           <string>Multi echo</string>
          </attribute>
@@ -356,6 +326,44 @@
         </widget>
        </widget>
       </item>
+      <item row="3" column="4">
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QPushButton" name="pushButton_convert">
+          <property name="toolTip">
+           <string>Convert FDF folder to DICOM</string>
+          </property>
+          <property name="text">
+           <string>Convert</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_check">
+          <property name="text">
+           <string>Check</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_view">
+          <property name="text">
+           <string>View</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="pushButton_send2daris">
+          <property name="toolTip">
+           <string>Send Dicom folder to DaRIS </string>
+          </property>
+          <property name="text">
+           <string>Send to DaRIS</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
      </layout>
     </widget>
    </widget>
@@ -373,10 +381,10 @@
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
-      <item row="3" column="3">
-       <widget class="QPushButton" name="pushButton_convertfid">
+      <item row="2" column="1">
+       <widget class="QLabel" name="label_8">
         <property name="text">
-         <string>Convert</string>
+         <string>DaRIS ID</string>
         </property>
        </widget>
       </item>
@@ -408,13 +416,6 @@
        <widget class="QLabel" name="label_7">
         <property name="text">
          <string>Dicom folder</string>
-        </property>
-       </widget>
-      </item>
-      <item row="2" column="1">
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>DaRIS ID</string>
         </property>
        </widget>
       </item>
@@ -563,6 +564,9 @@
           </property>
           <item>
            <widget class="QRadioButton" name="radioButton_9">
+            <property name="enabled">
+             <bool>false</bool>
+            </property>
             <property name="text">
              <string>Isotropic</string>
             </property>
@@ -572,15 +576,15 @@
         </item>
        </layout>
       </item>
-      <item row="4" column="3">
-       <widget class="QPushButton" name="pushButton_send2daris2">
-        <property name="text">
-         <string>Send to DaRIS</string>
-        </property>
-       </widget>
-      </item>
-      <item row="4" column="2">
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item row="3" column="3">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QPushButton" name="pushButton_convertfid">
+          <property name="text">
+           <string>Convert</string>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QPushButton" name="pushButton_check2">
           <property name="text">
@@ -596,17 +600,11 @@
          </widget>
         </item>
         <item>
-         <spacer name="horizontalSpacer_2">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+         <widget class="QPushButton" name="pushButton_send2daris2">
+          <property name="text">
+           <string>Send to DaRIS</string>
           </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
+         </widget>
         </item>
        </layout>
       </item>
@@ -621,10 +619,6 @@
   <tabstop>lineEdit_dicompath</tabstop>
   <tabstop>pushButton_changedicom</tabstop>
   <tabstop>lineEdit_darisid</tabstop>
-  <tabstop>pushButton_convert</tabstop>
-  <tabstop>pushButton_check</tabstop>
-  <tabstop>pushButton_view</tabstop>
-  <tabstop>pushButton_send2daris</tabstop>
   <tabstop>buttonBox</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>lineEdit_fidpath</tabstop>
@@ -632,9 +626,6 @@
   <tabstop>lineEdit_dicompath2</tabstop>
   <tabstop>pushButton_changedicom2</tabstop>
   <tabstop>lineEdit_darisid2</tabstop>
-  <tabstop>pushButton_convertfid</tabstop>
-  <tabstop>pushButton_check2</tabstop>
-  <tabstop>pushButton_send2daris2</tabstop>
   <tabstop>radioButton_2</tabstop>
   <tabstop>radioButton</tabstop>
   <tabstop>lineEdit_sigma</tabstop>
