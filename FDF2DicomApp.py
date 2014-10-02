@@ -2,6 +2,17 @@ import os,sys
 from PyQt4 import Qt
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
 from FDF2DicomQt import Ui_Dialog
+from fdf2dcm_global import *
+
+cmd_header='(if test ${MASSIVEUSERNAME+defined} \n\
+then \n\
+  echo ''On Massive'' \n\
+  module unload python \n\
+  module load python/2.7.1-gcc \n\
+  module load python/2.7.3-gcc dcmtk mrtrix \n\
+  module list \n\
+fi \n\
+echo ''Done''\n '
 
 class ImageConverterDialog(QDialog, Ui_Dialog):
     def __init__(self):
@@ -70,13 +81,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
         print 'fdf2dcm path: %s' % thispath
         cmd1 = os.path.join(thispath,'fdf2dcm.sh') + ' -v  -i ' + input_dir + ' -o ' + output_dir
         print(cmd1)
-        cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+        cmd= cmd_header + cmd1 +')'
         print(cmd)
         os.system(cmd)
         if CheckDicomDir(output_dir):
@@ -129,13 +134,7 @@ echo ''Done''\n ' + cmd1 +')'
             print 'check path: %s' % thispath
             cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + output_dir
             print(cmd1)
-            cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+            cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
             if check_dir(output_dir):
@@ -151,13 +150,7 @@ echo ''Done''\n ' + cmd1 +')'
 	    thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             cmd1 = os.path.join(thispath,'mrview') + ' -o ' + output_dir
             print(cmd1)
-            cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python mrtrix \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+            cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
         except ValueError:
@@ -173,13 +166,7 @@ echo ''Done''\n ' + cmd1 +')'
             print 'fid2dcm path: %s' % thispath
             cmd1 = os.path.join(thispath,'fid2dcm.sh') + ' -v  -i ' + input_dir + ' -o ' + output_dir
             print(cmd1)
-            cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+            cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
             if check_dir(output_dir):
@@ -200,13 +187,7 @@ echo ''Done''\n ' + cmd1 +')'
             print 'check path: %s' % thispath
             cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + output_dir
             print(cmd1)
-            cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+            cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
             if check_dir(output_dir):
@@ -222,13 +203,7 @@ echo ''Done''\n ' + cmd1 +')'
 	    thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             cmd1 = os.path.join(thispath,'mrview') + ' -o ' + output_dir
             print(cmd1)
-            cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python mrtrix \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+            cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
         except ValueError:
