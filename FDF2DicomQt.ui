@@ -6,12 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>559</width>
-    <height>442</height>
+    <width>558</width>
+    <height>441</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MBI's FDF/FID DICOM converter</string>
+  </property>
+  <property name="toolTip">
+   <string/>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
@@ -37,6 +40,9 @@
      <width>541</width>
      <height>371</height>
     </rect>
+   </property>
+   <property name="toolTip">
+    <string/>
    </property>
    <property name="currentIndex">
     <number>1</number>
@@ -340,6 +346,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_check">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>Check</string>
           </property>
@@ -347,6 +356,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_view">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="text">
            <string>View</string>
           </property>
@@ -354,6 +366,9 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_send2daris">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
           <property name="toolTip">
            <string>Send Dicom folder to DaRIS </string>
           </property>
@@ -465,121 +480,13 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="2">
-       <layout class="QGridLayout" name="gridLayout_4">
-        <item row="0" column="1">
-         <widget class="QRadioButton" name="radioButton">
-          <property name="text">
-           <string>Save K-space</string>
-          </property>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <widget class="QRadioButton" name="radioButton_2">
-          <property name="text">
-           <string>Use Gaussian Filter</string>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="">
-          <property name="spacing">
-           <number>5</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
-           <number>5</number>
-          </property>
-         </layout>
-        </item>
-        <item row="2" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0">
-          <property name="spacing">
-           <number>5</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
-           <number>5</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Window Size</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="lineEdit_window">
-            <property name="text">
-             <string>5</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="1" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_8" stretch="0,0">
-          <property name="spacing">
-           <number>5</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
-           <number>5</number>
-          </property>
-          <item>
-           <widget class="QLabel" name="label_14">
-            <property name="text">
-             <string>Sigma</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLineEdit" name="lineEdit_sigma">
-            <property name="layoutDirection">
-             <enum>Qt::RightToLeft</enum>
-            </property>
-            <property name="text">
-             <string>0.707</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="1" column="1">
-         <layout class="QHBoxLayout" name="horizontalLayout_9" stretch="0">
-          <property name="spacing">
-           <number>5</number>
-          </property>
-          <property name="topMargin">
-           <number>5</number>
-          </property>
-          <property name="bottomMargin">
-           <number>5</number>
-          </property>
-          <item>
-           <widget class="QRadioButton" name="radioButton_9">
-            <property name="enabled">
-             <bool>false</bool>
-            </property>
-            <property name="text">
-             <string>Isotropic</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
       <item row="3" column="3">
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
          <widget class="QPushButton" name="pushButton_convertfid">
+          <property name="toolTip">
+           <string>Run the fid2dcm script</string>
+          </property>
           <property name="text">
            <string>Convert</string>
           </property>
@@ -587,6 +494,12 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_check2">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Check the unfiltered reconstruction DICM</string>
+          </property>
           <property name="text">
            <string>Check</string>
           </property>
@@ -594,6 +507,12 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_view2">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>View the filtered and unfiltered images</string>
+          </property>
           <property name="text">
            <string>View</string>
           </property>
@@ -601,10 +520,408 @@
         </item>
         <item>
          <widget class="QPushButton" name="pushButton_send2daris2">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+          <property name="toolTip">
+           <string>Send DICOMs to Daris</string>
+          </property>
           <property name="text">
            <string>Send to DaRIS</string>
           </property>
          </widget>
+        </item>
+       </layout>
+      </item>
+      <item row="3" column="2">
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_9">
+          <property name="text">
+           <string>Filters</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QTabWidget" name="tabWidget_2">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="toolTip">
+           <string>Multidimensional median, Gaussian or Wiener  filters.</string>
+          </property>
+          <property name="currentIndex">
+           <number>0</number>
+          </property>
+          <widget class="QWidget" name="tab">
+           <attribute name="title">
+            <string>Gaussian</string>
+           </attribute>
+           <widget class="QWidget" name="layoutWidget_2">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>10</y>
+              <width>301</width>
+              <height>101</height>
+             </rect>
+            </property>
+            <layout class="QGridLayout" name="gridLayout_9">
+             <item row="0" column="0">
+              <widget class="QRadioButton" name="radioButton_24">
+               <property name="toolTip">
+                <string> scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode='reflect', cval=0.0, truncate=4.0)[source]
+
+    Multidimensional Gaussian filter.</string>
+               </property>
+               <property name="text">
+                <string>Use Gaussian Filter</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <layout class="QHBoxLayout" name="horizontalLayout_25">
+               <property name="spacing">
+                <number>5</number>
+               </property>
+               <property name="topMargin">
+                <number>5</number>
+               </property>
+               <property name="bottomMargin">
+                <number>5</number>
+               </property>
+              </layout>
+             </item>
+             <item row="2" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_26" stretch="0,0,0">
+               <property name="spacing">
+                <number>5</number>
+               </property>
+               <property name="topMargin">
+                <number>5</number>
+               </property>
+               <property name="bottomMargin">
+                <number>5</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_19">
+                 <property name="toolTip">
+                  <string>order : {0, 1, 2, 3} or sequence from same set, optional
+
+    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented
+</string>
+                 </property>
+                 <property name="text">
+                  <string>Order</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_window_4">
+                 <property name="toolTip">
+                  <string>order : {0, 1, 2, 3} or sequence from same set, optional
+
+    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented
+</string>
+                 </property>
+                 <property name="text">
+                  <string>0</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="1" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_27" stretch="0,0,0">
+               <property name="spacing">
+                <number>5</number>
+               </property>
+               <property name="topMargin">
+                <number>5</number>
+               </property>
+               <property name="bottomMargin">
+                <number>5</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_20">
+                 <property name="toolTip">
+                  <string>scalar or sequence of scalars
+
+    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.</string>
+                 </property>
+                 <property name="text">
+                  <string>Sigma</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_2">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_sigma_4">
+                 <property name="toolTip">
+                  <string>scalar or sequence of scalars
+
+    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.</string>
+                 </property>
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>0.707</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="tab_2">
+           <attribute name="title">
+            <string>Median</string>
+           </attribute>
+           <widget class="QWidget" name="verticalLayoutWidget_6">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>10</y>
+              <width>281</width>
+              <height>71</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_6">
+             <item>
+              <widget class="QRadioButton" name="radioButton_36">
+               <property name="toolTip">
+                <string>scipy.ndimage.filters.median_filter¶
+
+scipy.ndimage.filters.median_filter(input, size=None, footprint=None, output=None, mode='reflect', cval=0.0, origin=0)[source]
+
+    Calculates a multidimensional median filter.</string>
+               </property>
+               <property name="text">
+                <string>Use Median Filter</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_38">
+               <item>
+                <widget class="QLabel" name="label_14">
+                 <property name="text">
+                  <string>Window Size(s)</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_4">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_4">
+                 <property name="toolTip">
+                  <string>     
+
+size : scalar or tuple, optional
+
+    See footprint, below
+
+footprint : array, optional
+
+    Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position,
+ to define the input to the filter function. footprint is a boolean array that specifies (implicitly) a shape,
+ but also which of the elements within this shape will get passed to the filter function. Thus size=(n,m) is equivalent to footprint=np.ones((n,m)).
+ We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),
+ and size is 2, then the actual size used is (2,2,2).
+</string>
+                 </property>
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>5</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+          <widget class="QWidget" name="tab_7">
+           <attribute name="title">
+            <string>Wiener</string>
+           </attribute>
+           <widget class="QWidget" name="verticalLayoutWidget_7">
+            <property name="geometry">
+             <rect>
+              <x>0</x>
+              <y>10</y>
+              <width>281</width>
+              <height>71</height>
+             </rect>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_7">
+             <item>
+              <widget class="QRadioButton" name="radioButton_37">
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+               <property name="toolTip">
+                <string>NOT ENABLED - Speak to MBI Imaging Team
+
+scipy.signal.wiener(im, mysize=None, noise=None)
+
+    Perform a Wiener filter on an N-dimensional array.
+
+    Apply a Wiener filter to the N-dimensional array im.</string>
+               </property>
+               <property name="text">
+                <string>Use Wiener Filter</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_39">
+               <item>
+                <widget class="QLabel" name="label_25">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="text">
+                  <string> Window Size(s)</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_5">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_5">
+                 <property name="enabled">
+                  <bool>false</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>mysize : int or arraylike, optional
+
+    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.
+</string>
+                 </property>
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>5</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+          </widget>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_11">
+          <property name="text">
+           <string>Outputs of Filter</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_30">
+          <item>
+           <widget class="QRadioButton" name="radioButton_33">
+            <property name="text">
+             <string>Save Magnitude</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_34">
+            <property name="text">
+             <string>Save Phase</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_29">
+          <item>
+           <widget class="QRadioButton" name="radioButton_31">
+            <property name="text">
+             <string>Save REAL and IMAG</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QRadioButton" name="radioButton_32">
+            <property name="text">
+             <string>Save K space data</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
        </layout>
       </item>
@@ -626,10 +943,6 @@
   <tabstop>lineEdit_dicompath2</tabstop>
   <tabstop>pushButton_changedicom2</tabstop>
   <tabstop>lineEdit_darisid2</tabstop>
-  <tabstop>radioButton_2</tabstop>
-  <tabstop>radioButton</tabstop>
-  <tabstop>lineEdit_sigma</tabstop>
-  <tabstop>lineEdit_window</tabstop>
  </tabstops>
  <resources/>
  <connections>
