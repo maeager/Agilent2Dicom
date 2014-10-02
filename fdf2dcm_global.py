@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# agilent2dicom is used to convert Agilent FDF files to DICOM format.
+# agilent2dicom is used to convert Agilent FDF and FID images to DICOM format.
 
   # Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
@@ -18,7 +18,7 @@
   # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-VersionNumber="1.1.0"
+VersionNumber="1.2.0"
 DVCSstamp="$Id$"
 
 UID_ROOT="1.3.6.1.4.1" # Agilent Root UID 1.3.6.1.4.1, default "2.25"
