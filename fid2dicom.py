@@ -32,9 +32,9 @@ import argparse
 from fdf2dcm_global import *
 
 import ReadProcpar
-import RescaleFDF
-import ReadFID
 import ProcparToDicomMap
+import ReadFID as FID
+import cplxfilter as CPLX
 import ParseFDF
 
 
@@ -44,13 +44,19 @@ if __name__ == "__main__":
 
     # Parse command line arguments and validate img directory
 
-    parser = argparse.ArgumentParser(usage=' fid2dicom -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Version '+VersionNumber)
+    parser = argparse.ArgumentParser(usage=' fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g 1.0] [-l 1.0] [-n 5]]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering enabled with -g, -l, -n or -w arguments.  Version '+VersionNumber)
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FID image directory containing procpar and fid files',required=True);
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
-    parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
-    parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
+    parser.add_argument('-m','--magnitude', help='Save Magnitude component. Default output of filtered image outputput',action="store_true");
+    parser.add_argument('-p','--phase', help='Save Phase component.',action="store_true");
+    parser.add_argument('-k','--kspace', help='Save Kspace data in outputdir-ksp.',action="store_true");
+    parser.add_argument('-r','--realimag', help='Save real and imaginary data in outputdir-real and outputdir-imag.',action="store_true");
     parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL.');
 #    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
+    parser.add_argument('-g','--gaussian_filter', help='Gaussian filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2).');
+    parser.add_argument('-l','--gaussian_laplace', help='Gaussian Laplace filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2).');
+    parser.add_argument('-n','--median_filter', help='Median filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.');
+    parser.add_argument('-w','--wiener_filter', help='Wiener filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.');
     parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     
     # parser.add_argument("imgdir", help="Agilent .img directory containing procpar and fdf files")
@@ -119,9 +125,9 @@ if __name__ == "__main__":
     ds,MRAcquisitionType = ProcparToDicomMap.ProcparToDicomMap(procpar,args)
 
 
-    # Calculate the max and min throughout all fdf iles in dataset;
+    # Calculate the max and min throughout all dataset values;
     # calculate the intercept and slope for casting to UInt16
-    RescaleIntercept,RescaleSlope = RescaleFDF.FindScale(fdffiles,ds,procpar,args)
+    RescaleIntercept,RescaleSlope = FID.RescaleImage(ds,image_data,args)
  
 
     ## Per frame implementation
@@ -129,19 +135,39 @@ if __name__ == "__main__":
     volume=1
 
     filename = fidfiles[len(fidfiles)-1]
-    procpar,hdr,dims,image_data_real,image_data_imag=ReadFID.readfid(args.inputdir,procpar)
-    image_data,ksp=ReadFID.recon(procpar,dims,hdr,image_data_real,image_data_imag)
+    procpar,hdr,dims,image_data_real,image_data_imag=FID.readfid(args.inputdir,procpar)
+    image_data,ksp=FID.recon(procpar,dims,hdr,image_data_real,image_data_imag)
 
     
     if args.verbose:
         print 'Image_data shape:', str(image_data.shape)
 
     # Change dicom for specific FID header info
-    ds,matsize,ImageTransformationMatrix = ReadFID.ParseFID(ds,fdf_properties,procpar,args)
+    ds,matsize,ImageTransformationMatrix = FID.ParseFID(ds,fdf_properties,procpar,args)
 
     # Rescale image data
-    ds,image_data =ReadFID.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
+    ds,image_data =FID.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
 
+
+    if arg.gaussian_filter:
+        print "Computing Gaussian filtered image from Original image"
+        image_filtered = cplxgaussian_filter(image.real,image.imag,arg.gaussian_filter)
+
+    if arg.gaussian_laplace:
+        print "Computing Gaussian Laplace filtered image from Gaussian filtered image"
+        image_filtered = cplxgaussian_filter(image.real,image.imag,arg.gaussian_laplace)
+        image_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag,arg.gaussian_laplace)
+
+    if arg.median_filter:
+        print "Computing Median filtered image from Original image"
+        image_filtered = cplxmedian_filter(image.real,image.imag,arg.median_filter)
+
+    if arg.wiener_filter:
+        print "Computing Wiener filtered image from Original image"
+        image_filtered = cplxwiener_filter(image.real,image.imag,arg.wiener_filter)
+
+
+   
     # Export dicom to file
     if MRAcquisitionType == '3D':
         ds=ParseFDF.Save3dFDFtoDicom(ds,procpar,image_data,fdf_properties,ImageTransformationMatrix,args,outdir,filename)
