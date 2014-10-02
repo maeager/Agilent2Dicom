@@ -134,6 +134,53 @@ def readfid(folder,pp=[]):
     # hdr['nChannels'] = hdr['nblocks']/hdr['acqcycles']
     hdr['nPhaseEncodes'] = hdr['ntraces']/hdr['nEchoes']
     hdr['rank'] = pp['nD']                                           
+
+    # Axial    Orientation of the target scans is transverse (theta=0, psi=0, phi=0).
+    # Coronal  Orientation of the target scans is coronal (theta=90, psi=0, phi=0).
+    # Sagittal Orientation of the target scans is sagittal (theta=90, psi=90, phi=0).
+#                   Table 15. Image Planning Parameters
+# Parameter    Description
+#              Gap between slices.
+# gap
+#              FOV of first phase encoding dimension, used for lope, vox1.
+# lpe
+#              FOV of second phase encoding dimension, used for lpe2, vox3.
+# lpe2
+#              FOV of read-out dimension, used for lro and vox2.
+# lro
+#              Number of slices.
+# ns
+#              Euler angle, used for phi, sphi, vphi.
+# phi
+#              Euler angle, used for psi, spsi, vpsi.
+# psi
+#              Shift of stack center along first phase encoding dimension.
+# ppe
+#              Used for ppe, pos1.
+#              Shift of stack center along readout dimension. Used for pro, pos2.
+# pro
+#              Shifts of slices along z axis.
+# pss
+#              Shift of stack center along z, the axis perpendicular to the plane.
+# pss0
+#              Used for pss0 and pos3.
+#              Fan angle of radial slices.
+# radialAngles
+#              Euler angle, used for theta, stheta, vtheta.
+# theta
+#              Thickness of slices or saturation bands (satthk).
+# thk
+
+    # Create FDF-like header variables
+    hdr['location'] = [-pp['pro'], pp['ppe'], pp['pss'] ]
+    hdr['span'] = [pp['lro'], pp['lpe'], pp['lpe2']]
+    hdr['roi'] = [pp['lro'], pp['lpe'], pp['lpe2']]
+    hdr['origin']=[-pp['pro']-pp['lro']/2,  pp['ppe']-pp['lpe']/2,  pp['pss']-pp['lpe2']/2]
+    if pp['orient']=="sag":
+        hdr['orientation']= [0,0,1,1,0,0,0,1,0]
+    else:
+        hdr['orientation']= [1,0,0,0,1,0,0,0,1]
+
     # reset output structures
     RE = numpy.empty([hdr['np']/2, hdr['ntraces'], hdr['nblocks']], dtype=float)
     IM = numpy.empty([hdr['np']/2, hdr['ntraces'], hdr['nblocks']], dtype=float)
@@ -449,6 +496,7 @@ def ParseFID(ds,fid_properties,procpar,args):
     # that apply to the numbers in the binary part of the file (e.g.,char
     # *ordinate[]={"intensity"};).
 
+    
     
     orientation = numpy.matrix(fid_properties['orientation']).reshape(3,3)
     location = numpy.matrix(fid_properties['location'])*10
