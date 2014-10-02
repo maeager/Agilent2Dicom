@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FDF2DicomQt.ui'
 #
-# Created: Thu Oct  2 22:02:05 2014
+# Created: Fri Oct  3 08:37:26 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -92,12 +92,12 @@ class Ui_Dialog(object):
         self.gridLayout_5 = QtGui.QGridLayout(self.gridLayoutWidget_4)
         self.gridLayout_5.setMargin(0)
         self.gridLayout_5.setObjectName(_fromUtf8("gridLayout_5"))
-        self.radioButton_debugging = QtGui.QRadioButton(self.gridLayoutWidget_4)
-        self.radioButton_debugging.setObjectName(_fromUtf8("radioButton_debugging"))
-        self.gridLayout_5.addWidget(self.radioButton_debugging, 0, 0, 1, 1)
-        self.radioButton_nodcmulti = QtGui.QRadioButton(self.gridLayoutWidget_4)
-        self.radioButton_nodcmulti.setObjectName(_fromUtf8("radioButton_nodcmulti"))
-        self.gridLayout_5.addWidget(self.radioButton_nodcmulti, 1, 0, 1, 1)
+        self.checkBox_debugging = QtGui.QCheckBox(self.gridLayoutWidget_4)
+        self.checkBox_debugging.setObjectName(_fromUtf8("checkBox_debugging"))
+        self.gridLayout_5.addWidget(self.checkBox_debugging, 0, 0, 1, 1)
+        self.checkBox_nodcmulti = QtGui.QCheckBox(self.gridLayoutWidget_4)
+        self.checkBox_nodcmulti.setObjectName(_fromUtf8("checkBox_nodcmulti"))
+        self.gridLayout_5.addWidget(self.checkBox_nodcmulti, 1, 0, 1, 1)
         self.Multiecho.addTab(self.tab_generic, _fromUtf8(""))
         self.tab_diffusion = QtGui.QWidget()
         self.tab_diffusion.setEnabled(False)
@@ -108,13 +108,13 @@ class Ui_Dialog(object):
         self.gridLayout_2 = QtGui.QGridLayout(self.gridLayoutWidget_2)
         self.gridLayout_2.setMargin(0)
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
-        self.radioButton_bmatrixdiff = QtGui.QRadioButton(self.gridLayoutWidget_2)
-        self.radioButton_bmatrixdiff.setObjectName(_fromUtf8("radioButton_bmatrixdiff"))
-        self.gridLayout_2.addWidget(self.radioButton_bmatrixdiff, 0, 1, 1, 1)
         self.horizontalLayout_5 = QtGui.QHBoxLayout()
         self.horizontalLayout_5.setSpacing(5)
         self.horizontalLayout_5.setContentsMargins(-1, 5, -1, 5)
         self.horizontalLayout_5.setObjectName(_fromUtf8("horizontalLayout_5"))
+        self.radioButton_bmatrixdiff = QtGui.QRadioButton(self.gridLayoutWidget_2)
+        self.radioButton_bmatrixdiff.setObjectName(_fromUtf8("radioButton_bmatrixdiff"))
+        self.horizontalLayout_5.addWidget(self.radioButton_bmatrixdiff)
         self.radioButton_directionaldiff = QtGui.QRadioButton(self.gridLayoutWidget_2)
         self.radioButton_directionaldiff.setObjectName(_fromUtf8("radioButton_directionaldiff"))
         self.horizontalLayout_5.addWidget(self.radioButton_directionaldiff)
@@ -130,9 +130,9 @@ class Ui_Dialog(object):
         self.lineEdit_7.setObjectName(_fromUtf8("lineEdit_7"))
         self.horizontalLayout_4.addWidget(self.lineEdit_7)
         self.gridLayout_2.addLayout(self.horizontalLayout_4, 7, 0, 1, 1)
-        self.radioButton_diffusion1 = QtGui.QRadioButton(self.gridLayoutWidget_2)
-        self.radioButton_diffusion1.setObjectName(_fromUtf8("radioButton_diffusion1"))
-        self.gridLayout_2.addWidget(self.radioButton_diffusion1, 0, 0, 1, 1)
+        self.checkBox_diffusion1 = QtGui.QCheckBox(self.gridLayoutWidget_2)
+        self.checkBox_diffusion1.setObjectName(_fromUtf8("checkBox_diffusion1"))
+        self.gridLayout_2.addWidget(self.checkBox_diffusion1, 0, 0, 1, 1)
         self.Multiecho.addTab(self.tab_diffusion, _fromUtf8(""))
         self.tab_multiecho = QtGui.QWidget()
         self.tab_multiecho.setEnabled(False)
@@ -148,9 +148,6 @@ class Ui_Dialog(object):
         self.horizontalLayout_10.setContentsMargins(-1, 5, -1, 5)
         self.horizontalLayout_10.setObjectName(_fromUtf8("horizontalLayout_10"))
         self.gridLayout_6.addLayout(self.horizontalLayout_10, 6, 0, 1, 1)
-        self.radioButton_7 = QtGui.QRadioButton(self.gridLayoutWidget_5)
-        self.radioButton_7.setObjectName(_fromUtf8("radioButton_7"))
-        self.gridLayout_6.addWidget(self.radioButton_7, 0, 1, 1, 1)
         self.horizontalLayout_11 = QtGui.QHBoxLayout()
         self.horizontalLayout_11.setSpacing(5)
         self.horizontalLayout_11.setContentsMargins(-1, 5, -1, 5)
@@ -162,6 +159,9 @@ class Ui_Dialog(object):
         self.lineEdit_12.setObjectName(_fromUtf8("lineEdit_12"))
         self.horizontalLayout_11.addWidget(self.lineEdit_12)
         self.gridLayout_6.addLayout(self.horizontalLayout_11, 6, 1, 1, 1)
+        self.checkBox_7 = QtGui.QCheckBox(self.gridLayoutWidget_5)
+        self.checkBox_7.setObjectName(_fromUtf8("checkBox_7"))
+        self.gridLayout_6.addWidget(self.checkBox_7, 0, 1, 1, 1)
         self.Multiecho.addTab(self.tab_multiecho, _fromUtf8(""))
         self.gridLayout.addWidget(self.Multiecho, 3, 3, 1, 1)
         self.verticalLayout = QtGui.QVBoxLayout()
@@ -259,9 +259,6 @@ class Ui_Dialog(object):
         self.gridLayout_9 = QtGui.QGridLayout(self.layoutWidget_2)
         self.gridLayout_9.setMargin(0)
         self.gridLayout_9.setObjectName(_fromUtf8("gridLayout_9"))
-        self.radioButton_24 = QtGui.QRadioButton(self.layoutWidget_2)
-        self.radioButton_24.setObjectName(_fromUtf8("radioButton_24"))
-        self.gridLayout_9.addWidget(self.radioButton_24, 0, 0, 1, 1)
         self.horizontalLayout_25 = QtGui.QHBoxLayout()
         self.horizontalLayout_25.setSpacing(5)
         self.horizontalLayout_25.setContentsMargins(-1, 5, -1, 5)
@@ -296,6 +293,9 @@ class Ui_Dialog(object):
         self.lineEdit_sigma_4.setObjectName(_fromUtf8("lineEdit_sigma_4"))
         self.horizontalLayout_27.addWidget(self.lineEdit_sigma_4)
         self.gridLayout_9.addLayout(self.horizontalLayout_27, 1, 0, 1, 1)
+        self.checkBox_24 = QtGui.QCheckBox(self.layoutWidget_2)
+        self.checkBox_24.setObjectName(_fromUtf8("checkBox_24"))
+        self.gridLayout_9.addWidget(self.checkBox_24, 0, 0, 1, 1)
         self.tabWidget_2.addTab(self.tab, _fromUtf8(""))
         self.tab_2 = QtGui.QWidget()
         self.tab_2.setObjectName(_fromUtf8("tab_2"))
@@ -305,9 +305,9 @@ class Ui_Dialog(object):
         self.verticalLayout_6 = QtGui.QVBoxLayout(self.verticalLayoutWidget_6)
         self.verticalLayout_6.setMargin(0)
         self.verticalLayout_6.setObjectName(_fromUtf8("verticalLayout_6"))
-        self.radioButton_36 = QtGui.QRadioButton(self.verticalLayoutWidget_6)
-        self.radioButton_36.setObjectName(_fromUtf8("radioButton_36"))
-        self.verticalLayout_6.addWidget(self.radioButton_36)
+        self.checkBox_36 = QtGui.QCheckBox(self.verticalLayoutWidget_6)
+        self.checkBox_36.setObjectName(_fromUtf8("checkBox_36"))
+        self.verticalLayout_6.addWidget(self.checkBox_36)
         self.horizontalLayout_38 = QtGui.QHBoxLayout()
         self.horizontalLayout_38.setObjectName(_fromUtf8("horizontalLayout_38"))
         self.label_14 = QtGui.QLabel(self.verticalLayoutWidget_6)
@@ -330,10 +330,10 @@ class Ui_Dialog(object):
         self.verticalLayout_7 = QtGui.QVBoxLayout(self.verticalLayoutWidget_7)
         self.verticalLayout_7.setMargin(0)
         self.verticalLayout_7.setObjectName(_fromUtf8("verticalLayout_7"))
-        self.radioButton_37 = QtGui.QRadioButton(self.verticalLayoutWidget_7)
-        self.radioButton_37.setEnabled(False)
-        self.radioButton_37.setObjectName(_fromUtf8("radioButton_37"))
-        self.verticalLayout_7.addWidget(self.radioButton_37)
+        self.checkBox_37 = QtGui.QCheckBox(self.verticalLayoutWidget_7)
+        self.checkBox_37.setEnabled(False)
+        self.checkBox_37.setObjectName(_fromUtf8("checkBox_37"))
+        self.verticalLayout_7.addWidget(self.checkBox_37)
         self.horizontalLayout_39 = QtGui.QHBoxLayout()
         self.horizontalLayout_39.setObjectName(_fromUtf8("horizontalLayout_39"))
         self.label_25 = QtGui.QLabel(self.verticalLayoutWidget_7)
@@ -356,30 +356,32 @@ class Ui_Dialog(object):
         self.verticalLayout_3.addWidget(self.label_11)
         self.horizontalLayout_30 = QtGui.QHBoxLayout()
         self.horizontalLayout_30.setObjectName(_fromUtf8("horizontalLayout_30"))
-        self.radioButton_33 = QtGui.QRadioButton(self.gridLayoutWidget_3)
-        self.radioButton_33.setChecked(True)
-        self.radioButton_33.setObjectName(_fromUtf8("radioButton_33"))
-        self.horizontalLayout_30.addWidget(self.radioButton_33)
-        self.radioButton_34 = QtGui.QRadioButton(self.gridLayoutWidget_3)
-        self.radioButton_34.setObjectName(_fromUtf8("radioButton_34"))
-        self.horizontalLayout_30.addWidget(self.radioButton_34)
+        self.checkBox_33 = QtGui.QCheckBox(self.gridLayoutWidget_3)
+        self.checkBox_33.setEnabled(True)
+        self.checkBox_33.setCheckable(True)
+        self.checkBox_33.setChecked(True)
+        self.checkBox_33.setObjectName(_fromUtf8("checkBox_33"))
+        self.horizontalLayout_30.addWidget(self.checkBox_33)
+        self.checkBox_34 = QtGui.QCheckBox(self.gridLayoutWidget_3)
+        self.checkBox_34.setObjectName(_fromUtf8("checkBox_34"))
+        self.horizontalLayout_30.addWidget(self.checkBox_34)
         self.verticalLayout_3.addLayout(self.horizontalLayout_30)
         self.horizontalLayout_29 = QtGui.QHBoxLayout()
         self.horizontalLayout_29.setObjectName(_fromUtf8("horizontalLayout_29"))
-        self.radioButton_31 = QtGui.QRadioButton(self.gridLayoutWidget_3)
-        self.radioButton_31.setObjectName(_fromUtf8("radioButton_31"))
-        self.horizontalLayout_29.addWidget(self.radioButton_31)
-        self.radioButton_32 = QtGui.QRadioButton(self.gridLayoutWidget_3)
-        self.radioButton_32.setObjectName(_fromUtf8("radioButton_32"))
-        self.horizontalLayout_29.addWidget(self.radioButton_32)
+        self.checkBox_31 = QtGui.QCheckBox(self.gridLayoutWidget_3)
+        self.checkBox_31.setObjectName(_fromUtf8("checkBox_31"))
+        self.horizontalLayout_29.addWidget(self.checkBox_31)
+        self.checkBox_32 = QtGui.QCheckBox(self.gridLayoutWidget_3)
+        self.checkBox_32.setObjectName(_fromUtf8("checkBox_32"))
+        self.horizontalLayout_29.addWidget(self.checkBox_32)
         self.verticalLayout_3.addLayout(self.horizontalLayout_29)
         self.gridLayout_3.addLayout(self.verticalLayout_3, 3, 2, 1, 1)
         self.tabWidget.addTab(self.tab_fid, _fromUtf8(""))
 
         self.retranslateUi(Dialog)
-        self.tabWidget.setCurrentIndex(1)
-        self.Multiecho.setCurrentIndex(0)
-        self.tabWidget_2.setCurrentIndex(0)
+        self.tabWidget.setCurrentIndex(0)
+        self.Multiecho.setCurrentIndex(2)
+        self.tabWidget_2.setCurrentIndex(1)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Dialog.accept)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), Dialog.reject)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -406,18 +408,18 @@ class Ui_Dialog(object):
         self.pushButton_changedicom.setToolTip(_translate("Dialog", "Change the output DICOM directory.  Only do this if the automatic folder name is already taken.", None))
         self.pushButton_changedicom.setText(_translate("Dialog", "Change Dir", None))
         self.lineEdit_darisid.setToolTip(_translate("Dialog", "DaRIS ID string should automatically update with new FDF folder", None))
-        self.radioButton_debugging.setToolTip(_translate("Dialog", "Display more verbose debugging", None))
-        self.radioButton_debugging.setText(_translate("Dialog", "Show debugging", None))
-        self.radioButton_nodcmulti.setToolTip(_translate("Dialog", "Do not convert 2D slices to enhance DICOM format", None))
-        self.radioButton_nodcmulti.setText(_translate("Dialog", "Keep 2D DICOM slices", None))
+        self.checkBox_debugging.setToolTip(_translate("Dialog", "Display more verbose debugging", None))
+        self.checkBox_debugging.setText(_translate("Dialog", "Show debugging", None))
+        self.checkBox_nodcmulti.setToolTip(_translate("Dialog", "Do not convert 2D slices to enhance DICOM format", None))
+        self.checkBox_nodcmulti.setText(_translate("Dialog", "Keep 2D DICOM slices", None))
         self.Multiecho.setTabText(self.Multiecho.indexOf(self.tab_generic), _translate("Dialog", "Generic", None))
         self.radioButton_bmatrixdiff.setText(_translate("Dialog", "Bmatrix", None))
         self.radioButton_directionaldiff.setText(_translate("Dialog", "Directional", None))
         self.label_10.setText(_translate("Dialog", "TextLabel", None))
-        self.radioButton_diffusion1.setText(_translate("Dialog", "Diffusion", None))
+        self.checkBox_diffusion1.setText(_translate("Dialog", "Diffusion", None))
         self.Multiecho.setTabText(self.Multiecho.indexOf(self.tab_diffusion), _translate("Dialog", "Diffusion", None))
-        self.radioButton_7.setText(_translate("Dialog", "Multi-echo", None))
         self.label_15.setText(_translate("Dialog", "TextLabel", None))
+        self.checkBox_7.setText(_translate("Dialog", "Multi-echo", None))
         self.Multiecho.setTabText(self.Multiecho.indexOf(self.tab_multiecho), _translate("Dialog", "Multi echo", None))
         self.pushButton_convert.setToolTip(_translate("Dialog", "Convert FDF folder to DICOM", None))
         self.pushButton_convert.setText(_translate("Dialog", "Convert", None))
@@ -445,10 +447,6 @@ class Ui_Dialog(object):
         self.pushButton_send2daris2.setText(_translate("Dialog", "Send to DaRIS", None))
         self.label_9.setText(_translate("Dialog", "Filters", None))
         self.tabWidget_2.setToolTip(_translate("Dialog", "Multidimensional median, Gaussian or Wiener  filters.", None))
-        self.radioButton_24.setToolTip(_translate("Dialog", " scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode=\'reflect\', cval=0.0, truncate=4.0)[source]\n"
-"\n"
-"    Multidimensional Gaussian filter.", None))
-        self.radioButton_24.setText(_translate("Dialog", "Use Gaussian Filter", None))
         self.label_19.setToolTip(_translate("Dialog", "order : {0, 1, 2, 3} or sequence from same set, optional\n"
 "\n"
 "    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented\n"
@@ -467,13 +465,31 @@ class Ui_Dialog(object):
 "\n"
 "    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.", None))
         self.lineEdit_sigma_4.setText(_translate("Dialog", "0.707", None))
+        self.checkBox_24.setToolTip(_translate("Dialog", " scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode=\'reflect\', cval=0.0, truncate=4.0)[source]\n"
+"\n"
+"    Multidimensional Gaussian filter.", None))
+        self.checkBox_24.setText(_translate("Dialog", "Use Gaussian Filter", None))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab), _translate("Dialog", "Gaussian", None))
-        self.radioButton_36.setToolTip(_translate("Dialog", "scipy.ndimage.filters.median_filter¶\n"
+        self.checkBox_36.setToolTip(_translate("Dialog", "scipy.ndimage.filters.median_filter¶\n"
 "\n"
 "scipy.ndimage.filters.median_filter(input, size=None, footprint=None, output=None, mode=\'reflect\', cval=0.0, origin=0)[source]\n"
 "\n"
 "    Calculates a multidimensional median filter.", None))
-        self.radioButton_36.setText(_translate("Dialog", "Use Median Filter", None))
+        self.checkBox_36.setText(_translate("Dialog", "Use Median Filter", None))
+        self.label_14.setToolTip(_translate("Dialog", "     \n"
+"\n"
+"size : scalar or tuple, optional\n"
+"\n"
+"    See footprint, below\n"
+"\n"
+"footprint : array, optional\n"
+"\n"
+"    Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position,\n"
+" to define the input to the filter function. footprint is a boolean array that specifies (implicitly) a shape,\n"
+" but also which of the elements within this shape will get passed to the filter function. Thus size=(n,m) is equivalent to footprint=np.ones((n,m)).\n"
+" We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),\n"
+" and size is 2, then the actual size used is (2,2,2).\n"
+"", None))
         self.label_14.setText(_translate("Dialog", "Window Size(s)", None))
         self.lineEdit_4.setToolTip(_translate("Dialog", "     \n"
 "\n"
@@ -491,14 +507,18 @@ class Ui_Dialog(object):
 "", None))
         self.lineEdit_4.setText(_translate("Dialog", "5", None))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_2), _translate("Dialog", "Median", None))
-        self.radioButton_37.setToolTip(_translate("Dialog", "NOT ENABLED - Speak to MBI Imaging Team\n"
+        self.checkBox_37.setToolTip(_translate("Dialog", "NOT ENABLED - Speak to MBI Imaging Team\n"
 "\n"
 "scipy.signal.wiener(im, mysize=None, noise=None)\n"
 "\n"
 "    Perform a Wiener filter on an N-dimensional array.\n"
 "\n"
 "    Apply a Wiener filter to the N-dimensional array im.", None))
-        self.radioButton_37.setText(_translate("Dialog", "Use Wiener Filter", None))
+        self.checkBox_37.setText(_translate("Dialog", "Use Wiener Filter", None))
+        self.label_25.setToolTip(_translate("Dialog", "mysize : int or arraylike, optional\n"
+"\n"
+"    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
+"", None))
         self.label_25.setText(_translate("Dialog", " Window Size(s)", None))
         self.lineEdit_5.setToolTip(_translate("Dialog", "mysize : int or arraylike, optional\n"
 "\n"
@@ -507,9 +527,9 @@ class Ui_Dialog(object):
         self.lineEdit_5.setText(_translate("Dialog", "5", None))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_7), _translate("Dialog", "Wiener", None))
         self.label_11.setText(_translate("Dialog", "Outputs of Filter", None))
-        self.radioButton_33.setText(_translate("Dialog", "Save Magnitude", None))
-        self.radioButton_34.setText(_translate("Dialog", "Save Phase", None))
-        self.radioButton_31.setText(_translate("Dialog", "Save REAL and IMAG", None))
-        self.radioButton_32.setText(_translate("Dialog", "Save K space data", None))
+        self.checkBox_33.setText(_translate("Dialog", "Save Magnitude", None))
+        self.checkBox_34.setText(_translate("Dialog", "Save Phase", None))
+        self.checkBox_31.setText(_translate("Dialog", "Save REAL and IMAG", None))
+        self.checkBox_32.setText(_translate("Dialog", "Save K space data", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_fid), _translate("Dialog", "FID converter", None))
 
