@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FDF2DicomQt.ui'
 #
-# Created: Wed Oct  1 22:24:52 2014
+# Created: Thu Oct  2 22:02:05 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -27,6 +27,7 @@ class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
         Dialog.resize(558, 441)
+        Dialog.setToolTip(_fromUtf8(""))
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
         self.buttonBox.setGeometry(QtCore.QRect(200, 400, 341, 32))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
@@ -34,6 +35,7 @@ class Ui_Dialog(object):
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
         self.tabWidget = QtGui.QTabWidget(Dialog)
         self.tabWidget.setGeometry(QtCore.QRect(10, 19, 541, 371))
+        self.tabWidget.setToolTip(_fromUtf8(""))
         self.tabWidget.setObjectName(_fromUtf8("tabWidget"))
         self.tab_fdf = QtGui.QWidget()
         self.tab_fdf.setObjectName(_fromUtf8("tab_fdf"))
@@ -395,7 +397,6 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         Dialog.setWindowTitle(_translate("Dialog", "MBI\'s FDF/FID DICOM converter", None))
-        Dialog.setToolTip(_translate("Dialog", "Run fid2dicom with filtering options", None))
         self.label_4.setText(_translate("Dialog", "Options", None))
         self.pushButton_changefdf.setToolTip(_translate("Dialog", "Change the FDF input directory", None))
         self.pushButton_changefdf.setText(_translate("Dialog", "Change Dir", None))
@@ -448,12 +449,19 @@ class Ui_Dialog(object):
 "\n"
 "    Multidimensional Gaussian filter.", None))
         self.radioButton_24.setText(_translate("Dialog", "Use Gaussian Filter", None))
+        self.label_19.setToolTip(_translate("Dialog", "order : {0, 1, 2, 3} or sequence from same set, optional\n"
+"\n"
+"    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented\n"
+"", None))
         self.label_19.setText(_translate("Dialog", "Order", None))
         self.lineEdit_window_4.setToolTip(_translate("Dialog", "order : {0, 1, 2, 3} or sequence from same set, optional\n"
 "\n"
 "    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented\n"
 "", None))
         self.lineEdit_window_4.setText(_translate("Dialog", "0", None))
+        self.label_20.setToolTip(_translate("Dialog", "scalar or sequence of scalars\n"
+"\n"
+"    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.", None))
         self.label_20.setText(_translate("Dialog", "Sigma", None))
         self.lineEdit_sigma_4.setToolTip(_translate("Dialog", "scalar or sequence of scalars\n"
 "\n"
