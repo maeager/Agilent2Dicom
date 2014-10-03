@@ -24,6 +24,28 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per pixel)")
 
+	# Disable some features
+	#self.tab_diffusion.setEnabled(False)
+	#self.tab_multiecho.setEnabled(False)
+	#self.pushButton_check.setEnabled(False)
+	#self.pushButton_view.setEnabled(False)
+	#self.pushButton_send2daris.setEnabled(False)
+	#self.pushButton_check2.setEnabled(False)
+	#self.pushButton_view2.setEnabled(False)
+	#self.pushButton_send2daris2.setEnabled(False)
+	#self.checkBox_median.setChecked(False)
+	#self.checkBox_median.setEnabled(False)
+	#self.lineEdit_median_size.setEnabled(False)
+	#self.checkBox_wiener.setEnabled(False)
+	#self.lineEdit_wiener_size.setEnabled(False)
+	#self.lineEdit_wienernoise.setEnabled(False)
+	#self.checkBox_magn.setEnabled(True)
+	#self.checkBox_magn.setChecked(True)
+	#self.checkBox_ksp.setChecked(False)
+	#self.checkBox_reimag.setChecked(False)
+	#self.checkBox_pha.setChecked(False)
+
+
         # Connect up the buttons.
         self.connect(self.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
         self.connect(self.buttonBox ,Qt.SIGNAL("rejected()"), self.reject)
@@ -43,6 +65,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
         self.pushButton_send2daris2.clicked.connect(self.Send2Daris2)
 
     def ChangeFDFpath(self):
+      try:
         newdir = file = str(QFileDialog.getExistingDirectory(self, "Select FDF Directory"))
         self.lineEdit_fdfpath.setText(newdir)
         if re.search('img',newdir):
@@ -51,14 +74,22 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             out = dir_+'.dcm'
         self.lineEdit_dicompath.setText(out)
         self.lineEdit_darisid.setText(self.GetDarisID(newdir))
+        UpdateGUI()
+     except ValueError:
+        pass
 
     def ChangeFDFDicomPath(self):
+      try:
         newdir = file = str(QFileDialog.getOpenFile(self, "Select DICOM Directory"))
         self.lineEdit_dicompath.setText(newdir)
         self.lineEdit_darisid.setText(self.GetDarisID(out))
+        UpdateGUI()
+     except ValueError:
+        pass
 
     def ChangeFIDpath(self):
-        newdir = str(QFileDialog.getExistingDirectory(self, "Select FID Directory"))
+      try:
+	newdir = str(QFileDialog.getExistingDirectory(self, "Select FID Directory"))
         self.lineEdit_fidpath.setText(newdir)
         if re.search('img',newdir):
             out = re.sub('img','dcm',newdir)
@@ -66,11 +97,18 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             out = dir_+'.dcm'
         self.lineEdit_dicompath2.setText(out)
         self.lineEdit_darisid2.setText(self.GetDarisID(newdir))
+        UpdateGUI()
+      except ValueError:
+        pass
 
     def ChangeFIDDicomPath(self):
-        newdir = file = str(QFileDialog.getOpenFile(self, "Select DICOM Directory"))
+      try:
+	newdir = file = str(QFileDialog.getOpenFile(self, "Select DICOM Directory"))
         self.lineEdit_dicompath2.setText(newdir)
         self.lineEdit_darisid.setText(self.GetDarisID(out))
+	UpdateGUI()
+      except ValueError:
+        pass
 
     def ConvertFDF(self):
       try:
@@ -84,16 +122,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
         cmd= cmd_header + cmd1 +')'
         print(cmd)
         os.system(cmd)
-        if CheckDicomDir(output_dir):
-	      print 'Ready to send dicoms to DaRIS'
-	      self.pushButton_check.enabled=True
-	      self.pushButton_view.enabled=True
-	      self.pushButton_send2daris.enabled=True
-	else:
-	      print 'Not ready to send dicoms to DaRIS'
-	      self.pushButton_check.enabled=False
-	      self.pushButton_view.enabled=False
-	      self.pushButton_send2daris.enabled=False
+        UpdateGUI()
       except ValueError:
         pass
 
@@ -110,7 +139,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
 	
 
     def CheckDicmoDir(dpath):
-        if os.path.isdir(dpath) and os.path.exists(os.path.join(dpath,'0001.dcm')):
+        if dpath and os.path.isdir(dpath) and os.path.exists(os.path.join(dpath,'0001.dcm')):
             return True
         else:
             return False
@@ -122,7 +151,8 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             dicom_dir = self.lineEdit_dicompath.getText()
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             cmd = os.path.join(thispath,'dpush') + ' -c ' + daris_ID + ' -s mf-erc ' + dicom_dir
-            os.system(cmd)	
+            os.system(cmd)
+            UpdateGUI()
         except ValueError:
             pass
 
@@ -137,10 +167,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
-            if check_dir(output_dir):
-                print 'Ready to send dicoms to DaRIS'
- #           send_button.foreground="dark green"
- #           send_button.state='active'
+            UpdateGUI()
         except ValueError:
             pass
 
@@ -169,13 +196,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
-            if check_dir(output_dir):
-	      print 'Ready to send dicoms to DaRIS'
-	      self.pushButton_check2.enabled=True
-	      self.pushButton_view2.enabled=True
-	      self.pushButton_send2daris2.enabled=True
-	      #           send_button.foreground="dark green"
- #           send_button.state='active'
+            UpdateGUI()
         except ValueError:
             pass
 
@@ -190,11 +211,8 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
-            if check_dir(output_dir):
-                print 'Ready to send dicoms to DaRIS'
- #           send_button.foreground="dark green"
- #           send_button.state='active'
-        except ValueError:
+	    UpdateGUI()
+	except ValueError:
             pass
 
     def ViewFID(self):
@@ -206,6 +224,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
+            UpdateGUI()
         except ValueError:
 	    pass
 
@@ -218,6 +237,23 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             os.system(cmd)	
         except ValueError:
             pass
+
+    def UpdateGUI(self):
+      	self.pushButton_check.setEnabled(False)
+	self.pushButton_view.setEnabled(False)
+	self.pushButton_send2daris.setEnabled(False)
+	self.pushButton_check2.setEnabled(False)
+	self.pushButton_view2.setEnabled(False)
+	self.pushButton_send2daris2.setEnabled(False)
+	if CheckDicmoDir(self.lineEdit_dicompath.getText()):
+	  self.pushButton_check.setEnabled(True)
+	  self.pushButton_view.setEnabled(True)
+	  self.pushButton_send2daris.setEnabled(True)
+	if CheckDicmoDir(self.lineEdit_dicompath2.getText()):
+	  self.pushButton_check2.setEnabled(True)
+	  self.pushButton_view2.setEnabled(True)
+	  self.pushButton_send2daris2.setEnabled(True)
+	  
 
 app = QApplication(sys.argv)
 window = QDialog()
