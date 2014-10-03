@@ -32,9 +32,11 @@ Homepage: [MBI's Confluence homepage](https://confluence-vre.its.monash.edu.au/d
 Source: [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom)
 
 
+The whole package Agilent2Dicom is at version 1.1.0.
+
 The internal python script agilent2dicom.py is at version 0.6.
 
-The main shell script fdf2dcm.sh and Agilent2Dicom is at version 1.1.
+The GUI FDF2DicomApp is at version 0.1.
 
 
 ## Basic overview ##
@@ -89,6 +91,63 @@ optional arguments:
 
 A simple GUI interface *fdf2dicom*, was developed to be used by experimental scientists on the Agilent RedHat console. This requires python 2.6 and Tkinter.
 
+## FID filtering and conversion ##
+
+A script for processing raw FID data was developed and enables filtering and bespoke reconstruction of MR data.
+*fid2dicom* is the main wrapper script that uses *ReadFID.py* and *cplxfilter.py* as its core. The arguments to *fid2dicom* are similar to *fdf2dcm* in that it requires an input directory, and an optionsl output directory.
+*fid2dicom* has additional arguments for complex filtering including Gaussian, Gaussian Laplace, Median, and Wiener filters.
+
+*fid2dicom* usage is as follows:
+```
+#!bash
+
+
+[eagerm@m2108 Agilent2Dicom]$ python ./fid2dicom.py -h
+usage:  fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g 1.0] [-l 1.0] [-n 5]]
+
+fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering
+enabled with -g, -l, -n or -w arguments. Version 1.1.0
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i INPUTDIR, --inputdir INPUTDIR
+                        Input directory name. Must be an Agilent FID image
+                        directory containing procpar and fid files
+  -o OUTPUTDIR, --outputdir OUTPUTDIR
+                        Output directory name for DICOM files.
+  -m, --magnitude       Save Magnitude component.
+  -p, --phase           Save Phase component.
+  -k, --kspace          Save Kspace data.
+  -s SEQUENCE, --sequence SEQUENCE
+                        Sequence type (one of Multiecho, Diffusion, ASL.
+  -g GAUSSIAN_FILTER, --gaussian_filter GAUSSIAN_FILTER
+                        Gaussian filter smoothing of reconstructed RE and IM
+                        components. Sigma variable argument, default
+                        1/srqt(2).
+  -l GAUSSIAN_LAPLACE, --gaussian_laplace GAUSSIAN_LAPLACE
+                        Gaussian Laplace filter smoothing of reconstructed RE
+                        and IM components. Sigma variable argument, default
+                        1/srqt(2).
+  -n MEDIAN_FILTER, --median_filter MEDIAN_FILTER
+                        Median filter smoothing of reconstructed RE and IM
+                        components. Size variable argument, default 5.
+  -w WIENER_FILTER, --wiener_filter WIENER_FILTER
+                        Wiener filter smoothing of reconstructed RE and IM
+                        components. Size variable argument, default 5.
+  -v, --verbose         Verbose.
+```
+
+An improved GUI was developed in PyQt4 for FDF and FID DICOM conversion. This is called the *FDF2DicomApp*.
+
+On MASSIVE, enable the scipy and pyqt4 packages using the following commands:
+```
+#!bash
+
+module load python/2.7.3-gcc pyqt4
+export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages/:/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages 
+python ./FDF2DicomApp.py
+```
+
 
 ## Current bugs and faults ##
 
@@ -140,11 +199,11 @@ make test_all
 
 ### Python script testing ###
 
-* FDF scripts
+* Procpar scripts
 
-** ReadProcpar.py contains ReadProcpar method. ReadProcpar is used to read Agilent FDF config files
+*ReadProcpar.py* contains ReadProcpar method. ReadProcpar is used to read Agilent FDF config files
 
-** ProcparToDicomMap.py contains the ProcparToDicomMap, getColumns and CreatUID methods. ProcparToDicomMap is used to map Agilent FDF header file (procpar) to DICOM dataset format.
+*ProcparToDicomMap.py* contains the ProcparToDicomMap, getColumns and CreatUID methods. ProcparToDicomMap is used to map Agilent FDF header file (procpar) to DICOM dataset format.
 
 Test the Procpar methods for multi-echo 3D:
 ```
@@ -153,9 +212,11 @@ Test the Procpar methods for multi-echo 3D:
 python ./ProcparToDicomMap.py -v -i  ~/Monash016/amanda/ExampleAgilentData/multiecho3d_magonly/
 ```
 
-** ReadFDF.py contains the ReadFDF method.
-** RescaleFDF.py contains the Rescale and FindScale methods.
-** ParseFDF.py contains the ParseFDF, ParseDiffusionFDF and ParseASL methods.
+* FDF scripts
+
+*ReadFDF.py* contains the ReadFDF method.
+*RescaleFDF.py* contains the Rescale and FindScale methods.
+*ParseFDF.py* contains the ParseFDF, ParseDiffusionFDF and ParseASL methods.
 
 Testing the ParseFDF methods for multi-echo 3D, gradient-echo 3D and diffusion examples:
 ```
@@ -170,13 +231,13 @@ python ./ParseFDF.py -v -i ~/Monash016/amanda/ExampleAgilentData/diffusion/
 
 * Complex filtering and reconstruction of FID data
 
-cplxfilter.py includes the complex filtering methods from
+*cplxfilter.py* includes the complex filtering methods from
 scipy.ndimage.filters gaussian_filter, median_filter, gaussian_laplace
 and the scipy.signal method wiener_filter.
 
-ReadFID.py contains the readfid and recon methods for FID data conversion.
+*ReadFID.py* contains the readfid and recon methods for FID data conversion.
 
-Python-scipy not supported in python/2.7.1-gcc on MASSIVE, but python-dicom not supported in python/2.7.3.
+Python-scipy is not supported in python/2.7.1-gcc on MASSIVE, but python-dicom not supported in python/2.7.3.
 By including the site-package path of both versions allows testing on the cplxfilter methods.
 ```
 #!bash
