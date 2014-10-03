@@ -75,7 +75,7 @@ The multidimensional filter is implemented as a sequence of one-dimensional conv
 """
 
 
-def cplxgaussian_filter(real_input, imag_input,sigma=0.707,order_=0,mode_='wrap', cval_=0.0):
+def cplxgaussian_filter(real_input, imag_input,sigma=0.707,order_=0,mode_='nearest', cval_=0.0):
     """CPLXFILTER gaussian filter of complex 3D image
      ndimage.filters.gaussian_filter is used to smooth real and imag components
     
@@ -112,15 +112,15 @@ def cplxgaussian_filter(real_input, imag_input,sigma=0.707,order_=0,mode_='wrap'
 
     print "Complex Gaussian filter sigma ", sigma, " order ", order_, " mode ", mode_
     if real_input.ndim == 3:
-        real_img = ndimage.filters.gaussian_filter(real_input, sigma, order_, mode_, cval_) #, truncate=4.0) truncate not supported in scipy 0.10
-        imag_img = ndimage.filters.gaussian_filter(imag_input, sigma, order_, mode_, cval_) #, truncate=4.0)
+        real_img = ndimage.filters.gaussian_filter(real_input, sigma, order=order_, mode=mode_, cval=cval_) #, truncate=4.0) truncate not supported in scipy 0.10
+        imag_img = ndimage.filters.gaussian_filter(imag_input, sigma, order=order_, mode=mode_, cval=cval_) #, truncate=4.0)
     else:
         real_img = np.empty_like(real_input)
         imag_img = np.empty_like(real_input)
         for echo in xrange(0,real_input.shape[4]):
             for n in xrange(0,real_input.shape[3]):
-                real_img[:,:,:,n,echo] = ndimage.filters.gaussian_filter(real_input[:,:,:,n,echo], sigma, order_, mode_, cval_)
-                imag_img[:,:,:,n,echo] = ndimage.filters.gaussian_filter(imag_input[:,:,:,n,echo], sigma, order_, mode_, cval_)              
+                real_img[:,:,:,n,echo] = ndimage.filters.gaussian_filter(real_input[:,:,:,n,echo], sigma, order=order_, mode=mode_, cval=cval_)
+                imag_img[:,:,:,n,echo] = ndimage.filters.gaussian_filter(imag_input[:,:,:,n,echo], sigma, order=order_, mode=mode_, cval=cval_)              
     filtered_image = np.empty_like(real_input, dtype=complex)
     filtered_image.real = real_img
     filtered_image.imag = imag_img
@@ -167,15 +167,15 @@ def cplxgaussian_laplace(real_input, imag_input,sigma=0.707,mode_='reflect', cva
 
     print "Complex Gaussian_laplace filter sigma ",sigma, " mode ", mode_
     if real_input.ndim ==3:
-        real_img = ndimage.filters.gaussian_laplace(real_input, sigma,  mode_, cval_)
-        imag_img = ndimage.filters.gaussian_laplace(imag_input, sigma,  mode_, cval_)
+        real_img = ndimage.filters.gaussian_laplace(real_input, sigma,  mode=mode_, cval=cval_)
+        imag_img = ndimage.filters.gaussian_laplace(imag_input, sigma,  mode_, cval=cval_)
     else:
         real_img = np.empty_like(real_input)
         imag_img = np.empty_like(real_input)
         for echo in xrange(0,real_input.shape[4]):
             for n in xrange(0,real_input.shape[3]):
-                real_img[:,:,:,n,echo] = ndimage.filters.gaussian_laplace(real_input[:,:,:,n,echo], sigma, mode_, cval_)
-                imag_img[:,:,:,n,echo] = ndimage.filters.gaussian_laplace(imag_input[:,:,:,n,echo], sigma, mode_, cval_)
+                real_img[:,:,:,n,echo] = ndimage.filters.gaussian_laplace(real_input[:,:,:,n,echo], sigma, mode=mode_, cval=cval_)
+                imag_img[:,:,:,n,echo] = ndimage.filters.gaussian_laplace(imag_input[:,:,:,n,echo], sigma, mode=mode_, cval=cval_)
     filtered_image = np.empty_like(real_input, dtype=complex)
     filtered_image.real = real_img
     filtered_image.imag = imag_img
@@ -271,8 +271,8 @@ def cplxmedian_filter(real_input,imag_input,size_=5,mode_='reflect'):
         imag_img = np.empty_like(real_input)
         for echo in xrange(0,real_input.shape[4]):
             for n in xrange(0,real_input.shape[3]):
-                real_img[:,:,:,n,echo] = ndimage.filters.median_filter(real_input[:,:,:,n,echo], size_,mode_) 
-                imag_img[:,:,:,n,echo] = ndimage.filters.median_filter(imag_input[:,:,:,n,echo], size_,mode_)
+                real_img[:,:,:,n,echo] = ndimage.filters.median_filter(real_input[:,:,:,n,echo], (size_,size_,size_),mode=mode_) 
+                imag_img[:,:,:,n,echo] = ndimage.filters.median_filter(imag_input[:,:,:,n,echo], (size_,size_,size_),mode=mode_)
                                                                                
     filtered_image = np.empty_like(real_input, dtype=complex)
 
@@ -310,15 +310,15 @@ def cplxwiener_filter(real_input,imag_input,size_=5, noise_=None):
     # ,(size_,size_,size_)
     print "Complex Wiener filter window size ",size_, " noise ", noise_
     if real_input.ndim == 3:
-        real_img = signal.wiener(real_input,(size_,size_,size)) #, mysize=size_,noise=noise_)
-        imag_img = signal.wiener(imag_input,(size_,size_,size)) #, mysize=size_,noise=noise_)
+        real_img = signal.wiener(real_input,(size_,size_,size),noise=noise_) #, mysize=size_,noise=noise_)
+        imag_img = signal.wiener(imag_input,(size_,size_,size),noise=noise_) #, mysize=size_,noise=noise_)
     else:
         real_img = np.empty_like(real_input)
         imag_img = np.empty_like(real_input)
         for echo in xrange(0,real_input.shape[4]):
             for n in xrange(0,real_input.shape[3]):
-                real_img[:,:,:,n,echo] = signal.wiener(real_input[:,:,:,n,echo], (size_,size_,size_))
-                imag_img[:,:,:,n,echo] = signal.wiener(imag_input[:,:,:,n,echo], (size_,size_,size_))
+                real_img[:,:,:,n,echo] = signal.wiener(real_input[:,:,:,n,echo], (size_,size_,size_),noise=noise_)
+                imag_img[:,:,:,n,echo] = signal.wiener(imag_input[:,:,:,n,echo], (size_,size_,size_),noise=noise_)
 
     filtered_image = np.empty_like(real_input, dtype=complex)
     filtered_image.real = real_img
@@ -382,28 +382,40 @@ if __name__ == "__main__":
 
     print "Computing Original image (reconstruction)"
     image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag)
-#    raw_image=nib.Nifti1Image(normalise(np.abs(image)),affine)
-#    nib.save(raw_image,'raw_image.nii.gz')
-#    raw_ksp=nib.Nifti1Image(normalise(np.abs(ksp)),affine)
-#    nib.save(raw_ksp,'raw_ksp.nii.gz')
+    if image_filtered.ndim ==5:
+        for i in xrange(0,image.shape[4]):
+            raw_image=nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
+            nib.save(raw_image,'raw_image_0'+str(i)+'.nii.gz')
+    else:
+        raw_image=nib.Nifti1Image(normalise(np.abs(image)),affine)
+        nib.save(raw_image,'raw_image.nii.gz')
+        #    raw_ksp=nib.Nifti1Image(normalise(np.abs(ksp)),affine)
+        #    nib.save(raw_ksp,'raw_ksp.nii.gz')
 
-#    print "Computing Gaussian filtered image from Original image"
-#    image_filtered = cplxgaussian_filter(image.real,image.imag,0.5,1,'nearest')
-#    new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
-#    nib.save(new_image,'new_image.nii.gz')
+    print "Computing Gaussian filtered image from Original image"
+    image_filtered = cplxgaussian_filter(image.real,image.imag,0.707,0,'nearest')
+    print "Saving Gaussian image"
+    if image_filtered.ndim ==5:
+        for i in xrange(0,image_filtered.shape[4]):
+            new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
+            nib.save(new_image,'gauss_image_0'+str(i)+'.nii.gz')
+    else:
+        new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
+        nib.save(new_image,'gauss_image.nii.gz')
 
 #    print "Computing Gaussian Laplace image from Smoothed image"
 #    Log_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag)
 #    Log_image = nib.Nifti1Image(normalise(np.abs(Log_filtered)),affine)
 #    nib.save(Log_image,'Log_image.nii.gz')
 
-#    print "Computing Median filtered image"
-#    median_filtered = cplxmedian_filter(image.real,image.imag)
-#    median_image = nib.Nifti1Image(normalise(np.abs(median_filtered)),affine)
-#    nib.save(median_image,'median_image.nii.gz')
+    print "Computing Median filtered image"
+    median_filtered = cplxmedian_filter(image.real,image.imag,3)
+    print "Savinf Median image"
+    median_image = nib.Nifti1Image(normalise(np.abs(median_filtered)),affine)
+    nib.save(median_image,'median_image.nii.gz')
 
     print "Computing Wiener filtered image"
-    wiener_filtered = cplxwiener_filter(image.real,image.imag)
-    print "done"
+    wiener_filtered = cplxwiener_filter(image.real,image.imag,3,0.0001)
+    print "Saving Wiener image"
     wiener_image = nib.Nifti1Image(normalise(np.abs(wiener_filtered)),affine)
     nib.save(wiener_image,'wiener_image.nii.gz')
