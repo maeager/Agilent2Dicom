@@ -134,16 +134,62 @@ def readfid(folder,pp=[]):
     # hdr['nChannels'] = hdr['nblocks']/hdr['acqcycles']
     hdr['nPhaseEncodes'] = hdr['ntraces']/hdr['nEchoes']
     hdr['rank'] = pp['nD']                                           
+
+    # Axial    Orientation of the target scans is transverse (theta=0, psi=0, phi=0).
+    # Coronal  Orientation of the target scans is coronal (theta=90, psi=0, phi=0).
+    # Sagittal Orientation of the target scans is sagittal (theta=90, psi=90, phi=0).
+#                   Table 15. Image Planning Parameters
+# Parameter    Description
+#              Gap between slices.
+# gap
+#              FOV of first phase encoding dimension, used for lope, vox1.
+# lpe
+#              FOV of second phase encoding dimension, used for lpe2, vox3.
+# lpe2
+#              FOV of read-out dimension, used for lro and vox2.
+# lro
+#              Number of slices.
+# ns
+#              Euler angle, used for phi, sphi, vphi.
+# phi
+#              Euler angle, used for psi, spsi, vpsi.
+# psi
+#              Shift of stack center along first phase encoding dimension.
+# ppe
+#              Used for ppe, pos1.
+#              Shift of stack center along readout dimension. Used for pro, pos2.
+# pro
+#              Shifts of slices along z axis.
+# pss
+#              Shift of stack center along z, the axis perpendicular to the plane.
+# pss0
+#              Used for pss0 and pos3.
+#              Fan angle of radial slices.
+# radialAngles
+#              Euler angle, used for theta, stheta, vtheta.
+# theta
+#              Thickness of slices or saturation bands (satthk).
+# thk
+
+    # Create FDF-like header variables
+    hdr['location'] = [-pp['pro'], pp['ppe'], pp['pss'] ]
+    hdr['span'] = [pp['lro'], pp['lpe'], pp['lpe2']]
+    hdr['roi'] = [pp['lro'], pp['lpe'], pp['lpe2']]
+    hdr['origin']=[-pp['pro']-pp['lro']/2,  pp['ppe']-pp['lpe']/2,  pp['pss']-pp['lpe2']/2]
+    if pp['orient']=="sag":
+        hdr['orientation']= [0,0,1,1,0,0,0,1,0]
+    else:
+        hdr['orientation']= [1,0,0,0,1,0,0,0,1]
+
     # reset output structures
-    RE = numpy.empty([hdr['np']/2, hdr['ntraces'], hdr['nblocks']], dtype=float)
-    IM = numpy.empty([hdr['np']/2, hdr['ntraces'], hdr['nblocks']], dtype=float)
+    RE = numpy.empty([ hdr['np']/2,hdr['ntraces'], hdr['nblocks']], dtype=float)
+    IM = numpy.empty([ hdr['np']/2,hdr['ntraces'], hdr['nblocks']], dtype=float)
     
     # We have to read data every time in order to increment file pointer
     nchar = 0
-    for i in xrange(0,hdr['nblocks']-1):
+    for iblock in xrange(0,hdr['nblocks']):
         # fprintf(1, repmat('\b',1,nchar))
-        print  'reading block ', i+1,' of ', hdr['nblocks']
-
+        print  'reading block ', iblock+1,' of ', hdr['nblocks']
         # Read a block header
         header=dict()
         header['scale'],     = struct.unpack(endian+'h',f.read(int16size)) #fid,1,'int16')
@@ -157,25 +203,26 @@ def readfid(folder,pp=[]):
         header['tlt'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         print header
         data = numpy.fromfile(f,count=hdr['np']*hdr['ntraces'],dtype=dtype_str)
-
+        print data.ndim, data.shape
         data = numpy.reshape(data, [hdr['ntraces'],hdr['np']])
-        RE[:,:,i] = data[:,:hdr['np']:2]   # hdr['np']
-        IM[:,:,i] = data[:,1:hdr['np']:2]  # hdr['np']
+        RE[:,:,iblock] = numpy.matrix(data[:,:hdr['np']:2]).T   # hdr['np'] #[::2,:] #
+        IM[:,:,iblock] = numpy.matrix(data[:,1:hdr['np']:2]).T  # hdr['np'] #[1::2,:]      #
         #break
     f.close()
-    print i
+    print iblock
     #hdr.pp = pp
-    print "Data Row:   %.15g %.15g %.15g %.15g %.15g %.15g %.15g" % (data[0,0],data[0,1],  data[0,2],data[0,3],  data[0,4],data[0,1022],data[511,1022])
-    print "Data Col:   %.15g %.15g %.15g %.15g %.15g %.15g %.15g" % (data[0,0],data[1,0],  data[2,0],data[3,0],  data[4,0],data[0,1023],data[511,1023])
-    print "RE : %.15g  %.15g %.15g %.15g %.15g %.15g %.15g" % (RE[0,0,0],RE[0,1,0],  RE[0,2,0],RE[1,0,0],  RE[2,0,0],RE[0,511,0],RE[511,511,0])
-    print "IM : %.15g  %.15g %.15g %.15g %.15g %.15g %.15g" % (IM[0,0,0],IM[0,1,0],  IM[0,2,0],IM[1,0,0],  IM[2,0,0],IM[0,511,0],IM[511,511,0])
+    print "Data Row 1:   %.5g %.5g %.5g %.5g %.5g  %.5g ... %.5g %.5g %.5g %.5g" % (data[0,0],data[0,1],  data[0,2],data[0,3],  data[0,4], data[0,5], data[0,-4], data[0,-3], data[0,-2], data[0,-1])
+    print "Data Col 1:   %.5g %.5g %.5g %.5g %.5g %.5g  ... %.5g %.5g %.5g %.5g" % (data[0,0],data[1,0],  data[2,0],data[3,0],  data[4,0], data[5,0], data[-4,0],data[-3,0], data[-2,0], data[-1,0])
+    print "Data Row -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[-1,0],data[-1,1],  data[-1,2],data[-1,3],  data[-1,4],data[-1,5], data[-1,-4], data[-1,-3], data[-1,-2],data[-1,-1])
+    print "Data Col -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[0,-1],data[1,-1],  data[2,-1],data[3,-1],  data[4,-1], data[5,-1],data[-4,-1], data[-3,-1], data[-2,-1],data[-1,-1])
+    print "RE : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (RE[0,0,iblock],RE[0,1,iblock],  RE[0,2,iblock],RE[1,0,iblock],  RE[2,0,iblock], RE[0,-1,iblock], RE[-1,0,iblock], RE[-1,-1,iblock])
+    print "IM : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (IM[0,0,iblock],IM[0,1,iblock],  IM[0,2,iblock],IM[1,0,iblock],  IM[2,0,iblock], IM[0,-1,iblock], IM[-1,0,iblock], IM[-1,-1,iblock])
     return pp,hdr,dims,RE,IM
 # end readfid
 
 
 def recon(pp,dims,hdr,RE,IM):
-    """recon
-    Reconstruct k-space data into N-D image
+    """recon Reconstruct k-space image data into N-D image
     :param pp:   procpar dictionary
     :param dims: dimension array
     :param hdr: header info in fid
@@ -188,16 +235,16 @@ def recon(pp,dims,hdr,RE,IM):
     img = numpy.empty([dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']], dtype=complex) #float32
 
     if pp['nD'] == 2 and pp['ni2'] == 1:
-        for echo in xrange(0,int(hdr['nEchoes']-1)):
-            for channel in xrange(0,int(hdr['nChannels']-1)):
-                for islice in xrange(0,dims(3)-1):
+        for echo in xrange(0,int(hdr['nEchoes'])):
+            for channel in xrange(0,int(hdr['nChannels'])):
+                for islice in xrange(0,dims(3)):
                     # ksp(:,:,islice,channel,echo) = complex(RE(:,echo:hdr['nEchoes']:end,channel:hdr['nChannels']:end), IM(:,echo:hdr['nEchoes']:end,channel:hdr['nChannels']:end))
                     ksp[:,:,islice,channel,echo].real = RE[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
                     ksp[:,:,islice,channel,echo].imag = IM[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
                     
                     img[:,:,islice,channel,echo] = fftshift(ifftn(ifftshift(ksp[:,pp['pelist']-minimum(pp['pelist']),islice,channel,echo])))
     else: #if pp.nD == 3
-        if hdr['nEchoes'] == 1 and hdr['nChannels']== 1:
+        if hdr['nEchoes'] == 1 and hdr['nChannels'] == 1:
             ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
             img = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
             ksp[:,:,:].real = RE  #[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
@@ -207,8 +254,9 @@ def recon(pp,dims,hdr,RE,IM):
             else:
                 img[:,:,:] = fftshift(ifftn(ifftshift(ksp[:,:,:])))
         else:
-            for echo in xrange(0,int(hdr['nEchoes']-1)):
-                for n in xrange(0,int(hdr['nChannels']-1)):
+            for echo in xrange(0,int(hdr['nEchoes'])):
+                for n in xrange(0,int(hdr['nChannels'])):
+                    print "Processing echo ",echo," channel ",n
                     ksp[:,:,:,n,echo].real = RE[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
                     ksp[:,:,:,n,echo].imag = IM[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
                     if 'pelist' in pp.keys():
@@ -449,6 +497,7 @@ def ParseFID(ds,fid_properties,procpar,args):
     # that apply to the numbers in the binary part of the file (e.g.,char
     # *ordinate[]={"intensity"};).
 
+    
     
     orientation = numpy.matrix(fid_properties['orientation']).reshape(3,3)
     location = numpy.matrix(fid_properties['location'])*10
