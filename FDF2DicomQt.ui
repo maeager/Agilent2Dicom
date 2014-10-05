@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>555</width>
-    <height>461</height>
+    <width>560</width>
+    <height>464</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -45,7 +45,7 @@
     <string/>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_fdf">
     <attribute name="title">
@@ -57,7 +57,7 @@
        <x>9</x>
        <y>9</y>
        <width>511</width>
-       <height>321</height>
+       <height>331</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout">
@@ -151,7 +151,7 @@
          <bool>true</bool>
         </property>
         <property name="currentIndex">
-         <number>1</number>
+         <number>0</number>
         </property>
         <widget class="QWidget" name="tab_generic">
          <attribute name="title">
@@ -731,6 +731,9 @@
                  <property name="text">
                   <string>Nearest</string>
                  </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
                 </widget>
                </item>
                <item>
@@ -832,7 +835,7 @@ footprint : array, optional
                 </spacer>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_4">
+                <widget class="QLineEdit" name="lineEdit_median_size">
                  <property name="toolTip">
                   <string>     
 
@@ -985,7 +988,7 @@ scipy.signal.wiener(im, mysize=None, noise=None)
                 </spacer>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_wienernoise">
+                <widget class="QLineEdit" name="lineEdit_wiener_noise">
                  <property name="enabled">
                   <bool>true</bool>
                  </property>
