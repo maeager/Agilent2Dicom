@@ -3,6 +3,7 @@ from PyQt4 import Qt
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
 from FDF2DicomQt import Ui_Dialog
 from fdf2dcm_global import *
+DEBUGGING=1
 
 cmd_header='(if test ${MASSIVEUSERNAME+defined} \n\
 then \n\
@@ -25,25 +26,26 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
         # self.colorDepthCombo.addItem("2 colors (1 bit per pixel)")
 
 	# Disable some features
-	#self.tab_diffusion.setEnabled(False)
-	#self.tab_multiecho.setEnabled(False)
-	#self.pushButton_check.setEnabled(False)
-	#self.pushButton_view.setEnabled(False)
-	#self.pushButton_send2daris.setEnabled(False)
-	#self.pushButton_check2.setEnabled(False)
-	#self.pushButton_view2.setEnabled(False)
-	#self.pushButton_send2daris2.setEnabled(False)
-	#self.checkBox_median.setChecked(False)
-	#self.checkBox_median.setEnabled(False)
-	#self.lineEdit_median_size.setEnabled(False)
-	#self.checkBox_wiener.setEnabled(False)
-	#self.lineEdit_wiener_size.setEnabled(False)
-	#self.lineEdit_wienernoise.setEnabled(False)
-	#self.checkBox_magn.setEnabled(True)
-	#self.checkBox_magn.setChecked(True)
-	#self.checkBox_ksp.setChecked(False)
-	#self.checkBox_reimag.setChecked(False)
-	#self.checkBox_pha.setChecked(False)
+	if DEBUGGING == 1:
+	  self.tab_diffusion.setEnabled(False)
+	  self.tab_multiecho.setEnabled(False)
+	  self.pushButton_check.setEnabled(False)
+	  self.pushButton_view.setEnabled(False)
+	  self.pushButton_send2daris.setEnabled(False)
+	  self.pushButton_check2.setEnabled(False)
+	  self.pushButton_view2.setEnabled(False)
+	  self.pushButton_send2daris2.setEnabled(False)
+	  self.checkBox_median.setChecked(False)
+	  self.checkBox_median.setEnabled(False)
+	  self.lineEdit_median_size.setEnabled(False)
+	  self.checkBox_wiener.setEnabled(False)
+	  self.lineEdit_wiener_size.setEnabled(False)
+	  self.lineEdit_wienernoise.setEnabled(False)
+	  self.checkBox_magn.setEnabled(True)
+	  self.checkBox_magn.setChecked(True)
+	  self.checkBox_ksp.setChecked(False)
+	  self.checkBox_reimag.setChecked(False)
+	  self.checkBox_pha.setChecked(False)
 
 
         # Connect up the buttons.
@@ -74,6 +76,9 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             out = dir_+'.dcm'
         self.lineEdit_dicompath.setText(out)
         self.lineEdit_darisid.setText(self.GetDarisID(newdir))
+        self.checkBox_gaussian.setChecked(False)
+        self.checkBox_median.setChecked(False)
+        self.checkBox_wiener.setChecked(False)
         UpdateGUI()
      except ValueError:
         pass
@@ -103,7 +108,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
 
     def ChangeFIDDicomPath(self):
       try:
-	newdir = file = str(QFileDialog.getOpenFile(self, "Select DICOM Directory"))
+	newdir = str(QFileDialog.getOpenFile(self, "Select DICOM Directory"))
         self.lineEdit_dicompath2.setText(newdir)
         self.lineEdit_darisid.setText(self.GetDarisID(out))
 	UpdateGUI()
@@ -183,7 +188,33 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
         except ValueError:
 	    pass
       
-      
+    def getCommandArgs(self):
+      argstr=''
+      if self.checkBox_magn.checked:
+	argstr=' -m'
+      if self.checkBox_pha.checked:
+	argstr+=' -p'
+      if self.checkBox_ksp.checked:
+	argstr+=' -k'
+      if self.checkBox_reimag.checked:
+	argstr+=' -r'
+
+      if self.checkBox_gaussian:
+	  argstr+=' -r -s %s -go %s' % (self.lineEdit_gsigma,self.lineEdit_gorder)
+	  if self.nearest.checked:
+	    argstr+=' -gm nearest'
+	  elif self.reflect.checked:
+	    argstr+=' -gm reflect'
+	  elif self.wrap.checked:
+	    argstr+=' -gm wrap'
+      if self.checkBox_median:
+	  argstr+=' -d -n %s ' % (self.lineEdit_median_size)
+      if self.checkBox_wiener:
+	  argstr+=' -w -ws %s -wn %s' % (self.lineEdit_wiener_size, self.lineEdit_wiener_noise)
+	  
+	  
+	  
+	
     def ConvertFID(self):
         try:
             import os
@@ -191,7 +222,9 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             output_dir = self.lineEdit_dicompath2.getText()
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             print 'fid2dcm path: %s' % thispath
-            cmd1 = os.path.join(thispath,'fid2dcm.sh') + ' -v  -i ' + input_dir + ' -o ' + output_dir
+            cmd1 = os.path.join(thispath,'fid2dcm.sh')
+            cmd1 = cmd1+' -v '  
+            cmd1 = cmd+'-i ' + input_dir + ' -o ' + output_dir
             print(cmd1)
             cmd=cmd_header + cmd1 +')'
             print(cmd)

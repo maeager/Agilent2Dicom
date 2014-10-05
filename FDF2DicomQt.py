@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'FDF2DicomQt.ui'
 #
-# Created: Fri Oct  3 15:40:05 2014
+# Created: Sun Oct  5 22:58:29 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_Dialog(object):
     def setupUi(self, Dialog):
         Dialog.setObjectName(_fromUtf8("Dialog"))
-        Dialog.resize(555, 461)
+        Dialog.resize(560, 464)
         Dialog.setToolTip(_fromUtf8(""))
         self.buttonBox = QtGui.QDialogButtonBox(Dialog)
         self.buttonBox.setGeometry(QtCore.QRect(200, 420, 341, 32))
@@ -40,7 +40,7 @@ class Ui_Dialog(object):
         self.tab_fdf = QtGui.QWidget()
         self.tab_fdf.setObjectName(_fromUtf8("tab_fdf"))
         self.gridLayoutWidget = QtGui.QWidget(self.tab_fdf)
-        self.gridLayoutWidget.setGeometry(QtCore.QRect(9, 9, 511, 321))
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(9, 9, 511, 331))
         self.gridLayoutWidget.setObjectName(_fromUtf8("gridLayoutWidget"))
         self.gridLayout = QtGui.QGridLayout(self.gridLayoutWidget)
         self.gridLayout.setMargin(0)
@@ -304,6 +304,7 @@ class Ui_Dialog(object):
         self.label_28.setObjectName(_fromUtf8("label_28"))
         self.horizontalLayout_31.addWidget(self.label_28)
         self.nearest = QtGui.QRadioButton(self.layoutWidget_2)
+        self.nearest.setChecked(True)
         self.nearest.setObjectName(_fromUtf8("nearest"))
         self.horizontalLayout_31.addWidget(self.nearest)
         self.reflect = QtGui.QRadioButton(self.layoutWidget_2)
@@ -334,11 +335,11 @@ class Ui_Dialog(object):
         self.horizontalLayout_38.addWidget(self.label_14)
         spacerItem3 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_38.addItem(spacerItem3)
-        self.lineEdit_4 = QtGui.QLineEdit(self.verticalLayoutWidget_6)
-        self.lineEdit_4.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.lineEdit_4.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.lineEdit_4.setObjectName(_fromUtf8("lineEdit_4"))
-        self.horizontalLayout_38.addWidget(self.lineEdit_4)
+        self.lineEdit_median_size = QtGui.QLineEdit(self.verticalLayoutWidget_6)
+        self.lineEdit_median_size.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.lineEdit_median_size.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_median_size.setObjectName(_fromUtf8("lineEdit_median_size"))
+        self.horizontalLayout_38.addWidget(self.lineEdit_median_size)
         self.verticalLayout_6.addLayout(self.horizontalLayout_38)
         self.tabWidget_2.addTab(self.tab_2, _fromUtf8(""))
         self.tab_7 = QtGui.QWidget()
@@ -377,12 +378,12 @@ class Ui_Dialog(object):
         self.horizontalLayout_40.addWidget(self.label_26)
         spacerItem5 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_40.addItem(spacerItem5)
-        self.lineEdit_wienernoise = QtGui.QLineEdit(self.verticalLayoutWidget_7)
-        self.lineEdit_wienernoise.setEnabled(True)
-        self.lineEdit_wienernoise.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.lineEdit_wienernoise.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
-        self.lineEdit_wienernoise.setObjectName(_fromUtf8("lineEdit_wienernoise"))
-        self.horizontalLayout_40.addWidget(self.lineEdit_wienernoise)
+        self.lineEdit_wiener_noise = QtGui.QLineEdit(self.verticalLayoutWidget_7)
+        self.lineEdit_wiener_noise.setEnabled(True)
+        self.lineEdit_wiener_noise.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.lineEdit_wiener_noise.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
+        self.lineEdit_wiener_noise.setObjectName(_fromUtf8("lineEdit_wiener_noise"))
+        self.horizontalLayout_40.addWidget(self.lineEdit_wiener_noise)
         self.verticalLayout_7.addLayout(self.horizontalLayout_40)
         self.tabWidget_2.addTab(self.tab_7, _fromUtf8(""))
         self.verticalLayout_3.addWidget(self.tabWidget_2)
@@ -414,8 +415,8 @@ class Ui_Dialog(object):
         self.tabWidget.addTab(self.tab_fid, _fromUtf8(""))
 
         self.retranslateUi(Dialog)
-        self.tabWidget.setCurrentIndex(1)
-        self.Multiecho.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
+        self.Multiecho.setCurrentIndex(0)
         self.tabWidget_2.setCurrentIndex(2)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), Dialog.accept)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("rejected()")), Dialog.reject)
@@ -533,7 +534,7 @@ class Ui_Dialog(object):
 " and size is 2, then the actual size used is (2,2,2).\n"
 "", None))
         self.label_14.setText(_translate("Dialog", "Window Size(s)", None))
-        self.lineEdit_4.setToolTip(_translate("Dialog", "     \n"
+        self.lineEdit_median_size.setToolTip(_translate("Dialog", "     \n"
 "\n"
 "size : scalar or tuple, optional\n"
 "\n"
@@ -547,7 +548,7 @@ class Ui_Dialog(object):
 " We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),\n"
 " and size is 2, then the actual size used is (2,2,2).\n"
 "", None))
-        self.lineEdit_4.setText(_translate("Dialog", "5", None))
+        self.lineEdit_median_size.setText(_translate("Dialog", "5", None))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_2), _translate("Dialog", "Median", None))
         self.checkBox_wiener.setToolTip(_translate("Dialog", "NOT ENABLED - Speak to MBI Imaging Team\n"
 "\n"
@@ -569,11 +570,11 @@ class Ui_Dialog(object):
         self.lineEdit_wiener_size.setText(_translate("Dialog", "5", None))
         self.label_26.setToolTip(_translate("Dialog", "<html><head/><body><p>noise: Estimation of noise, Set to 0 for local variance to be used.</p></body></html>", None))
         self.label_26.setText(_translate("Dialog", "Noise (Est. variance)", None))
-        self.lineEdit_wienernoise.setToolTip(_translate("Dialog", "mysize : int or arraylike, optional\n"
+        self.lineEdit_wiener_noise.setToolTip(_translate("Dialog", "mysize : int or arraylike, optional\n"
 "\n"
 "    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
 "", None))
-        self.lineEdit_wienernoise.setText(_translate("Dialog", "0", None))
+        self.lineEdit_wiener_noise.setText(_translate("Dialog", "0", None))
         self.tabWidget_2.setTabText(self.tabWidget_2.indexOf(self.tab_7), _translate("Dialog", "Wiener", None))
         self.label_11.setText(_translate("Dialog", "Outputs of Filter", None))
         self.checkBox_magn.setText(_translate("Dialog", "Save Magnitude", None))
