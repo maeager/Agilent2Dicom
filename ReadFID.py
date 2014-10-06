@@ -27,6 +27,7 @@ import numpy
 import argparse
 import ReadProcpar
 from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
+import scipy.io
 #from scipy import ndimage
 
 
@@ -899,3 +900,35 @@ def Save2dFIDtoDicom(ds,image_data,outdir, filename):
     ds.save_as(dcmfilename)
     
     return 1
+
+
+
+def SaveKspace(ksp,args):
+    """SaveKspace Save the k-space data to MAT file
+
+    """
+    if not args.outputdir:
+        outdir = os.path.splitext(args.inputdir)[0]
+        if not outdir.find('.img'):
+            outfile = outdir + '-ksp.mat'
+        else:
+            (dirName, imgdir) = os.path.split(outdir)
+            while imdir == '':
+                (dirName, imgdir) = os.path.split(outdir)
+
+            (ImgBaseName, ImgExtension)=os.path.splitext(imgdir)
+            outfile = os.path.join(dirName,ImgBaseName + '-ksp.mat')
+    else:
+        if not outdir.find('.dcm'):
+            outfile = args.outputdir + '-ksp.mat'
+        else:
+            (dirName, imgdir) = os.path.split(outdir)
+            while imdir == '':
+                (dirName, imgdir) = os.path.split(outdir)
+
+            (ImgBaseName, ImgExtension)=os.path.splitext(imgdir)
+            outdir = os.path.join(dirName,ImgBaseName + '-ksp.mat')
+        
+    scipy.io.savemat(outfile, mdict={'ksp': ksp})
+
+
