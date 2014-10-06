@@ -39,7 +39,6 @@ import ParseFDF
 
 
 
-
 if __name__ == "__main__":
 
     # Parse command line arguments and validate img directory
@@ -49,14 +48,19 @@ if __name__ == "__main__":
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
     parser.add_argument('-m','--magnitude', help='Save Magnitude component. Default output of filtered image outputput',action="store_true");
     parser.add_argument('-p','--phase', help='Save Phase component.',action="store_true");
-    parser.add_argument('-k','--kspace', help='Save Kspace data in outputdir-ksp.',action="store_true");
+    parser.add_argument('-k','--kspace', help='Save Kspace data in outputdir-ksp.mat file',action="store_true");
     parser.add_argument('-r','--realimag', help='Save real and imaginary data in outputdir-real and outputdir-imag.',action="store_true");
-    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL.');
+#    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL).',choices={"MULTIECHO", "DIFFUSION", "ASL"});
 #    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
-    parser.add_argument('-g','--gaussian_filter', help='Gaussian filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2).');
-    parser.add_argument('-l','--gaussian_laplace', help='Gaussian Laplace filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2).');
-    parser.add_argument('-n','--median_filter', help='Median filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.');
-    parser.add_argument('-w','--wiener_filter', help='Wiener filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.');
+    parser.add_argument('-g','--gaussian_filter', help='Gaussian filter smoothing of reconstructed RE and IM components.',action="store_true");
+    parser.add_argument('-l','--gaussian_laplace', help='Gaussian Laplace filter smoothing of reconstructed RE and IM components. --sigma variable must be declared.',action="store_true");
+    parser.add_argument('-s','--sigma',help='Gaussian and Laplace-Gaussian sigma variable. Default 1/srqt(2).')
+    parser.add_argument('-go','--gaussian_order',help='Gaussian and Laplace-Gaussian order variable. Default 0.',choices=[0,1,2,3])
+    parser.add_argument('-gm','--gaussian_mode',help='Gaussian and Laplace-Gaussian mode variable. Default nearest.',choices={'reflect', 'constant', 'nearest', 'mirror', 'wrap'})
+    parser.add_argument('-d','--median_filter', help='Median filter smoothing of reconstructed RE and IM components. ',action="store_true");
+    parser.add_argument('-w','--wiener_filter', help='Wiener filter smoothing of reconstructed RE and IM components.',action="store_true");
+    parser.add_argument('-n','--window_size',type=int,help='Window size of Wiener and Median filters. Default 5.')
+    parser.add_argument('-wn','--wiener_noise',help='Wiener filter noise. Default None.')
     parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     
     # parser.add_argument("imgdir", help="Agilent .img directory containing procpar and fdf files")
@@ -75,8 +79,8 @@ if __name__ == "__main__":
     files = os.listdir(args.inputdir)
     if args.verbose:
         print files
-    if not args.sequence:
-        args.sequence = ''
+#    if not args.sequence:
+#        args.sequence = ''
 
     if 'procpar' not in files:
         print 'Error: FID folder does not contain a procpar file'
@@ -145,32 +149,48 @@ if __name__ == "__main__":
     # Change dicom for specific FID header info
     ds,matsize,ImageTransformationMatrix = FID.ParseFID(ds,fdf_properties,procpar,args)
 
+    FID.Save3dFIDtoDicom(ds,procpar,image_data,fdf_properties,ImageTransformationMatrix,args,outdir,filename)
+    
     # Rescale image data
-    ds,image_data =FID.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
+    # ds,image_data =FID.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
 
 
     if arg.gaussian_filter:
+        if not arg.sigma:
+            arg.sigma=0.707
+        if not arg.gaussian_order:
+            arg.gaussian_order=0
+        if not arg.gaussian_mode:
+            arg.gaussian_mode='nearest'
         print "Computing Gaussian filtered image from Original image"
-        image_filtered = cplxgaussian_filter(image.real,image.imag,arg.gaussian_filter)
+        image_filtered = cplxgaussian_filter(image.real,image.imag,arg.sigma,arg.gaussian_order,arg.gaussian_mode)
 
     if arg.gaussian_laplace:
+        if not arg.sigma:
+            arg.sigma=0.707
         print "Computing Gaussian Laplace filtered image from Gaussian filtered image"
-        image_filtered = cplxgaussian_filter(image.real,image.imag,arg.gaussian_laplace)
-        image_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag,arg.gaussian_laplace)
+        image_filtered = cplxgaussian_filter(image.real,image.imag,arg.sigma)
+        image_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag,arg.sigma)
 
     if arg.median_filter:
+        if not arg.window_size:
+            arg.window_size=3
         print "Computing Median filtered image from Original image"
-        image_filtered = cplxmedian_filter(image.real,image.imag,arg.median_filter)
+        image_filtered = cplxmedian_filter(image.real,image.imag,arg.window_size)
 
     if arg.wiener_filter:
+        if not arg.window_size:
+            arg.window_size=3
+        if not arg.wiener_noise:
+            arg.wiener_noise=None
         print "Computing Wiener filtered image from Original image"
-        image_filtered = cplxwiener_filter(image.real,image.imag,arg.wiener_filter)
+        image_filtered = cplxwiener_filter(image.real,image.imag,arg.window_size,arg.wiener_noise)
 
 
    
     # Export dicom to file
     if MRAcquisitionType == '3D':
-        ds=ParseFDF.Save3dFDFtoDicom(ds,procpar,image_data,fdf_properties,ImageTransformationMatrix,args,outdir,filename)
+        ds=FID.Save3dFIDtoDicom(ds,procpar,image_data,fdf_properties,ImageTransformationMatrix,args,outdir,filename)
     else:
         ParseFDF.Save2dFDFtoDicom(ds,image_data, outdir, filename)
         
