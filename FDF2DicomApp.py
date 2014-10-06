@@ -2,6 +2,18 @@ import os,sys
 from PyQt4 import Qt
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
 from FDF2DicomQt import Ui_Dialog
+from fdf2dcm_global import *
+DEBUGGING=1
+
+cmd_header='(if test ${MASSIVEUSERNAME+defined} \n\
+then \n\
+  echo ''On Massive'' \n\
+  module unload python \n\
+  module load python/2.7.1-gcc \n\
+  module load python/2.7.3-gcc dcmtk mrtrix \n\
+  module list \n\
+fi \n\
+echo ''Done''\n '
 
 class ImageConverterDialog(QDialog, Ui_Dialog):
     def __init__(self):
@@ -12,6 +24,29 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
 
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per pixel)")
+
+	# Disable some features
+	if DEBUGGING == 1:
+	  self.tab_diffusion.setEnabled(False)
+	  self.tab_multiecho.setEnabled(False)
+	  self.pushButton_check.setEnabled(False)
+	  self.pushButton_view.setEnabled(False)
+	  self.pushButton_send2daris.setEnabled(False)
+	  self.pushButton_check2.setEnabled(False)
+	  self.pushButton_view2.setEnabled(False)
+	  self.pushButton_send2daris2.setEnabled(False)
+	  self.checkBox_median.setChecked(False)
+	  self.checkBox_median.setEnabled(False)
+	  self.lineEdit_median_size.setEnabled(False)
+	  self.checkBox_wiener.setEnabled(False)
+	  self.lineEdit_wiener_size.setEnabled(False)
+	  self.lineEdit_wienernoise.setEnabled(False)
+	  self.checkBox_magn.setEnabled(True)
+	  self.checkBox_magn.setChecked(True)
+	  self.checkBox_ksp.setChecked(False)
+	  self.checkBox_reimag.setChecked(False)
+	  self.checkBox_pha.setChecked(False)
+
 
         # Connect up the buttons.
         self.connect(self.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
@@ -32,6 +67,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
         self.pushButton_send2daris2.clicked.connect(self.Send2Daris2)
 
     def ChangeFDFpath(self):
+      try:
         newdir = file = str(QFileDialog.getExistingDirectory(self, "Select FDF Directory"))
         self.lineEdit_fdfpath.setText(newdir)
         if re.search('img',newdir):
@@ -40,14 +76,25 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             out = dir_+'.dcm'
         self.lineEdit_dicompath.setText(out)
         self.lineEdit_darisid.setText(self.GetDarisID(newdir))
+        self.checkBox_gaussian.setChecked(False)
+        self.checkBox_median.setChecked(False)
+        self.checkBox_wiener.setChecked(False)
+        UpdateGUI()
+     except ValueError:
+        pass
 
     def ChangeFDFDicomPath(self):
+      try:
         newdir = file = str(QFileDialog.getOpenFile(self, "Select DICOM Directory"))
         self.lineEdit_dicompath.setText(newdir)
         self.lineEdit_darisid.setText(self.GetDarisID(out))
+        UpdateGUI()
+     except ValueError:
+        pass
 
     def ChangeFIDpath(self):
-        newdir = str(QFileDialog.getExistingDirectory(self, "Select FID Directory"))
+      try:
+	newdir = str(QFileDialog.getExistingDirectory(self, "Select FID Directory"))
         self.lineEdit_fidpath.setText(newdir)
         if re.search('img',newdir):
             out = re.sub('img','dcm',newdir)
@@ -55,11 +102,18 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
             out = dir_+'.dcm'
         self.lineEdit_dicompath2.setText(out)
         self.lineEdit_darisid2.setText(self.GetDarisID(newdir))
+        UpdateGUI()
+      except ValueError:
+        pass
 
     def ChangeFIDDicomPath(self):
-        newdir = file = str(QFileDialog.getOpenFile(self, "Select DICOM Directory"))
+      try:
+	newdir = str(QFileDialog.getOpenFile(self, "Select DICOM Directory"))
         self.lineEdit_dicompath2.setText(newdir)
         self.lineEdit_darisid.setText(self.GetDarisID(out))
+	UpdateGUI()
+      except ValueError:
+        pass
 
     def ConvertFDF(self):
       try:
@@ -70,25 +124,10 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
         print 'fdf2dcm path: %s' % thispath
         cmd1 = os.path.join(thispath,'fdf2dcm.sh') + ' -v  -i ' + input_dir + ' -o ' + output_dir
         print(cmd1)
-        cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+        cmd= cmd_header + cmd1 +')'
         print(cmd)
         os.system(cmd)
-        if CheckDicomDir(output_dir):
-	      print 'Ready to send dicoms to DaRIS'
-	      self.pushButton_check.enabled=True
-	      self.pushButton_view.enabled=True
-	      self.pushButton_send2daris.enabled=True
-	else:
-	      print 'Not ready to send dicoms to DaRIS'
-	      self.pushButton_check.enabled=False
-	      self.pushButton_view.enabled=False
-	      self.pushButton_send2daris.enabled=False
+        UpdateGUI()
       except ValueError:
         pass
 
@@ -105,7 +144,7 @@ echo ''Done''\n ' + cmd1 +')'
 	
 
     def CheckDicmoDir(dpath):
-        if os.path.isdir(dpath) and os.path.exists(os.path.join(dpath,'0001.dcm')):
+        if dpath and os.path.isdir(dpath) and os.path.exists(os.path.join(dpath,'0001.dcm')):
             return True
         else:
             return False
@@ -117,7 +156,8 @@ echo ''Done''\n ' + cmd1 +')'
             dicom_dir = self.lineEdit_dicompath.getText()
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             cmd = os.path.join(thispath,'dpush') + ' -c ' + daris_ID + ' -s mf-erc ' + dicom_dir
-            os.system(cmd)	
+            os.system(cmd)
+            UpdateGUI()
         except ValueError:
             pass
 
@@ -129,19 +169,10 @@ echo ''Done''\n ' + cmd1 +')'
             print 'check path: %s' % thispath
             cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + output_dir
             print(cmd1)
-            cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+            cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
-            if check_dir(output_dir):
-                print 'Ready to send dicoms to DaRIS'
- #           send_button.foreground="dark green"
- #           send_button.state='active'
+            UpdateGUI()
         except ValueError:
             pass
 
@@ -151,19 +182,39 @@ echo ''Done''\n ' + cmd1 +')'
 	    thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             cmd1 = os.path.join(thispath,'mrview') + ' -o ' + output_dir
             print(cmd1)
-            cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python mrtrix \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+            cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
         except ValueError:
 	    pass
       
-      
+    def getCommandArgs(self):
+      argstr=''
+      if self.checkBox_magn.checked:
+	argstr=' -m'
+      if self.checkBox_pha.checked:
+	argstr+=' -p'
+      if self.checkBox_ksp.checked:
+	argstr+=' -k'
+      if self.checkBox_reimag.checked:
+	argstr+=' -r'
+
+      if self.checkBox_gaussian:
+	  argstr+=' -r -s %s -go %s' % (self.lineEdit_gsigma,self.lineEdit_gorder)
+	  if self.nearest.checked:
+	    argstr+=' -gm nearest'
+	  elif self.reflect.checked:
+	    argstr+=' -gm reflect'
+	  elif self.wrap.checked:
+	    argstr+=' -gm wrap'
+      if self.checkBox_median:
+	  argstr+=' -d -n %s ' % (self.lineEdit_median_size)
+      if self.checkBox_wiener:
+	  argstr+=' -w -ws %s -wn %s' % (self.lineEdit_wiener_size, self.lineEdit_wiener_noise)
+	  
+	  
+	  
+	
     def ConvertFID(self):
         try:
             import os
@@ -171,24 +222,14 @@ echo ''Done''\n ' + cmd1 +')'
             output_dir = self.lineEdit_dicompath2.getText()
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             print 'fid2dcm path: %s' % thispath
-            cmd1 = os.path.join(thispath,'fid2dcm.sh') + ' -v  -i ' + input_dir + ' -o ' + output_dir
+            cmd1 = os.path.join(thispath,'fid2dcm.sh')
+            cmd1 = cmd1+' -v '  
+            cmd1 = cmd+'-i ' + input_dir + ' -o ' + output_dir
             print(cmd1)
-            cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+            cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
-            if check_dir(output_dir):
-	      print 'Ready to send dicoms to DaRIS'
-	      self.pushButton_check2.enabled=True
-	      self.pushButton_view2.enabled=True
-	      self.pushButton_send2daris2.enabled=True
-	      #           send_button.foreground="dark green"
- #           send_button.state='active'
+            UpdateGUI()
         except ValueError:
             pass
 
@@ -200,20 +241,11 @@ echo ''Done''\n ' + cmd1 +')'
             print 'check path: %s' % thispath
             cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + output_dir
             print(cmd1)
-            cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+            cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
-            if check_dir(output_dir):
-                print 'Ready to send dicoms to DaRIS'
- #           send_button.foreground="dark green"
- #           send_button.state='active'
-        except ValueError:
+	    UpdateGUI()
+	except ValueError:
             pass
 
     def ViewFID(self):
@@ -222,15 +254,10 @@ echo ''Done''\n ' + cmd1 +')'
 	    thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             cmd1 = os.path.join(thispath,'mrview') + ' -o ' + output_dir
             print(cmd1)
-            cmd='(if test ${MASSIVEUSERNAME+defined} \n\
-then \n\
-  echo ''On Massive'' \n\
-  module unload python/3.3.5-gcc \n\
-  module load python mrtrix \n\
-fi \n\
-echo ''Done''\n ' + cmd1 +')'
+            cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
+            UpdateGUI()
         except ValueError:
 	    pass
 
@@ -243,6 +270,23 @@ echo ''Done''\n ' + cmd1 +')'
             os.system(cmd)	
         except ValueError:
             pass
+
+    def UpdateGUI(self):
+      	self.pushButton_check.setEnabled(False)
+	self.pushButton_view.setEnabled(False)
+	self.pushButton_send2daris.setEnabled(False)
+	self.pushButton_check2.setEnabled(False)
+	self.pushButton_view2.setEnabled(False)
+	self.pushButton_send2daris2.setEnabled(False)
+	if CheckDicmoDir(self.lineEdit_dicompath.getText()):
+	  self.pushButton_check.setEnabled(True)
+	  self.pushButton_view.setEnabled(True)
+	  self.pushButton_send2daris.setEnabled(True)
+	if CheckDicmoDir(self.lineEdit_dicompath2.getText()):
+	  self.pushButton_check2.setEnabled(True)
+	  self.pushButton_view2.setEnabled(True)
+	  self.pushButton_send2daris2.setEnabled(True)
+	  
 
 app = QApplication(sys.argv)
 window = QDialog()

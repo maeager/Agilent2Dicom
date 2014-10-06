@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>558</width>
-    <height>441</height>
+    <width>560</width>
+    <height>464</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
    <property name="geometry">
     <rect>
      <x>200</x>
-     <y>400</y>
+     <y>420</y>
      <width>341</width>
      <height>32</height>
     </rect>
@@ -38,14 +38,14 @@
      <x>10</x>
      <y>19</y>
      <width>541</width>
-     <height>371</height>
+     <height>391</height>
     </rect>
    </property>
    <property name="toolTip">
     <string/>
    </property>
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="tab_fdf">
     <attribute name="title">
@@ -57,7 +57,7 @@
        <x>9</x>
        <y>9</y>
        <width>511</width>
-       <height>321</height>
+       <height>331</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout">
@@ -148,7 +148,7 @@
       <item row="3" column="3">
        <widget class="QTabWidget" name="Multiecho">
         <property name="enabled">
-         <bool>false</bool>
+         <bool>true</bool>
         </property>
         <property name="currentIndex">
          <number>0</number>
@@ -168,7 +168,7 @@
           </property>
           <layout class="QGridLayout" name="gridLayout_5">
            <item row="0" column="0">
-            <widget class="QRadioButton" name="radioButton_debugging">
+            <widget class="QCheckBox" name="checkBox_debugging">
              <property name="toolTip">
               <string>Display more verbose debugging</string>
              </property>
@@ -178,7 +178,7 @@
             </widget>
            </item>
            <item row="1" column="0">
-            <widget class="QRadioButton" name="radioButton_nodcmulti">
+            <widget class="QCheckBox" name="checkBox_nodcmulti">
              <property name="toolTip">
               <string>Do not convert 2D slices to enhance DICOM format</string>
              </property>
@@ -207,15 +207,8 @@
            </rect>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="1">
-            <widget class="QRadioButton" name="radioButton_bmatrixdiff">
-             <property name="text">
-              <string>Bmatrix</string>
-             </property>
-            </widget>
-           </item>
            <item row="7" column="1">
-            <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0">
+            <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0">
              <property name="spacing">
               <number>5</number>
              </property>
@@ -225,6 +218,13 @@
              <property name="bottomMargin">
               <number>5</number>
              </property>
+             <item>
+              <widget class="QRadioButton" name="radioButton_bmatrixdiff">
+               <property name="text">
+                <string>Bmatrix</string>
+               </property>
+              </widget>
+             </item>
              <item>
               <widget class="QRadioButton" name="radioButton_directionaldiff">
                <property name="text">
@@ -258,7 +258,7 @@
             </layout>
            </item>
            <item row="0" column="0">
-            <widget class="QRadioButton" name="radioButton_diffusion1">
+            <widget class="QCheckBox" name="checkBox_diffusion1">
              <property name="text">
               <string>Diffusion</string>
              </property>
@@ -297,13 +297,6 @@
              </property>
             </layout>
            </item>
-           <item row="0" column="1">
-            <widget class="QRadioButton" name="radioButton_7">
-             <property name="text">
-              <string>Multi-echo</string>
-             </property>
-            </widget>
-           </item>
            <item row="6" column="1">
             <layout class="QHBoxLayout" name="horizontalLayout_11" stretch="0,0">
              <property name="spacing">
@@ -318,7 +311,7 @@
              <item>
               <widget class="QLabel" name="label_15">
                <property name="text">
-                <string>TextLabel</string>
+                <string>Echo Train List</string>
                </property>
               </widget>
              </item>
@@ -326,6 +319,13 @@
               <widget class="QLineEdit" name="lineEdit_12"/>
              </item>
             </layout>
+           </item>
+           <item row="0" column="1">
+            <widget class="QCheckBox" name="checkBox_7">
+             <property name="text">
+              <string>Multi-echo</string>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -392,7 +392,7 @@
        <x>10</x>
        <y>10</y>
        <width>511</width>
-       <height>321</height>
+       <height>341</height>
       </rect>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
@@ -551,7 +551,7 @@
            <string>Multidimensional median, Gaussian or Wiener  filters.</string>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="tab">
            <attribute name="title">
@@ -561,24 +561,12 @@
             <property name="geometry">
              <rect>
               <x>0</x>
-              <y>10</y>
+              <y>0</y>
               <width>301</width>
-              <height>101</height>
+              <height>134</height>
              </rect>
             </property>
             <layout class="QGridLayout" name="gridLayout_9">
-             <item row="0" column="0">
-              <widget class="QRadioButton" name="radioButton_24">
-               <property name="toolTip">
-                <string> scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode='reflect', cval=0.0, truncate=4.0)[source]
-
-    Multidimensional Gaussian filter.</string>
-               </property>
-               <property name="text">
-                <string>Use Gaussian Filter</string>
-               </property>
-              </widget>
-             </item>
              <item row="1" column="1">
               <layout class="QHBoxLayout" name="horizontalLayout_25">
                <property name="spacing">
@@ -630,7 +618,7 @@
                 </spacer>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_window_4">
+                <widget class="QLineEdit" name="lineEdit_gorder">
                  <property name="toolTip">
                   <string>order : {0, 1, 2, 3} or sequence from same set, optional
 
@@ -684,7 +672,7 @@
                 </spacer>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_sigma_4">
+                <widget class="QLineEdit" name="lineEdit_gsigma">
                  <property name="toolTip">
                   <string>scalar or sequence of scalars
 
@@ -700,6 +688,80 @@
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                  </property>
                 </widget>
+               </item>
+              </layout>
+             </item>
+             <item row="0" column="0">
+              <widget class="QCheckBox" name="checkBox_gaussian">
+               <property name="toolTip">
+                <string> scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode='reflect', cval=0.0, truncate=4.0)[source]
+
+    Multidimensional Gaussian filter.</string>
+               </property>
+               <property name="text">
+                <string>Use Gaussian Filter</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="0">
+              <layout class="QHBoxLayout" name="horizontalLayout_31" stretch="0,0,0,0,0">
+               <property name="spacing">
+                <number>5</number>
+               </property>
+               <property name="topMargin">
+                <number>5</number>
+               </property>
+               <property name="bottomMargin">
+                <number>5</number>
+               </property>
+               <item>
+                <widget class="QLabel" name="label_28">
+                 <property name="toolTip">
+                  <string>scalar or sequence of scalars
+
+    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.</string>
+                 </property>
+                 <property name="text">
+                  <string>Mode:</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="nearest">
+                 <property name="text">
+                  <string>Nearest</string>
+                 </property>
+                 <property name="checked">
+                  <bool>true</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="reflect">
+                 <property name="text">
+                  <string>Reflect</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QRadioButton" name="wrap">
+                 <property name="text">
+                  <string>Wrap</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_7">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
                </item>
               </layout>
              </item>
@@ -721,7 +783,7 @@
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_6">
              <item>
-              <widget class="QRadioButton" name="radioButton_36">
+              <widget class="QCheckBox" name="checkBox_median">
                <property name="toolTip">
                 <string>scipy.ndimage.filters.median_filter¶
 
@@ -738,6 +800,22 @@ scipy.ndimage.filters.median_filter(input, size=None, footprint=None, output=Non
               <layout class="QHBoxLayout" name="horizontalLayout_38">
                <item>
                 <widget class="QLabel" name="label_14">
+                 <property name="toolTip">
+                  <string>     
+
+size : scalar or tuple, optional
+
+    See footprint, below
+
+footprint : array, optional
+
+    Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position,
+ to define the input to the filter function. footprint is a boolean array that specifies (implicitly) a shape,
+ but also which of the elements within this shape will get passed to the filter function. Thus size=(n,m) is equivalent to footprint=np.ones((n,m)).
+ We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),
+ and size is 2, then the actual size used is (2,2,2).
+</string>
+                 </property>
                  <property name="text">
                   <string>Window Size(s)</string>
                  </property>
@@ -757,7 +835,7 @@ scipy.ndimage.filters.median_filter(input, size=None, footprint=None, output=Non
                 </spacer>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_4">
+                <widget class="QLineEdit" name="lineEdit_median_size">
                  <property name="toolTip">
                   <string>     
 
@@ -791,6 +869,9 @@ footprint : array, optional
            </widget>
           </widget>
           <widget class="QWidget" name="tab_7">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <attribute name="title">
             <string>Wiener</string>
            </attribute>
@@ -800,14 +881,14 @@ footprint : array, optional
               <x>0</x>
               <y>10</y>
               <width>281</width>
-              <height>71</height>
+              <height>81</height>
              </rect>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_7">
              <item>
-              <widget class="QRadioButton" name="radioButton_37">
+              <widget class="QCheckBox" name="checkBox_wiener">
                <property name="enabled">
-                <bool>false</bool>
+                <bool>true</bool>
                </property>
                <property name="toolTip">
                 <string>NOT ENABLED - Speak to MBI Imaging Team
@@ -828,7 +909,13 @@ scipy.signal.wiener(im, mysize=None, noise=None)
                <item>
                 <widget class="QLabel" name="label_25">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>mysize : int or arraylike, optional
+
+    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.
+</string>
                  </property>
                  <property name="text">
                   <string> Window Size(s)</string>
@@ -849,9 +936,9 @@ scipy.signal.wiener(im, mysize=None, noise=None)
                 </spacer>
                </item>
                <item>
-                <widget class="QLineEdit" name="lineEdit_5">
+                <widget class="QLineEdit" name="lineEdit_wiener_size">
                  <property name="enabled">
-                  <bool>false</bool>
+                  <bool>true</bool>
                  </property>
                  <property name="toolTip">
                   <string>mysize : int or arraylike, optional
@@ -864,6 +951,58 @@ scipy.signal.wiener(im, mysize=None, noise=None)
                  </property>
                  <property name="text">
                   <string>5</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_40">
+               <item>
+                <widget class="QLabel" name="label_26">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;noise: Estimation of noise, Set to 0 for local variance to be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                 </property>
+                 <property name="text">
+                  <string>Noise (Est. variance)</string>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_6">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QLineEdit" name="lineEdit_wiener_noise">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
+                 <property name="toolTip">
+                  <string>mysize : int or arraylike, optional
+
+    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.
+</string>
+                 </property>
+                 <property name="layoutDirection">
+                  <enum>Qt::RightToLeft</enum>
+                 </property>
+                 <property name="text">
+                  <string>0</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -887,9 +1026,15 @@ scipy.signal.wiener(im, mysize=None, noise=None)
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_30">
           <item>
-           <widget class="QRadioButton" name="radioButton_33">
+           <widget class="QCheckBox" name="checkBox_magn">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
             <property name="text">
              <string>Save Magnitude</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
             </property>
             <property name="checked">
              <bool>true</bool>
@@ -897,7 +1042,7 @@ scipy.signal.wiener(im, mysize=None, noise=None)
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_34">
+           <widget class="QCheckBox" name="checkBox_pha">
             <property name="text">
              <string>Save Phase</string>
             </property>
@@ -908,14 +1053,14 @@ scipy.signal.wiener(im, mysize=None, noise=None)
         <item>
          <layout class="QHBoxLayout" name="horizontalLayout_29">
           <item>
-           <widget class="QRadioButton" name="radioButton_31">
+           <widget class="QCheckBox" name="checkBox_reimag">
             <property name="text">
              <string>Save REAL and IMAG</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QRadioButton" name="radioButton_32">
+           <widget class="QCheckBox" name="checkBox_ksp">
             <property name="text">
              <string>Save K space data</string>
             </property>
