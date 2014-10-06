@@ -353,8 +353,8 @@ if __name__ == "__main__":
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.')
     parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
     parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
-    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL.');
-    
+    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL).');
+    parser.add_argument('-a','--axis_order', help='Axis order eg 1,0,2.');
     parser.add_argument('-v','--verbose', help='Verbose comments.',action="store_true");
     args = parser.parse_args()
     
@@ -382,7 +382,7 @@ if __name__ == "__main__":
 
     print "Computing Original image (reconstruction)"
     image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag)
-    if image_filtered.ndim ==5:
+    if image.ndim ==5:
         for i in xrange(0,image.shape[4]):
             raw_image=nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
             nib.save(raw_image,'raw_image_0'+str(i)+'.nii.gz')
@@ -392,6 +392,20 @@ if __name__ == "__main__":
         #    raw_ksp=nib.Nifti1Image(normalise(np.abs(ksp)),affine)
         #    nib.save(raw_ksp,'raw_ksp.nii.gz')
 
+    if args.axis_order:
+        from scipy.signal import _arraytools as ar
+        axes = re.findall(r'\d',args.axis_order)
+        if len(axes) != 3:
+            print " Axis order not compatible.  Must be arragment of 0,1,2 with no spaces and a comma in between."
+        else:
+            print "Transposing image to " args.axis_order
+            image_tdata = np.transpose(image_data,(np.abs(axes[0]),np.abs(axes[1]),np.abs(axes[2])))
+            for i in 0..2:
+                if re.search('-',axes[i]):
+                    print "Reversing axis ", axes[i]
+                    image_tdata = ar.axis_reverse(image_tdata,axes[i])
+            
+        
     print "Computing Gaussian filtered image from Original image"
     image_filtered = cplxgaussian_filter(image.real,image.imag,0.707,0,'nearest')
     print "Saving Gaussian image"
