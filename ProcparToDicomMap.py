@@ -1861,7 +1861,7 @@ def ProcparToDicomMap(procpar,args):
         print 'Patient Position: ', ds.PatientPosition
     ds.PatientPosition='HFS'
         
-    ds.DerivationDescription = Derivation_Description + DVCSstamp
+    ds.DerivationDescription = Derivation_Description +'\n'+ DVCSstamp
 
 
 

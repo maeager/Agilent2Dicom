@@ -6,8 +6,9 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: $"
+#  "$Id:$"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
+#  Version 0.5: Major update to input args
 #
 # Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 #
@@ -36,7 +37,7 @@ set -o errexit  # -e
 # touch $(dirname $0)/error.log
 # exec 2>> $(dirname $0)/error.log
 # set -x  # show debugging output
-FID2DCMVERSION=1.1
+FID2DCMVERSION=0.5
 PROGNAME=$(basename $0)
 FID2DICOM=fid2dicom.py
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')

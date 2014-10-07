@@ -1,4 +1,8 @@
-import os,sys,re
+#!/usr/bin/env python
+
+import os
+import sys
+import re
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
 from Agilent2DicomWidget import Ui_Form
@@ -6,6 +10,8 @@ import ReadProcpar
 from fdf2dcm_global import *
 DEBUGGING=0
 
+Agilent2DicomAppVersion=0.5
+Agilent2DicomAppStamp="$Id:"
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
