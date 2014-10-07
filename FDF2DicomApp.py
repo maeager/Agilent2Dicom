@@ -40,7 +40,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
 	  self.lineEdit_median_size.setEnabled(False)
 	  self.checkBox_wiener.setEnabled(False)
 	  self.lineEdit_wiener_size.setEnabled(False)
-	  self.lineEdit_wienernoise.setEnabled(False)
+	  self.lineEdit_wiener_noise.setEnabled(False)
 	  self.checkBox_magn.setEnabled(True)
 	  self.checkBox_magn.setChecked(True)
 	  self.checkBox_ksp.setChecked(False)
@@ -68,7 +68,7 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
 
     def ChangeFDFpath(self):
       try:
-        newdir = file = str(QFileDialog.getExistingDirectory(self, "Select FDF Directory"))
+        newdir  = str(QFileDialog.getExistingDirectory(self, "Select FDF Directory"))
         self.lineEdit_fdfpath.setText(newdir)
         if re.search('img',newdir):
             out = re.sub('img','dcm',newdir)
@@ -80,16 +80,16 @@ class ImageConverterDialog(QDialog, Ui_Dialog):
         self.checkBox_median.setChecked(False)
         self.checkBox_wiener.setChecked(False)
         UpdateGUI()
-     except ValueError:
+      except ValueError:
         pass
 
     def ChangeFDFDicomPath(self):
       try:
-        newdir = file = str(QFileDialog.getOpenFile(self, "Select DICOM Directory"))
+        newdir = str(QFileDialog.getOpenFile(self, "Select DICOM Directory"))
         self.lineEdit_dicompath.setText(newdir)
         self.lineEdit_darisid.setText(self.GetDarisID(out))
         UpdateGUI()
-     except ValueError:
+      except ValueError:
         pass
 
     def ChangeFIDpath(self):
