@@ -144,25 +144,37 @@ while getopts ":i:o:k:s:g:l:n:w:hmprdxv" opt; do
 	g)
 	    echo "Gaussian filter sigma: $OPTARG" >&2
 	    gaussian_sigma="$OPTARG"
-	    python_args="$python_args --gaussian_filter $gaussian_sigma"
+	    python_args="$python_args --gaussian_filter --gaussian_filter_sigma $gaussian_sigma"
+	    do_filter=1
+	    ;;
+	j)
+	    echo "Gaussian filter order: $OPTARG" >&2
+	    gaussian_order="$OPTARG"
+	    python_args="$python_args --gaussian_filter_order $gaussian_order"
+	    do_filter=1
+	    ;;
+	e)
+	    echo "Gaussian filter mode: $OPTARG" >&2
+	    gaussian_mode="$OPTARG"
+	    python_args="$python_args --gaussian_filter_mode $gaussian_mode"
 	    do_filter=1
 	    ;;
 	l)
 	    echo "Gaussian Laplace filter sigma: $OPTARG" >&2
 	    gaussian_sigma="$OPTARG"
-	    python_args="$python_args --gaussian_laplace $gaussian_sigma"
+	    python_args="$python_args --gaussian_laplace --gaussian_filter_sigma $gaussian_sigma"
 	    do_filter=2
 	    ;;
 	n)
 	    echo "Median filter size: $OPTARG" >&2
 	    median_window_size="$OPTARG"
-	    python_args="$python_args --median_filter $median_window_size"
+	    python_args="$python_args --median_filter --median_filter_window_size $median_window_size"
 	    do_filter=3
 	    ;;
 	w)
 	    echo "Wiener filter size: $OPTARG" >&2
 	    wiener_windown_size="$OPTARG"
-	    python_args="$python_args --wiener_filter $wiener_windown_size"
+	    python_args="$python_args --wiener_filter --wiener_filter_window_size $wiener_windown_size"
 	    do_filter=4
 	    ;;
 	h)
