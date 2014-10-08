@@ -5,7 +5,7 @@
    -  Michael Eager (michael.eager@monash.edu)
 """
 """
-  Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+  Copyright (C) 2014 Michael Eager
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,12 +22,15 @@
 """
 
 import os,sys
+import re
 import struct
 import numpy
 import argparse
 import ReadProcpar
+import ProcparToDicomMap
 from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
 import scipy.io
+from fdf2dcm_global import *
 #from scipy import ndimage
 
 
@@ -202,9 +205,9 @@ def readfid(folder,pp=[]):
         header['rpval'],     = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         header['lvl'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         header['tlt'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
-        print header
+        # print header
         data = numpy.fromfile(f,count=hdr['np']*hdr['ntraces'],dtype=dtype_str)
-        print data.ndim, data.shape
+        print "Dim and shape: ", data.ndim, data.shape
         data = numpy.reshape(data, [hdr['ntraces'],hdr['np']])
         RE[:,:,iblock] = numpy.matrix(data[:,:hdr['np']:2]).T   # hdr['np'] #[::2,:] #
         IM[:,:,iblock] = numpy.matrix(data[:,1:hdr['np']:2]).T  # hdr['np'] #[1::2,:]      #
@@ -271,7 +274,7 @@ def recon(pp,dims,hdr,RE,IM):
 
 def RescaleImage(ds,image_data,args):
 
-        # Read in data from all files to determine scaling
+    # Read in data from all files to determine scaling
     datamin = float("inf")
     datamax = float("-inf")
 
@@ -313,8 +316,66 @@ def RescaleImage(ds,image_data,args):
     ds.RescaleSlope = str(RescaleSlope)[:15]    #(0028,1053) Rescale Slope
 
     return ds,image_data
-#end RescaleImage
+# end RescaleImage
 
+def RearrangeImage(image,axis_order):
+    from scipy.signal import _arraytools as ar
+    axes = re.findall(r'[-]*\d',axis_order)
+    raxes = numpy.array(axes)
+    iaxes = numpy.abs(raxes.astype(int))
+    dims=image.shape
+    if len(axes) != 3:
+        print " Axis order not compatible.  Must be arragment of 0,1,2 with no spaces and a comma in between."
+    else:
+
+        if image.ndim ==5:
+            image_treal = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
+            image_timag = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
+            print "Transposing 5D image to ", axis_order
+            print image_treal.shape,' from original ', image.shape
+
+            for echo in xrange(0,image.shape[4]):
+                image_treal[:,:,:,0,echo] = numpy.transpose((image.real)[:,:,:,0,echo],(iaxes[0],iaxes[1],iaxes[2]))
+                image_timag[:,:,:,0,echo] = numpy.transpose((image.imag)[:,:,:,0,echo],(iaxes[0],iaxes[1],iaxes[2]))
+                for n in xrange(0,3):
+                    if re.search('-',axes[n]):
+                        print "Reversing axis ", axes[n]
+                        image_treal[:,:,:,0,echo] = ar.axis_reverse(image_treal[:,:,:,0,echo],iaxes[n])
+                        image_timag[:,:,:,0,echo] = ar.axis_reverse(image_timag[:,:,:,0,echo],iaxes[n])
+                image.reshape([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
+                print image.shape
+        else:
+            print "Transposing 3D image to ", axis_order
+            image_treal = numpy.transpose(image.real,(iaxes[0],iaxes[1],iaxes[2]))
+            image_timag = numpy.transpose(image.imag,(iaxes[0],iaxes[1],iaxes[2]))
+            for n in xrange(0,3):
+                if re.search('-',axes[n]):
+                    print "Reversing axis ", axes[n]
+                    image_treal = ar.axis_reverse(image_treal,iaxes[n])
+                    image_timag = ar.axis_reverse(image_timag,iaxes[n])
+            image.reshape([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]]])
+            print image.shape
+        image = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]],dtype=complex)
+        image.real = image_treal
+        image.imag = image_timag
+    return image
+#end RearrangeImage
+
+    
+def AssertImplementation(testval, fidfilename, comment, assumption):
+    """ASSERTIMPLEMENTATION - Check FID properties match up with interpretation of procpar
+  Due to lack of documentation on the use of the procpar file, the interpretation 
+ implemented in this script is based on various documents and scripts and may have errors.
+ This function seeks to double check some of the interpretations against the fid properties.
+    """
+    if testval:   
+        if len(fidfilename) > 0:
+            FIDStr = "fid file: " + fidfilename + "\n"
+        else:
+            FIDStr = ""
+    
+        print "\nImplementation check error:\n" + FIDStr + comment + '\nAssumption:' + assumption + '\n'
+        # sys.exit(1)
 
 def ParseFID(ds,fid_properties,procpar,args):
     """
@@ -341,7 +402,7 @@ def ParseFID(ds,fid_properties,procpar,args):
 
     #----------------------------------------------------------
     # General implementation checks
-    filename = fid_properties['filename']
+    filename = os.path.join(args.inputdir,'fid')# fid_properties['filename']
 
     # File dimensionality or Rank fields
     # rank is a positive integer value (1, 2, 3, 4,...) giving the
@@ -371,21 +432,21 @@ def ParseFID(ds,fid_properties,procpar,args):
     # spatial_rank is a string ("none", "voxel", "1dfov", "2dfov",
     # "3dfov") for the type of data (e.g., char
     # *spatial_rank="2dfov";).
-    spatial_rank = fid_properties['spatial_rank']
+    #spatial_rank = fid_properties['spatial_rank']
 
     #  0018,0023 MR Acquisition Type (optional)
     # Identification of spatial data encoding scheme.
     # Defined Terms: 1D 2D 3D
     fid_MRAcquisitionType = '2D'
-    if spatial_rank == "3dfov":
-       fid_MRAcquisitionType = '3D'
+    if fidrank == 3:
+        fid_MRAcquisitionType = '3D'
     CommentStr = 'MR Acquisition type does not match between fid and procpar'
     AssumptionStr = 'In fid, MR Acquisition type defined by spatial_rank and matrix. '+\
         'For 2D, spatial_rank="2dfov" and matrix has two elements eg. {256,256}. '+\
         'For 3D, spatial_rank="3dfov" and matrix has three elements.\n'+\
         'In procpar, MR Acquisition type is defined by nv2 > 0 or lpe2 > 0.\n'+\
         'Using local FID value '+fid_MRAcquisitionType+' instead of procpar value '+ds.MRAcquisitionType+'.'
-    AssertImplementation( ds.MRAcquisitionType != fid_MRAcquisitionType,  filename, CommentStr, AssumptionStr)
+    #AssertImplementation( ds.MRAcquisitionType != fid_MRAcquisitionType,  filename, CommentStr, AssumptionStr)
     ds.MRAcquisitionType = fid_MRAcquisitionType
 
     # Data Content Fields
@@ -462,7 +523,7 @@ def ParseFID(ds,fid_properties,procpar,args):
     #---------------------------------------------------------------------------------
     # GROUP 0020: Relationship
 
-    ds.ImageComments = FID2DCM_Image_Comments+'\n'+fid_properties['filetext']
+    ds.ImageComments = FID2DCM_Image_Comments+'\n'+  ', '.join("%s=%r" % (key,val) for (key,val) in fid_properties.iteritems()) #str(fid_properties) #['filetext']
     
     # For further information regarding the location, orientation, roi, span, etc 
     # properties in the FID header, see the "Agilent VNMRJ 3.2 User Programming 
@@ -584,10 +645,10 @@ def ParseFID(ds,fid_properties,procpar,args):
     #   - nucfreq is the nuclear frequency (floating point) used for each rf channel (e.g.,
     #       float nucfreq[]={200.067,200.067};).
 
-    if fid_properties['nucleus'][0] != ds.ImagedNucleus:
-        print 'Imaged nucleus mismatch: ', fid_properties['nucleus'], ds.ImagedNucleus
-    if math.fabs(fid_properties['nucfreq'][0] - float(ds.ImagingFrequency)) > 0.01:
-        print 'Imaging frequency mismatch: ', fid_properties['nucfreq'], ds.ImagingFrequency
+#    if fid_properties['nucleus'][0] != ds.ImagedNucleus:
+#        print 'Imaged nucleus mismatch: ', fid_properties['nucleus'], ds.ImagedNucleus
+#    if math.fabs(fid_properties['nucfreq'][0] - float(ds.ImagingFrequency)) > 0.01:
+#        print 'Imaging frequency mismatch: ', fid_properties['nucfreq'], ds.ImagingFrequency
 
 
 
@@ -682,10 +743,10 @@ def ParseFID(ds,fid_properties,procpar,args):
 #	 print 'Processing multi-echo sequence image'
 
 
-    if 'echo_no' in fid_properties.keys():
-        volume=fid_properties['echo_no']
+#    if 'echo_no' in fid_properties.keys():
+#        volume=fid_properties['echo_no']
 
-    if ds.ImageType[2]=="MULTIECHO" and fid_properties['echoes'] > 1:
+    if ds.ImageType[2]=="MULTIECHO":# and fid_properties['echoes'] > 1:
         print 'Multi-echo sequence'
 	# TE 0018,0081 Echo Time (in ms) (optional)
         if 'TE' in fid_properties.keys():
@@ -707,8 +768,8 @@ def ParseFID(ds,fid_properties,procpar,args):
     #    ds.ImagesInAcquisition = fid_properties['echoes']
     #else:
 
-    ds.AcquisitionNumber = fid_properties['array_index']
-    ds.ImagesInAcquisition = fid_properties['array_dim']
+    ds.AcquisitionNumber = '1' #fid_properties['array_index']
+    ds.ImagesInAcquisition = '1' #fid_properties['array_dim']
 
 
     if ds.ImageType[2] == 'DIFFUSION':
@@ -716,6 +777,9 @@ def ParseFID(ds,fid_properties,procpar,args):
 
 
     ## Multi dimension Organisation and Index module
+    from dicom.sequence import Sequence
+    from dicom.dataset import Dataset
+
     DimOrgSeq = Dataset()
     #ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
@@ -784,44 +848,53 @@ def ParseFID(ds,fid_properties,procpar,args):
     #FrameContentSequence.TemporalPositionIndex = 1
     FrameContentSequence.StackID = [str(1)] # fourthdimid
     FrameContentSequence.InStackPositionNumber = [int(1)] #fourthdimindex
-    FrameContentSequence.FrameComments=  fid_properties['filetext']
+    FrameContentSequence.FrameComments= '' # fid_properties['filetext']
     FrameContentSequence.FrameLabel='DimX'
     ds.FrameContentSequence = Sequence([FrameContentSequence])
 
     
-    return ds,fidrank,fid_size_matrix,ImageTransformationMatrix
+    return ds,fid_size_matrix,ImageTransformationMatrix
+#end ParseFID
 
-def Save3dFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir,filename):
+    
+def Save3dFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
     """
     Multi-dimension (3D) export of FID format image data and metadata to DICOM
 
     :param ds:  Baseline pydicom dataset
     :param image_data: Pixel data of image
-    :param fid_matsize: Matrix size of image data e.g. {256,256,256}
-    :param M: Image transformationm matrix
+    :param procpar: General header info
+    :param fid_properties: Local fid header info
+    :param M: Image transformation matrix
     :param args: argparse struct
     :param outdir: output directory
     :return ds: Return the pydicom dataset
     """
 
-    print "3D export"
-    voldata = numpy.reshape(image_data,fid_properties['dims'])
+    print "5D export"
+    voldata = numpy.abs(image_data) # Magnitude 
+    # Calculate the max and min throughout all dataset values;
+    # calculate the intercept and slope for casting to UInt16
+    RescaleIntercept,RescaleSlope = FID.RescaleImage(ds,voldata,args)
+    ds,voldata = RescaleImage(ds,voldata,RescaleIntercept,RescaleSlope,args)
+   
 
     # if procpar['recon'] == 'external':
     # 
     #        pdb.set_trace()
-    if procpar['recon'] == 'external' and fid_properties['rank'] == 3:
-        if procpar['seqfil'] == "epip":
-            print "Transposing external recon 3D"
-            voldata = numpy.transpose(voldata,(1,2,0)) # 1,2,0
-        if procpar['seqfil'] == "fse3d":
-            print "Transposing external recon 3D"
-            voldata = numpy.transpose(voldata,(2,0,1)) # 0,2,1 works
+    #if procpar['recon'] == 'external' and fid_properties['rank'] == 3:
+     #   if procpar['seqfil'] == "epip":
+     #       print "Transposing external recon 3D"
+     #       voldata = numpy.transpose(voldata,(1,2,0)) # 1,2,0
+     #   if procpar['seqfil'] == "fse3d":
+     #       print "Transposing external recon 3D"
+     #       voldata = numpy.transpose(voldata,(2,0,1)) # 0,2,1 works
     # readpp.m procpar('nD') == 3            
     #        acq.FOVcm = [pps.lro pps.lpe pps.lpe2];
     #        acq.dims = [pps.nf pps.np/2 pps.nv2];
     #        acq.voxelmm = acq.FOVcm./acq.dims*10;
 
+            
     print "Image data shape: ", str(image_data.shape)
     print "Vol data shape: ", voldata.shape
     print "fid properties matrix: ", fid_properties['dims']
@@ -831,51 +904,72 @@ def Save3dFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir,filename
         
     range_max = fid_properties['dims'][2]
     num_slicepts = fid_properties['dims'][0]*fid_properties['dims'][1]
-    if procpar['recon'] == 'external' and procpar['seqfil'] == 'fse3d' and fid_properties['rank'] == 3: 
-        range_max = fid_properties['dims'][1]
-        num_slicepts = fid_properties['dims'][0]*fid_properties['dims'][2]
-        ds.Columns = fid_properties['dims'][2]
-        ds.Rows = fid_properties['dims'][0]
-        ##FIXME FSE3d still producing bad dicoms
+    #if procpar['recon'] == 'external' and procpar['seqfil'] == 'fse3d' and fid_properties['rank'] == 3: 
+    #    range_max = fid_properties['dims'][1]
+    #    num_slicepts = fid_properties['dims'][0]*fid_properties['dims'][2]
+    #    ds.Columns = fid_properties['dims'][2]
+    #    ds.Rows = fid_properties['dims'][0]
+    ##FIXME FSE3d still producing bad dicoms
 
     if args.verbose:
         print "Columns ", ds.Columns, " Rows ", ds.Rows
         print "Range max and no slice points: ", range_max, num_slicepts
-        print "Voldata[1] shape: ", voldata[:,:,0].shape
+        print "Voldata[1] shape: ", voldata[:,:,0,0,0].shape
 
-    ## Indexing in numpy matrix begins at 0, fid/dicom filenames begin at 1
-    for islice in xrange(0,range_max):    
-        # Reshape volume slice to 1D array
-        slice_data = numpy.reshape(voldata[:,:,islice],(num_slicepts,1)) 
-            # Convert Pixel data to string
-        ds.PixelData = slice_data.tostring()    #(7fe0,0010) Pixel Data
+   
+    # Export dicom to file
+#    if MRAcquisitionType == '3D':
 
-        #if acqndims == 3:
-        if 'slice_no' in fid_properties.keys():
-            image_number = fid_properties['slice_no']
-        else:
-            image_number=int(re.sub(r'^.*image(\d+).*', r'\1',filename))
+#    else:
 
-        new_filename = "slice%03dimage%03decho%03d.dcm" % (islice+1,image_number,fid_properties['echo_no'])
+        
+#    if ds.ImageType[2]=="MULTIECHO":
+#        print ds.FrameContentSequence[0].StackID, ds.FrameContentSequence[0].StackID[0]
+#        print type(ds.FrameContentSequence[0].StackID), type(ds.FrameContentSequence[0].StackID[0])
+#        ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0])+1)
+#        if args.verbose:
+#            print "Incrementing volume StackID ", ds.FrameContentSequence[0].StackID
 
-        if procpar['recon'] == 'external' and fid_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
-            pos = numpy.matrix([[0],[0],[islice],[1]])
-        else:
-            pos = numpy.matrix([[0],[0],[islice],[1]])
+    ds.FrameContentSequence[0].StackID = [str(0)]        
+    if image.ndim == 5:
+        for echo in xrange(0,image.shape[4]):
+            ds.EchoNumber=[str(echo+1)]
+            for n in xrange(0,image.shape[3]):
+                ## Indexing in numpy matrix begins at 0, fid/dicom filenames begin at 1
+                for islice in xrange(0,range_max):    
+                    # Reshape volume slice to 1D array
+                    slice_data = numpy.reshape(voldata[:,:,islice,n,echo],(num_slicepts,1)) 
+                    # Convert Pixel data to string
+                    ds.PixelData = slice_data.tostring()
+                    new_filename = "slice%03dimage%03decho%03d.dcm" % (islice+1,n+1,echo+1)
 
-        Pxyz = M * pos
-        ds.ImagePositionPatient= [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0])]
+#        if procpar['recon'] == 'external' and fid_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
+                    pos = numpy.matrix([[0],[0],[islice],[1]])
+#        else:
+#            pos = numpy.matrix([[0],[0],[islice],[1]])
+
+                    # Get slice's position
+                    Pxyz = M * pos
+                    ds.ImagePositionPatient= [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0])]
 
         # ds.FrameContentSequence[0].StackID = [str(volume)] # fourthdimid
-        ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)] #fourthdimindex
-        ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber
+                    ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)] #THIRDdimindex
+                    ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber 
         # ds.InStackPosition = islice #str(islice)
 
-        # Save DICOM
-        ds.save_as(os.path.join(outdir, new_filename))
+                    # Save DICOM
+                    if args.verbose:
+                        print "Saving 2D slice DICOM slice %d, image %d, echo %d" % (islice,n, echo)
 
+                    ds.save_as(os.path.join(outdir, new_filename))
+            # Increment StackID
+            if args.verbose:
+                print "Incrementing volume StackID (current) ", ds.FrameContentSequence[0].StackID
+            ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0])+1)
         return ds
+#end SaveSave3dFIDtoDicom
 
+        
 def Save2dFIDtoDicom(ds,image_data,outdir, filename):
     """
     Export 2D image and metadata to DICOM
@@ -900,7 +994,7 @@ def Save2dFIDtoDicom(ds,image_data,outdir, filename):
     ds.save_as(dcmfilename)
     
     return 1
-
+# end SaveSave2dFIDtoDicom
 
 
 def SaveKspace(ksp,args):
@@ -930,5 +1024,83 @@ def SaveKspace(ksp,args):
             outdir = os.path.join(dirName,ImgBaseName + '-ksp.mat')
         
     scipy.io.savemat(outfile, mdict={'ksp': ksp})
+# end SaveSaveKspace
 
+if __name__ == "__main__":
+
+    import os,sys,math
+    import re
+    import argparse
+    import ProcparToDicomMap
+    import ReadProcpar
+    import ReadProcpar
+    import RescaleFDF
+    import nibabel as nib
+    from ReadFID import *
+
+    parser = argparse.ArgumentParser(usage=' ParseFDF.py -i "Input FDF directory"',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. ParseFDF takes header info from fdf files and adjusts the dicom dataset *ds* then rescales the image data.')
+    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
+    parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.')
+    parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
+    parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
+    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL).');
+    parser.add_argument('-a','--axis_order', help='Axis order eg 1,0,2.');
+    parser.add_argument('-v','--verbose', help='Verbose comments.',action="store_true");
+    args = parser.parse_args()
+    
+    # import ProcparToDicomMap as ptd
+
+
+    procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir,'procpar'))
+    ds,MRAcq_type = ProcparToDicomMap.ProcparToDicomMap(procpar, args)
+    print "Rows: ", ds.Rows, " Columns: ", ds.Columns
+    
+
+    files = os.listdir(args.inputdir)
+    fidfiles = [ f for f in files if f.endswith('fid') ]
+    print "Number of FID files ", len(fidfiles)
+
+    # for filename in fidfiles:
+    print "Reading FID"
+    filename = fidfiles[len(fidfiles)-1]
+    pp,hdr,dims,image_data_real,image_data_imag=readfid(args.inputdir,procpar)
+    print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
+    affine = numpy.eye(4)
+    # # affine[:3,:3]= np.arange(9).reshape((3,3))
+    # raw_data=nib.Nifti1Image(normalise(image_data_real),affine)
+    # nib.save(raw_data,'raw_data.nii.gz')
+
+    # Change dicom for specific FID header info
+    ds,matsize,ImageTransformationMatrix = FID.ParseFID(ds,hdr,procpar,args)
+
+    
+    if os.path.exists('raw_image_00.nii.gz'):
+        print "Getting Original image (reconstruction)"
+        nii = nib.load('raw_image_00.nii.gz')
+        
+        image=numpy.empty([nii.shape[0], nii.shape[1],nii.shape[2],1,3],dtype=complex)
+        image[:,:,:,0,0] = nii.get_data()
+        nii = nib.load('raw_image_01.nii.gz')
+        image[:,:,:,0,1] = nii.get_data()
+        nii = nib.load('raw_image_02.nii.gz')
+        image[:,:,:,0,2] = nii.get_data()
+    else:
+        print "Computing Original image (reconstruction)"
+        image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag)
+
+        print "Saving raw image"
+        if image.ndim ==5:
+            for i in xrange(0,image.shape[4]):
+                raw_image=nib.Nifti1Image(normalise(numpy.abs(image[:,:,:,0,i])),affine)
+                nib.save(raw_image,'raw_image_0'+str(i)+'.nii.gz')
+        else:
+            raw_image=nib.Nifti1Image(normalise(numpy.abs(image)),affine)
+            nib.save(raw_image,'raw_image.nii.gz')
+        #    raw_ksp=nib.Nifti1Image(normalise(numpy.abs(ksp)),affine)
+        #    nib.save(raw_ksp,'raw_ksp.nii.gz')
+
+    if args.axis_order:
+        timage = RearrangeImage(image,args.axis_order)
+        tr_image=nib.Nifti1Image(numpy.abs(timage[:,:,:,0,0]),affine)
+        nib.save(tr_image,'tr_image.nii.gz')
 
