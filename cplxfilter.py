@@ -343,7 +343,6 @@ if __name__ == "__main__":
     import argparse
     import ProcparToDicomMap
     import ReadProcpar
-    import ReadProcpar
     import RescaleFDF
     import nibabel as nib
     from ReadFID import *
@@ -381,30 +380,32 @@ if __name__ == "__main__":
     # nib.save(raw_data,'raw_data.nii.gz')
 
     print "Computing Original image (reconstruction)"
-    image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag)
-    if image.ndim ==5:
-        for i in xrange(0,image.shape[4]):
-            raw_image=nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
-            nib.save(raw_image,'raw_image_0'+str(i)+'.nii.gz')
+    if os.path.exists('raw_image_00.nii.gz'):
+        nii = nib.load('raw_image_00.nii.gz')
+        image[:,:,:,0,0] = nii.get_data()
+        nii = nib.load('raw_image_01.nii.gz')
+        image[:,:,:,0,1] = nii.get_data()
+        nii = nib.load('raw_image_02.nii.gz')
+        image[:,:,:,0,2] = nii.get_data()
     else:
-        raw_image=nib.Nifti1Image(normalise(np.abs(image)),affine)
-        nib.save(raw_image,'raw_image.nii.gz')
+        image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag)
+
+        print "Saving raw image"
+        if image.ndim ==5:
+            for i in xrange(0,image.shape[4]):
+                raw_image=nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
+                nib.save(raw_image,'raw_image_0'+str(i)+'.nii.gz')
+        else:
+            raw_image=nib.Nifti1Image(normalise(np.abs(image)),affine)
+            nib.save(raw_image,'raw_image.nii.gz')
         #    raw_ksp=nib.Nifti1Image(normalise(np.abs(ksp)),affine)
         #    nib.save(raw_ksp,'raw_ksp.nii.gz')
 
     if args.axis_order:
-        from scipy.signal import _arraytools as ar
-        axes = re.findall(r'\d',args.axis_order)
-        if len(axes) != 3:
-            print " Axis order not compatible.  Must be arragment of 0,1,2 with no spaces and a comma in between."
-        else:
-            print "Transposing image to " args.axis_order
-            image_tdata = np.transpose(image_data,(np.abs(axes[0]),np.abs(axes[1]),np.abs(axes[2])))
-            for i in 0..2:
-                if re.search('-',axes[i]):
-                    print "Reversing axis ", axes[i]
-                    image_tdata = ar.axis_reverse(image_tdata,axes[i])
-            
+        image = RearrangeImage(image,args.axis_order)
+        #np.delete()
+        #image = imaget
+
         
     print "Computing Gaussian filtered image from Original image"
     image_filtered = cplxgaussian_filter(image.real,image.imag,0.707,0,'nearest')
@@ -422,14 +423,20 @@ if __name__ == "__main__":
 #    Log_image = nib.Nifti1Image(normalise(np.abs(Log_filtered)),affine)
 #    nib.save(Log_image,'Log_image.nii.gz')
 
-    print "Computing Median filtered image"
-    median_filtered = cplxmedian_filter(image.real,image.imag,3)
-    print "Savinf Median image"
-    median_image = nib.Nifti1Image(normalise(np.abs(median_filtered)),affine)
-    nib.save(median_image,'median_image.nii.gz')
+    # print "Computing Median filtered image"
+    # median_filtered = cplxmedian_filter(image.real,image.imag,3)
+    # print "Saving Median image"
+    # median_image = nib.Nifti1Image(normalise(np.abs(median_filtered)),affine)
+    # nib.save(median_image,'median_image.nii.gz')
 
-    print "Computing Wiener filtered image"
-    wiener_filtered = cplxwiener_filter(image.real,image.imag,3,0.0001)
-    print "Saving Wiener image"
-    wiener_image = nib.Nifti1Image(normalise(np.abs(wiener_filtered)),affine)
-    nib.save(wiener_image,'wiener_image.nii.gz')
+    # print "Computing Wiener filtered image"
+    # wiener_filtered = cplxwiener_filter(image.real,image.imag,3,0.0001)
+    # print "Saving Wiener image"
+    # wiener_image = nib.Nifti1Image(normalise(np.abs(wiener_filtered)),affine)
+    # nib.save(wiener_image,'wiener_image.nii.gz')
+
+
+
+## Testing axis rearrangement
+
+#python ./cplxfilter.py -a 2,0,1 -i /gpfs/M2Home/eagerm/Monash016/eagerm/Agilent2Dicom/SheepfetusBrain/s_2014073102/mge3d-100um_01.fid -o /gpfs/M2Home/eagerm/Monash016/eagerm/Agilent2Dicom/SheepfetusBrain/s_2014073102/mge3d-100um_01.dcm
