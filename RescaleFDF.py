@@ -54,7 +54,7 @@ def FindScale(fdffiles,ds,procpar,args):
         datamax = math.pi
     else:
         for filename in fdffiles:
-            fdf_properties, data = ReadFDF.ReadFDF(args.inputdir + '/' + filename)
+            fdf_properties, data = ReadFDF.ReadFDF(os.path.join(args.inputdir, filename))
             datamin = numpy.min([datamin,data.min()])
             datamax = numpy.max([datamax,data.max()])
 
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     import ProcparToDicomMap as ptd
 #    from ProcparToDicomMap import CreateUID
 
-    procpar, procpartext = rp.ReadProcpar(args.inputdir+'/procpar')
+    procpar, procpartext = rp.ReadProcpar(os.path.join(args.inputdir,'procpar'))
     ds,MRAcq_type = ptd.ProcparToDicomMap(procpar, args)
 
     files = os.listdir(args.inputdir)
