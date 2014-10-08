@@ -232,7 +232,7 @@ def ProcparToDicomMap(procpar,args):
     
     # include procpar in dicom header as "Series Comments"
     # This is a retired field, so probably shouldn't be used. But, oh well.
-    ds.add_new((0x0018,0x1000), 'UT', ['MBI Agilent2Dicom converter (Version ' + str(VersionNumber) ])
+    ds.add_new((0x0018,0x1000), 'UT', ['MBI Agilent2Dicom converter (Version ' + str(VersionNumber)+', '+str(DVCSstamp)+ ')' ])
 #+ ', ' DVCSstamp +') \nProcpar text: '+ procpartext ]) # 0018,1000 Series Comments (retired)
 
     
