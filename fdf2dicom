@@ -108,7 +108,7 @@ echo ''Done''\n ' + cmd1 +')'
 def GetDarisID(*args):
     daris_id=''
     try:
-        procpar, procpartext = ReadProcpar(inputdir.get() + '/procpar')
+        procpar, procpartext = ReadProcpar(os.path.join(inputdir.get(),'procpar'))
         if 'name' in procpar.keys():
             if re.search('DaRIS',procpar['name']):
                 daris_id = re.sub('DaRIS\^','',procpar['name'])

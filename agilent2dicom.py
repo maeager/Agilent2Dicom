@@ -351,7 +351,7 @@ if __name__ == "__main__":
 
 
     # Check input folder exists
-    if not os.path.exists(args.inputdir):
+    if not os.path.exists(os.path.dirname(args.inputdir)):
         print 'Error: Folder \'' + args.inputdir + '\' does not exist.'
         sys.exit(1)
         
@@ -385,10 +385,11 @@ if __name__ == "__main__":
             outdir = os.path.join(dirName,ImgBaseName + '.dcm')
     else:
         outdir = args.outputdir
+    
     if args.verbose:
         print 'Output directory: ', outdir
 
-    if os.path.exists(outdir):
+    if os.path.exists(os.path.dirname(outdir)):
         if args.verbose:
             print 'Output folder ' + outdir + ' already exists'
         #sys.exit(1)
@@ -400,7 +401,7 @@ if __name__ == "__main__":
     
 
     # Read in data procpar
-    procpar, procpartext = ReadProcpar(args.inputdir + '/procpar')
+    procpar, procpartext = ReadProcpar(os.path.join(args.inputdir,'procpar'))
     # if args.verbose:
     #    print procpar
 
@@ -652,7 +653,7 @@ if __name__ == "__main__":
     GeneralAnatMandatoryMacro.CodeMeaning = 'Head'
     thispath = os.path.dirname(__file__)
         #print(thispath)    
-    codes = file(thispath+"/docs/AnatomyCodes.txt","r") 
+    codes = file(os.path.join(thispath,"docs/AnatomyCodes.txt"),"r") 
     cols, indToName = getColumns(codes) 
     for codeidx in xrange(0,len(cols['Meaning'])-1):
         if re.search(procpar['anatomy'].lower(),cols['Meaning'][codeidx].lower()):
@@ -668,7 +669,7 @@ if __name__ == "__main__":
     AnatRegionModifierSeq.CodeSchemeDesignator='SRT'
     #AnatRegionModifierSeq.CodeSchemeVersion
     AnatRegionModifierSeq.CodeMeaning = 'Coronal'
-    codes = file(thispath+"/docs/AnatomicModifier.txt","r") 
+    codes = file(os.path.join(thispath,"docs/AnatomicModifier.txt"),"r") 
     cols, indToName = getColumns(codes) 
     for codeidx in xrange(0,len(cols['Meaning'])-1):
         if re.search(procpar['sorient'].lower(),cols['Meaning'][codeidx].lower()):
@@ -2147,7 +2148,7 @@ if __name__ == "__main__":
         datamax = math.pi
     else:
         for filename in fdffiles:
-            fdf_properties, data = ReadFDF(args.inputdir + '/' + filename)
+            fdf_properties, data = ReadFDF(os.path.join(args.inputdir , filename))
             datamin = numpy.min([datamin,data.min()])
             datamax = numpy.max([datamax,data.max()])
 
@@ -2163,7 +2164,7 @@ if __name__ == "__main__":
 
         if args.verbose:
             print 'Filename: ' + filename
-        fdf_properties, image_data = ReadFDF(args.inputdir + '/' + filename)
+        fdf_properties, image_data = ReadFDF(os.path.join(args.inputdir, filename))
 
         if args.verbose:
             print 'Image_data shape: ', str(image_data.shape)

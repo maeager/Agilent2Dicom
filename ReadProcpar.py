@@ -128,5 +128,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
 
-    procpar, procpartext = ReadProcpar(args.inputdir + '/procpar')
+    procpar, procpartext = ReadProcpar(os.path.join(args.inputdir, 'procpar'))
     print procpar
