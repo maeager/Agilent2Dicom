@@ -2,8 +2,10 @@
 
 """fid2dicom is used to convert Agilent FID files to DICOM format.
 
-Version 0.1: Original code based on agilent2dicom FDF converter (Michael Eager)
-
+  Version 0.1: Original code based on agilent2dicom FDF converter (Michael Eager)
+  Version 0.2: Cplx filters upgraded and arguments improved for extra variables
+  Version 0.3: Exporting DICOMs with correct parsing of Procpar and fid headers and rearrangement of image data
+  $Id:$
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
@@ -87,10 +89,10 @@ if __name__ == "__main__":
         sys.exit(1)
         
     fidfiles = [ f for f in files if f.endswith('fid') ]
-    if len(fdffiles) == 0:
-        print 'Error: FID folder does not contain any fdf files'
+    if len(fidfiles) == 0:
+        print 'Error: FID folder does not contain any fid files'
         sys.exit(1)
-    print "Number of FID files: ", len(fdffiles)
+    print "Number of FID files: ", len(fidfiles)
     # Check output directory
     if not args.outputdir:
         outdir = os.path.splitext(args.inputdir)[0]
@@ -102,7 +104,7 @@ if __name__ == "__main__":
                 (dirName, imgdir) = os.path.split(outdir)
 
             (ImgBaseName, ImgExtension)=os.path.splitext(imgdir)
-            outdir = os.path.join(dirName,ImgBaseName + '.dcm')
+            outdir = os.path.join(dirName,ImgBaseName+'.dcm')
     else:
         outdir = args.outputdir
     if args.verbose:
@@ -128,76 +130,68 @@ if __name__ == "__main__":
     ## Map procpar to DICOM and create pydicom struct
     ds,MRAcquisitionType = ProcparToDicomMap.ProcparToDicomMap(procpar,args)
 
-
-    # Calculate the max and min throughout all dataset values;
-    # calculate the intercept and slope for casting to UInt16
-    RescaleIntercept,RescaleSlope = FID.RescaleImage(ds,image_data,args)
  
-
-    ## Per frame implementation
-    # Read in data from fid file, if 3D split frames    
+    # Read in data from fid file
     volume=1
 
     filename = fidfiles[len(fidfiles)-1]
     procpar,hdr,dims,image_data_real,image_data_imag=FID.readfid(args.inputdir,procpar)
+
+    # Change dicom for specific FID header info
+    ds,matsize,ImageTransformationMatrix = FID.ParseFID(ds,hdr,procpar,args)
+
     image_data,ksp=FID.recon(procpar,dims,hdr,image_data_real,image_data_imag)
 
     
     if args.verbose:
         print 'Image_data shape:', str(image_data.shape)
 
-    # Change dicom for specific FID header info
-    ds,matsize,ImageTransformationMatrix = FID.ParseFID(ds,fdf_properties,procpar,args)
-
-    FID.Save3dFIDtoDicom(ds,procpar,image_data,fdf_properties,ImageTransformationMatrix,args,outdir,filename)
-    
     # Rescale image data
-    # ds,image_data =FID.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
+    #ds,image_scaled =FID.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
+
+    FID.Save3dFIDtoDicom(ds,procpar,image_data,hdr,ImageTransformationMatrix,args,outdir)
+    
 
 
-    if arg.gaussian_filter:
-        if not arg.sigma:
-            arg.sigma=0.707
-        if not arg.gaussian_order:
-            arg.gaussian_order=0
-        if not arg.gaussian_mode:
-            arg.gaussian_mode='nearest'
+    if args.gaussian_filter:
+        if not args.sigma:
+            args.sigma=0.707
+        if not args.gaussian_order:
+            args.gaussian_order=0
+        if not args.gaussian_mode:
+            args.gaussian_mode='nearest'
         print "Computing Gaussian filtered image from Original image"
-        image_filtered = cplxgaussian_filter(image.real,image.imag,arg.sigma,arg.gaussian_order,arg.gaussian_mode)
+        image_filtered = cplxgaussian_filter(image.real,image.imag,args.sigma,args.gaussian_order,args.gaussian_mode)
+        ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Gaussian filter: sigma=%f order=%d mode=%s.' % (Derivation_Description,VersionNumber,DVCSstamp,args.sigma, args.gaussian_order,args.gaussian_mode)
+        FID.Save3dFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,outdir)
 
-    if arg.gaussian_laplace:
-        if not arg.sigma:
-            arg.sigma=0.707
+    if args.gaussian_laplace:
+        if not args.sigma:
+            args.sigma=0.707
         print "Computing Gaussian Laplace filtered image from Gaussian filtered image"
-        image_filtered = cplxgaussian_filter(image.real,image.imag,arg.sigma)
-        image_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag,arg.sigma)
+        image_filtered = cplxgaussian_filter(image.real,image.imag,args.sigma)
+        image_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag,args.sigma)
+        ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Gaussian filter: sigma=%f order=0 mode=nearest. Complex Laplace filter: sigma.' % (Derivation_Description,VersionNumber,DVCSstamp,args.sigma,args.sigma)
+        FID.Save3dFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,outdir)
 
-    if arg.median_filter:
-        if not arg.window_size:
-            arg.window_size=3
+    if args.median_filter:
+        if not args.window_size:
+            args.window_size=3
         print "Computing Median filtered image from Original image"
-        image_filtered = cplxmedian_filter(image.real,image.imag,arg.window_size)
+        image_filtered = cplxmedian_filter(image.real,image.imag,args.window_size)
+        ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Median filter: windown size=%d.' % (Derivation_Description,VersionNumber,DVCSstamp,args.window_size)
+        FID.Save3dFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,outdir)
 
-    if arg.wiener_filter:
-        if not arg.window_size:
-            arg.window_size=3
-        if not arg.wiener_noise:
-            arg.wiener_noise=None
+         
+    if args.wiener_filter:
+        if not args.window_size:
+            args.window_size=3
+        if not args.wiener_noise:
+            args.wiener_noise=None
         print "Computing Wiener filtered image from Original image"
-        image_filtered = cplxwiener_filter(image.real,image.imag,arg.window_size,arg.wiener_noise)
+        image_filtered = cplxwiener_filter(image.real,image.imag,args.window_size,args.wiener_noise)
+        ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Wiener filter: window size=%d, noise=%f.' % (Derivation_Description,VersionNumber,DVCSstamp,args.window_size, args.wiener_noise)
+        FID.Save3dFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,outdir)
 
 
-   
-    # Export dicom to file
-    if MRAcquisitionType == '3D':
-        ds=FID.Save3dFIDtoDicom(ds,procpar,image_data,fdf_properties,ImageTransformationMatrix,args,outdir,filename)
-    else:
-        ParseFDF.Save2dFDFtoDicom(ds,image_data, outdir, filename)
-        
-    if ds.ImageType[2]=="MULTIECHO" or re.search('slab|img_',filename):
-        print ds.FrameContentSequence[0].StackID, ds.FrameContentSequence[0].StackID[0]
-        print type(ds.FrameContentSequence[0].StackID), type(ds.FrameContentSequence[0].StackID[0])
-        ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0])+1)
-        if args.verbose:
-            print "Incrementing volume StackID ", ds.FrameContentSequence[0].StackID
 
