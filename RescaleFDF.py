@@ -22,6 +22,7 @@
 """
 
 import os,sys,math
+import re
 import numpy
 import argparse
 
@@ -29,7 +30,29 @@ import argparse
 UInt16MaxRange = 65533
 Int16MaxRange = 32767
 
+from ReadProcpar import *
 import ReadFDF
+
+
+def ShortenFloatString(val,origin):
+    """Shorten float to 16 element string
+    """
+    if numpy.iscomplex(val):
+        print "Error: ShortenFloatString given complex number, Source: %s" % origin
+        val=numpy.abs(val)
+    if len(str(val))>16:
+        stringval=str(val)
+        if re.search('e',stringval): #scientific notation
+            pos = stringval.index('e')
+            stripped_val = stringval[:pos - (len(stringval)-15)]+stringval[pos:]
+        else: # normal float 
+            stripped_val =stringval[:15]
+        print "Cropping float string from ", str(val), " to ", stripped_val
+        return stripped_val
+    else:
+        return str(val)
+
+
 
 def FindScale(fdffiles,ds,procpar,args):
     """RescaleFDF
@@ -69,7 +92,8 @@ def FindScale(fdffiles,ds,procpar,args):
 
     return RescaleIntercept,RescaleSlope
 
-
+    
+    
 def RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args):
 
     if args.verbose:
@@ -77,19 +101,15 @@ def RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args):
         print "Intercept: ", RescaleIntercept, "  Slope: ", RescaleSlope
         print "Current data min: ", image_data.min(), " max ", image_data.max()
     image_data = (image_data - RescaleIntercept) / RescaleSlope
-    image_data = image_data.astype(numpy.int16)
+    image_data_int16 = image_data.astype(numpy.int16)
 
     ## Adjusting Dicom parameters for rescaling
-        # Rescale intercept string must not be longer than 16
-    if len(str(RescaleIntercept))>16:
-        print "Cropping rescale intercept from ", str(RescaleIntercept), " to ", str(RescaleIntercept)[:15]
-    ds.RescaleIntercept = str(RescaleIntercept)[:15]                                #(0028,1052) Rescale Intercept
+    # Rescale intercept string must not be longer than 16
+    ds.RescaleIntercept = ShortenFloatString(RescaleIntercept,"RescaleIntercept")  #(0028,1052) Rescale Intercept
     # Rescale slope string must not be longer than 16
-    if len(str(RescaleSlope))>16:
-        print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RescaleSlope)[:15]
-    ds.RescaleSlope = str(RescaleSlope)[:15]    #(0028,1053) Rescale Slope
+    ds.RescaleSlope = ShortenFloatString(RescaleSlope,"RescaleSlope")  #(0028,1053) Rescale Slope
 
-    return ds,image_data
+    return ds,image_data_int16
 
 
 
