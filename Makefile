@@ -24,10 +24,13 @@ DCM3TOOLS=$(shell /bin/ls -d ../dicom3tools_*/bin/*)
 RM=/bin/rm -f
 FDF2DCM=time ./fdf2dcm.sh -v 
 PATH+=:$(DCM3TOOLS)
+EXAMPLEDATAPATH=../ExampleAgilentData
+
 
 
 .PHONY: check
 check: 
+	test -d $(EXAMPLEDATAPATH)
 	for req in $(REQUIREMENTS); do \
 	   which $$req > /dev/null || echo "Missing dependency $$req"; \
 	done
@@ -69,7 +72,7 @@ endef
 
 
 run_standard2d:
-	$(FDF2DCM) -i ~/Monash016/amanda/ExampleAgilentData/standard2d/ -o ../output_data/standard2d
+	$(FDF2DCM) -i $(EXAMPLEDATAPATH)/standard2d/ -o ../output_data/standard2d
 	-$(call a2d_convert,../output_data/standard2d/,../output_nii/standard2d.nii)
 
 
@@ -92,7 +95,7 @@ standard2d: run_standard2d check_standard2d test_standard2d
 
 ## Multi-echo 3D
 run_me3d:
-	$(FDF2DCM) -v -i  ~/Monash016/amanda/ExampleAgilentData/multiecho3d_magonly/ -o ../output_data/multiecho3d_magonly
+	$(FDF2DCM) -v -i  $(EXAMPLEDATAPATH)/multiecho3d_magonly/ -o ../output_data/multiecho3d_magonly
 	-$(call a2d_convert,../output_data/multiecho3d_magonly,../output_nii/ME3d.nii)
 # [ ! -d ../output_data/multiecho3d_magonly/tmp ] && $(MRCONVERT)   ../output_data/multiecho3d_magonly/ ../output_nii/ME3d.nii > /dev/null 
 #	$(FSLVIEW) ../output_nii/ME3d.nii
@@ -114,7 +117,7 @@ me3d: run_me3d check_me3d test_me3d
 
 ## Multi-echo 2D Mag and phase
 run_me2d:
-	$(FDF2DCM) -v -i ~/Monash016/amanda/ExampleAgilentData/multiecho2d_magandphase/ -o  ../output_data/multiecho2d_magandphase
+	$(FDF2DCM) -v -i $(EXAMPLEDATAPATH)/multiecho2d_magandphase/ -o  ../output_data/multiecho2d_magandphase
 	-$(call a2d_convert,../output_data/multiecho2d_magandphase/magnitude.dcm,../output_nii/ME2d_mag.nii)
 	-$(call a2d_convert,../output_data/multiecho2d_magandphase/phase.dcm,../output_nii/ME2d_phase.nii)
 
@@ -142,7 +145,7 @@ me2d: run_me2d check_me2d test_me2d
 
 ## CINE
 run_cine:
-	$(FDF2DCM) -v -i ~/Monash016/amanda/ExampleAgilentData/cine -o ../output_data/cine
+	$(FDF2DCM) -v -i $(EXAMPLEDATAPATH)/cine -o ../output_data/cine
 	$(call a2d_convert,../output_data/cine,../output_nii/CINE.nii)
 
 check_cine:
@@ -188,7 +191,7 @@ asl: run_asl check_asl test_asl
 
 ## Diffusion
 run_diffusion:
-	$(FDF2DCM) -v -i ~/Monash016/amanda/ExampleAgilentData/diffusion/ -o ../output_data/diffusion
+	$(FDF2DCM) -v -i $(EXAMPLEDATAPATH)/diffusion/ -o ../output_data/diffusion
 	$(call a2d_convert,../output_data/diffusion,../output_nii/Diffusion.nii)
 
 
@@ -212,7 +215,7 @@ diffusion: run_diffusion check_diffusion test_diffusion
 ## Kidney 3D MGEMs
 
 run_kidney: 
-	$(FDF2DCM) -v -i ~/Monash016/RatKidney/Agilent/20120522/kidney512iso_01.img -o ../output_data/kidney512iso.dcm
+	$(FDF2DCM) -v -i $(EXAMPLEDATAPATH)/kidney512iso_01.img -o ../output_data/kidney512iso.dcm
 	$(call a2d_convert,../output_data/kidney512iso.dcm/,../output_nii/Kidney512iso.nii)
 
 
