@@ -31,13 +31,15 @@ import ProcparToDicomMap
 from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
 import scipy.io
 from fdf2dcm_global import *
+from RescaleFDF import *
 #from scipy import ndimage
 
 
 def get_bit(value, bit_number):
     return (value & int(1 << (bit_number-1))) != 0
 # end get_bit
-
+   
+    
 def readfid(folder,pp=[]):
     """
       hdr,realpart,imagpart = readfid(folder[,pp])
@@ -272,7 +274,7 @@ def recon(pp,dims,hdr,RE,IM):
 #end recon
 
 
-def RescaleImage(ds,image_data,args):
+def RescaleFIDImage(ds,image_data,args):
 
     # Read in data from all files to determine scaling
     datamin = float("inf")
@@ -303,20 +305,14 @@ def RescaleImage(ds,image_data,args):
         print "Intercept: ", RescaleIntercept, "  Slope: ", RescaleSlope
         print "Current data min: ", image_data.min(), " max ", image_data.max()
     image_data = (image_data - RescaleIntercept) / RescaleSlope
-    image_data = image_data.astype(numpy.int16)
+    image_data_int16 = image_data.astype(numpy.int16)
 
     ## Adjusting Dicom parameters for rescaling
-        # Rescale intercept string must not be longer than 16
-    if len(str(RescaleIntercept))>16:
-        print "Cropping rescale intercept from ", str(RescaleIntercept), " to ", str(RescaleIntercept)[:15]
-    ds.RescaleIntercept = str(RescaleIntercept)[:15]                                #(0028,1052) Rescale Intercept
-    # Rescale slope string must not be longer than 16
-    if len(str(RescaleSlope))>16:
-        print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RescaleSlope)[:15]
-    ds.RescaleSlope = str(RescaleSlope)[:15]    #(0028,1053) Rescale Slope
+    ds.RescaleIntercept = ShortenFloatString(RescaleIntercept,"RescaleIntercept") #(0028,1052) Rescale Intercept
+    ds.RescaleSlope = ShortenFloatString(RescaleSlope,"RescaleSlope")    #(0028,1053) Rescale Slope
 
-    return ds,image_data
-# end RescaleImage
+    return ds,image_data_int16
+# end RescaleFIDImage
 
 def RearrangeImage(image,axis_order):
     from scipy.signal import _arraytools as ar
@@ -750,9 +746,9 @@ def ParseFID(ds,fid_properties,procpar,args):
         print 'Multi-echo sequence'
 	# TE 0018,0081 Echo Time (in ms) (optional)
         if 'TE' in fid_properties.keys():
-            if ds.EchoTime != str(fid_properties['TE']):
+            if ds.EchoTime != str(fid_properties['TE']*1000):
                 print "Echo Time mismatch: ",ds.EchoTime, fid_properties['TE']
-            ds.EchoTime	 = str(fid_properties['TE']) 
+            ds.EchoTime	 = str(fid_properties['TE']*1000) 
 	# 0018,0086 Echo Number (optional)
     if 'echo_no' in fid_properties.keys():
         if ds.EchoNumber != fid_properties['echo_no']:
@@ -857,7 +853,56 @@ def ParseFID(ds,fid_properties,procpar,args):
 #end ParseFID
 
     
-def Save3dFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
+
+def SaveFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
+    """
+    Multi-dimension (3D) export of FID format image data and metadata to DICOM
+    Wrapper for Save3dFIDtoDicom
+
+    :param ds:         Baseline pydicom dataset
+    :param image_data: Pixel data of image
+    :param procpar:    General header info
+    :param fid_properties: Local fid header info
+    :param M:          Image transformation matrix
+    :param args:       argparse struct
+    :param outdir:     output directory
+    :return ds:        Return the pydicom dataset
+    """
+
+    print "5D export of complex image"
+
+    if args.magnitude:
+        print "Exporting magnitude"
+        orig_imagetype=ds.ImageType[2]
+        if ds.ImageType[2]=="PHASE MAP":
+            ds.ImageType[2]="MAGNITUDE"
+        ds.ComplexImageComponent='MAGNITUDE'    
+        voldata = numpy.absolute(image_data) # Magnitude
+        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,re.sub('.dcm','-mag.dcm',outdir))
+        ds.ImageType[2]=orig_imagetype
+        
+    if args.phase:
+        voldata=numpy.angle(image_data) # Phase
+        orig_imagetype=ds.ImageType[2]
+        ds.ImageType[2]="PHASE MAP"
+        ds.ComplexImageComponent='PHASE'        
+        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,re.sub('.dcm','-pha.dcm',outdir),1)
+        ds.ImageType[2]=orig_imagetype
+        ds.ComplexImageComponent='MAGNITUDE'
+    if args.realimag:
+        voldata=numpy.real(image_data) 
+        ds.ComplexImageComponent='REAL'        
+        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,re.sub('.dcm','-real.dcm',outdir))
+        voldata=numpy.imag(image_data)
+        ds.ComplexImageComponent='IMAGINARY'        
+        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,re.sub('.dcm','-imag.dcm',outdir))
+        ds.ComplexImageComponent='MAGNITUDE'
+
+#end SaveFIDtoDicom
+        
+        
+
+def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
     """
     Multi-dimension (3D) export of FID format image data and metadata to DICOM
 
@@ -871,12 +916,9 @@ def Save3dFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
     :return ds: Return the pydicom dataset
     """
 
-    print "5D export"
-    voldata = numpy.abs(image_data) # Magnitude 
     # Calculate the max and min throughout all dataset values;
     # calculate the intercept and slope for casting to UInt16
-    RescaleIntercept,RescaleSlope = FID.RescaleImage(ds,voldata,args)
-    ds,voldata = RescaleImage(ds,voldata,RescaleIntercept,RescaleSlope,args)
+    ds,voldata = RescaleFIDImage(ds,voldata,args)
    
 
     # if procpar['recon'] == 'external':
@@ -895,15 +937,15 @@ def Save3dFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
     #        acq.voxelmm = acq.FOVcm./acq.dims*10;
 
             
-    print "Image data shape: ", str(image_data.shape)
+    print "Image data shape: ", str(voldata.shape)
     print "Vol data shape: ", voldata.shape
     print "fid properties matrix: ", fid_properties['dims']
     print "Slice points: ", fid_properties['dims'][0]*fid_properties['dims'][1]
     #  slice_data = numpy.zeros_like(numpy.squeeze(image_data[:,:,1]))
     #   if 'ne' in procpar.keys():
         
-    range_max = fid_properties['dims'][2]
-    num_slicepts = fid_properties['dims'][0]*fid_properties['dims'][1]
+    range_max = voldata.shape[2] #fid_properties['dims'][2]
+    num_slicepts = voldata.shape[0] * voldata.shape[1] #fid_properties['dims'][0]*fid_properties['dims'][1]
     #if procpar['recon'] == 'external' and procpar['seqfil'] == 'fse3d' and fid_properties['rank'] == 3: 
     #    range_max = fid_properties['dims'][1]
     #    num_slicepts = fid_properties['dims'][0]*fid_properties['dims'][2]
@@ -931,10 +973,10 @@ def Save3dFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
 #            print "Incrementing volume StackID ", ds.FrameContentSequence[0].StackID
 
     ds.FrameContentSequence[0].StackID = [str(0)]        
-    if image.ndim == 5:
-        for echo in xrange(0,image.shape[4]):
-            ds.EchoNumber=[str(echo+1)]
-            for n in xrange(0,image.shape[3]):
+    if voldata.ndim == 5:
+        for echo in xrange(0,voldata.shape[4]):
+            ds.EchoNumber=str(echo+1)
+            for n in xrange(0,voldata.shape[3]):
                 ## Indexing in numpy matrix begins at 0, fid/dicom filenames begin at 1
                 for islice in xrange(0,range_max):    
                     # Reshape volume slice to 1D array
@@ -952,10 +994,9 @@ def Save3dFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
                     Pxyz = M * pos
                     ds.ImagePositionPatient= [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0])]
 
-        # ds.FrameContentSequence[0].StackID = [str(volume)] # fourthdimid
+        
                     ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)] #THIRDdimindex
-                    ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber 
-        # ds.InStackPosition = islice #str(islice)
+                    ds.FrameContentSequence[0].TemporalPositionIndex = int(ds.EchoNumber)
 
                     # Save DICOM
                     if args.verbose:
