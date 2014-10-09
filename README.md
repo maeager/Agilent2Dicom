@@ -145,7 +145,7 @@ On MASSIVE, enable the scipy and pyqt4 packages using the following commands:
 
 module load python/2.7.3-gcc pyqt4
 export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages/:/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages 
-python ./FDF2DicomApp.py
+python ./Agilent2DicomApp.py
 ```
 
 
@@ -171,12 +171,12 @@ See INSTALL.txt
 
 ## How to run tests ##
 
-FDF examples are available on MASSIVE working repository, these
-include standard 2d, multi-echo 3D, multiecho 2D complex, fast spin
-echo 3D, diffusion (EPI and FSE), ASL, and CINE images. Most FDF
-images are reconstructed from Vnmrj internally, but some can be
-externally reconstructed and these are slightly different and need to
-be tested.
+FDF and FID examples are available on MASSIVE working repository
+ExampleAgilentData, these include standard 2d, multi-echo 3D,
+multiecho 2D complex, fast spin echo 3D, diffusion (EPI and FSE), ASL,
+and CINE images. Most FDF images are reconstructed from Vnmrj
+internally, but some can be externally reconstructed and these are
+slightly different and need to be tested.
 
 The Makefile contains examples to be used on MASSIVE. These include
 *standard2d*, *me3d*, *me2d*, *diffusion*, *asl*,
@@ -209,7 +209,7 @@ Test the Procpar methods for multi-echo 3D:
 ```
 #!bash
 
-python ./ProcparToDicomMap.py -v -i  ~/Monash016/amanda/ExampleAgilentData/multiecho3d_magonly/
+python ./ProcparToDicomMap.py -v -i  ../ExampleAgilentData/multiecho3d_magonly/
 ```
 
 * FDF scripts
@@ -222,9 +222,9 @@ Testing the ParseFDF methods for multi-echo 3D, gradient-echo 3D and diffusion e
 ```
 #!bash
 
-python ./ParseFDF.py -v -i  ~/Monash016/amanda/ExampleAgilentData/multiecho3d_magonly/
-python ./ParseFDF.py -v -i ~/Monash016/RatKidney/Agilent/20120522/kidney512iso_01.fid
-python ./ParseFDF.py -v -i ~/Monash016/amanda/ExampleAgilentData/diffusion/
+python ./ParseFDF.py -v -i ../ExampleAgilentData/multiecho3d_magonly/
+python ./ParseFDF.py -v -i ../ExampleAgilentData//kidney512iso_01.fid
+python ./ParseFDF.py -v -i ../ExampleAgilentData/diffusion/
 ```
 
 
@@ -245,7 +245,7 @@ By including the site-package path of both versions allows testing on the cplxfi
 module unload python 
 module load python/2.7.3-gcc
 export PYTHONPATH=$PYTHONPATH:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages 
-python2.7 ./cplxfilter.py -i ~/Monash016/RatKidney/Agilent/20120522/kidney512iso_01.fid
+python2.7 ./cplxfilter.py -i ../ExampleAgilentData/kidney512iso_01.fid
 fslview raw_image.nii.gz new_image.nii.gz median_image.nii.gz
 ```
 
