@@ -96,13 +96,13 @@ function error_exit(){
 # Print usage information and exit
 print_usage(){
     echo -e "\n" \
-	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p]  [[-g 1.0] [-l 1.0] [-n 5]]\n" \
+	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r] [-k] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001]]\n. To export components use magnitude (-m), phase (-p), real and imag (-r) or k-space (-k). Filtering is available for Gaussian filter (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n window_size), or Wiener filter (-w window_size)." \
 	"\n" \
 	"-i <inputdir>  FID source directory\n" \
 	"-o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm. \n" \
 	"-d             Disable dcmodify fixes to DICOMs.\n" \
-	"-m,-p          Save magnitude and phase components.  These flags are passed to fid2dicom and should only be used from within fid2dcm or with knowledge of input fid data. \n" \
-	"-s             Sequence type (one of MULTIECHO,DIFFUSION,ASL. \n" \
+	"-m,-p,          Save magnitude and phase components.  These flags are passed to fid2dicom and should only be used from within fid2dcm or with knowledge of input fid data. \n" \
+	"-r             Save real and imaginary components of filtered image. \n" \
 	"-k             Save Kspace data. \n" \
 	"-g <sigma>     Gaussian filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2). \n" \
 	"-j <order>     Gaussian filter order variable argument, default 0. \n" \
@@ -110,11 +110,13 @@ print_usage(){
 	"-l <simga>     Gaussian Laplace filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2).\n" \
 	"-n <wsize>     Median filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.\n" \
 	"-w <wsize>     Wiener filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.\n" \
+	"-z <noise>     Wiener filter noise variable, default 0 (none=default variance calculated in local region).\n" \
 	"-x             Debug mode. \n" \
 	"-v             Verbose output. \n" \
 	"-h             this help\n" \
 	"\n" 
     # && exit 1
+#	"-s             Sequence type (one of MULTIECHO,DIFFUSION,ASL. \n" \
 }
 
 
@@ -127,7 +129,7 @@ fi
 
 
 ## Parse arguments
-while getopts ":i:o:k:s:g:l:n:w:hmprdxv" opt; do
+while getopts ":i:o:g:l:n:w:z:hmprkdxv" opt; do
     case $opt in
 	i)
 	    echo "Input dir:  $OPTARG" >&2
@@ -145,38 +147,44 @@ while getopts ":i:o:k:s:g:l:n:w:hmprdxv" opt; do
 	g)
 	    echo "Gaussian filter sigma: $OPTARG" >&2
 	    gaussian_sigma="$OPTARG"
-	    python_args="$python_args --gaussian_filter --gaussian_filter_sigma $gaussian_sigma"
+	    python_args="$python_args --gaussian_filter --gaussian_sigma $gaussian_sigma"
 	    do_filter=1
 	    ;;
 	j)
+	    [ ${do_filter} != 1 ] && (echo "Must have -g before -j"; print_usage; exit 1)
 	    echo "Gaussian filter order: $OPTARG" >&2
 	    gaussian_order="$OPTARG"
-	    python_args="$python_args --gaussian_filter_order $gaussian_order"
-	    do_filter=1
+	    python_args="$python_args --gaussian_order $gaussian_order"
 	    ;;
 	e)
+	    [ ${do_filter} != 1 ] && (echo "Must have -g before -e"; print_usage; exit 1)
 	    echo "Gaussian filter mode: $OPTARG" >&2
 	    gaussian_mode="$OPTARG"
-	    python_args="$python_args --gaussian_filter_mode $gaussian_mode"
-	    do_filter=1
+	    python_args="$python_args --gaussian_mode $gaussian_mode"
 	    ;;
 	l)
 	    echo "Gaussian Laplace filter sigma: $OPTARG" >&2
 	    gaussian_sigma="$OPTARG"
-	    python_args="$python_args --gaussian_laplace --gaussian_filter_sigma $gaussian_sigma"
+	    python_args="$python_args --gaussian_laplace --sigma $gaussian_sigma"
 	    do_filter=2
 	    ;;
 	n)
 	    echo "Median filter size: $OPTARG" >&2
 	    median_window_size="$OPTARG"
-	    python_args="$python_args --median_filter --median_filter_window_size $median_window_size"
+	    python_args="$python_args --median_filter --window_size $median_window_size"
 	    do_filter=3
 	    ;;
 	w)
 	    echo "Wiener filter size: $OPTARG" >&2
 	    wiener_windown_size="$OPTARG"
-	    python_args="$python_args --wiener_filter --wiener_filter_window_size $wiener_windown_size"
+	    python_args="$python_args --wiener_filter --window_size $wiener_windown_size"
 	    do_filter=4
+	    ;;
+	z)
+	    [ ${do_filter} != 4 ] && (echo "Must have -w before -z"; print_usage; exit 1)
+	    echo "Wiener noise: $OPTARG" >&2
+	    wiener_noise="$OPTARG"
+	    python_args="$python_args --wiener_noise $wiener_noise"
 	    ;;
 	h)
 	    print_usage
@@ -185,21 +193,21 @@ while getopts ":i:o:k:s:g:l:n:w:hmprdxv" opt; do
 	    ;;
 	m)
 	    echo "Implementing magnitude component of FID to DICOM conversion."
-	    python_args="$python_args -m"
+	    python_args="$python_args --magnitude"
 	    ;;
 	r)
 	    echo "Save real and imaginary components of FID conversion."
-	    python_args="$python_args -r"
+	    python_args="$python_args --realimag"
 	    ;;
 	p)
 	    echo "Implementing phase component of FID to DICOM conversion."
-	    python_args="$python_args -p"
+	    python_args="$python_args --phase"
 	    ;;
-	s)
-	    echo "Sequence type: $OPTARG" >&2
-	    sequence="$OPTARG"
-	    python_args="$python_args -s $sequence"
-	    ;;
+	# s)
+	#     echo "Sequence type: $OPTARG" >&2
+	#     sequence="$OPTARG"
+	#     python_args="$python_args -s $sequence"
+	#     ;;
 	d)
 	    do_modify=0
 	    echo " Disable dcmodify correction."
