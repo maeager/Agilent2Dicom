@@ -333,7 +333,8 @@ def normalise(data):
     max = ndimage.maximum(data)
     min = ndimage.minimum(data)
     print "Normalise max %f  min %f" % (max, min)
-    return data #(data - min) * (max - min) 
+    #return as float32
+    return data.astype(numpy.float32) #(data - min) * (max - min) 
 
     
 if __name__ == "__main__":
@@ -341,8 +342,8 @@ if __name__ == "__main__":
     import os,sys,math
     import re
     import argparse
+    import ReadProcpar as Procpar
     import ProcparToDicomMap
-    import ReadProcpar
     import RescaleFDF
     import nibabel as nib
     from ReadFID import *
@@ -360,7 +361,7 @@ if __name__ == "__main__":
     # import ProcparToDicomMap as ptd
 
 
-    procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir,'procpar'))
+    procpar, procpartext = Procpar.ReadProcpar(os.path.join(args.inputdir,'procpar'))
     ds,MRAcq_type = ProcparToDicomMap.ProcparToDicomMap(procpar, args)
     print "Rows: ", ds.Rows, " Columns: ", ds.Columns
     
@@ -394,9 +395,11 @@ if __name__ == "__main__":
         if image.ndim ==5:
             for i in xrange(0,image.shape[4]):
                 raw_image=nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
+                raw_image.set_data_dtype(numpy.float32)
                 nib.save(raw_image,'raw_image_0'+str(i)+'.nii.gz')
         else:
             raw_image=nib.Nifti1Image(normalise(np.abs(image)),affine)
+            raw_image.set_data_dtype(numpy.float32)
             nib.save(raw_image,'raw_image.nii.gz')
         #    raw_ksp=nib.Nifti1Image(normalise(np.abs(ksp)),affine)
         #    nib.save(raw_ksp,'raw_ksp.nii.gz')
@@ -413,9 +416,11 @@ if __name__ == "__main__":
     if image_filtered.ndim ==5:
         for i in xrange(0,image_filtered.shape[4]):
             new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
+            new_image.set_data_dtype(numpy.float32)
             nib.save(new_image,'gauss_image_0'+str(i)+'.nii.gz')
     else:
         new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
+        new_image.set_data_dtype(numpy.float32)
         nib.save(new_image,'gauss_image.nii.gz')
 
 #    print "Computing Gaussian Laplace image from Smoothed image"
@@ -435,8 +440,3 @@ if __name__ == "__main__":
     # wiener_image = nib.Nifti1Image(normalise(np.abs(wiener_filtered)),affine)
     # nib.save(wiener_image,'wiener_image.nii.gz')
 
-
-
-## Testing axis rearrangement
-
-#python ./cplxfilter.py -a 2,0,1 -i /gpfs/M2Home/eagerm/Monash016/eagerm/Agilent2Dicom/SheepfetusBrain/s_2014073102/mge3d-100um_01.fid -o /gpfs/M2Home/eagerm/Monash016/eagerm/Agilent2Dicom/SheepfetusBrain/s_2014073102/mge3d-100um_01.dcm
