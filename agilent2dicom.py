@@ -29,8 +29,8 @@ Version 0.6: Major rewrite, external recon
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-VersionNumber = "0.6"
-DVCSstamp = "$Id: agilent2dicom.py,v dc0163429a2a 2014/10/08 06:37:19 michael $"
+agilent2dicomVersionNumber = "0.7"
+DVCSstamp = "$Id: agilent2dicom.py,v 3991b929b6a2 2014/10/10 05:43:42 michael $"
 from fdf2dcm_global import *
 import pdb
 # import ast
@@ -61,7 +61,7 @@ UID_Type_DimensionIndex1 = "5"
 UID_Type_DimensionIndex2 = "6"
 
 # Hard coded DICOM tag values
-InstanceCreatorId = ''.join(map(str,[ord(c) for c in 'agilent2dicom'])) + '.' + VersionNumber
+InstanceCreatorId = ''.join(map(str,[ord(c) for c in 'agilent2dicom'])) + '.' + VersionNumber + '.' + agilent2dicomVersionNumber
 DICOM_Tag_Manufacturer = "Agilent Technologies"
 DICOM_Tag_InstitutionName = "Monash Biomedical Imaging"
 DICOM_Tag_ManufacturerModelName = "vnmrs"
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     #=====================================================================================
     # Parse command line arguments and validate img directory
 
-    parser = argparse.ArgumentParser(usage=' agilent2dicom -i "Input FDF directory" [-o "Output directory"] [-m] [-p] [-v]',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version '+VersionNumber)
+    parser = argparse.ArgumentParser(usage=' agilent2dicom -i "Input FDF directory" [-o "Output directory"] [-m] [-p] [-v]',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '+agilent2dicomVersionNumber+'. The full Agilent2Dicom package version '+VersionNumber+'.')
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
     parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");

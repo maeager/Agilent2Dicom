@@ -373,7 +373,7 @@ if __name__ == "__main__":
     # for filename in fidfiles:
     print "Reading FID"
     filename = fidfiles[len(fidfiles)-1]
-    pp,hdr,dims,image_data_real,image_data_imag=readfid(args.inputdir,procpar)
+    pp,hdr,dims,image_data_real,image_data_imag=readfid(args.inputdir,procpar,args)
     print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
     affine = np.eye(4)
     # # affine[:3,:3]= np.arange(9).reshape((3,3))

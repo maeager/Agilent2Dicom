@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     # Parse command line arguments and validate img directory
 
-    parser = argparse.ArgumentParser(usage=' fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g 1.0] [-l 1.0] [-n 5]]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering enabled with -g, -l, -n or -w arguments.  Version '+VersionNumber)
+    parser = argparse.ArgumentParser(usage=' fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d -n 5] [-w -n 5]]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering enabled with -g, -l, -n or -w arguments.  FID2DICOM Version '+VersionNumber)
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FID image directory containing procpar and fid files',required=True);
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
     parser.add_argument('-m','--magnitude', help='Save Magnitude component. Default output of filtered image outputput',action="store_true");
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     volume=1
 
     filename = fidfiles[len(fidfiles)-1]
-    procpar,hdr,dims,image_data_real,image_data_imag=FID.readfid(args.inputdir,procpar)
+    procpar,hdr,dims,image_data_real,image_data_imag=FID.readfid(args.inputdir,procpar,args)
 
     # Change dicom for specific FID header info
     ds,matsize,ImageTransformationMatrix = FID.ParseFID(ds,hdr,procpar,args)
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     # Rescale image data
     #ds,image_scaled =FID.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
 
-    FID.Save3dFIDtoDicom(ds,procpar,image_data,hdr,ImageTransformationMatrix,args,outdir)
+    FID.Save3dFIDtoDicom(ds,procpar,numpy.absolute(image_data),hdr,ImageTransformationMatrix,args,outdir)
     
 
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         print "Computing Gaussian filtered image from Original image"
         image_filtered = cplxgaussian_filter(image.real,image.imag,args.sigma,args.gaussian_order,args.gaussian_mode)
         ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Gaussian filter: sigma=%f order=%d mode=%s.' % (Derivation_Description,VersionNumber,DVCSstamp,args.sigma, args.gaussian_order,args.gaussian_mode)
-        FID.Save3dFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,outdir)
+        FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-gaussian.dcm',outdir))
 
     if args.gaussian_laplace:
         if not args.sigma:
@@ -172,7 +172,7 @@ if __name__ == "__main__":
         image_filtered = cplxgaussian_filter(image.real,image.imag,args.sigma)
         image_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag,args.sigma)
         ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Gaussian filter: sigma=%f order=0 mode=nearest. Complex Laplace filter: sigma.' % (Derivation_Description,VersionNumber,DVCSstamp,args.sigma,args.sigma)
-        FID.Save3dFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,outdir)
+        FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-laplacegaussian.dcm',outdir))
 
     if args.median_filter:
         if not args.window_size:
@@ -180,7 +180,7 @@ if __name__ == "__main__":
         print "Computing Median filtered image from Original image"
         image_filtered = cplxmedian_filter(image.real,image.imag,args.window_size)
         ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Median filter: windown size=%d.' % (Derivation_Description,VersionNumber,DVCSstamp,args.window_size)
-        FID.Save3dFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,outdir)
+        FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-median.dcm',outdir))
 
          
     if args.wiener_filter:
@@ -191,7 +191,7 @@ if __name__ == "__main__":
         print "Computing Wiener filtered image from Original image"
         image_filtered = cplxwiener_filter(image.real,image.imag,args.window_size,args.wiener_noise)
         ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Wiener filter: window size=%d, noise=%f.' % (Derivation_Description,VersionNumber,DVCSstamp,args.window_size, args.wiener_noise)
-        FID.Save3dFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,outdir)
+        FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-wiener.dcm',outdir))
 
 
 

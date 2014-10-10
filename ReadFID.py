@@ -40,7 +40,7 @@ def get_bit(value, bit_number):
 # end get_bit
    
     
-def readfid(folder,pp=[]):
+def readfid(folder,pp,args):
     """
       hdr,realpart,imagpart = readfid(folder[,pp])
      read kspace data from Agilent fid and procpar files.
@@ -1077,7 +1077,7 @@ if __name__ == "__main__":
     import ReadProcpar
     import RescaleFDF
     import nibabel as nib
-    from ReadFID import *
+
 
     parser = argparse.ArgumentParser(usage=' ParseFDF.py -i "Input FDF directory"',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. ParseFDF takes header info from fdf files and adjusts the dicom dataset *ds* then rescales the image data.')
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
@@ -1104,7 +1104,7 @@ if __name__ == "__main__":
     # for filename in fidfiles:
     print "Reading FID"
     filename = fidfiles[len(fidfiles)-1]
-    pp,hdr,dims,image_data_real,image_data_imag=readfid(args.inputdir,procpar)
+    pp,hdr,dims,image_data_real,image_data_imag=readfid(args.inputdir,procpar,args)
     print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
     affine = numpy.eye(4)
     # # affine[:3,:3]= np.arange(9).reshape((3,3))
