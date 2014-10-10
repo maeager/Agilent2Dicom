@@ -18,7 +18,7 @@
   # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-VersionNumber="1.2.0"
+VersionNumber="1.3.0"
 DVCSstamp="$Id$"
 
 UID_ROOT="1.3.6.1.4.1" # Agilent Root UID 1.3.6.1.4.1, default "2.25"

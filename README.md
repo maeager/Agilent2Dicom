@@ -32,11 +32,13 @@ Homepage: [MBI's Confluence homepage](https://confluence-vre.its.monash.edu.au/d
 Source: [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom)
 
 
-The whole package Agilent2Dicom is at version 1.1.0.
+The whole package Agilent2Dicom is at version 1.3.0.
 
-The internal python script agilent2dicom.py is at version 0.6.
+The internal FDF script, agilent2dicom.py, is at version 0.7.
 
-The GUI FDF2DicomApp is at version 0.1.
+The internal FID script, fid2dicom.py, is at version 0.5.
+
+The console GUI, Agilent2DicomApp, is at version 0.3.
 
 
 ## Basic overview ##
@@ -101,12 +103,33 @@ A script for processing raw FID data was developed and enables filtering and bes
 ```
 #!bash
 
+[eagerm@m2102 Agilent2Dicom]$ ./fid2dcm.sh -h
+
+ usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r] [-k] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001]]
+. To export components use magnitude (-m), phase (-p), real and imag (-r) or k-space (-k). Filtering is available for Gaussian filter (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n window_size), or Wiener filter (-w window_size).
+ -i <inputdir>  FID source directory
+ -o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm.
+ -d             Disable dcmodify fixes to DICOMs.
+ -m,-p,          Save magnitude and phase components.  These flags are passed to fid2dicom and should only be used from within fid2dcm or with knowledge of input fid data.
+ -r             Save real and imaginary components of filtered image.
+ -k             Save Kspace data.
+ -g <sigma>     Gaussian filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2).
+ -j <order>     Gaussian filter order variable argument, default 0.
+ -e {'wrap','reflect','nearest','mirror'}  Gaussian filter mode variable argument, default=nearest.
+ -l <simga>     Gaussian Laplace filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2).
+ -n <wsize>     Median filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.
+ -w <wsize>     Wiener filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.
+ -z <noise>     Wiener filter noise variable, default 0 (none=default variance calculated in local region).
+ -x             Debug mode.
+ -v             Verbose output.
+ -h             this help
+
 
 [eagerm@m2108 Agilent2Dicom]$ python ./fid2dicom.py -h
-usage:  fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g 1.0] [-l 1.0] [-n 5]]
+usage:  fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d -n 5] [-w -n 5]]
 
 fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering
-enabled with -g, -l, -n or -w arguments. Version 1.1.0
+enabled with -g, -l, -n or -w arguments. FID2DICOM Version 1.3.0
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -115,25 +138,35 @@ optional arguments:
                         directory containing procpar and fid files
   -o OUTPUTDIR, --outputdir OUTPUTDIR
                         Output directory name for DICOM files.
-  -m, --magnitude       Save Magnitude component.
+  -m, --magnitude       Save Magnitude component. Default output of filtered
+                        image outputput
   -p, --phase           Save Phase component.
-  -k, --kspace          Save Kspace data.
-  -s SEQUENCE, --sequence SEQUENCE
-                        Sequence type (one of Multiecho, Diffusion, ASL.
-  -g GAUSSIAN_FILTER, --gaussian_filter GAUSSIAN_FILTER
+  -k, --kspace          Save Kspace data in outputdir-ksp.mat file
+  -r, --realimag        Save real and imaginary data in outputdir-real and
+                        outputdir-imag.
+  -g, --gaussian_filter
                         Gaussian filter smoothing of reconstructed RE and IM
-                        components. Sigma variable argument, default
-                        1/srqt(2).
-  -l GAUSSIAN_LAPLACE, --gaussian_laplace GAUSSIAN_LAPLACE
+                        components.
+  -l, --gaussian_laplace
                         Gaussian Laplace filter smoothing of reconstructed RE
-                        and IM components. Sigma variable argument, default
+                        and IM components. --sigma variable must be declared.
+  -s SIGMA, --sigma SIGMA
+                        Gaussian and Laplace-Gaussian sigma variable. Default
                         1/srqt(2).
-  -n MEDIAN_FILTER, --median_filter MEDIAN_FILTER
-                        Median filter smoothing of reconstructed RE and IM
-                        components. Size variable argument, default 5.
-  -w WIENER_FILTER, --wiener_filter WIENER_FILTER
-                        Wiener filter smoothing of reconstructed RE and IM
-                        components. Size variable argument, default 5.
+  -go {0,1,2,3}, --gaussian_order {0,1,2,3}
+                        Gaussian and Laplace-Gaussian order variable. Default
+                        0.
+  -gm {wrap,nearest,constant,reflect,mirror}, --gaussian_mode {wrap,nearest,constant,reflect,mirror}
+                        Gaussian and Laplace-Gaussian mode variable. Default
+                        nearest.
+  -d, --median_filter   Median filter smoothing of reconstructed RE and IM
+                        components.
+  -w, --wiener_filter   Wiener filter smoothing of reconstructed RE and IM
+                        components.
+  -n WINDOW_SIZE, --window_size WINDOW_SIZE
+                        Window size of Wiener and Median filters. Default 5.
+  -wn WIENER_NOISE, --wiener_noise WIENER_NOISE
+                        Wiener filter noise. Default None.
   -v, --verbose         Verbose.
 ```
 
