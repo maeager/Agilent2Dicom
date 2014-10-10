@@ -286,6 +286,10 @@ class Agilent2DicomWindow(QtGui.QWidget):
 						      
     def getCommandArgs(self):
         argstr=''
+        if not (self.ui.checkBox_magn.checked and self.ui.checkBox_pha.checked
+                and  self.ui.checkBox_ksp.checked and self.ui.checkBox_reimag.checked):
+            print "Forcing magnitude export since no export checkboxes enabled."
+            argstr=' -m'
         if self.ui.checkBox_magn.checked:
             argstr=' -m'
         if self.ui.checkBox_pha.checked:
@@ -296,17 +300,17 @@ class Agilent2DicomWindow(QtGui.QWidget):
             argstr+=' -r'
         
         if self.ui.checkBox_gaussian:
-            argstr+=' -r -s %s -go %s' % (str(self.ui.lineEdit_gsigma.text()),str(self.ui.lineEdit_gorder.text()))
+            argstr+=' -g %s -j %s' % (str(self.ui.lineEdit_gsigma.text()),str(self.ui.lineEdit_gorder.text()))
         if self.ui.nearest.checked:
-            argstr+=' -gm nearest'
+            argstr+=' -e nearest'
         elif self.ui.reflect.checked:
-            argstr+=' -gm reflect'
+            argstr+=' -e reflect'
         elif self.ui.wrap.checked:
-            argstr+=' -gm wrap'
+            argstr+=' -e wrap'
         if self.ui.checkBox_median:
-            argstr+=' -d -n %s ' % (str(self.ui.lineEdit_median_size.text()))
+            argstr+=' -n %s ' % (str(self.ui.lineEdit_median_size.text()))
         if self.ui.checkBox_wiener:
-            argstr+=' -w -ws %s -wn %s' % (str(self.ui.lineEdit_wiener_size.text()), str(self.ui.lineEdit_wiener_noise.text()))
+            argstr+=' -w %s -z %s' % (str(self.ui.lineEdit_wiener_size.text()), str(self.ui.lineEdit_wiener_noise.text()))
         return argstr
 									    
 									    
