@@ -43,15 +43,79 @@ The console GUI, Agilent2DicomApp, is at version 0.3.
 
 ## Basic overview ##
 
-The script fdf2dcm.sh is a wrapping bash script that cleans up the arguments and
-calls a python script agilent2dicom to do the conversion of FDF files to basic
-2D DICOM files, then calls dicom3tools' dcmulti to compress the basic MR format
-to an enhanced MR format. It requires an input directory containing FDF images,
-with optional arguments for the output directory that defaults to a subdrectory
-called .dcm in the input directory. By default the output dicom file is named
-0001.dcm and any mutiple dicom files are incremented from 1.
+The Agilent2Dicom package is for converting high-field MR images to
+enhanced DICOM formats.  The idea stemmed from poor reconstruction and
+implementation of the DICOM format on the Vnmrj system used by the
+Agilent 9.4 MR scanner.
+
+FDF reconstructed images are converted to enhanced DICOM by the
+FDF2DCM suite ()*fdf2dcm.sh*, *agilent2dicom.py*, *ReadFDF.py* and
+*ParseFDF.py*).  fdf2dcm.sh is a wrapping bash script that cleans up
+the input arguments and calls a python script agilent2dicom to do the
+conversion of FDF files to basic 2D DICOM files. fdf2dcm.sh then calls
+dicom3tools' dcmulti to compress the basic MR format to an enhanced MR
+format. It requires an input directory containing FDF images, with
+optional arguments for the output directory that defaults to a
+subdrectory called .dcm in the input directory. By default the output
+dicom file is named 0001.dcm and any mutiple dicom files are
+incremented from 1.
+
+FID file formats contain the raw k-space data from the scanner.  The
+FID2DCM suite (*fid2dcm.sh*, *fid2dicom.py*, *ReadFID.py*) enable the
+reconstruction and convertions of images to DICOM.  A feature of the
+reconstruction enables adjustable filtering in complex space and
+storage of phase information.  *cplxfilter.py* allows filtering of
+real and imaginary reconstructed images using gaussian, laplace
+gaussian, median and wiener filters.
 
 
+## Usage ##
+
+### FDF conversion to DICOM ##
+
+Commandline usage of the FDF2DCM suite is as follows:
+```
+#!bash
+
+[eagerm@m2101 Agilent2Dicom]$ ./fdf2dcm.sh -v -i  ../ExampleAgilentData/standard2d -o ../output_data/standard2d
+```
+
+The verbose argument (-v) gives more information and prompts the user
+if they would like to delete any existing intermediate or final DICOM
+files.
+
+The crux of the script is performed within the agilent2dicom python
+script. For conversion to standard 2D dicoms without combination
+using DCMULTI, use agilent2dicom.py as follows:
+```
+#!bash
+
+[eagerm@m2101 Agilent2Dicom]$ ./agilent2dicom.py -v -i ../ExampleAgilentData/standard2d -o ../output_data/standard2d
+```
+
+
+### FID filtering and conversion to DICOM ###
+
+A script for processing raw FID data was developed and enables
+filtering and bespoke reconstruction of MR data.  *fid2dicom* is the
+main wrapper script that uses *ReadFID.py* and *cplxfilter.py* as its
+core. The arguments to *fid2dicom* are similar to *fdf2dcm* in that it
+requires an input directory, and an optional output directory.
+*fid2dicom* has additional arguments for complex filtering including
+Gaussian, Gaussian Laplace, Median, and Wiener filters.
+
+Basic FID2DCM usage from the commandline is as follows:
+```
+#!bash
+
+[eagerm@m2102 Agilent2Dicom]$ ./fid2dcm.sh -i inputdir.fid -o outputdir.dcm -v -m -p  -g 1.0 
+```
+The enhanced DICOM files of the raw reconstruction will be stored in outputdir.dcm.  A Gaussian filter with sigma=1.0 is used on the real and imaginary components of the reconstructed image. The magnitude and phase of the Gaussian filtered image will be stored in outputdir-gaussian-mag.dcm and outputdir-gaussian-pha.dcm, respectively.
+ 
+
+## Advanced usage ##
+
+### FDF ###
 ```
 #!bash
 
@@ -69,8 +133,7 @@ of input fdf data.
  -h             this help
 ```
 
-The crux of the script is performed within the agilent2dicom python script. It's usage is listed below:
-
+agilent2dicom.py has short and long arguments:
 ```
 #!bash
 
@@ -91,15 +154,10 @@ optional arguments:
   -v, --verbose         Verbose.) 
 ```
 
-A simple GUI interface *fdf2dicom*, was developed to be used by experimental scientists on the Agilent RedHat console. This requires python 2.6 and Tkinter.
 
-## FID filtering and conversion ##
+### FID  ###
 
-A script for processing raw FID data was developed and enables filtering and bespoke reconstruction of MR data.
-*fid2dicom* is the main wrapper script that uses *ReadFID.py* and *cplxfilter.py* as its core. The arguments to *fid2dicom* are similar to *fdf2dcm* in that it requires an input directory, and an optionsl output directory.
-*fid2dicom* has additional arguments for complex filtering including Gaussian, Gaussian Laplace, Median, and Wiener filters.
-
-*fid2dicom* usage is as follows:
+Advanced FID2DCM usage from the commandline is as follows:
 ```
 #!bash
 
@@ -123,10 +181,15 @@ A script for processing raw FID data was developed and enables filtering and bes
  -x             Debug mode.
  -v             Verbose output.
  -h             this help
+```
 
+
+*fid2dicom.py* has slighly different arguments to *fid2dcm.sh*
+```
+#!bash
 
 [eagerm@m2108 Agilent2Dicom]$ python ./fid2dicom.py -h
-usage:  fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d -n 5] [-w -n 5]]
+usage:  fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 0.707] [-d -n 5] [-w -n 5]]
 
 fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering
 enabled with -g, -l, -n or -w arguments. FID2DICOM Version 1.3.0
@@ -170,7 +233,26 @@ optional arguments:
   -v, --verbose         Verbose.
 ```
 
-An improved GUI was developed in PyQt4 for FDF and FID DICOM conversion. This is called the *FDF2DicomApp*.
+# Agilent Console GUI #
+
+A first attempt at a GUI interface, *fdf2dicom*, was developed to be
+used by instrument scientists on the Agilent RedHat console for FDF
+conversion only. This requires python 2.6 and Tkinter.
+```
+#!bash
+
+[vnmr1@vnmrj1 s_2014062002]$ fdf2dicom
+```
+
+An updated GUI, *Agilent2DicomApp*, now uses PyQt4 and enables more
+features including FID conversion.  With the Agilent2Dicom path
+included in the PATH variable, the GUI can be loaded from the terminal
+from any folder:
+```
+#!bash
+
+[vnmr1@vnmrj1 s_2014062002]$ Agilent2DicomApp
+```
 
 On MASSIVE, enable the scipy and pyqt4 packages using the following commands:
 ```
@@ -178,17 +260,31 @@ On MASSIVE, enable the scipy and pyqt4 packages using the following commands:
 
 module load python/2.7.3-gcc pyqt4
 export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages/:/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages 
-python ./Agilent2DicomApp.py
+./Agilent2DicomApp.py
 ```
 
 
 ## Current bugs and faults ##
 
-For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging) on Confluence.
+For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging).
 
 ## How do I get set up? ##
 
 See INSTALL.txt
+
+On the Agilent 9.4T console, download the tar zipped bundle of the
+source code and unpack it.  Add the Agilent2Dicom source path to the
+PATH environment variable.
+
+```
+#!bash
+
+wget https://bitbucket.org/mbi-image/agilent2dicom/get/default.tar.gz
+mkdir Agilent2Dicom
+tar zxvf default.tar.gz Agilent2Dicom/ 
+cd Agilent2Dicom
+echo "export PATH=`pwd`:${PATH}" >> ~/.bashrc
+```
 
 ### Dependencies ###
 
@@ -196,7 +292,7 @@ See INSTALL.txt
    - python-dicom
    - python-numpy
    - tkinter (for python 2.6 GUI fdf2dicom on Agilent console)
-   - pyqt4 (for FDF2DicomQt and FDF2DicomApp)
+   - pyqt4 (for Agilent2DicomQt and Agilent2DicomApp)
  * dicom3tools
  * dcmtk
  * mrtrix (0.2.12 or mrtrix3)
@@ -212,8 +308,8 @@ internally, but some can be externally reconstructed and these are
 slightly different and need to be tested.
 
 The Makefile contains examples to be used on MASSIVE. These include
-*standard2d*, *me3d*, *me2d*, *diffusion*, *asl*,
-*cine* and other specific protocol examples. These will execute:
+*standard2d*, *me3d*, *me2d*, *diffusion*, *asl*, *cine* and other
+specific protocol examples. These will execute:
 
 * *run_{}* runs the FDF agilent to dicom process and conversion of DICOMs to NIFTI;
 * *check_{}*, check the dimensions of the Dicom and Nifti files; 
@@ -234,9 +330,12 @@ make test_all
 
 * Procpar scripts
 
-*ReadProcpar.py* contains ReadProcpar method. ReadProcpar is used to read Agilent FDF config files
+*ReadProcpar.py* contains ReadProcpar method. ReadProcpar is used to
+ read Agilent FDF config files
 
-*ProcparToDicomMap.py* contains the ProcparToDicomMap, getColumns and CreatUID methods. ProcparToDicomMap is used to map Agilent FDF header file (procpar) to DICOM dataset format.
+*ProcparToDicomMap.py* contains the ProcparToDicomMap, getColumns and
+ CreatUID methods. ProcparToDicomMap is used to map Agilent FDF header
+ file (procpar) to DICOM dataset format.
 
 Test the Procpar methods for multi-echo 3D:
 ```
@@ -251,7 +350,8 @@ python ./ProcparToDicomMap.py -v -i  ../ExampleAgilentData/multiecho3d_magonly/
 *RescaleFDF.py* contains the Rescale and FindScale methods.
 *ParseFDF.py* contains the ParseFDF, ParseDiffusionFDF and ParseASL methods.
 
-Testing the ParseFDF methods for multi-echo 3D, gradient-echo 3D and diffusion examples:
+Testing the ParseFDF methods for multi-echo 3D, gradient-echo 3D and
+diffusion examples:
 ```
 #!bash
 
@@ -262,13 +362,15 @@ python ./ParseFDF.py -v -i ../ExampleAgilentData/diffusion/
 
 
 
-* Complex filtering and reconstruction of FID data
-
-*cplxfilter.py* includes the complex filtering methods from
-scipy.ndimage.filters gaussian_filter, median_filter, gaussian_laplace
-and the scipy.signal method wiener_filter.
+### Testing the complex filtering and reconstruction of FID data feature ###
 
 *ReadFID.py* contains the readfid and recon methods for FID data conversion.
+*cplxfilter.py* includes the complex filtering methods from
+scipy.ndimage.filters gaussian_filter, median_filter, gaussian_laplace
+and the scipy.signal method wiener_filter.  Testing requires the
+python-nibabel package for faster exporting and viewing of medical
+images in NIFTI format.
+
 
 Python-scipy is not supported in python/2.7.1-gcc on MASSIVE, but python-dicom not supported in python/2.7.3.
 By including the site-package path of both versions allows testing on the cplxfilter methods.
@@ -304,4 +406,4 @@ See examples in Makefile.
 
 ## Who do I talk to? ##
 
-* Michael Eager (michael.eager@monash.edu) or someone in the Imaging Team at MBI
+* Dr. Michael Eager (michael.eager@monash.edu) or someone in the Imaging Team at MBI
