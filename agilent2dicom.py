@@ -30,7 +30,7 @@ Version 0.6: Major rewrite, external recon
 """
 
 agilent2dicomVersionNumber = "0.7"
-DVCSstamp = "$Id: agilent2dicom.py,v 3991b929b6a2 2014/10/10 05:43:42 michael $"
+DVCSstamp = "$Id: agilent2dicom.py,v 1021a9a588ac 2014/10/16 04:41:19 michael $"
 from fdf2dcm_global import *
 import pdb
 # import ast
@@ -1951,7 +1951,7 @@ if __name__ == "__main__":
     #                                  /phase data before reconstruction.
     #                                  Multi-valued: frequency rows\frequency
     #                                  columns\phase rows\phase columns.
-#    ds.AcquisitionMatrix  = [ AcqMatrix1  , AcqMatrix2  ]   # 0018,1310 Acquisition Matrix (optional)
+    #TODO    ds.AcquisitionMatrix  = [ AcqMatrix1  , AcqMatrix2  ]   # 0018,1310 Acquisition Matrix (optional)
 
 
     #---------------------------------------------------------------------------------
