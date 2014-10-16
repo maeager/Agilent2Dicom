@@ -68,12 +68,14 @@ def readfid(folder,pp,args):
     if pp['nD'] == 2:
         hdr['FOVcm'] = [pp['lro'], pp['lpe']]
         hdr['dims'] = [pp['nf']/pp['ns'], pp['np']/2, pp['ns']]
-        hdr['voxelmm'] = [hdr['lro']/hdr['dims'][0], hdr['lpe']/hdr['dims'][1], pp['thk']]*10
+        #if len(pp['thk'])>1:
+        #    print "pp thk size greater than 1"
+        hdr['voxelmm'] = numpy.array([pp['lro']/hdr['dims'][0], pp['lpe']/hdr['dims'][1], pp['thk']])*10
     elif pp['nD'] == 3:
         hdr['FOVcm'] = [pp['lro'], pp['lpe'], pp['lpe2']]
         hdr['dims'] = [pp['nf'], pp['np']/2, pp['nv2']]
         hdr['voxelmm'] = numpy.array(hdr['FOVcm']) / numpy.array(hdr['dims'])*10
-        
+    print hdr    
     
     
     # open fid file
@@ -176,12 +178,12 @@ def readfid(folder,pp,args):
 # theta
 #              Thickness of slices or saturation bands (satthk).
 # thk
-
+    print "Shifts of slices along z axis ",pp['pss'],pp['pss0']
     # Create FDF-like header variables
-    hdr['location'] = [-pp['pro'], pp['ppe'], pp['pss'] ]
+    hdr['location'] = [-pp['pro'], pp['ppe'], pp['pss0'] ]
     hdr['span'] = [pp['lro'], pp['lpe'], pp['lpe2']]
     hdr['roi'] = [pp['lro'], pp['lpe'], pp['lpe2']]
-    hdr['origin']=[-pp['pro']-pp['lro']/2,  pp['ppe']-pp['lpe']/2,  pp['pss']-pp['lpe2']/2]
+    hdr['origin']=[-(float(pp['pro']))-float(pp['lro'])/2.0,  float(pp['ppe'])-float(pp['lpe'])/2.0,  float(pp['pss0'])-float(pp['lpe2'])/2.0]
     if pp['orient']=="sag":
         hdr['orientation']= [0,0,1,1,0,0,0,1,0]
     else:
@@ -190,7 +192,7 @@ def readfid(folder,pp,args):
     # reset output structures
     RE = numpy.empty([ hdr['np']/2,hdr['ntraces'], hdr['nblocks']], dtype=float)
     IM = numpy.empty([ hdr['np']/2,hdr['ntraces'], hdr['nblocks']], dtype=float)
-    
+    print "Real shape:", RE.shape
     # We have to read data every time in order to increment file pointer
     nchar = 0
     for iblock in xrange(0,hdr['nblocks']):
@@ -207,15 +209,20 @@ def readfid(folder,pp,args):
         header['rpval'],     = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         header['lvl'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         header['tlt'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
-        # print header
+        print header
         data = numpy.fromfile(f,count=hdr['np']*hdr['ntraces'],dtype=dtype_str)
         print "Dim and shape: ", data.ndim, data.shape
         data = numpy.reshape(data, [hdr['ntraces'],hdr['np']])
+        print "Dim and shape: ", data.ndim, data.shape, " max np ", hdr['np']
         RE[:,:,iblock] = numpy.matrix(data[:,:hdr['np']:2]).T   # hdr['np'] #[::2,:] #
         IM[:,:,iblock] = numpy.matrix(data[:,1:hdr['np']:2]).T  # hdr['np'] #[1::2,:]      #
         #break
     f.close()
     print iblock
+    if iblock == 0:
+        print "Reshaping single block data"
+        RE = numpy.reshape(RE,dims)
+        IM = numpy.reshape(IM,dims)
     #hdr.pp = pp
     print "Data Row 1:   %.5g %.5g %.5g %.5g %.5g  %.5g ... %.5g %.5g %.5g %.5g" % (data[0,0],data[0,1],  data[0,2],data[0,3],  data[0,4], data[0,5], data[0,-4], data[0,-3], data[0,-2], data[0,-1])
     print "Data Col 1:   %.5g %.5g %.5g %.5g %.5g %.5g  ... %.5g %.5g %.5g %.5g" % (data[0,0],data[1,0],  data[2,0],data[3,0],  data[4,0], data[5,0], data[-4,0],data[-3,0], data[-2,0], data[-1,0])
@@ -223,6 +230,7 @@ def readfid(folder,pp,args):
     print "Data Col -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[0,-1],data[1,-1],  data[2,-1],data[3,-1],  data[4,-1], data[5,-1],data[-4,-1], data[-3,-1], data[-2,-1],data[-1,-1])
     print "RE : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (RE[0,0,iblock],RE[0,1,iblock],  RE[0,2,iblock],RE[1,0,iblock],  RE[2,0,iblock], RE[0,-1,iblock], RE[-1,0,iblock], RE[-1,-1,iblock])
     print "IM : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (IM[0,0,iblock],IM[0,1,iblock],  IM[0,2,iblock],IM[1,0,iblock],  IM[2,0,iblock], IM[0,-1,iblock], IM[-1,0,iblock], IM[-1,-1,iblock])
+    print "Final dims and shape of RE: ",dims, RE.shape
     return pp,hdr,dims,RE,IM
 # end readfid
 
@@ -236,19 +244,34 @@ def recon(pp,dims,hdr,RE,IM):
     :param IM: imaginary component of image k-space
     """
     print 'Reconstructing image'
-
-    ksp = numpy.empty([dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']], dtype=complex) #float32
-    img = numpy.empty([dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']], dtype=complex) #float32
+    print dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']
+    if hdr['nChannels']==1 and  hdr['nEchoes']==1:
+        ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
+        img = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
+    else:
+        ksp = numpy.empty([dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']], dtype=complex) #float32
+        img = numpy.empty([dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']], dtype=complex) #float32
 
     if pp['nD'] == 2 and pp['ni2'] == 1:
-        for echo in xrange(0,int(hdr['nEchoes'])):
-            for channel in xrange(0,int(hdr['nChannels'])):
-                for islice in xrange(0,dims(3)):
-                    # ksp(:,:,islice,channel,echo) = complex(RE(:,echo:hdr['nEchoes']:end,channel:hdr['nChannels']:end), IM(:,echo:hdr['nEchoes']:end,channel:hdr['nChannels']:end))
-                    ksp[:,:,islice,channel,echo].real = RE[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
-                    ksp[:,:,islice,channel,echo].imag = IM[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
-                    
-                    img[:,:,islice,channel,echo] = fftshift(ifftn(ifftshift(ksp[:,pp['pelist']-minimum(pp['pelist']),islice,channel,echo])))
+        if hdr['nEchoes'] == 1 and hdr['nChannels'] == 1:
+            ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
+            img = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
+            ksp[:,:,:].real = RE  #[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
+            ksp[:,:,:].imag = IM  #[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
+            for islice in xrange(0,int(dims[2])):
+                if 'pelist' in pp.keys() and len(pp['pelist'])==int(dims[2]):
+                    print pp['pelist']
+                    img[:,:,islice] = fftshift(ifftn(ifftshift(ksp[:,pp['pelist']-min(pp['pelist']),islice])))
+                else:
+                    img[:,:,islice] = fftshift(ifftn(ifftshift(ksp[:,:,islice])))
+        else:
+            for echo in xrange(0,int(hdr['nEchoes'])):
+                for n in xrange(0,int(hdr['nChannels'])):
+                    for islice in xrange(0,int(dims[2])):
+                    # ksp(:,:,islice,n,echo) = complex(RE(:,echo:hdr['nEchoes']:end,n:hdr['nChannels']:end), IM(:,echo:hdr['nEchoes']:end,n:hdr['nChannels']:end))
+                        ksp[:,:,islice,n,echo].real = RE[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
+                        ksp[:,:,islice,n,echo].imag = IM[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
+                        img[:,:,islice,n,echo] = fftshift(ifftn(ifftshift(ksp[:,pp['pelist']-minimum(pp['pelist']),islice,n,echo])))
     else: #if pp.nD == 3
         if hdr['nEchoes'] == 1 and hdr['nChannels'] == 1:
             ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
@@ -331,24 +354,26 @@ def RearrangeImage(image,axis_order):
             print image_treal.shape,' from original ', image.shape
 
             for echo in xrange(0,image.shape[4]):
-                image_treal[:,:,:,0,echo] = numpy.transpose((image.real)[:,:,:,0,echo],(iaxes[0],iaxes[1],iaxes[2]))
-                image_timag[:,:,:,0,echo] = numpy.transpose((image.imag)[:,:,:,0,echo],(iaxes[0],iaxes[1],iaxes[2]))
+                ## Do reversing first
                 for n in xrange(0,3):
                     if re.search('-',axes[n]):
                         print "Reversing axis ", axes[n]
                         image_treal[:,:,:,0,echo] = ar.axis_reverse(image_treal[:,:,:,0,echo],iaxes[n])
                         image_timag[:,:,:,0,echo] = ar.axis_reverse(image_timag[:,:,:,0,echo],iaxes[n])
+                ## Then transpose image
+                image_treal[:,:,:,0,echo] = numpy.transpose((image.real)[:,:,:,0,echo],(iaxes[0],iaxes[1],iaxes[2]))
+                image_timag[:,:,:,0,echo] = numpy.transpose((image.imag)[:,:,:,0,echo],(iaxes[0],iaxes[1],iaxes[2]))
                 image.reshape([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
                 print image.shape
         else:
             print "Transposing 3D image to ", axis_order
-            image_treal = numpy.transpose(image.real,(iaxes[0],iaxes[1],iaxes[2]))
-            image_timag = numpy.transpose(image.imag,(iaxes[0],iaxes[1],iaxes[2]))
             for n in xrange(0,3):
                 if re.search('-',axes[n]):
                     print "Reversing axis ", axes[n]
                     image_treal = ar.axis_reverse(image_treal,iaxes[n])
                     image_timag = ar.axis_reverse(image_timag,iaxes[n])
+            image_treal = numpy.transpose(image.real,(iaxes[0],iaxes[1],iaxes[2]))
+            image_timag = numpy.transpose(image.imag,(iaxes[0],iaxes[1],iaxes[2]))
             image.reshape([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]]])
             print image.shape
         image = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]],dtype=complex)
@@ -479,9 +504,10 @@ def ParseFID(ds,fid_properties,procpar,args):
 
     ## FID slice thickness
     if fidrank == 3:
-        fidthk = fid_properties['FOVcm'][2]/fid_properties['dims'][2]*10
+        fidthk = fid_properties['voxelmm'][2]
     else:
-        fidthk = fid_properties['FOVcm'][2]*10.0
+        fidthk = fid_properties['voxelmm'][2]
+    #    fidthk = procpar['thk']*10
 
     CommentStr = 'Slice thickness does not match between fid and procpar'
     AssumptionStr = 'In fid, slice thickness defined by roi[2] for 2D or roi[2]/matrix[2].\n'+\
