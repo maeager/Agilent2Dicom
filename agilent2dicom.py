@@ -1951,7 +1951,7 @@ if __name__ == "__main__":
     #                                  /phase data before reconstruction.
     #                                  Multi-valued: frequency rows\frequency
     #                                  columns\phase rows\phase columns.
-#    ds.AcquisitionMatrix  = [ AcqMatrix1  , AcqMatrix2  ]   # 0018,1310 Acquisition Matrix (optional)
+    #TODO    ds.AcquisitionMatrix  = [ AcqMatrix1  , AcqMatrix2  ]   # 0018,1310 Acquisition Matrix (optional)
 
 
     #---------------------------------------------------------------------------------
