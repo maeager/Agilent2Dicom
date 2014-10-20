@@ -49,7 +49,7 @@ implementation of the DICOM format on the Vnmrj system used by the
 Agilent 9.4 MR scanner.
 
 FDF reconstructed images are converted to enhanced DICOM by the
-FDF2DCM suite ()*fdf2dcm.sh*, *agilent2dicom.py*, *ReadFDF.py* and
+FDF2DCM suite (*fdf2dcm.sh*, *agilent2dicom.py*, *ReadFDF.py* and
 *ParseFDF.py*).  fdf2dcm.sh is a wrapping bash script that cleans up
 the input arguments and calls a python script agilent2dicom to do the
 conversion of FDF files to basic 2D DICOM files. fdf2dcm.sh then calls
@@ -264,6 +264,7 @@ export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages/:/usr/local/
 ```
 
 
+
 ## Current bugs and faults ##
 
 For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging).
@@ -374,6 +375,8 @@ images in NIFTI format.
 
 Python-scipy is not supported in python/2.7.1-gcc on MASSIVE, but python-dicom not supported in python/2.7.3.
 By including the site-package path of both versions allows testing on the cplxfilter methods.
+
+*cplxfilter.py* will export simple nigti files for raw, gaussian, etc. given an input path:
 ```
 #!bash
 
@@ -383,6 +386,10 @@ export PYTHONPATH=$PYTHONPATH:/usr/local/python/2.7.1-gcc/lib/python2.7/site-pac
 python2.7 ./cplxfilter.py -i ../ExampleAgilentData/kidney512iso_01.fid
 fslview raw_image.nii.gz new_image.nii.gz median_image.nii.gz
 ```
+
+*cplxfilter.py* also allows rearranging the image based on a three
+ element argument (eg. -a 2,-0,-1).  The negative sign will reverse
+ the slices along the axis. 
 
 
 ## Contribution guidelines ##
