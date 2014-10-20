@@ -154,7 +154,7 @@ if __name__ == "__main__":
         if MRAcquisitionType == '3D':
             ds=ParseFDF.Save3dFDFtoDicom(ds,procpar,image_data,fdf_properties,ImageTransformationMatrix,args,outdir,filename)
         else:
-            ParseFDF.Save2dFDFtoDicom(ds,image_data, outdir, filename)
+            ParseFDF.Save2dFDFtoDicom(image_data,ds,fdf_properties, outdir, filename)
 
         if (len(ds.ImageType)>=3 and ds.ImageType[2]=="MULTIECHO") or re.search('slab|img_',filename):
             print ds.FrameContentSequence[0].StackID, ds.FrameContentSequence[0].StackID[0]

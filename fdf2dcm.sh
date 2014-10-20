@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fdf2dcm.sh,v 116b59c59e54 2014/09/29 03:43:21 michael $"
+#  "$Id: fdf2dcm.sh,v 8403b73c55ac 2014/10/20 06:56:15 michael $"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #  Version 1.1: Supporting Diffusion and Multiecho
@@ -66,6 +66,8 @@ elif [ ! -x ${DCM3TOOLS}/dcmulti ]; then
     echo "Unable to find Dicom3Tool's executable dcmulti"
     exit 1
 fi 
+RM="/bin/rm -f"
+RMDIR="/bin/rm -rf"
 export PATH=${PATH}:${DCM3TOOLS}
 declare -i verbosity=0
 declare -i do_modify=1
@@ -206,13 +208,13 @@ if [ -d "${output_dir}" ]; then
     then
 	if yesno "Remove existing output directory, y or n (default y)?"; then
 	    echo "Removing existing output directory"
-	    rm -rf ${output_dir}
+	    ${RMDIR} ${output_dir}
 	else
 	    JumpToDCmulti=1
 	fi
     else
 	echo "Removing existing output directory"
-	rm -rf ${output_dir}
+	${RMDIR} ${output_dir}
     fi	
 fi
 
@@ -280,7 +282,7 @@ then
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
 #  ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
-    rm -f ${output_dir}/MULTIECHO
+    ${RM} ${output_dir}/MULTIECHO
     echo "Multi echo sequence completed."
     
 elif  [ -f ${output_dir}/DIFFUSION ]; then
@@ -348,17 +350,17 @@ then
     if [ -f ${output_dir}/DIFFUSION ];then
 	${FDF2DCMPATH}/fix-diffusion.sh "${output_dir}"
 	echo "Fixed diffusion module parameters."
-	rm -f ${output_dir}/DIFFUSION
+	${RM} ${output_dir}/DIFFUSION
     fi
     ## Additional corrections to ASL files
     if [ -f ${output_dir}/ASL ];then
 	${FDF2DCMPATH}/fix_asl.sh "${output_dir}"
 	echo "Fixed ASL module parameters."
-	rm -f ${output_dir}/ASL
+	${RM} ${output_dir}/ASL
     fi
 fi
-[ -f ${output_dir}/DIFFUSION ] && rm -f ${output_dir}/DIFFUSION
-[ -f ${output_dir}/ASL ] && rm -f ${output_dir}/ASL
+[ -f ${output_dir}/DIFFUSION ] && ${RM} ${output_dir}/DIFFUSION
+[ -f ${output_dir}/ASL ] && ${RM} ${output_dir}/ASL
 
 if (( verbosity > 0 )); then
     echo "Verifying dicom compliance using dciodvfy."
@@ -382,14 +384,14 @@ then
 	if yesno "Remove existing tmp output directory, y or n (default y)?"
 	then
 	    echo "Removing existing tmp output directory"
-	    rm -rf "${output_dir}/tmp"    
+	    ${RMDIR} "${output_dir}/tmp"    
 	else
 	    echo "fdf2dcm completed. Temporary dicoms still remain."
 	    exit 0
 	fi
     else
 	echo "Removing existing tmp output directory"
-	rm -rf "${output_dir}/tmp"    
+	${RMDIR} "${output_dir}/tmp"    
     fi
     [ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
 fi

@@ -40,7 +40,7 @@ def ShortenFloatString(val,origin):
     if numpy.iscomplex(val):
         print "Error: ShortenFloatString given complex number, Source: %s" % origin
         val=numpy.abs(val)
-    if len(str(val))>16:
+    if len(str(val))>=15:
         stringval=str(val)
         if re.search('e',stringval): #scientific notation
             pos = stringval.index('e')

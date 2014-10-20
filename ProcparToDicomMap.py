@@ -1618,25 +1618,34 @@ def ProcparToDicomMap(procpar,args):
         #	  format($ro,0,0):$ros	
         #	  $value='['+$ros+']'
         #      endif
-    
+    AcqMatrix1=0
     if  MRAcquisitionType == '3D':
-        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:
+        if 'nv' in procpar.keys() and procpar['nv'] > 0:
+            AcqMatrix1 = procpar['nv']
+        elif 'fn1' in procpar.keys() and procpar['fn1'] > 0:
             print "Rows: ", procpar['fn1']/2.0, procpar['nv']
             if procpar['fn1']/2.0 != procpar['nv']:
                 print '   Error fn1/2.0 != nv'
-            AcqMatrix1 = procpar['nv'] #fn1']/2.0         
+            AcqMatrix1 = procpar['fn1']/2.0         
         else:
-            AcqMatrix1 = procpar['nv'] 
-        ds.Rows=str(AcqMatrix1)
+            AcqMatrix1=0
     elif  MRAcquisitionType == '2D':
-        if 'fn' in procpar.keys() and procpar['fn'] > 0:		
+        if 'np' in procpar.keys() and procpar['np'] > 0:
+            AcqMatrix1 = procpar['np']/2.0
+        elif 'fn' in procpar.keys() and procpar['fn'] > 0:		
             print "Rows: ", procpar['fn']/2.0, procpar['np']/2.0
             if procpar['fn'] != procpar['np']:
                 print '  Error fn/2 != np/2'
             AcqMatrix1 = procpar['np']/2.0   #fn']/2.0         
         else:
-            AcqMatrix1 = procpar['np']/2.0 
-        ds.Rows=str(AcqMatrix1)
+            AcqMatrix1=0
+    if AcqMatrix1 == 0:
+        print "AcqMatrix Rows is zero!"
+        exit
+            
+    ds.Rows=str(AcqMatrix1)
+            
+
 
         #---------------------------------------------------------------------------------
         # Number of columns
@@ -1663,25 +1672,32 @@ def ProcparToDicomMap(procpar,args):
         #        format($pe,0,0):$pes	
         #        $value='['+$pes+']'
         #      endif
-
+    AcqMatrix2=0
     if  MRAcquisitionType == '3D':
-        if 'fn' in procpar.keys() and procpar['fn'] > 0:		
+        if 'np' in procpar.keys() and procpar['np'] > 0:
+            AcqMatrix2 = procpar['np']/2.0
+        elif 'fn' in procpar.keys() and procpar['fn'] > 0:		
             print "Columns: ", procpar['fn']/2.0, procpar['np']/2.0
             if procpar['fn']/2.0 != procpar['np']/2.0:
                 print  '   Error  fn/2 != np/2 '
-            AcqMatrix2 = procpar['np']/2.0  #fn']/2.0         
+            AcqMatrix2 = procpar['fn']/2.0         
         else:
-            AcqMatrix2 = procpar['np']/2.0 
-        ds.Columns=str(AcqMatrix2)
+            AcqMatrix2 = 0
     elif  MRAcquisitionType == '2D':
-        if 'fn1' in procpar.keys() and procpar['fn1'] > 0:  
+        if 'nv' in procpar.keys() and procpar['nv'] > 0:
+            AcqMatrix2 = procpar['nv']
+        elif 'fn1' in procpar.keys() and procpar['fn1'] > 0:  
             print "Columns: ", procpar['fn1']/2.0, procpar['nv']
             if procpar['fn1']/2.0 != procpar['nv']:
                print '   Error fn1/2 != nv'
-            AcqMatrix2 = procpar['nv']  # fn1']/ 2.0         
+            AcqMatrix2 = procpar['fn1']/ 2.0         
         else:
-            AcqMatrix2 = procpar['nv'] 
-        ds.Columns=str(AcqMatrix2)
+            AcqMatrix2 = 0
+    if AcqMatrix2 == 0:
+        print "AcqMatrix Cols is zero!"
+        exit
+            
+    ds.Columns=str(AcqMatrix2)
 
 
     # Acquisition Matrix (0018,1310) 3 Dimensions of the acquired frequency
@@ -1689,7 +1705,7 @@ def ProcparToDicomMap(procpar,args):
     #                                  Multi-valued: frequency rows\frequency
     #                                  columns\phase rows\phase columns.
 
-    ds.AcquisitionMatrix  = [ AcqMatrix1  , AcqMatrix2  ]   # 0018,1310 Acquisition Matrix (optional)
+    # ds.AcquisitionMatrix  = [ AcqMatrix1  , AcqMatrix2  ]   # 0018,1310 Acquisition Matrix (optional)
 
 
     #---------------------------------------------------------------------------------
