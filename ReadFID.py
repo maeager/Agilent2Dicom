@@ -2,7 +2,7 @@
 
 """ReadFID is used to read Agilent FID image files
 
-   -  Michael Eager (michael.eager@monash.edu)
+   - Michael Eager (michael.eager@monash.edu)
 """
 """
   Copyright (C) 2014 Michael Eager
