@@ -391,6 +391,11 @@ if __name__ == "__main__":
     else:
         image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag)
 
+        if args.axis_order:
+            image = RearrangeImage(image,args.axis_order)
+            print "Transformed image shape: ", image.shape
+            #np.delete(image)
+            #image = imaget
         print "Saving raw image"
         if image.ndim ==5:
             for i in xrange(0,image.shape[4]):
@@ -401,13 +406,8 @@ if __name__ == "__main__":
             raw_image=nib.Nifti1Image(normalise(np.abs(image)),affine)
             raw_image.set_data_dtype(numpy.float32)
             nib.save(raw_image,'raw_image.nii.gz')
-        #    raw_ksp=nib.Nifti1Image(normalise(np.abs(ksp)),affine)
-        #    nib.save(raw_ksp,'raw_ksp.nii.gz')
+       
 
-    if args.axis_order:
-        image = RearrangeImage(image,args.axis_order)
-        #np.delete()
-        #image = imaget
 
         
     print "Computing Gaussian filtered image from Original image"

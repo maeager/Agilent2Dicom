@@ -351,34 +351,35 @@ def RearrangeImage(image,axis_order):
             image_treal = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
             image_timag = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
             print "Transposing 5D image to ", axis_order
-            print image_treal.shape,' from original ', image.shape
+            print  image.shape, ' -> ', image_treal.shape
 
             for echo in xrange(0,image.shape[4]):
-                ## Do reversing first
-                for n in xrange(0,3):
-                    if re.search('-',axes[n]):
-                        print "Reversing axis ", axes[n]
-                        image_treal[:,:,:,0,echo] = ar.axis_reverse(image_treal[:,:,:,0,echo],iaxes[n])
-                        image_timag[:,:,:,0,echo] = ar.axis_reverse(image_timag[:,:,:,0,echo],iaxes[n])
-                ## Then transpose image
+                ## Transpose image dimensions
                 image_treal[:,:,:,0,echo] = numpy.transpose((image.real)[:,:,:,0,echo],(iaxes[0],iaxes[1],iaxes[2]))
                 image_timag[:,:,:,0,echo] = numpy.transpose((image.imag)[:,:,:,0,echo],(iaxes[0],iaxes[1],iaxes[2]))
+                ## Then do reversing second
+                for n in xrange(0,3):
+                    if re.search('-',axes[n]):
+                        print "Reversing axis ", n
+                        image_treal[:,:,:,0,echo] = ar.axis_reverse(image_treal[:,:,:,0,echo],n)
+                        image_timag[:,:,:,0,echo] = ar.axis_reverse(image_timag[:,:,:,0,echo],n)
                 image.reshape([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
-                print image.shape
+#                print image.shape
         else:
             print "Transposing 3D image to ", axis_order
             for n in xrange(0,3):
                 if re.search('-',axes[n]):
-                    print "Reversing axis ", axes[n]
-                    image_treal = ar.axis_reverse(image_treal,iaxes[n])
-                    image_timag = ar.axis_reverse(image_timag,iaxes[n])
+                    print "Reversing axis ", n
+                    image_treal = ar.axis_reverse(image_treal,n)
+                    image_timag = ar.axis_reverse(image_timag,n)
             image_treal = numpy.transpose(image.real,(iaxes[0],iaxes[1],iaxes[2]))
             image_timag = numpy.transpose(image.imag,(iaxes[0],iaxes[1],iaxes[2]))
             image.reshape([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]]])
-            print image.shape
+            #print image.shape
         image = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]],dtype=complex)
         image.real = image_treal
         image.imag = image_timag
+        print "Final shape: ", image.shape, image_treal.shape
     return image
 #end RearrangeImage
 
