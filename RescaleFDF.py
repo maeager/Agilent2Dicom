@@ -40,15 +40,17 @@ def ShortenFloatString(val,origin):
     if numpy.iscomplex(val):
         print "Error: ShortenFloatString given complex number, Source: %s" % origin
         val=numpy.abs(val)
+    if val < 0:
+        print "Negative val in shorten string"
     if len(str(val))>=15:
         stringval=str(val)
         if re.search('e',stringval): #scientific notation
             pos = stringval.index('e')
             stripped_val = stringval[:pos - (len(stringval)-15)]+stringval[pos:]
         else: # normal float 
-            stripped_val =stringval[:15]
+            stripped_val = stringval[:15]
         print "Cropping float string from ", str(val), " to ", stripped_val
-        return stripped_val
+        return stripped_val[:15]
     else:
         return str(val)
 

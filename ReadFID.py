@@ -30,7 +30,7 @@ import ReadProcpar
 import ProcparToDicomMap
 from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
 import scipy.io
-from fdf2dcm_global import *
+from agilent2dicom_globalvars import *
 from RescaleFDF import *
 #from scipy import ndimage
 

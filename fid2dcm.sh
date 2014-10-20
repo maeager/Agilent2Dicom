@@ -30,14 +30,14 @@
 
 ## Set config variables
 FID2DCMPATH=$(dirname $0)
-source ${FID2DCMPATH}/fdf2dcm_global.py
+source ${FID2DCMPATH}/agilent2dicom_globalvars.py
 set -o nounset  # shortform: -u
 set -o errexit  # -e
 # set -o pipefail
 # touch $(dirname $0)/error.log
 # exec 2>> $(dirname $0)/error.log
 # set -x  # show debugging output
-FID2DCMVERSION=0.5
+# variable collected global FID2DCMVERSION=0.5
 PROGNAME=$(basename $0)
 FID2DICOM=fid2dicom.py
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')

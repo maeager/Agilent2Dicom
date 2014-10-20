@@ -7,7 +7,7 @@ from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
 from Agilent2DicomWidget import Ui_Form
 import ReadProcpar
-from fdf2dcm_global import *
+from agilent2dicom_globalvars import *
 DEBUGGING=0
 
 Agilent2DicomAppVersion=0.5
