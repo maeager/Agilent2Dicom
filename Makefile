@@ -1,3 +1,8 @@
+# -*- mode:makefile; -*-
+# Makefile for testing agilent2dicom
+#
+#
+
   # Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
   # This program is free software: you can redistribute it and/or modify
@@ -14,7 +19,7 @@
   # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 REQUIREMENTS= python mrconvert storescu dcmodify dcmulti dciodvfy fslhd fslview
-GL=vglrun # set to appropriate virtualgl 
+GL=vglrun # set to appropriate virtualgl command
 MRVIEW=$(GL) mrview
 MRCONVERT=time mrconvert -info -datatype float32 
 MRVERSION=$(shell mrconvert --version  | head -1 | sed 's/.*0\.2\.\([0-9]*\) .*/\1/')
@@ -95,7 +100,7 @@ standard2d: run_standard2d check_standard2d test_standard2d
 
 ## Multi-echo 3D
 run_me3d:
-	$(FDF2DCM) -v -i  $(EXAMPLEDATAPATH)/multiecho3d_magonly/ -o ../output_data/multiecho3d_magonly
+	$(FDF2DCM) -i  $(EXAMPLEDATAPATH)/multiecho3d_magonly/ -o ../output_data/multiecho3d_magonly
 	-$(call a2d_convert,../output_data/multiecho3d_magonly,../output_nii/ME3d.nii)
 # [ ! -d ../output_data/multiecho3d_magonly/tmp ] && $(MRCONVERT)   ../output_data/multiecho3d_magonly/ ../output_nii/ME3d.nii > /dev/null 
 #	$(FSLVIEW) ../output_nii/ME3d.nii
@@ -117,7 +122,7 @@ me3d: run_me3d check_me3d test_me3d
 
 ## Multi-echo 2D Mag and phase
 run_me2d:
-	$(FDF2DCM) -v -i $(EXAMPLEDATAPATH)/multiecho2d_magandphase/ -o  ../output_data/multiecho2d_magandphase
+	$(FDF2DCM) -i $(EXAMPLEDATAPATH)/multiecho2d_magandphase/ -o  ../output_data/multiecho2d_magandphase
 	-$(call a2d_convert,../output_data/multiecho2d_magandphase/magnitude.dcm,../output_nii/ME2d_mag.nii)
 	-$(call a2d_convert,../output_data/multiecho2d_magandphase/phase.dcm,../output_nii/ME2d_phase.nii)
 
@@ -145,7 +150,7 @@ me2d: run_me2d check_me2d test_me2d
 
 ## CINE
 run_cine:
-	$(FDF2DCM) -v -i $(EXAMPLEDATAPATH)/cine -o ../output_data/cine
+	$(FDF2DCM) -i $(EXAMPLEDATAPATH)/cine -o ../output_data/cine
 	$(call a2d_convert,../output_data/cine,../output_nii/CINE.nii)
 
 check_cine:
@@ -168,7 +173,7 @@ cine: run_cine check_cine test_cine
 
 ## ASL
 run_asl:
-	$(FDF2DCM) -v -i ../example_data/1008.2.40.4.1.1/ASL_se_06.img -o ../output_data/ASL_se_06.dcm
+	$(FDF2DCM)  -i ../example_data/1008.2.40.4.1.1/ASL_se_06.img -o ../output_data/ASL_se_06.dcm
 	$(call a2d_convert,../output_data/ASL_se_06.dcm,../output_nii/ASL.nii)
 
 check_asl:
@@ -191,7 +196,7 @@ asl: run_asl check_asl test_asl
 
 ## Diffusion
 run_diffusion:
-	$(FDF2DCM) -v -i $(EXAMPLEDATAPATH)/diffusion/ -o ../output_data/diffusion
+	$(FDF2DCM) -i $(EXAMPLEDATAPATH)/diffusion/ -o ../output_data/diffusion
 	$(call a2d_convert,../output_data/diffusion,../output_nii/Diffusion.nii)
 
 
@@ -215,7 +220,7 @@ diffusion: run_diffusion check_diffusion test_diffusion
 ## Kidney 3D MGEMs
 
 run_kidney: 
-	$(FDF2DCM) -v -i $(EXAMPLEDATAPATH)/kidney512iso_01.img -o ../output_data/kidney512iso.dcm
+	$(FDF2DCM)  -i $(EXAMPLEDATAPATH)/kidney512iso_01.img -o ../output_data/kidney512iso.dcm
 	$(call a2d_convert,../output_data/kidney512iso.dcm/,../output_nii/Kidney512iso.nii)
 
 
@@ -238,7 +243,7 @@ kidney: run_kidney check_kidney test_kidney
 
 ## Diffusion DTI
 run_dti:
-	$(FDF2DCM) -v -i ../example_data/s_2014051208/DTI_EPIP_J30_01.img/ -o ../output_data/dti/
+	$(FDF2DCM) -i ../example_data/s_2014051208/DTI_EPIP_J30_01.img/ -o ../output_data/dti/
 	$(call a2d_convert,../output_data/dti/,../output_nii/DTI.nii)
 
 check_dti:
@@ -263,7 +268,7 @@ dti: run_dti check_dti test_dti
 
 ## Diffusion EPIP 
 run_epip:
-	$(FDF2DCM) -v -i ../example_data/s_2014051208/epip_axi_300TR_01.img/ -o ../output_data/epip/
+	$(FDF2DCM)  -i ../example_data/s_2014051208/epip_axi_300TR_01.img/ -o ../output_data/epip/
 	$(call a2d_convert,../output_data/epip/,../output_nii/EPI.nii)
 
 
@@ -287,7 +292,7 @@ epip: run_epip check_epip test_epip
 
 ## Diffusion DTI
 run_J6:
-	$(FDF2DCM) -v -i ../example_data/s_2014051901/J6-500_01.img/ -o ../output_data/j6/
+	$(FDF2DCM)  -i ../example_data/s_2014051901/J6-500_01.img/ -o ../output_data/j6/
 	$(call a2d_convert,../output_data/j6/,../output_nii/J6.nii)
 
 

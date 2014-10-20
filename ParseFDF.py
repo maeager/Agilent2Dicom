@@ -772,7 +772,7 @@ def Save3dFDFtoDicom(ds,procpar,image_data,fdf_properties,M,args,outdir,filename
 
         return ds
 
-def Save2dFDFtoDicom(ds,image_data,outdir, filename):
+def Save2dFDFtoDicom(image_data,ds,fdf_properties,outdir,filename):
     """
     Export 2D image and metadata to DICOM
 

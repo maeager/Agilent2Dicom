@@ -22,7 +22,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ############################################
 
-
+RM="/bin/rm -f"
 
 # Check DCMTK on MASSIVE or Agilent console
 if test "${MASSIVEUSERNAME+defined}"; then
@@ -85,7 +85,7 @@ echo "Fixing Receive Coil Type :" $reccoiltype
 ${DCMODIFY} -m "(5200,9229)[0].(0018,9042)[0].(0018,9043)=$reccoiltype" $files
 
 
-
+## TODO use ImageType definition rather than filename cine
 if [[ $output_dir = *cine* ]]  ## pattern match cine in output directory string
 then
     echo "Disabling Frame anatomy modiufication in CINE";
@@ -111,7 +111,7 @@ if (( MODIFY == 1 )); then
 	let i=0;while IFS=$'\r\n' read -r line_data; do 
 	    FrameAnatomySequence[i]="${line_data}"; ((++i)); 
 	done < ${output_dir}/anatomy.tmp
-	rm ${output_dir}/anatomy.tmp
+	${RM} ${output_dir}/anatomy.tmp
     else
 	echo "Cannot find anatomy.tmp in output dir"
     fi
@@ -149,8 +149,7 @@ current_anatseq=$total_anatseq
 #while (( current_anatseq > 0 )); do
     for ((i=0;index<total_anatseq;++index)); do
 	echo "# $index of $total_anatseq"
-	${DCMODIFY} -ea "(5200,9230)[$index].(0020,9071)" "$files"
-#	((++index))
+	${DCMODIFY} -ea "(5200,9230)[$index].(0020,9071)" $files
     done
 #    current_anatseq=$(dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l)
 #done
