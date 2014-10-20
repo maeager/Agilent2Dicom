@@ -31,7 +31,7 @@ Version 0.6: Major rewrite, external recon
 
 agilent2dicomVersionNumber = "0.7"
 DVCSstamp = "$Id$"
-from fdf2dcm_global import *
+from agilent2dicom_globalvars import *
 import pdb
 # import ast
 import os

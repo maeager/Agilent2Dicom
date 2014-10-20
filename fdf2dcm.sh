@@ -10,6 +10,7 @@
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #  Version 1.1: Supporting Diffusion and Multiecho
+#  Version 1.2: Using modular python 
 #
 # Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 #
@@ -31,16 +32,16 @@
 
 ## Set config variables
 FDF2DCMPATH=$(dirname $0)
-source ${FDF2DCMPATH}/fdf2dcm_global.py
+source ${FDF2DCMPATH}/agilent2dicom_globalvars.py
 set -o nounset  # shortform: -u
 set -o errexit  # -e
 # set -o pipefail
 # touch $(dirname $0)/error.log
 # exec 2>> $(dirname $0)/error.log
 # set -x  # show debugging output
-FDF2DCMVERSION=1.1
+# see globals FDF2DCMVERSION=1.2
 PROGNAME=$(basename $0)
-AGILENT2DICOM=tmpa2d.py  # agilent2dicom.py #
+AGILENT2DICOM=agilentFDF2dicom.py  # Legacy: agilent2dicom.py #
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
 

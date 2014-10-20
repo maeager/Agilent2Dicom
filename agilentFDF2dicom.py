@@ -38,7 +38,7 @@ import dicom
 import numpy
 import argparse
 
-from fdf2dcm_global import *
+from agilent2dicom_globalvars import *
 import ReadProcpar
 import RescaleFDF
 import ReadFDF

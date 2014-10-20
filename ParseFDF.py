@@ -32,7 +32,7 @@ from dicom.sequence import Sequence
 from dicom.dataset import Dataset
 
 
-from fdf2dcm_global import *
+from agilent2dicom_globalvars import *
 import ProcparToDicomMap
 
 
