@@ -1,12 +1,29 @@
 #!/usr/bin/env bash 
 
 
-module load fslview/5.0.6 mrtrix/0.2.11
+EXAMPLEDATA=../..
+fdffolders=$(find $EXAMPLEDATA -type d -name "*.img")
 
-mkdir output_nii
+fdfarray=($fdffolders)
 
-rm -f output_nii/*.nii
+for fdf in "${fdfarray[@]}"
+do
+    output_path=$(echo ${filen} | sed -e 's/img/dcm/' -e 's/example/output/')
+    [ $fdf == $output_path ] && continue
+    ../fdf2dcm.sh -v -i "$fdf" -o "${output_path}"
+    mrinfo "${output_path}"
 
+done
+
+
+module load mrtrix
+
+if [ -d ../output_nii ]; 
+then
+    rm -f ..output_nii/*.nii
+else
+    mkdir ../output_nii
+fi
 ## standard 2d
 
 ./Agilent2Dicom/fdf2dcm.sh -v -i ~/Monash016/amanda/ExampleAgilentData/standard2d/ -o ./output_data/standard2d

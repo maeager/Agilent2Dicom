@@ -17,6 +17,8 @@
   # You should have received a copy of the GNU General Public License
   # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+set -x
+set -v
 set -u # nounset
 set -e # errexit
 set -o # pipefail
@@ -32,16 +34,25 @@ module load  mrtrix/0.2.12 matlab/r2013a
 rm -f ${outpath}/*.mif
 rm -f ${outpath}/*.tck
 
-[ ! -d ../example_data/s_2014061202/epi-dir30_01.img ] && (echo "No heart tissue FDF directory."; exit 1)
+Diffusion_FDF=${1:-../example_data/s_2014061202/epi-dir30_01.img} # use heart tissue as default
+[ ! -d $Diffusion_FDF ] && (echo "No diffusion FDF directory."; exit 1)
+Diffusion_DCM=${2:-../output_data/hearttissue.dcm} # use heart tissue as default
+[ ! -d $Diffusion_DCM ] && (echo "No diffusion DCM directory."; exit 1)
 
 ## Create diffusion weighted image from FDF
 
 # Standard method
-# ./fdf2dcm.sh -i ../example_data/s_2014061202/epi-dir30_01.img -o ../output_data/hearttissue.dcm
-# mrconvert ../output_data/hearttissue.dcm/ ../output_mif/diff.mif
-# Masking
-# average ${outpath}/diff.mif -axis 3 - | threshold - -| median3D - - | median3D - ${outpath}/mask_DWI.mif
+if [ -f ${output_path}/diff.mif ]; then
+    ./fdf2dcm.sh -i ${Diffusion_FDF} -i ${Diffusion_DCM}
+    mrconvert -info -datatype float32 $Diffusion_DCM ${output_path}/diff.mif
+fi
 
+
+
+# Masking
+if [ -f ../output_mif/mask_DWI.mif ]; then
+    average ${outpath}/diff.mif -axis 3 - | threshold - -| median3D - - | median3D - ${outpath}/mask_DWI.mif
+fi
 
 # Quick and dirty MATLAB method with masking
 matlab -nosplash -nodesktop -r "addpath "$(dirname $0)";make_diffusion;quit"
