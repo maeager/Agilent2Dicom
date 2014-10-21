@@ -1,24 +1,35 @@
 #!/usr/bin/env python
 #
-#  Agilent2DicomApp the PyQy4 GUI for the Agilent console
+# $Header: $
+# $Id: $
+# Copyright 2014 Michael Eager
 #
-# - Monash Biomedical Imaging
-# - Michael Eager (michael.eager@monash.edu)
+# This file is part of the Agilent2Dicom package
+# See https://bitbucket.org/mbi-image/agilent2dicom/ for documentation.
+#
+# Agilent2dicom is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Agilent2dicom is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Agilent2dicom. If not, see <http://www.gnu.org/licenses/>.
 
-#   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+"""
+GUI for FDF/FID Agilent to Dicom converter. Extract Ui_Form.py using:
+pyuic4 --output Agilent2DicomWidget.py Agilent2DicomWidget.ui
+""" 
 
-#   This program is free software: you can redistribute it and/or modify
-#   it under the terms of the GNU General Public License as published by
-#   the Free Software Foundation, either version 3 of the License, or
-#   (at your option) any later version.
-
-#   This program is distributed in the hope that it will be useful,
-#   but WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#   GNU General Public License for more details.
-
-#   You should have received a copy of the GNU General Public License
-#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#Agilent2DicomAppVersion=0.7
+#__author__ = "Michael Eager, Monash Biomedical Imaging"
+#__version__ = str(Agilent2DicomAppVersion)+"$Revision: 1.0 $"
+#__date__ = "$Date: 2014/10/3 $"
+#__copyright__ = "Copyright 2014 Michael Eager"
 
 import os
 import sys
@@ -30,7 +41,7 @@ import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING=0
 
-Agilent2DicomAppVersion=0.5
+
 Agilent2DicomAppStamp="$Id:"
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
