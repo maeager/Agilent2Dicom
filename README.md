@@ -18,10 +18,9 @@
   along with the Agilent2Dicom source code.  If not, see
   <http://www.gnu.org/licenses/>.
 
+New name for project:
 MAGNI     Mbi AGileNt Image converter	(Son of Thor, god of strength)
-MANIAC	  Mbi AgileNt Image Analysis and dicom Converter
-MADIC	  Mbi AgileNt Image Analysis and dicom Converter
-MonACO	  Mbi Agilent COnverter
+
 
 ## Quick summary ##
 
