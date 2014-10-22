@@ -147,14 +147,14 @@ while getopts ":i:o:g:l:j:e:n:w:z:hmprkdxv" opt; do
 	g)
 	    echo "Gaussian filter sigma: $OPTARG" >&2
 	    gaussian_sigma="$OPTARG"
-	    python_args="$python_args --gaussian_filter --gaussian_sigma $gaussian_sigma --gaussian_order 0 --gaussian_mode nearest"
+	    python_args="$python_args --gaussian_filter --sigma $gaussian_sigma --gaussian_order 0 --gaussian_mode nearest"
 	    do_filter=1
 	    ;;
 	j)
 	    [ ${do_filter} != 1 ] && (echo "Must have -g before -j"; print_usage; exit 1)
 	    echo "Gaussian filter order: $OPTARG" >&2
 	    gaussian_order="$OPTARG"
-	    python_args=$(echo $python_args | sed 's/--gaussian_order\s[0-3]\s/--gaussian_order $gaussian_order /')
+	    python_args=$(echo $python_args | sed 's/--gaussian_order\s[0-3]\s/--gaussian_order '$gaussian_order' /')
 	    ;;
 	e)
 	    [ ${do_filter} != 1 ] && (echo "Must have -g before -e"; print_usage; exit 1)
