@@ -318,30 +318,32 @@ class Agilent2DicomWindow(QtGui.QWidget):
 						      
     def getCommandArgs(self):
         argstr=''
-        if not (self.ui.checkBox_magn.isChecked and self.ui.checkBox_pha.isChecked
-                and  self.ui.checkBox_ksp.isChecked and self.ui.checkBox_reimag.isChecked):
+        if not (self.ui.checkBox_magn.isChecked() and self.ui.checkBox_pha.isChecked()
+                and  self.ui.checkBox_ksp.isChecked() and self.ui.checkBox_reimag.isChecked()):
             print "Forcing magnitude export since no export checkboxes enabled."
             argstr=' -m'
-        if self.ui.checkBox_magn.isChecked:
+        if self.ui.checkBox_magn.isChecked():
             argstr=' -m'
-        if self.ui.checkBox_pha.isChecked:
+        if self.ui.checkBox_pha.isChecked():
             argstr+=' -p'
-        if self.ui.checkBox_ksp.isChecked:
+        if self.ui.checkBox_ksp.isChecked():
             argstr+=' -k'
-        if self.ui.checkBox_reimag.isChecked:
+        if self.ui.checkBox_reimag.isChecked():
             argstr+=' -r'
         
-        if self.ui.checkBox_gaussian:
+        if self.ui.checkBox_gaussian.isChecked():
             argstr+=' -g %s -j %s' % (str(self.ui.lineEdit_gsigma.text()),str(self.ui.lineEdit_gorder.text()))
-        if self.ui.nearest.isChecked:
-            argstr+=' -e nearest'
-        elif self.ui.reflect.isChecked:
-            argstr+=' -e reflect'
-        elif self.ui.wrap.isChecked:
-            argstr+=' -e wrap'
-        if self.ui.checkBox_median:
+            if self.ui.nearest.isChecked():
+                argstr+=' -e nearest'
+            elif self.ui.reflect.isChecked():
+                argstr+=' -e reflect'
+            elif self.ui.wrap.isChecked:
+                argstr+=' -e wrap'
+            else:
+                argstr+=' -e nearest'
+        if self.ui.checkBox_median.isChecked():
             argstr+=' -n %s ' % (str(self.ui.lineEdit_median_size.text()))
-        if self.ui.checkBox_wiener:
+        if self.ui.checkBox_wiener.isChecked():
             argstr+=' -w %s -z %s' % (str(self.ui.lineEdit_wiener_size.text()), str(self.ui.lineEdit_wiener_noise.text()))
         return argstr
 									    
