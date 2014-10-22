@@ -88,6 +88,7 @@ class Agilent2DicomWindow(QtGui.QWidget):
             self.ui.checkBox_ksp.setChecked(False)
             self.ui.checkBox_reimag.setChecked(False)
             self.ui.checkBox_pha.setChecked(False)
+            self.ui.checkBox_nodcmulti.setChecked(False)
       
       
         # Connect up the buttons.
@@ -233,9 +234,9 @@ class Agilent2DicomWindow(QtGui.QWidget):
             thispath = str(os.path.dirname(os.path.realpath(os.path.abspath(__file__))))
             print 'fdf2dcm path: %s' % thispath
             cmd1 = str(os.path.join(thispath,'fdf2dcm.sh')) + ' -i ' + str(input_dir) + ' -o ' + str(output_dir)
-            if self.checkBox_nodcmulti.checked():
+            if self.ui.checkBox_nodcmulti.isChecked():
                 cmd1+=' -d '
-            if self.checkBox_debugging.checked():
+            if self.ui.checkBox_debugging.isChecked():
                 cmd1+=' -v '
                 
             print(cmd1)
@@ -317,26 +318,26 @@ class Agilent2DicomWindow(QtGui.QWidget):
 						      
     def getCommandArgs(self):
         argstr=''
-        if not (self.ui.checkBox_magn.checked and self.ui.checkBox_pha.checked
-                and  self.ui.checkBox_ksp.checked and self.ui.checkBox_reimag.checked):
+        if not (self.ui.checkBox_magn.isChecked and self.ui.checkBox_pha.isChecked
+                and  self.ui.checkBox_ksp.isChecked and self.ui.checkBox_reimag.isChecked):
             print "Forcing magnitude export since no export checkboxes enabled."
             argstr=' -m'
-        if self.ui.checkBox_magn.checked:
+        if self.ui.checkBox_magn.isChecked:
             argstr=' -m'
-        if self.ui.checkBox_pha.checked:
+        if self.ui.checkBox_pha.isChecked:
             argstr+=' -p'
-        if self.ui.checkBox_ksp.checked:
+        if self.ui.checkBox_ksp.isChecked:
             argstr+=' -k'
-        if self.ui.checkBox_reimag.checked:
+        if self.ui.checkBox_reimag.isChecked:
             argstr+=' -r'
         
         if self.ui.checkBox_gaussian:
             argstr+=' -g %s -j %s' % (str(self.ui.lineEdit_gsigma.text()),str(self.ui.lineEdit_gorder.text()))
-        if self.ui.nearest.checked:
+        if self.ui.nearest.isChecked:
             argstr+=' -e nearest'
-        elif self.ui.reflect.checked:
+        elif self.ui.reflect.isChecked:
             argstr+=' -e reflect'
-        elif self.ui.wrap.checked:
+        elif self.ui.wrap.isChecked:
             argstr+=' -e wrap'
         if self.ui.checkBox_median:
             argstr+=' -n %s ' % (str(self.ui.lineEdit_median_size.text()))
@@ -354,7 +355,7 @@ class Agilent2DicomWindow(QtGui.QWidget):
             print 'fid2dcm path: %s' % thispath
             cmd1 = os.path.join(thispath,'fid2dcm.sh')
             cmd1 = cmd1+' -v '+ self.getCommandArgs()
-            cmd1 = cmd+' -i ' + str(input_dir) + ' -o ' + str(output_dir)
+            cmd1 = cmd1+' -i ' + str(input_dir) + ' -o ' + str(output_dir)
             print(cmd1)
             cmd=cmd_header + cmd1 +')'
             print(cmd)
@@ -374,7 +375,7 @@ class Agilent2DicomWindow(QtGui.QWidget):
             cmd=cmd_header + cmd1 +')'
             print(cmd)
             os.system(cmd)
-            cmd1 ='mrview '+ str(output_dir)
+            cmd1 ='[ -x mrview ] && mrview '+ str(output_dir)
             print(cmd1)
             cmd=cmd_header + cmd1 +')'
             print(cmd)
