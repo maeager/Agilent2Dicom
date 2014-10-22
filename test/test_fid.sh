@@ -20,19 +20,25 @@
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+set -o errexit  # -e
+set -o pipefail
+set -u  # nounset
+
+FID2DCM=../fid2dicom.py   #../fid2dcm.sh
 EXAMPLEDATA=../..
 fidfolders=`find $EXAMPLEDATA -type d -name "*.fid"`
-
+echo $fidfolders
 fidarray=($fidfolders)
-
+echo "Number of FIDs " ${#fidarray[*]}
 for exfid in "${fidarray[@]}"
 do
-    output_path=$(echo ${filen} | sed -e 's/fid/dcm/' -e 's/example/output/')
-    [ $fid == $output_path ] && continue
-
-    ../fid2dcm.sh -v -i "$exfid" -o "${output_path}"
+    echo $exfid
+    output_path=$(echo ${exfid} | sed -e 's/fid/dcm/' -e 's/example/output/')
+    [ $exfid == $output_path ] && continue
+    echo "Converting " $exfid " to " $output_path
+    $FID2DCM -v -i "$exfid" -o "${output_path}"
     mrinfo "${output_path}"
-
+break
 done
 
 
