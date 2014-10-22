@@ -121,7 +121,7 @@ def cplxgaussian_filter(real_input, imag_input,sigma=0.707,order_=0,mode_='neare
             for n in xrange(0,real_input.shape[3]):
                 real_img[:,:,:,n,echo] = ndimage.filters.gaussian_filter(real_input[:,:,:,n,echo], sigma, order=order_, mode=mode_, cval=cval_)
                 imag_img[:,:,:,n,echo] = ndimage.filters.gaussian_filter(imag_input[:,:,:,n,echo], sigma, order=order_, mode=mode_, cval=cval_)              
-    filtered_image = np.empty_like(real_input, dtype=complex)
+    filtered_image = np.empty(real_input.shape, dtype=complex)
     filtered_image.real = real_img
     filtered_image.imag = imag_img
     
@@ -176,7 +176,7 @@ def cplxgaussian_laplace(real_input, imag_input,sigma=0.707,mode_='reflect', cva
             for n in xrange(0,real_input.shape[3]):
                 real_img[:,:,:,n,echo] = ndimage.filters.gaussian_laplace(real_input[:,:,:,n,echo], sigma, mode=mode_, cval=cval_)
                 imag_img[:,:,:,n,echo] = ndimage.filters.gaussian_laplace(imag_input[:,:,:,n,echo], sigma, mode=mode_, cval=cval_)
-    filtered_image = np.empty_like(real_input, dtype=complex)
+    filtered_image = np.empty(real_input.shape, dtype=complex)
     filtered_image.real = real_img
     filtered_image.imag = imag_img
     
@@ -256,7 +256,7 @@ Return of same shape as input.
 def cplxmedian_filter(real_input,imag_input,size_=5,mode_='reflect'):
     # scipy.ndimage.filters.median_filter(input, size=None, footprint=None, output=None, mode='reflect', cval=0.0, origin=0)
     # not used footprint_=[5,5,5], output_=None, mode_='reflect', cval_=0.0, origin_=0
-    filtered_image = np.empty_like(real_input, dtype=complex)
+    filtered_image = np.empty(real_input.shape, dtype=complex)
     print "Complex Median filter window size(s)", size_
     if real_input.ndim == 3:
         if size_.ndim == 1:
@@ -274,7 +274,7 @@ def cplxmedian_filter(real_input,imag_input,size_=5,mode_='reflect'):
                 real_img[:,:,:,n,echo] = ndimage.filters.median_filter(real_input[:,:,:,n,echo], (size_,size_,size_),mode=mode_) 
                 imag_img[:,:,:,n,echo] = ndimage.filters.median_filter(imag_input[:,:,:,n,echo], (size_,size_,size_),mode=mode_)
                                                                                
-    filtered_image = np.empty_like(real_input, dtype=complex)
+    filtered_image = np.empty(real_input.shape, dtype=complex)
 
     filtered_image.real = real_img
     filtered_image.imag = imag_img
@@ -320,7 +320,7 @@ def cplxwiener_filter(real_input,imag_input,size_=5, noise_=None):
                 real_img[:,:,:,n,echo] = signal.wiener(real_input[:,:,:,n,echo], (size_,size_,size_),noise=noise_)
                 imag_img[:,:,:,n,echo] = signal.wiener(imag_input[:,:,:,n,echo], (size_,size_,size_),noise=noise_)
 
-    filtered_image = np.empty_like(real_input, dtype=complex)
+    filtered_image = np.empty(real_input.shape, dtype=complex)
     filtered_image.real = real_img
     filtered_image.imag = imag_img
     
