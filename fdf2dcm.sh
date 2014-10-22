@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fdf2dcm.sh,v 681cabb97cfd 2014/10/20 22:55:08 michael $"
+#  "$Id: fdf2dcm.sh,v 8e2f8a38984a 2014/10/22 01:38:31 root $"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #  Version 1.1: Supporting Diffusion and Multiecho
@@ -45,7 +45,7 @@ AGILENT2DICOM=agilentFDF2dicom.py  # Legacy: agilent2dicom.py #
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
 
-DCM3TOOLS="${FDF2DCMPATH}"/$(/bin/ls -d ../dicom3tools_*/bin/*)
+DCM3TOOLS=$(/bin/ls -d "${FDF2DCMPATH}"/../dicom3tools_*/bin/*)
 #DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/"
 #DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
 
