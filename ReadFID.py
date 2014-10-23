@@ -399,6 +399,103 @@ def AssertImplementation(testval, fidfilename, comment, assumption):
         print "\nImplementation check error:\n" + FIDStr + comment + '\nAssumption:' + assumption + '\n'
         # sys.exit(1)
 
+
+def ParseDiffusionFID(ds,procpar,diffusion_idx,args):
+    """ParseDiffusionFID is a variation of ParseDiffusionFDF
+
+    :param ds: Dicom dataset
+    :param procpar: Procpar dictionary tag/value pairs
+    :param fdf_properties: Tag/value pairs of local fdf file
+
+    :param args: Input arguments
+    :returns: Dicom struct
+    """
+    if args.verbose:
+        print 'Processing diffusion image'
+
+    # Get procpar diffusion parameters
+    Bvalue = procpar['bvalue'] # 64 element array
+    BValueSortIdx=numpy.argsort(Bvalue)
+    BvalSave = procpar['bvalSave']
+    if 'bvalvs' in procpar.keys():
+        BvalVS = procpar['bvalvs'] #excluded in external recons by vnmrj
+    BvalueRS = procpar['bvalrs'] # 64
+    BvalueRR = procpar['bvalrr'] # 64
+    BvalueRP = procpar['bvalrp'] # 64
+    BvaluePP = procpar['bvalpp'] # 64
+    BvalueSP = procpar['bvalsp'] # 64
+    BvalueSS = procpar['bvalss'] # 64
+
+
+
+    #Assume all images were reconned by this program
+    #if procpar['recon'] == 'external':
+    #diffusion_idx=0
+    #while True:
+    #    if (math.fabs(Bvalue[ diffusion_idx ] - fdf_properties['bvalue']) < 0.005):
+    #        break
+    #    diffusion_idx+=1
+        #diffusion_idx = fdf_properties['array_index'] - 1
+    #else:
+    #    diffusion_idx = fdf_properties['array_index']*2 
+
+    #if diffusion_idx > len(Bvalue):
+    #    print 'Procpar Bvalue does not contain enough values determined by fdf_properties array_index'
+
+    #if args.verbose:
+    #    print 'Diffusion index ', diffusion_idx, ' arrary index ', fdf_properties['array_index']
+
+        
+    # Sort diffusion based on sorted index of Bvalue instead of fdf_properties['array_index']
+    ds.AcquisitionNumber = BValueSortIdx[diffusion_idx] 
+    
+    if (math.fabs(Bvalue[ diffusion_idx ] - fdf_properties['bvalue']) > 0.005):
+        print 'Procpar and fdf B-value mismatch: procpar value ', Bvalue[ diffusion_idx ], ' and  local fdf value ', fdf_properties['bvalue'], ' array idx ', fdf_properties['array_index'] 
+
+    ## MR Diffusion Sequence (0018,9117) see DiffusionMacro.txt
+    ## B0 scan does not need the MR Diffusion Gradient Direction Sequence macro and its directionality should be set to NONE
+    ## the remaining scans relate to particular directions hence need the direction macro
+    diffusionseq = Dataset()
+    if Bvalue[ diffusion_idx ]<20:
+        diffusionseq.DiffusionBValue=0 
+        diffusionseq.DiffusionDirectionality = 'NONE'
+    else:
+        diffusionseq.DiffusionBValue=int(Bvalue[ diffusion_idx ])
+        diffusionseq.DiffusionDirectionality = 'BMATRIX' #TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE        
+    
+    ### Diffusion Gradient Direction Sequence (0018,9076)
+        diffusiongraddirseq = Dataset()
+        # Diffusion Gradient Orientation  (0018,9089)
+        #diffusiongraddirseq.add_new((0x0018,0x9089), 'FD',[ fdf_properties['dro'],  fdf_properties['dpe'],  fdf_properties['dsl']])
+        diffusiongraddirseq.DiffusionGradientOrientation= [ procpar['dro'][diffusion_idx],  procpar['dpe'][diffusion_idx],  procpar['dsl'][0]]
+        diffusionseq.DiffusionGradientDirectionSequence = Sequence([diffusiongraddirseq])
+        #diffusionseq.add_new((0x0018,0x9076), 'SQ',Sequence([diffusiongraddirseq]))
+        
+    ### Diffusion b-matrix Sequence (0018,9601) 
+        diffbmatseq = Dataset()
+        diffbmatseq.DiffusionBValueXX = BvalueRR[ diffusion_idx ]
+        diffbmatseq.DiffusionBValueXY =  BvalueRP[ diffusion_idx ] 
+        diffbmatseq.DiffusionBValueXZ =  BvalueRS[ diffusion_idx ]
+        diffbmatseq.DiffusionBValueYY =  BvaluePP[ diffusion_idx ]
+        diffbmatseq.DiffusionBValueYZ =  BvalueSP[ diffusion_idx ]
+        diffbmatseq.DiffusionBValueZZ =  BvalueSS[ diffusion_idx ]
+        diffusionseq.DiffusionBMatrixSequence = Sequence([diffbmatseq])
+        
+    diffusionseq.DiffusionAnisotropyType  = 'FRACTIONAL' #TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
+    ds.MRDiffusionSequence= Sequence([diffusionseq])
+
+    MRImageFrameType = Dataset()
+    MRImageFrameType.FrameType=["ORIGINAL","PRIMARY","DIFFUSION","NONE"] # same as ds.ImageType
+    MRImageFrameType.PixelPresentation=["MONOCHROME"]
+    MRImageFrameType.VolumetrixProperties=["VOLUME"]
+    MRImageFrameType.VolumeBasedCalculationTechnique=["NONE"]
+    MRImageFrameType.ComplexImageComponent=["MAGNITUDE"]
+    MRImageFrameType.AcquisitionContrast=["DIFFUSION"]
+    ds.MRImageFrameTypeSequence=Sequence([MRImageFrameType])
+
+    return ds
+
+        
 def ParseFID(ds,fid_properties,procpar,args):
     """
     ParseFID modify the dicom dataset structure based on FID

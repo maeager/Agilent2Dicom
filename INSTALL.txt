@@ -1,42 +1,37 @@
-# -*- mode: markdown -*-
+# -*- mode: org -*-
 
-### Setup and install ###
+* Setup and install
 
 
 Pull the stable version from the MBI bitbucket repository, using:
 
-```
-#!bash
-
+#+begin_src bash
 hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
-```
+#+end_src
+
 
 Check your python installation for the required packages using the check.py script:
 
-```
-#!bash
-
+#+begin_src bash
 cd Agilent2Dicom
 ./check.py
-```
+#+end_src
+
 
 Install the required applications and python packages your appropriate linux distribution package manager (or Pip for local python installations).
 
 On Debian/Ubuntu:
-```
-#!bash
-
+#+begin_src bash
 sudo apt-get install python-dicom python-numpy python-tk dcmtk
-```
+#+end_src
+
 or Redhat/CentOS:
-```
-#!bash
-
+#+begin_src bash
 sudo yum install python-dicom python-numpy python-tk dcmtk
-```
+#+end_src
 
 
-### Install Dicom3tools ###
+** Install Dicom3tools 
 
 Install dicom3tools from http://www.dclunie.com/dicom3tools.html into the
 Agilent2Dicom folder.  The default settings for MBI's Agilent 9.4T MR scanner
@@ -45,51 +40,43 @@ Agilent 9.4T MR scanner and should be changed for other devices.  The dependenci
 compiling dicom3tools are imake, gcc and binutil-essentials.
 
 On MASSIVE use: 
-```
-#!bash
-
+#+begin_src bash
 module load imake gcc.  
-```
+#+end_src
+
 
 On the Agilent console, use: 
-```
-#!bash
-
+#+begin_src bash
 sudo yum install imake gcc binutil-essentials
-```
+#+end_src
+
 
 Once the dependencies have been installed, begin by downloading the
-latest dicom3tools [bz2 tar ball](http://www.dclunie.com/dicom3tools/workinprogress/), adjust the
-_config/site.p-def_ file and then follow the compile instructions
-below:
-
-```
-#!bash
-
-cd ~/src/Agilent2DicomProject    # On MASSIVE use cd ~/Monash016/eagerm/Agilent2Dicom
+latest dicom3tools [[http://www.dclunie.com/dicom3tools/workinprogress/]], adjust the config/site.p-def file for the appropriate settings. Follow the compile instructions
+below for installing on the Agilent console:
+#+begin_src bash
+cd ~/src/    # On MASSIVE use cd ~/Monash016/eagerm/Agilent2Dicom
 wget   http://www.dclunie.com/dicom3tools/workinprogress/dicom3tools_1.00.snapshot.20140306142442.tar.bz2
 tar jxvf dicom3tools_1.00.snapshot.20140306142442.tar.bz2
 cd dicom3tools_1.00.snapshot.20140306142442
 
 sed -i 's/CLUNIE/MBIAGILENT/' config/site.p-def
 ./Configure
-##            setenv IMAKEINCLUDE -I./config                              # only needed for tcsh
+#            setenv IMAKEINCLUDE -I./config                              # only needed for tcsh
 imake -I./config -DInstallInTopDir -DUseMBIAGILENT1ID -DDefaultUIDRoot=1.3.6.1.4.1
 make World
 make install                          # into ./bin
 make install.man                      # into ./man
  
-```
+#+end_src
 
-### Install MRtrix ###
+
+** Install MRtrix
 
 MRtrix source code and documentation:  http://www.brain.org.au/software/mrtrix/
 
 For MRtrix stable version (0.2.12)
-
-```
-#!bash
-
+#+begin_src bash
 # For first-time installation, install required dependencies:
 #   g++, python, gtkmm, gtkglext, libgsl & a working OpenGL environment
 
@@ -103,13 +90,11 @@ For MRtrix stable version (0.2.12)
 # 3. Install (as root):
     ./build install
 
-```
+#+end_src
+
 
 For mrtrix3:
-
-```
-#!bash
-
+#+begin_src bash
 module load python/2.7.8-gcc qt/4.8.4 gcc/4.8.2 glew/1.10.0 glut gsl gtkglext zlib virtualgl/2.3.x pyqt4 git
 
 git clone https://github.com/jdtournier/mrtrix3
@@ -127,5 +112,6 @@ python2.7 ./build
 
 ## Optional: Install as root
 # sudo python ./build install
-```
+#+end_src
+
 
