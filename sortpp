@@ -1,0 +1,22 @@
+#!/usr/bin/env awk
+# Display procpar alpbetically sorted 
+BEGIN{
+#	metadata=[]
+	str=""
+	idx=0
+} 
+{
+	if (match($1,"^[a-z]")){ 
+	  metadata[idx] = str;
+	  idx=idx+1 
+	  str=$0
+	} else {
+	  str=str " " $0 
+	}
+}
+END {
+    meatdata[idx]=str
+    n = asort(metadata)
+    for (i = 1; i <= n; i++)
+    	print metadata[i]
+}
