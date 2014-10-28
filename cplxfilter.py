@@ -23,13 +23,20 @@ Methods for complex filtering of 3D k-space data
 """
 
 
-
-
-from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
-from scipy import ndimage
-from scipy import signal
 import numpy as np
+import scipy
+if scipy.__version__[2] == 7:
+    scipy.pkgload('signal')
+    scipy.pkgload('ndimage')
+    scipy.pkgload('fftpack')    
+else:
+    from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
+    from scipy import ndimage
+    from scipy import signal
 
+#from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
+#from scipy import ndimage
+#from scipy import signal
 
 
 """

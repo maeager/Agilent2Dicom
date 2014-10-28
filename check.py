@@ -19,9 +19,17 @@ try:
     from dicom.sequence import Sequence
     from dicom.dataset import Dataset
 
-    from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
-    from scipy import ndimage
-    from scipy import signal
+    import scipy
+    if scipy.__version__[2] == 7:
+        scipy.pkgload('signal')
+        scipy.pkgload('ndimage')
+        scipy.pkgload('fftpack')
+        
+    else:
+            
+        from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
+        from scipy import ndimage
+        from scipy import signal
 
 
 except ImportError:
