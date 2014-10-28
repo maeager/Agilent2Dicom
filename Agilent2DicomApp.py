@@ -64,7 +64,8 @@ class Agilent2DicomWindow(QtGui.QWidget):
         self.ui=Ui_Form()
     # Set up the user interface from Designer.
         self.ui.setupUi(self)
-        
+        self.ui.setWindowTitle(_translate("Form", "MBI\'s Agilent to Dicom converter application ("+__version__+")", None))
+                
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per pixel)")
         
@@ -440,6 +441,7 @@ class Agilent2DicomWindow(QtGui.QWidget):
             pass
 											    
     def UpdateGUI(self):
+        self.ui.setWindowTitle(_translate("Form", "MBI\'s Agilent to Dicom converter application ("+__version__+")", None))
         self.ui.pushButton_check.setEnabled(False)
         self.ui.pushButton_view.setEnabled(False)
         self.ui.pushButton_send2daris.setEnabled(False)
