@@ -25,11 +25,6 @@ GUI for FDF/FID Agilent to Dicom converter. Extract Ui_Form.py using:
 pyuic4 --output Agilent2DicomWidget.py Agilent2DicomWidget.ui
 """ 
 
-#Agilent2DicomAppVersion=0.7
-#__author__ = "Michael Eager, Monash Biomedical Imaging"
-#__version__ = str(Agilent2DicomAppVersion)+"$Revision: 1.0 $"
-#__date__ = "$Date: 2014/10/3 $"
-#__copyright__ = "Copyright 2014 Michael Eager"
 
 import os
 import sys
@@ -40,6 +35,12 @@ from Agilent2DicomWidget import Ui_Form
 import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING=0
+
+
+__author__ = "Michael Eager, Monash Biomedical Imaging"
+__version__ = str(Agilent2DicomAppVersion)+"-$Revision: c421fb45fde2 $"
+__date__ = "$Date: 2014/10/28 05:30:08 $"
+__copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp="$Id:"
@@ -280,7 +281,11 @@ class Agilent2DicomWindow(QtGui.QWidget):
             dicom_dir = self.ui.lineEdit_dicompath.text()
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             cmd = os.path.join(thispath,'dpush') + ' -c ' + str(daris_ID) + ' -s mf-erc ' + str(dicom_dir)
-            os.system(cmd)
+            tmp_msg = "Sending DICOM directory "+str(dicom_dir)+" to DaRIS.\n"+cmd+"\n\nAre you sure?"
+            reply = QtGui.QMessageBox.question(self, 'Message', 
+                     tmp_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            if reply == QtGui.QMessageBox.Yes:
+                os.system(cmd)
             self.UpdateGUI()
         except ValueError:
             pass
@@ -308,7 +313,18 @@ class Agilent2DicomWindow(QtGui.QWidget):
         try:
             output_dir = str(self.ui.lineEdit_dicompath.text())
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
-            cmd1 ='mrview '+ output_dir
+            if os.path.isdir(os.path.join(output_dir,'tmp')):
+                tmp_msg = "Tmp folder found in DICOM directory. You cannot view the dicoms if there are subdirectories with additional dicoms. Are you sure you want to delete the temporary 2D dicom files?"
+                reply = QtGui.QMessageBox.question(self, 'Message', 
+                     tmp_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+
+                if reply == QtGui.QMessageBox.Yes:
+                    import shutil
+                    shutil.rmtree(os.path.join(output_dir,'tmp')) 
+                else:
+                    return
+            
+            cmd1 ='vglrun mrview '+ output_dir
             print(cmd1)
             cmd=cmd_header + cmd1 +')'
             print(cmd)
@@ -321,6 +337,9 @@ class Agilent2DicomWindow(QtGui.QWidget):
         if not (self.ui.checkBox_magn.isChecked() and self.ui.checkBox_pha.isChecked()
                 and  self.ui.checkBox_ksp.isChecked() and self.ui.checkBox_reimag.isChecked()):
             print "Forcing magnitude export since no export checkboxes enabled."
+            tmp_msg = "Forcing magnitude export since no export checkboxes enabled."
+            reply = QtGui.QMessageBox.question(self, 'Message', 
+                    tmp_msg, QtGui.QMessageBox.Ok)
             argstr=' -m'
         if self.ui.checkBox_magn.isChecked():
             argstr=' -m'
@@ -390,7 +409,18 @@ class Agilent2DicomWindow(QtGui.QWidget):
         try:
             output_dir = self.ui.lineEdit_dicompath2.text()
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
-            cmd1 = os.path.join(thispath,'mrview') + '  ' + output_dir
+            if os.path.isdir(os.path.join(output_dir,'tmp')):
+                tmp_msg = "Tmp folder found in DICOM directory. You cannot view the dicoms if there are subdirectories with additional dicoms. Are you sure you want to delete the temporary 2D dicom files?"
+                reply = QtGui.QMessageBox.question(self, 'Message', 
+                     tmp_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+
+                if reply == QtGui.QMessageBox.Yes:
+                    import shutil
+                    shutil.rmtree(os.path.join(output_dir,'tmp')) 
+                else:
+                    return
+            
+            cmd1 = 'vglrun mrview  ' + output_dir
             print(cmd1)
             cmd=cmd_header + cmd1 +')'
             print(cmd)
