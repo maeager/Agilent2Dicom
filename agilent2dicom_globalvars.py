@@ -19,6 +19,7 @@
 
 
 VersionNumber="1.3.0"
+Agilent2DicomAppVersion="1.2.2"
 FDF2DCMVERSION="1.2"
 FID2DCMVERSION="0.5"
 DVCSstamp="$Id$"
@@ -42,7 +43,7 @@ DICOM_Tag_SoftwareVersions="VnmrJ 3.2, Agilent2Dicom 1.1"
 Standard_MR_SOPClassUID="1.2.840.10008.5.1.4.1.1.4" # MR Image SOP
 Implementation_Class_UID="1.3.6.1.4.1.25371.1.1.2"
 
-Derivation_Description="Dicom generated from Agilent2Dicom, an FDF/FID dataset converter to enhanced Dicom format. Monash Biomedical Imaging, Imaging Team."
+Derivation_Description="Dicom generated from Agilent2Dicom, an FDF/FID dataset converter to enhanced Dicom format. Monash Biomedical Imaging. Copyright 2014 Michael Eager. "
 COIL_Manufacturer="Agilent Technologies"
 FDF2DCM_Image_Comments="MBI's FDF2DCM converter."
 FID2DCM_Image_Comments="MBI's FID2DCM converter."
