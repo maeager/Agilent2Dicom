@@ -38,8 +38,8 @@ DEBUGGING=0
 
 
 __author__ = "Michael Eager, Monash Biomedical Imaging"
-__version__ = str(Agilent2DicomAppVersion)+"-$Revision: c421fb45fde2 $"
-__date__ = "$Date: 2014/10/28 05:30:08 $"
+__version__ = str(Agilent2DicomAppVersion)+"-$Revision: 961b2e2a3ffd $"
+__date__ = "$Date: 2014/10/28 05:36:33 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
@@ -64,7 +64,8 @@ class Agilent2DicomWindow(QtGui.QWidget):
         self.ui=Ui_Form()
     # Set up the user interface from Designer.
         self.ui.setupUi(self)
-        
+        self.ui.setWindowTitle(_translate("Form", "MBI\'s Agilent to Dicom converter application ("+__version__+")", None))
+                
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per pixel)")
         
@@ -440,6 +441,7 @@ class Agilent2DicomWindow(QtGui.QWidget):
             pass
 											    
     def UpdateGUI(self):
+        self.ui.setWindowTitle(_translate("Form", "MBI\'s Agilent to Dicom converter application ("+__version__+")", None))
         self.ui.pushButton_check.setEnabled(False)
         self.ui.pushButton_view.setEnabled(False)
         self.ui.pushButton_send2daris.setEnabled(False)
