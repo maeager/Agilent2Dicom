@@ -38,7 +38,7 @@ import ProcparToDicomMap
 import ReadFID as FID
 import cplxfilter as CPLX
 import ParseFDF
-
+import scipy
 
 
 if __name__ == "__main__":
@@ -56,13 +56,13 @@ if __name__ == "__main__":
 #    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
     parser.add_argument('-g','--gaussian_filter', help='Gaussian filter smoothing of reconstructed RE and IM components.',action="store_true");
     parser.add_argument('-l','--gaussian_laplace', help='Gaussian Laplace filter smoothing of reconstructed RE and IM components. --sigma variable must be declared.',action="store_true");
-    parser.add_argument('-s','--sigma',help='Gaussian and Laplace-Gaussian sigma variable. Default 1/srqt(2).')
-    parser.add_argument('-go','--gaussian_order',help='Gaussian and Laplace-Gaussian order variable. Default 0.',type=int,choices=[0,1,2,3])
-    parser.add_argument('-gm','--gaussian_mode',help='Gaussian and Laplace-Gaussian mode variable. Default nearest.',choices=['reflect','constant','nearest','mirror','wrap'])
+    parser.add_argument('-s','--sigma',help='Gaussian and Laplace-Gaussian sigma variable. Default 1/srqt(2).',default=0.707)
+    parser.add_argument('-go','--gaussian_order',help='Gaussian and Laplace-Gaussian order variable. Default 0.',type=int,choices=[0,1,2,3],default=0)
+    parser.add_argument('-gm','--gaussian_mode',help='Gaussian and Laplace-Gaussian mode variable. Default nearest.',choices=['reflect','constant','nearest','mirror','wrap'],default='nearest')
     parser.add_argument('-d','--median_filter', help='Median filter smoothing of reconstructed RE and IM components. ',action="store_true");
     parser.add_argument('-w','--wiener_filter', help='Wiener filter smoothing of reconstructed RE and IM components.',action="store_true");
-    parser.add_argument('-n','--window_size',type=int,help='Window size of Wiener and Median filters. Default 5.')
-    parser.add_argument('-wn','--wiener_noise',help='Wiener filter noise. Default None.')
+    parser.add_argument('-n','--window_size',type=int,help='Window size of Wiener and Median filters. Default 5.',default=5)
+    parser.add_argument('-wn','--wiener_noise',help='Wiener filter noise. Estimated variance of image. If none or zero, local variance is calculated. Default 0=None.',default=0)
     parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     
     # parser.add_argument("imgdir", help="Agilent .img directory containing procpar and fdf files")
@@ -162,7 +162,7 @@ if __name__ == "__main__":
             args.gaussian_mode='nearest'
         print "Computing Gaussian filtered image from Original image"
         image_filtered = CPLX.cplxgaussian_filter(image.real,image.imag,args.sigma,args.gaussian_order,args.gaussian_mode)
-        ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Gaussian filter: sigma=%f order=%d mode=%s.' % (Derivation_Description,VersionNumber,DVCSstamp,args.sigma, args.gaussian_order,args.gaussian_mode)
+        ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f order=%d mode=%s.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.sigma, args.gaussian_order,args.gaussian_mode)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-gaussian.dcm',outdir))
 
     if args.gaussian_laplace:
@@ -171,7 +171,7 @@ if __name__ == "__main__":
         print "Computing Gaussian Laplace filtered image from Gaussian filtered image"
         image_filtered = CPLX.cplxgaussian_filter(image.real,image.imag,args.sigma)
         image_filtered = CPLX.cplxgaussian_laplace(image_filtered.real,image_filtered.imag,args.sigma)
-        ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Gaussian filter: sigma=%f order=0 mode=nearest. Complex Laplace filter: sigma.' % (Derivation_Description,VersionNumber,DVCSstamp,args.sigma,args.sigma)
+        ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f order=0 mode=nearest. Complex Laplace filter: sigma.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.sigma,args.sigma)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-laplacegaussian.dcm',outdir))
 
     if args.median_filter:
@@ -179,7 +179,7 @@ if __name__ == "__main__":
             args.window_size=3
         print "Computing Median filtered image from Original image"
         image_filtered = CPLX.cplxmedian_filter(image.real,image.imag,args.window_size)
-        ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Median filter: windown size=%d.' % (Derivation_Description,VersionNumber,DVCSstamp,args.window_size)
+        ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Median filter: windown size=%d.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.window_size)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-median.dcm',outdir))
 
          
@@ -190,7 +190,7 @@ if __name__ == "__main__":
             args.wiener_noise=None
         print "Computing Wiener filtered image from Original image"
         image_filtered = CPLX.cplxwiener_filter(image.real,image.imag,args.window_size,args.wiener_noise)
-        ds.DerivationDescription='%s\nRevision: %s - %s\nComplex Wiener filter: window size=%d, noise=%f.' % (Derivation_Description,VersionNumber,DVCSstamp,args.window_size, args.wiener_noise)
+        ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Wiener filter: window size=%d, noise=%f.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.window_size, args.wiener_noise)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-wiener.dcm',outdir))
 
 
