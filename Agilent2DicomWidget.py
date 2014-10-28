@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomWidget.ui'
 #
-# Created: Wed Oct 22 10:19:00 2014
+# Created: Tue Oct 28 13:58:01 2014
 #      by: PyQt4 UI code generator 4.10.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -410,7 +410,7 @@ class Ui_Form(object):
         self.verticalLayout.addWidget(self.buttonBox)
 
         self.retranslateUi(Form)
-        self.tabWidget.setCurrentIndex(1)
+        self.tabWidget.setCurrentIndex(0)
         self.tab_fdfoptions.setCurrentIndex(0)
         self.tabWidget_3.setCurrentIndex(2)
         QtCore.QMetaObject.connectSlotsByName(Form)
