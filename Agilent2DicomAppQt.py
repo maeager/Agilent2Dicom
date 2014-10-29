@@ -25,11 +25,6 @@ GUI for FDF/FID Agilent to Dicom converter. Extract Ui_Form.py using:
 pyuic4 --output Agilent2DicomWidget.py Agilent2DicomWidget.ui
 """ 
 
-#Agilent2DicomAppVersion=0.7
-#__author__ = "Michael Eager, Monash Biomedical Imaging"
-#__version__ = str(Agilent2DicomAppVersion)+"$Revision: 1.0 $"
-#__date__ = "$Date: 2014/10/3 $"
-#__copyright__ = "Copyright 2014 Michael Eager"
 
 import os
 import sys
@@ -40,6 +35,12 @@ from Agilent2DicomQt import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING=0
+
+#Agilent2DicomAppVersion=0.7
+__author__ = "Michael Eager, Monash Biomedical Imaging"
+__version__ = str(Agilent2DicomAppVersion)+"$Revision: 1.0 $"
+__date__ = "$Date: 2014/10/3 $"
+__copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp="$Id:"
@@ -277,10 +278,24 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
     def Send2Daris(self):
         try:
             daris_ID = self.ui.lineEdit_darisid.text()
-            dicom_dir = self.ui.lineEdit_dicompath.text()
+            if str(daris_ID)=="": 
+                print "No DaRIS ID"
+                QtGui.QMessageBox.warning(self, 'Warning',"Cannot send to DaRIS without a proper ID.")
+                return
+            dicom_dir = str(self.ui.lineEdit_dicompath.text())
+            if dicom_dir=="" or not os.path.isdir(dicom_dir): 
+                print "No Dicom directory"
+                QtGui.QMessageBox.warning(self, 'Warning',"Cannot send to DaRIS without a proper Dicom path.")
+                return
+                         
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             cmd = os.path.join(thispath,'dpush') + ' -c ' + str(daris_ID) + ' -s mf-erc ' + str(dicom_dir)
-            os.system(cmd)
+            send_msg = "Are you sure you want to send to DaRIS the dicom directory\n"+ \
+                str(dicom_dir)+"\n using the ID: "+str(daris_ID)+"   ?"
+            reply = QtGui.QMessageBox.question(self, 'Message', 
+                     send_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+            if reply == QtGui.QMessageBox.Yes:
+                os.system(cmd)
             self.UpdateGUI()
         except ValueError:
             pass
@@ -402,10 +417,30 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
     def Send2Daris2(*args):
         try:
             daris_ID = self.ui.lineEdit_darisid2.text()
-            dicom_dir = self.ui.lineEdit_dicompath2.text()
+            if str(daris_ID)=="": 
+                print "No DaRIS ID"
+                QtGui.QMessageBox.warning(self, 'Warning',
+                     "Cannot send to DaRIS without a proper ID.")
+                return
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
-            cmd = os.path.join(thispath,'dpush') + ' -c ' + str(daris_ID) + ' -s mf-erc ' + str(dicom_dir)
-            os.system(cmd)	
+            
+            dicom_raw_dir = str(self.ui.lineEdit_dicompath2.text())
+            # Shorten string if it ends in '/'
+            if dicom_raw_dir[-1] == '/': dicom_raw_dir=dicom_raw_dir[:-1]
+            # Get tuple of root path and raw/unfiltered dicom path
+            (dicom_dir_root, dicom_raw) = os.path.split(dicom_raw_dir)
+            # Do a regex and get all the dicom paths produced by Agilent2Dicom
+            rgx = re.compile(r''+re.sub('.dcm','',dicom_raw)+".*.dcm")
+            for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)): #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
+                if not os.path.isdir(dicom_dir) or len(os.path.listdir(path))<=2:
+                    QtGui.QMessageBox.warning(self, 'Warning',"Cannot send to DaRIS. Directory "+dicom_dir+" is empty")
+                else:
+                    cmd = os.path.join(thispath,'dpush') + ' -c ' + str(daris_ID) + ' -s mf-erc ' + str(dicom_dir)
+                    send_msg = "Are you sure you want to send to DaRIS the dicom directory\n"+ \
+                        str(dicom_dir)+"\n using the ID: "+str(daris_ID)+"   ?"
+                    reply = QtGui.QMessageBox.question(self, 'Message', send_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
+                    if reply == QtGui.QMessageBox.Yes:
+                        os.system(cmd)
         except ValueError:
             pass
 											    
@@ -425,6 +460,15 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.ui.pushButton_view2.setEnabled(True)
             self.ui.pushButton_send2daris2.setEnabled(True)
 												  
+    def About(self):
+        msg = "       Agilent2Dicom       \n\n"+\
+            "Agilent2Dicom converts FDF and FID images from the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.\n\n"+\
+            "Homepage: https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter \n\n"+\
+            "Version:"+__version__+"\n"+\
+            "Author: "+__author__+"\n"+\
+            __copyright__
+        reply = QtGui.QMessageBox.question(self, 'Message', msg, QtGui.QMessageBox.Ok)
+
 
 
 if __name__ == "__main__":
