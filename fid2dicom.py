@@ -145,7 +145,7 @@ if __name__ == "__main__":
     
     if args.verbose:
         print 'Image_data shape:', str(image_data.shape)
-
+        
     # Rescale image data
     #ds,image_scaled =FID.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
 
@@ -160,7 +160,8 @@ if __name__ == "__main__":
             args.gaussian_order=0
         if not args.gaussian_mode:
             args.gaussian_mode='nearest'
-        print "Computing Gaussian filtered image from Original image"
+        if args.verbose:
+            print "Computing Gaussian filtered image from Original image"
         image_filtered = CPLX.cplxgaussian_filter(image.real,image.imag,args.sigma,args.gaussian_order,args.gaussian_mode)
         ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f order=%d mode=%s.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.sigma, args.gaussian_order,args.gaussian_mode)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-gaussian.dcm',outdir))
@@ -168,7 +169,8 @@ if __name__ == "__main__":
     if args.gaussian_laplace:
         if not args.sigma:
             args.sigma=0.707
-        print "Computing Gaussian Laplace filtered image from Gaussian filtered image"
+        if args.verbose:
+            print "Computing Gaussian Laplace filtered image from Gaussian filtered image"
         image_filtered = CPLX.cplxgaussian_filter(image.real,image.imag,args.sigma)
         image_filtered = CPLX.cplxgaussian_laplace(image_filtered.real,image_filtered.imag,args.sigma)
         ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f order=0 mode=nearest. Complex Laplace filter: sigma.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.sigma,args.sigma)
@@ -177,7 +179,8 @@ if __name__ == "__main__":
     if args.median_filter:
         if not args.window_size:
             args.window_size=3
-        print "Computing Median filtered image from Original image"
+        if args.verbose:
+            print "Computing Median filtered image from Original image"
         image_filtered = CPLX.cplxmedian_filter(image.real,image.imag,args.window_size)
         ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Median filter: windown size=%d.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.window_size)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-median.dcm',outdir))
@@ -188,7 +191,8 @@ if __name__ == "__main__":
             args.window_size=3
         if not args.wiener_noise:
             args.wiener_noise=None
-        print "Computing Wiener filtered image from Original image"
+        if args.verbose:
+            print "Computing Wiener filtered image from Original image"
         image_filtered = CPLX.cplxwiener_filter(image.real,image.imag,args.window_size,args.wiener_noise)
         ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Wiener filter: window size=%d, noise=%f.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.window_size, args.wiener_noise)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-wiener.dcm',outdir))
