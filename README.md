@@ -255,20 +255,6 @@ For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.a
 
 See INSTALL.txt
 
-On the Agilent 9.4T console, download the tar zipped bundle of the
-source code and unpack it.  Add the Agilent2Dicom source path to the
-PATH environment variable.
-
-```
-#!bash
-
-wget https://bitbucket.org/mbi-image/agilent2dicom/get/default.tar.gz
-mkdir Agilent2Dicom
-tar zxvf default.tar.gz Agilent2Dicom/ 
-cd Agilent2Dicom
-echo "export PATH=`pwd`:${PATH}" >> ~/.bashrc
-```
-
 ### Dependencies ###
 
  * python (2.6 or greater)
