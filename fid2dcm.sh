@@ -307,7 +307,7 @@ then
     [ ! -d "${output_dir}" ] && error_exit "$LINENO: Output dir not created by fid2dicom."
 
     output_root=$(dirname $output_dir)
-    output_base=$(basename $output_dir)
+    output_base=$(basename $output_dir .dcm)
     dirs=$(find $output_root -maxdepth 1 -type d  -name  "$output_base*.dcm")
     echo "fid2dicom.py completed successfully. Dicom paths generated were: "
     echo $dirs
@@ -393,9 +393,10 @@ else
     ## number. The second argument reorders the list of 2D dicom files
     ## based on echo time, then image number, then slice number.
     ## Only one output file is required, 0001.dcm. 
-    ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-    [ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
-
+    for dcmdir in $dirs; do
+	${DCMULTI} ${dcmdir}/0001.dcm $(ls -1 ${dcmdir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+	[ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
+    done
 fi
 echo "DCMULTI complete. Fixing inconsistencies."
 
