@@ -19,10 +19,10 @@
 
 
 VersionNumber="1.3.0"
-Agilent2DicomAppVersion="1.2.2"
+Agilent2DicomAppVersion="1.2.3"
 FDF2DCMVERSION="1.2"
-FID2DCMVERSION="0.5"
-DVCSstamp="$Id: agilent2dicom_globalvars.py,v 2a8ebc62af2b 2014/10/28 05:37:39 michael $"
+FID2DCMVERSION="1.0"
+DVCSstamp="$Id: agilent2dicom_globalvars.py,v baa66ae2cc30 2014/10/29 03:39:14 root $"
 
 UID_ROOT="1.3.6.1.4.1" # Agilent Root UID 1.3.6.1.4.1, default "2.25"
 UID_Type_InstanceCreator="0"

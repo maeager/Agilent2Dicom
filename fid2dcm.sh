@@ -302,18 +302,25 @@ then
     echo " Arguments: ", "${python_args} --inputdir ${input_dir} --outputdir ${output_dir}"
     ${FID2DCMPATH}/${FID2DICOM} ${python_args} --inputdir "${input_dir}" --outputdir "${output_dir}"
 
-    [ $? -ne 0 ] && error_exit "$LINENO: agilent2dicom failed"
+    [ $? -ne 0 ] && error_exit "$LINENO: fid2dicom failed"
     
-    [ ! -d "${output_dir}" ] && error_exit "$LINENO: Output dir not created by agilent2dicom."
+    [ ! -d "${output_dir}" ] && error_exit "$LINENO: Output dir not created by fid2dicom."
+
+    output_root=$(dirname $output_dir)
+    output_base=$(basename $output_dir)
+    dirs=$(find $output_root -maxdepth 1 -type d  -name  "$output_base*.dcm")
+    echo "fid2dicom.py completed successfully. Dicom paths generated were: "
+    echo $dirs
 
     # dcmfiles=$(ls ${output_dir}/*.dcm)  ## Bad code - use glob
     #if[ $? -ne 0 ]
-    test -e "${output_dir}"/0001.dcm && error_exit "$LINENO: Output directory of fid2dicom has no DICOM images."
+    # test -e "${output_dir}"/0001.dcm && error_exit "$LINENO: Output directory of fid2dicom has no DICOM images."
     
     echo "Moving dicom images"
-    mkdir "${output_dir}"/tmp
-    mv "${output_dir}"/*.dcm "${output_dir}"/tmp/
-
+    for dcmdir in $dirs; do
+	mkdir "${dcmdir}"/tmp
+	mv "${dcmdir}"/*.dcm "${dcmdir}"/tmp/
+    done
 fi ## JumpToDCMulti
 
 echo "Convert dicom images to single enhanced MR dicom format image"
@@ -326,7 +333,9 @@ then
     for ((iecho=1;iecho<=nechos;++iecho)); do
      	echoext=$(printf '%03d' $iecho)
      	echo "Converting echo ${iecho} using dcmulti"
-     	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 ${output_dir}/tmp/*echo${echoext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	for dcmdir in $dirs; do
+	    ${DCMULTI} "${dcmdir}/0${echoext}.dcm" $(ls -1 ${dcmdir}/tmp/*echo${echoext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+	done
     done
 
 # DCMULTI="dcmulti -v -makestack -sortby EchoTime -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
@@ -349,10 +358,10 @@ elif  [ -f ${output_dir}/DIFFUSION ]; then
      	bdirext=$(printf '%03d' $ibdir)
 
      	echo "Converting bdir ${ibdir} using dcmulti"
-
+	for dcmdir in $dirs; do
 	## Input files are sorted by image number and slice number. 
-     	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 ${output_dir}/tmp/*image${bdirext}*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-
+     	    ${DCMULTI} "${dcmdir}/0${bdirext}.dcm" $(ls -1 ${dcmdir}/tmp/*image${bdirext}*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+	done
     done
     echo "Diffusion files compacted."
 
@@ -369,10 +378,10 @@ elif  [ -f ${output_dir}/ASL ]; then
      	aslext=$(printf '%03d' $iasl)
 
      	echo "Converting ASL tag ${iasl} using dcmulti"
-
+	for dcmdir in $dirs; do
 	## Input files are sorted by image number and slice number. 
-     	${DCMULTI} "${output_dir}/0${aslext}.dcm" $(ls -1 ${output_dir}/tmp/*echo${aslext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-
+     	    ${DCMULTI} "${dcmdir}/0${aslext}.dcm" $(ls -1 ${dcmdir}/tmp/*echo${aslext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+	done
     done
     echo "ASL files converted."
 
@@ -390,25 +399,27 @@ else
 fi
 echo "DCMULTI complete. Fixing inconsistencies."
 
+
+
 ## Corrections to dcmulti conversion
 if (( do_modify == 1 ))
 then
 
-    ${FID2DCMPATH}/fix-dicoms.sh "${output_dir}"
-    echo "Fixing dicoms complete."
+    for dcmdir in $dirs; do
+	${FID2DCMPATH}/fix-dicoms.sh "${dcmdir}"
+	echo "Fixing dicom dir ${dcmdir}"
 
     ## Additional corrections to diffusion files
-    if [ -f ${output_dir}/DIFFUSION ];then
-	${FID2DCMPATH}/fix-diffusion.sh "${output_dir}"
-	echo "Fixed diffusion module parameters."
-	rm -f ${output_dir}/DIFFUSION
-    fi
+	if [ -f ${output_dir}/DIFFUSION ];then
+	    ${FID2DCMPATH}/fix-diffusion.sh "${dcmdir}"
+	    echo "Fixed diffusion module parameters."
+	fi
     ## Additional corrections to ASL files
-    if [ -f ${output_dir}/ASL ];then
-	${FID2DCMPATH}/fix_asl.sh "${output_dir}"
-	echo "Fixed ASL module parameters."
-	rm -f ${output_dir}/ASL
-    fi
+	if [ -f ${output_dir}/ASL ];then
+	    ${FID2DCMPATH}/fix_asl.sh "${dcmdir}"
+	    echo "Fixed ASL module parameters."
+	fi
+    done
 fi
 [ -f ${output_dir}/DIFFUSION ] && rm -f ${output_dir}/DIFFUSION
 [ -f ${output_dir}/ASL ] && rm -f ${output_dir}/ASL
@@ -428,23 +439,24 @@ fi
 
 ## Cleaning up temporary directories
 echo "Cleaning up."
-if [ -d "${output_dir}/tmp" ]
+for dcmdir in $dirs; do
+if [ -d "${dcmdir}/tmp" ]
 then
     if (( verbosity > 0 ))
     then
 	if yesno "Remove existing tmp output directory, y or n (default y)?"
 	then
 	    echo "Removing existing tmp output directory"
-	    rm -rf "${output_dir}/tmp"    
+	    rm -rf "${dcmdir}/tmp"    
 	else
 	    echo "fid2dcm completed. Temporary dicoms still remain."
 	    exit 0
 	fi
     else
 	echo "Removing existing tmp output directory"
-	rm -rf "${output_dir}/tmp"    
+	rm -rf "${dcmdir}/tmp"    
     fi
-    [ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
+    [ -d "${dcmdir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
 fi
-
+done
 exit 0
