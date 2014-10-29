@@ -1,0 +1,147 @@
+                               INSTALL
+                               =======
+
+Author: Michael Eager <michael.eager@.monash.edu>
+Date: 2014-10-29 15:11:34 AEDT
+
+
+Table of Contents
+=================
+1 Setup and install 
+    1.1 Prerequisites 
+    1.2 Get the code 
+    1.3 Check 
+    1.4 Install Dicom3tools 
+    1.5 Install MRtrix 
+
+
+1 Setup and install 
+~~~~~~~~~~~~~~~~~~~~
+
+1.1 Prerequisites 
+==================
+Install the required applications and python packages your appropriate linux distribution package manager (or Pip for local python installations).
+
+On Debian/Ubuntu/LinuxMint:
+  sudo apt-get install python-setuptools python-dicom python-numpy python-tk dcmtk
+
+
+or Redhat/CentOS/Fedora:
+  sudo yum install python-setuptools numpy scipy python-tk dcmtk
+  sudo pip install pydicom
+
+
+The Agilent workstation is a RHEL.  Use yum groupinstall
+"Developmental Tools" to enable more features if you want more recent
+packages (e.g. atlas-devel, lapack-devel) required to install numpy
+and scipy from source.
+
+1.2 Get the code 
+=================
+Pull the stable version from the MBI bitbucket repository, using:
+
+  hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
+
+
+On the Agilent 9.4T MR console, download the tar zipped bundle of the
+source code and unpack it.  Add the Agilent2Dicom source path to the
+PATH environment variable.
+
+  wget https://bitbucket.org/mbi-image/agilent2dicom/get/default.tar.gz
+  mkdir Agilent2Dicom
+  tar zxvf default.tar.gz Agilent2Dicom/ 
+  cd Agilent2Dicom
+  echo "export PATH=`pwd`:${PATH}" >> ~/.bashrc
+
+
+
+1.3 Check 
+==========
+Check your python installation for the required packages using the check.py script:
+
+  cd Agilent2Dicom
+  ./check.py
+
+
+
+
+
+1.4 Install Dicom3tools 
+========================
+
+Install dicom3tools from [http://www.dclunie.com/dicom3tools.html] into the
+Agilent2Dicom folder.  The default settings for MBI's Agilent 9.4T MR scanner
+are used below.  The default UID root value '1.3.6.1.4.1' is unique to the MBI
+Agilent 9.4T MR scanner and should be changed for other devices.  The dependencies for 
+compiling dicom3tools are imake, gcc and binutil-essentials.
+
+On MASSIVE use: 
+  module load imake gcc.
+
+
+
+On the Agilent console, use: 
+  sudo yum install imake gcc binutil-essentials
+
+
+
+Once the dependencies have been installed, begin by downloading the
+latest dicom3tools [http://www.dclunie.com/dicom3tools/workinprogress/], adjust the config/site.p-def file for the appropriate settings. Follow the compile instructions
+below for installing on the Agilent console:
+  cd ~/src/    # On MASSIVE use cd ~/Monash016/eagerm/Agilent2Dicom
+  wget   http://www.dclunie.com/dicom3tools/workinprogress/dicom3tools_1.00.snapshot.20140306142442.tar.bz2
+  tar jxvf dicom3tools_1.00.snapshot.20140306142442.tar.bz2
+  cd dicom3tools_1.00.snapshot.20140306142442
+  
+  sed -i 's/CLUNIE/MBIAGILENT/' config/site.p-def
+  ./Configure
+  #            setenv IMAKEINCLUDE -I./config                              # only needed for tcsh
+  imake -I./config -DInstallInTopDir -DUseMBIAGILENT1ID -DDefaultUIDRoot=1.3.6.1.4.1
+  make World
+  make install                          # into ./bin
+  make install.man                      # into ./man
+
+
+
+1.5 Install MRtrix 
+===================
+
+MRtrix source code and documentation:  [http://www.brain.org.au/software/mrtrix/]
+
+For MRtrix stable version (0.2.12)
+  # For first-time installation, install required dependencies:
+  #   g++, python, gtkmm, gtkglext, libgsl & a working OpenGL environment
+  
+  # 1. Unpack archive:
+      tar xjf mrtrix-0.2.X.tar.bz2
+  
+  # 2. Compile:
+      cd mrtrix-0.2.X/
+      ./build
+  
+  # 3. Install (as root):
+      ./build install
+
+
+
+For mrtrix3:
+  module load python/2.7.8-gcc qt/4.8.4 gcc/4.8.2 glew/1.10.0 glut gsl gtkglext zlib virtualgl/2.3.x pyqt4 git
+  
+  git clone https://github.com/jdtournier/mrtrix3
+  cd mrtrix
+  
+  export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7
+  export CFLAGS="-I/usr/include -DGLX_GLXEXT_PROTOTYPES"
+  python2.7 ./configure
+  python2.7 ./build
+  
+  # Known error in the build process: run the gl_core command
+   g++ -c -fPIC -march=native -DMRTRIX_WORD64 -DMRTRIX_USE_TR1 -Wall -Wno-unused-function -Wno-unused-parameter -O2 -DNDEBUG -Isrc -Icmd -Ilib -Icmd -I/usr/local/gsl/1.12-gcc/include -I/usr/include -DHAVE_INLINE -DGLX_GLXEXT_PROTOTYPES src/gui/opengl/gl_core_3_3.cpp -o src/gui/opengl/gl_core_3_3.o
+  # Then complete the build again
+  python2.7 ./build
+  
+  ## Optional: Install as root
+  # sudo python ./build install
+
+
+
