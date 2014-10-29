@@ -47,12 +47,13 @@ Agilent2DicomAppStamp="$Id:"
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
-module unload python \n\
+module purge \n\
+module load massive virtualgl
 module load python/2.7.1-gcc \n\
 module load python/2.7.3-gcc \n\
 module load dcmtk mrtrix \n\
 module list \n\
-export PYTHONPATH=/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages \n\
+#export PYTHONPATH=/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages \n\
 else \n\
 echo ''Not in MASSIVE'' \n\
 fi \n\
