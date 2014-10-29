@@ -1,45 +1,16 @@
 # README #
 
-  Copyright 2014 Michael Eager  (michael.eager@monash.edu).
-
-  This file is part of the Agilent2Dicom package.
-
-  The Agilent2Dicom package is free software: you can redistribute it
-  and/or modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation, either version 3 of
-  the License, or (at your option) any later version.  
-
-  The Agilent2Dicom package is distributed in the hope that it will be
-  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
-  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with the Agilent2Dicom source code.  If not, see
-  <http://www.gnu.org/licenses/>.
-
-New name for project:
-MAGNI     Mbi AGileNt Image converter	(Son of Thor, god of strength)
-
-
 ## Quick summary ##
 
 The *Agilent2Dicom* package is a series of bash and python scripts to
-convert FDF images from the Agilent 9.4T MR scanner at Monash
-Biomedical Imaging (MBI) into enhanced MR DICOM images.
+convert FDF and FID images from the Agilent 9.4T MR scanner at Monash
+Biomedical Imaging (MBI) into enhanced MR DICOM images. 
 
 Homepage: [MBI's Confluence homepage](https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter)
 
-Source: [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom)
+Source code: [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom)
 
-
-The whole package Agilent2Dicom is at version 1.3.0.
-
-The internal FDF script, agilent2dicom.py, is at version 0.7.
-
-The internal FID script, fid2dicom.py, is at version 0.5.
-
-The console GUI, Agilent2DicomApp, is at version 0.3.
+Agilent2Dicom is at version 1.3.0.
 
 
 ## Basic overview ##
@@ -47,7 +18,10 @@ The console GUI, Agilent2DicomApp, is at version 0.3.
 The Agilent2Dicom package is for converting high-field MR images to
 enhanced DICOM formats.  The idea stemmed from poor reconstruction and
 implementation of the DICOM format on the Vnmrj system used by the
-Agilent 9.4 MR scanner.
+Agilent 9.4 MR scanner. Amanda Ng initiated the project with a simple
+fdf converter. Michael Eager took over and expanded the features to
+include enhanced DICOM conversion, full implementation for all
+sequences, FID complex filtering, and pyqt4 GUIs.
 
 FDF reconstructed images are converted to enhanced DICOM by the
 FDF2DCM suite (*fdf2dcm.sh*, *agilent2dicom.py*, *ReadFDF.py* and
@@ -66,7 +40,7 @@ FID2DCM suite (*fid2dcm.sh*, *fid2dicom.py*, *ReadFID.py*) enable the
 reconstruction and convertions of images to DICOM.  A feature of the
 reconstruction enables adjustable filtering in complex space and
 storage of phase information.  *cplxfilter.py* allows filtering of
-real and imaginary reconstructed images using gaussian, laplace
+real and imaginary reconstructed images using gaussian, laplace-
 gaussian, median and wiener filters.
 
 
@@ -109,9 +83,16 @@ Basic FID2DCM usage from the commandline is as follows:
 ```
 #!bash
 
-[eagerm@m2102 Agilent2Dicom]$ ./fid2dcm.sh -i inputdir.fid -o outputdir.dcm -v -m -p  -g 1.0 
+[eagerm@m2102 Agilent2Dicom]$ ./fid2dcm.sh -i inputdir.fid -o outputdir.dcm -v -m -p -k -g 1.0 
 ```
-The enhanced DICOM files of the raw reconstruction will be stored in outputdir.dcm.  A Gaussian filter with sigma=1.0 is used on the real and imaginary components of the reconstructed image. The magnitude and phase of the Gaussian filtered image will be stored in outputdir-gaussian-mag.dcm and outputdir-gaussian-pha.dcm, respectively.
+
+The enhanced DICOM files of the raw reconstruction will be stored in
+"outputdir.dcm".  A Gaussian filter with sigma=1.0 is used on the real
+and imaginary components of the reconstructed image. The magnitude and
+phase of the Gaussian filtered image will be stored in
+<outputdir>-gaussian-mag.dcm and <outputdir>-gaussian-pha.dcm,
+respectively.  The -k argument saves the k-space data to a MATLAB mat
+file (<outputdir>-ksp.mat).
  
 
 ## Advanced usage ##
@@ -415,3 +396,26 @@ See examples in Makefile.
 ## Who do I talk to? ##
 
 * Dr. Michael Eager (michael.eager@monash.edu) or someone in the Imaging Team at MBI
+
+
+## Licence ##
+
+  Copyright 2014 Michael Eager  (michael.eager@monash.edu).
+
+  This file is part of the Agilent2Dicom package.
+
+  The Agilent2Dicom package is free software: you can redistribute it
+  and/or modify it under the terms of the GNU General Public License
+  as published by the Free Software Foundation, either version 3 of
+  the License, or (at your option) any later version.  
+
+  The Agilent2Dicom package is distributed in the hope that it will be
+  useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+  of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with the Agilent2Dicom source code.  If not, see
+  <http://www.gnu.org/licenses/>.
+
+

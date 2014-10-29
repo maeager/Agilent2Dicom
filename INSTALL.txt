@@ -2,14 +2,48 @@
 
 * Setup and install
 
+** Prerequisites
+Install the required applications and python packages your appropriate linux distribution package manager (or Pip for local python installations).
 
+On Debian/Ubuntu/LinuxMint:
+#+begin_src bash
+sudo apt-get install python-setuptools python-dicom python-numpy python-tk dcmtk
+#+end_src
+
+or Redhat/CentOS/Fedora:
+#+begin_src bash
+sudo yum install python-setuptools numpy scipy python-tk dcmtk
+sudo pip install pydicom
+#+end_src
+
+The Agilent workstation is a RHEL.  Use yum groupinstall
+"Developmental Tools" to enable more features if you want more recent
+packages (e.g. atlas-devel, lapack-devel) required to install numpy
+and scipy from source.
+
+** Get the code
 Pull the stable version from the MBI bitbucket repository, using:
 
-#+begin_src bash
+#+begin_src sh
 hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
 #+end_src
 
+On the Agilent 9.4T MR console, download the tar zipped bundle of the
+source code and unpack it.  Add the Agilent2Dicom source path to the
+PATH environment variable.
 
+#+begin_src sh
+
+wget https://bitbucket.org/mbi-image/agilent2dicom/get/default.tar.gz
+mkdir Agilent2Dicom
+tar zxvf default.tar.gz Agilent2Dicom/ 
+cd Agilent2Dicom
+echo "export PATH=`pwd`:${PATH}" >> ~/.bashrc
+
+#+end_src
+
+
+** Check 
 Check your python installation for the required packages using the check.py script:
 
 #+begin_src bash
@@ -18,17 +52,6 @@ cd Agilent2Dicom
 #+end_src
 
 
-Install the required applications and python packages your appropriate linux distribution package manager (or Pip for local python installations).
-
-On Debian/Ubuntu:
-#+begin_src bash
-sudo apt-get install python-dicom python-numpy python-tk dcmtk
-#+end_src
-
-or Redhat/CentOS:
-#+begin_src bash
-sudo yum install python-dicom python-numpy python-tk dcmtk
-#+end_src
 
 
 ** Install Dicom3tools 
