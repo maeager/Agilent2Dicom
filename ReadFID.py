@@ -96,24 +96,28 @@ def readfid(folder,pp,args):
     status=f.read(int16size)
     hdr['status'],    = struct.unpack(endian+'h',status) #fid,1,'int16')
     hdr['nbheaders'], = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
-    print 'status : ', hdr['status'], type(hdr['status']), type(status)
+    if args.verbose:
+        print 'status : ', hdr['status'], type(hdr['status']), type(status)
     hdr['s_data']    = int(get_bit(hdr['status'],1))
     hdr['s_spec']    = int(get_bit(hdr['status'],2))
     hdr['s_32']      = int(get_bit(hdr['status'],3))
     hdr['s_float']   = int(get_bit(hdr['status'],4))
     hdr['s_complex'] = int(get_bit(hdr['status'],5))
     hdr['s_hyper']   = int(get_bit(hdr['status'],6))
-    print hdr # ['s_data'],hdr['s_spec'],hdr['s_32'],hdr['s_float'],hdr['s_complex'],hdr['s_hyper']
+    if args.verbose:
+        print hdr # ['s_data'],hdr['s_spec'],hdr['s_32'],hdr['s_float'],hdr['s_complex'],hdr['s_hyper']
 
 
     if hdr['s_float'] == 1:
         # data = fread(fid,hdr.np*hdr.ntraces,'*float32')
         dtype_str=numpy.dtype(endian+'f4') # 'float32'
-        print 'reading 32bit floats '
+        if args.verbose:
+            print 'reading 32bit floats '
     elif hdr['s_32'] == 1:
         # data = fread(fid,hdr.np*hdr.ntraces,'*int32')
         dtype_str='int32'
-        print 'reading 32bit int'
+        if args.verbose:
+            print 'reading 32bit int'
     else:
         # data = fread(fid,hdr.np*hdr.ntraces,'*int16')
         dtype_str ='int16' 
@@ -134,10 +138,12 @@ def readfid(folder,pp,args):
         dims[2] = pp['ni2'] 
     else:
         raise ValueError("Can only handle 2D or 3D files (based on procpar field nD)")   
-    print 'Dimensions: ',dims, hdr['dims']
+    if args.verbose:
+        print 'Dimensions: ',dims, hdr['dims']
 
     if hdr['np'] != pp['np'] or  hdr['ntraces'] != pp['nf'] or hdr['nblocks'] != pp['arraydim']:
-        print 'NP ', hdr['np'], pp['np'], ' NF ', hdr['ntraces'], pp['nf'], ' Blocks ', hdr['nblocks'], pp['arraydim']
+        if args.verbose:
+            print 'NP ', hdr['np'], pp['np'], ' NF ', hdr['ntraces'], pp['nf'], ' Blocks ', hdr['nblocks'], pp['arraydim']
         raise ValueError("Cannot resolve fid header with procpar. We're probably not interpreting the procpar correctly.")
     # hdr['nChannels'] = hdr['nblocks']/hdr['acqcycles']
     hdr['nPhaseEncodes'] = hdr['ntraces']/hdr['nEchoes']
@@ -178,7 +184,8 @@ def readfid(folder,pp,args):
 # theta
 #              Thickness of slices or saturation bands (satthk).
 # thk
-    print "Shifts of slices along z axis ",pp['pss'],pp['pss0']
+    if args.verbose:
+        print "Shifts of slices along z axis ",pp['pss'],pp['pss0']
     # Create FDF-like header variables
     hdr['location'] = [-pp['pro'], pp['ppe'], pp['pss0'] ]
     hdr['span'] = [pp['lro'], pp['lpe'], pp['lpe2']]
@@ -192,12 +199,14 @@ def readfid(folder,pp,args):
     # reset output structures
     RE = numpy.empty([ hdr['np']/2,hdr['ntraces'], hdr['nblocks']], dtype=float)
     IM = numpy.empty([ hdr['np']/2,hdr['ntraces'], hdr['nblocks']], dtype=float)
-    print "Real shape:", RE.shape
+    if args.verbose:
+        print "Real shape:", RE.shape
     # We have to read data every time in order to increment file pointer
     nchar = 0
     for iblock in xrange(0,hdr['nblocks']):
         # fprintf(1, repmat('\b',1,nchar))
-        print  'reading block ', iblock+1,' of ', hdr['nblocks']
+        if args.verbose:
+            print  'reading block ', iblock+1,' of ', hdr['nblocks']
         # Read a block header
         header=dict()
         header['scale'],     = struct.unpack(endian+'h',f.read(int16size)) #fid,1,'int16')
@@ -209,29 +218,34 @@ def readfid(folder,pp,args):
         header['rpval'],     = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         header['lvl'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         header['tlt'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
-        print header
+        if args.verbose:
+            print header
         data = numpy.fromfile(f,count=hdr['np']*hdr['ntraces'],dtype=dtype_str)
-        print "Dim and shape: ", data.ndim, data.shape
+        if args.verbose:
+            print "Dim and shape: ", data.ndim, data.shape
         data = numpy.reshape(data, [hdr['ntraces'],hdr['np']])
-        print "Dim and shape: ", data.ndim, data.shape, " max np ", hdr['np']
+        if args.verbose:
+            print "Dim and shape: ", data.ndim, data.shape, " max np ", hdr['np']
         RE[:,:,iblock] = numpy.matrix(data[:,:hdr['np']:2]).T   # hdr['np'] #[::2,:] #
         IM[:,:,iblock] = numpy.matrix(data[:,1:hdr['np']:2]).T  # hdr['np'] #[1::2,:]      #
         #break
     f.close()
-    print iblock
+    #print iblock
     if iblock == 0:
-        print "Reshaping single block data"
+        if args.verbose:
+            print "Reshaping single block data"
         RE = numpy.reshape(RE,dims)
         IM = numpy.reshape(IM,dims)
-    #hdr.pp = pp
-    print "Data Row 1:   %.5g %.5g %.5g %.5g %.5g  %.5g ... %.5g %.5g %.5g %.5g" % (data[0,0],data[0,1],  data[0,2],data[0,3],  data[0,4], data[0,5], data[0,-4], data[0,-3], data[0,-2], data[0,-1])
-    print "Data Col 1:   %.5g %.5g %.5g %.5g %.5g %.5g  ... %.5g %.5g %.5g %.5g" % (data[0,0],data[1,0],  data[2,0],data[3,0],  data[4,0], data[5,0], data[-4,0],data[-3,0], data[-2,0], data[-1,0])
-    print "Data Row -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[-1,0],data[-1,1],  data[-1,2],data[-1,3],  data[-1,4],data[-1,5], data[-1,-4], data[-1,-3], data[-1,-2],data[-1,-1])
-    print "Data Col -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[0,-1],data[1,-1],  data[2,-1],data[3,-1],  data[4,-1], data[5,-1],data[-4,-1], data[-3,-1], data[-2,-1],data[-1,-1])
-    print "RE : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (RE[0,0,iblock],RE[0,1,iblock],  RE[0,2,iblock],RE[1,0,iblock],  RE[2,0,iblock], RE[0,-1,iblock], RE[-1,0,iblock], RE[-1,-1,iblock])
-    print "IM : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (IM[0,0,iblock],IM[0,1,iblock],  IM[0,2,iblock],IM[1,0,iblock],  IM[2,0,iblock], IM[0,-1,iblock], IM[-1,0,iblock], IM[-1,-1,iblock])
-    print "Final dims and shape of RE: ",dims, RE.shape
-    return pp,hdr,dims,RE,IM
+    # hdr.pp = pp
+    if args.verbose:
+        print "Data Row 1:   %.5g %.5g %.5g %.5g %.5g  %.5g ... %.5g %.5g %.5g %.5g" % (data[0,0],data[0,1],  data[0,2],data[0,3],  data[0,4], data[0,5], data[0,-4], data[0,-3], data[0,-2], data[0,-1])
+        print "Data Col 1:   %.5g %.5g %.5g %.5g %.5g %.5g  ... %.5g %.5g %.5g %.5g" % (data[0,0],data[1,0],  data[2,0],data[3,0],  data[4,0], data[5,0], data[-4,0],data[-3,0], data[-2,0], data[-1,0])
+        print "Data Row -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[-1,0],data[-1,1],  data[-1,2],data[-1,3],  data[-1,4],data[-1,5], data[-1,-4], data[-1,-3], data[-1,-2],data[-1,-1])
+        print "Data Col -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[0,-1],data[1,-1],  data[2,-1],data[3,-1],  data[4,-1], data[5,-1],data[-4,-1], data[-3,-1], data[-2,-1],data[-1,-1])
+        print "RE : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (RE[0,0,iblock],RE[0,1,iblock],  RE[0,2,iblock],RE[1,0,iblock],  RE[2,0,iblock], RE[0,-1,iblock], RE[-1,0,iblock], RE[-1,-1,iblock])
+        print "IM : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (IM[0,0,iblock],IM[0,1,iblock],  IM[0,2,iblock],IM[1,0,iblock],  IM[2,0,iblock], IM[0,-1,iblock], IM[-1,0,iblock], IM[-1,-1,iblock])
+        print "Final dims and shape of RE: ",dims, RE.shape
+        return pp,hdr,dims,RE,IM
 # end readfid
 
 
@@ -243,8 +257,9 @@ def recon(pp,dims,hdr,RE,IM):
     :param RE: real component of image k-space
     :param IM: imaginary component of image k-space
     """
-    print 'Reconstructing image'
-    print dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']
+    if args.verbose:
+        print 'Reconstructing image'
+        print dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']
     if hdr['nChannels']==1 and  hdr['nEchoes']==1:
         ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
         img = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
@@ -260,7 +275,8 @@ def recon(pp,dims,hdr,RE,IM):
             ksp[:,:,:].imag = IM  #[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
             for islice in xrange(0,int(dims[2])):
                 if 'pelist' in pp.keys() and len(pp['pelist'])==int(dims[2]):
-                    print pp['pelist']
+                    if args.verbose:
+                        print pp['pelist']
                     img[:,:,islice] = fftshift(ifftn(ifftshift(ksp[:,pp['pelist']-min(pp['pelist']),islice])))
                 else:
                     img[:,:,islice] = fftshift(ifftn(ifftshift(ksp[:,:,islice])))
@@ -285,7 +301,8 @@ def recon(pp,dims,hdr,RE,IM):
         else:
             for echo in xrange(0,int(hdr['nEchoes'])):
                 for n in xrange(0,int(hdr['nChannels'])):
-                    print "Processing echo ",echo," channel ",n
+                    if args.verbose:
+                        print "Processing echo ",echo," channel ",n
                     ksp[:,:,:,n,echo].real = RE[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
                     ksp[:,:,:,n,echo].imag = IM[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
                     if 'pelist' in pp.keys():
@@ -337,7 +354,7 @@ def RescaleFIDImage(ds,image_data,args):
     return ds,image_data_int16
 # end RescaleFIDImage
 
-def RearrangeImage(image,axis_order):
+def RearrangeImage(image,axis_order,args):
     from scipy.signal import _arraytools as ar
     axes = re.findall(r'[-]*\d',axis_order)
     raxes = numpy.array(axes)
@@ -350,8 +367,9 @@ def RearrangeImage(image,axis_order):
         if image.ndim ==5:
             image_treal = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
             image_timag = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
-            print "Transposing 5D image to ", axis_order
-            print  image.shape, ' -> ', image_treal.shape
+            if args.verbose:
+                print "Transposing 5D image to ", axis_order
+                print  image.shape, ' -> ', image_treal.shape
 
             for echo in xrange(0,image.shape[4]):
                 ## Transpose image dimensions
@@ -360,16 +378,19 @@ def RearrangeImage(image,axis_order):
                 ## Then do reversing second
                 for n in xrange(0,3):
                     if re.search('-',axes[n]):
-                        print "Reversing axis ", n
+                        if args.verbose:
+                            print "Reversing axis ", n
                         image_treal[:,:,:,0,echo] = ar.axis_reverse(image_treal[:,:,:,0,echo],n)
                         image_timag[:,:,:,0,echo] = ar.axis_reverse(image_timag[:,:,:,0,echo],n)
                 image.reshape([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
 #                print image.shape
         else:
-            print "Transposing 3D image to ", axis_order
+            if args.verbose:
+                print "Transposing 3D image to ", axis_order
             for n in xrange(0,3):
                 if re.search('-',axes[n]):
-                    print "Reversing axis ", n
+                    if args.verbose:
+                        print "Reversing axis ", n
                     image_treal = ar.axis_reverse(image_treal,n)
                     image_timag = ar.axis_reverse(image_timag,n)
             image_treal = numpy.transpose(image.real,(iaxes[0],iaxes[1],iaxes[2]))
@@ -379,7 +400,8 @@ def RearrangeImage(image,axis_order):
         image = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]],dtype=complex)
         image.real = image_treal
         image.imag = image_timag
-        print "Final shape: ", image.shape, image_treal.shape
+        if args.verbose:
+            print "Final rearranged image shape: ", image.shape, image_treal.shape
     return image
 #end RearrangeImage
 
@@ -867,7 +889,8 @@ def ParseFID(ds,fid_properties,procpar,args):
 #        volume=fid_properties['echo_no']
 
     if ds.ImageType[2]=="MULTIECHO":# and fid_properties['echoes'] > 1:
-        print 'Multi-echo sequence'
+        if args.verbose:
+            print 'Multi-echo sequence'
 	# TE 0018,0081 Echo Time (in ms) (optional)
         if 'TE' in fid_properties.keys():
             if ds.EchoTime != str(fid_properties['TE']*1000):
@@ -979,7 +1002,7 @@ def ParseFID(ds,fid_properties,procpar,args):
     
 import os, errno
 
-def mkdir_or_cleandir(path):
+def mkdir_or_cleandir(path,args):
     """
     https://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
 For Python >= 3.2, os.makedirs has an optional third argument exist_ok that, when true, enables the mkdir -p functionality  - unless mode is provided and the existing directory has different permissions than the intended ones; in that case, OSError is raised as previously.
@@ -987,13 +1010,16 @@ For Python >= 3.2, os.makedirs has an optional third argument exist_ok that, whe
     try:
         if os.path.isdir(path):
             if os.listdir(path) == []: 
-                print "Output path exists and is empty" 
+                if args.verbose:
+                    print "Output path exists and is empty" 
             else: 
-                print "Cleaning output path" 
+                if args.verbose:
+                    print "Cleaning output path" 
                 shutil.rmtree(path,ignore_errors=True)
                 os.makedirs(path)
         else:
-            print "Creating dir ", path
+            if args.verbose:
+                print "Creating dir ", path
             os.makedirs(path)
     except OSError as exc: # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir(path):
@@ -1017,10 +1043,12 @@ def SaveFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
     :return ds:        Return the pydicom dataset
     """
 
-    print "5D export of complex image"
+    if args.verbose:
+        print "5D export of complex image"
 
     if args.magnitude:
-        print "Exporting magnitude"
+        if args.verbose:
+            print "Exporting magnitude"
         orig_imagetype=ds.ImageType[2]
         if ds.ImageType[2]=="PHASE MAP":
             ds.ImageType[2]="MAGNITUDE"
@@ -1028,33 +1056,37 @@ def SaveFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
         voldata = numpy.absolute(image_data) # Magnitude
         outdir1=re.sub('.dcm','-mag.dcm',outdir)
         if not os.path.isdir(outdir1):
-            mkdir_or_cleandir(outdir1)
+            mkdir_or_cleandir(outdir1,args)
         Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir1)
         ds.ImageType[2]=orig_imagetype
         
     if args.phase:
+        if args.verbose:
+            print "Exporting phase "
         voldata=numpy.angle(image_data) # Phase
         orig_imagetype=ds.ImageType[2]
         ds.ImageType[2]="PHASE MAP"
         ds.ComplexImageComponent='PHASE'        
         outdir1=re.sub('.dcm','-pha.dcm',outdir)
         if not os.path.isdir(outdir1):
-            mkdir_or_cleandir(outdir1)
+            mkdir_or_cleandir(outdir1,args)
         Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir1)
         ds.ImageType[2]=orig_imagetype
         ds.ComplexImageComponent='MAGNITUDE'
     if args.realimag:
+        if args.verbose:
+            print "Exporting real and imag"
         voldata=numpy.real(image_data) 
         ds.ComplexImageComponent='REAL'        
         outdir1=re.sub('.dcm','-real.dcm',outdir)
         if not os.path.isdir(outdir1):
-            mkdir_or_cleandir(outdir1)
+            mkdir_or_cleandir(outdir1,args)
         Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir1)
         voldata=numpy.imag(image_data)
         ds.ComplexImageComponent='IMAGINARY'        
         outdir1=re.sub('.dcm','-imag.dcm',outdir)
         if not os.path.isdir(outdir1):
-            mkdir_or_cleandir(outdir1)
+            mkdir_or_cleandir(outdir1,args)
         Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir1)
         ds.ComplexImageComponent='MAGNITUDE'
 
@@ -1081,8 +1113,9 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
     ds,voldata = RescaleFIDImage(ds,voldata,args)
    
     if not os.path.isdir(outdir):
-        print "Save3dFIDtoDicom output path has not been created."
-        mkdir_or_cleandir(outdir)
+        if args.verbose:
+            print "Save3dFIDtoDicom output path has not been created."
+        mkdir_or_cleandir(outdir,args)
 
     # if procpar['recon'] == 'external':
     # 
@@ -1099,11 +1132,12 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
     #        acq.dims = [pps.nf pps.np/2 pps.nv2];
     #        acq.voxelmm = acq.FOVcm./acq.dims*10;
 
-            
-    print "Image data shape: ", str(voldata.shape)
-    print "Vol data shape: ", voldata.shape
-    print "fid properties matrix: ", fid_properties['dims']
-    print "Slice points: ", fid_properties['dims'][0]*fid_properties['dims'][1]
+    if args.verbose:
+        
+        print "Image data shape: ", str(voldata.shape)
+        print "Vol data shape: ", voldata.shape
+        print "fid properties matrix: ", fid_properties['dims']
+        print "Slice points: ", fid_properties['dims'][0]*fid_properties['dims'][1]
     #  slice_data = numpy.zeros_like(numpy.squeeze(image_data[:,:,1]))
     #   if 'ne' in procpar.keys():
         
@@ -1119,7 +1153,7 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
     if args.verbose:
         print "Columns ", ds.Columns, " Rows ", ds.Rows
         print "Range max and no slice points: ", range_max, num_slicepts
-        print "Voldata[1] shape: ", voldata[:,:,0,0,0].shape
+        print "Voldata[1] shape: ", voldata.shape
 
    
     # Export dicom to file
@@ -1163,14 +1197,38 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
 
                     # Save DICOM
                     if args.verbose:
-                        print "Saving 2D slice DICOM slice %d, image %d, echo %d" % (islice,n, echo)
+                        print "Saving 2D slice in 5D DICOM slice %d, image %d, echo %d" % (islice,n, echo)
 
                     ds.save_as(os.path.join(outdir, new_filename))
             # Increment StackID
             if args.verbose:
                 print "Incrementing volume StackID (current) ", ds.FrameContentSequence[0].StackID
             ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0])+1)
-        return ds
+    else:
+        for islice in xrange(0,range_max):    
+            # Reshape volume slice to 1D array
+            slice_data = numpy.reshape(voldata[:,:,islice],(num_slicepts,1)) 
+            # Convert Pixel data to string
+            ds.PixelData = slice_data.tostring()
+            new_filename = "slice%03dimage001echo001.dcm" % (islice+1)
+
+#        if procpar['recon'] == 'external' and fid_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
+            pos = numpy.matrix([[0],[islice],[0],[1]])
+#        else:
+#            pos = numpy.matrix([[0],[0],[islice],[1]])
+
+            # Get slice's position
+            Pxyz = M * pos
+            ds.ImagePositionPatient= [str(Pxyz[0,0]),str(Pxyz[1,0]),str(Pxyz[2,0])]
+            ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)] #THIRDdimindex
+            ds.FrameContentSequence[0].TemporalPositionIndex = int(0)
+
+            # Save DICOM
+            if args.verbose:
+                print "Saving 2D slice in 3d DICOM slice %d " % (islice)
+            ds.save_as(os.path.join(outdir, new_filename))
+
+    return ds
 #end SaveSave3dFIDtoDicom
 
         
@@ -1262,24 +1320,28 @@ if __name__ == "__main__":
 
     files = os.listdir(args.inputdir)
     fidfiles = [ f for f in files if f.endswith('fid') ]
-    print "Number of FID files ", len(fidfiles)
+    if args.verbose:
+        print "Number of FID files ", len(fidfiles)
 
     # for filename in fidfiles:
-    print "Reading FID"
+    if args.verbose:
+        print "Reading FID"
     filename = fidfiles[len(fidfiles)-1]
     pp,hdr,dims,image_data_real,image_data_imag=readfid(args.inputdir,procpar,args)
-    print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
+    if args.verbose:
+        print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
     affine = numpy.eye(4)
     # # affine[:3,:3]= np.arange(9).reshape((3,3))
     # raw_data=nib.Nifti1Image(normalise(image_data_real),affine)
     # nib.save(raw_data,'raw_data.nii.gz')
 
     # Change dicom for specific FID header info
-    ds,matsize,ImageTransformationMatrix = FID.ParseFID(ds,hdr,procpar,args)
+    ds,matsize,ImageTransformationMatrix = ParseFID(ds,hdr,procpar,args)
 
     
     if os.path.exists('raw_image_00.nii.gz'):
-        print "Getting Original image (reconstruction)"
+        if args.verbose:
+            print "Getting Original image (reconstruction)"
         nii = nib.load('raw_image_00.nii.gz')
         
         image=numpy.empty([nii.shape[0], nii.shape[1],nii.shape[2],1,3],dtype=complex)
@@ -1289,10 +1351,12 @@ if __name__ == "__main__":
         nii = nib.load('raw_image_02.nii.gz')
         image[:,:,:,0,2] = nii.get_data()
     else:
-        print "Computing Original image (reconstruction)"
+        if args.verbose:
+            print "Computing Original image (reconstruction)"
         image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag)
 
-        print "Saving raw image"
+        if args.verbose:
+            print "Saving raw image"
         if image.ndim ==5:
             for i in xrange(0,image.shape[4]):
                 raw_image=nib.Nifti1Image(normalise(numpy.abs(image[:,:,:,0,i])),affine)
