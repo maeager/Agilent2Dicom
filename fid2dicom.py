@@ -56,7 +56,7 @@ if __name__ == "__main__":
 #    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
     parser.add_argument('-g','--gaussian_filter', help='Gaussian filter smoothing of reconstructed RE and IM components.',action="store_true");
     parser.add_argument('-l','--gaussian_laplace', help='Gaussian Laplace filter smoothing of reconstructed RE and IM components. --sigma variable must be declared.',action="store_true");
-    parser.add_argument('-s','--sigma',help='Gaussian and Laplace-Gaussian sigma variable. Default 1/srqt(2).',default=0.707)
+    parser.add_argument('-s','--sigma',help='Gaussian and Laplace-Gaussian sigma variable. Default 1/srqt(2).',type=float,default=0.707)
     parser.add_argument('-go','--gaussian_order',help='Gaussian and Laplace-Gaussian order variable. Default 0.',type=int,choices=[0,1,2,3],default=0)
     parser.add_argument('-gm','--gaussian_mode',help='Gaussian and Laplace-Gaussian mode variable. Default nearest.',choices=['reflect','constant','nearest','mirror','wrap'],default='nearest')
     parser.add_argument('-d','--median_filter', help='Median filter smoothing of reconstructed RE and IM components. ',action="store_true");
