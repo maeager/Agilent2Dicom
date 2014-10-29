@@ -977,6 +977,30 @@ def ParseFID(ds,fid_properties,procpar,args):
 #end ParseFID
 
     
+import os, errno
+
+def mkdir_or_cleandir(path):
+    """
+    https://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
+For Python >= 3.2, os.makedirs has an optional third argument exist_ok that, when true, enables the mkdir -p functionality  - unless mode is provided and the existing directory has different permissions than the intended ones; in that case, OSError is raised as previously.
+    """
+    try:
+        if os.path.isdir(path):
+            if os.listdir(path) == []: 
+                print "Output path exists and is empty" 
+            else: 
+                print "Cleaning output path" 
+                shutil.rmtree(path,ignore_errors=True)
+                os.makedirs(path)
+        else:
+            print "Creating dir ", path
+            os.makedirs(path)
+    except OSError as exc: # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else: 
+            print "Cannot create dir ", path
+            raise
 
 def SaveFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
     """
@@ -1002,7 +1026,10 @@ def SaveFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
             ds.ImageType[2]="MAGNITUDE"
         ds.ComplexImageComponent='MAGNITUDE'    
         voldata = numpy.absolute(image_data) # Magnitude
-        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,re.sub('.dcm','-mag.dcm',outdir))
+        outdir1=re.sub('.dcm','-mag.dcm',outdir)
+        if not os.path.isdir(outdir1):
+            mkdir_or_cleandir(outdir1)
+        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir1)
         ds.ImageType[2]=orig_imagetype
         
     if args.phase:
@@ -1010,16 +1037,25 @@ def SaveFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
         orig_imagetype=ds.ImageType[2]
         ds.ImageType[2]="PHASE MAP"
         ds.ComplexImageComponent='PHASE'        
-        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,re.sub('.dcm','-pha.dcm',outdir),1)
+        outdir1=re.sub('.dcm','-pha.dcm',outdir)
+        if not os.path.isdir(outdir1):
+            mkdir_or_cleandir(outdir1)
+        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir1)
         ds.ImageType[2]=orig_imagetype
         ds.ComplexImageComponent='MAGNITUDE'
     if args.realimag:
         voldata=numpy.real(image_data) 
         ds.ComplexImageComponent='REAL'        
-        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,re.sub('.dcm','-real.dcm',outdir))
+        outdir1=re.sub('.dcm','-real.dcm',outdir)
+        if not os.path.isdir(outdir1):
+            mkdir_or_cleandir(outdir1)
+        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir1)
         voldata=numpy.imag(image_data)
         ds.ComplexImageComponent='IMAGINARY'        
-        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,re.sub('.dcm','-imag.dcm',outdir))
+        outdir1=re.sub('.dcm','-imag.dcm',outdir)
+        if not os.path.isdir(outdir1):
+            mkdir_or_cleandir(outdir1)
+        Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir1)
         ds.ComplexImageComponent='MAGNITUDE'
 
 #end SaveFIDtoDicom
@@ -1044,6 +1080,9 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
     # calculate the intercept and slope for casting to UInt16
     ds,voldata = RescaleFIDImage(ds,voldata,args)
    
+    if not os.path.isdir(outdir):
+        print "Save3dFIDtoDicom output path has not been created."
+        mkdir_or_cleandir(outdir)
 
     # if procpar['recon'] == 'external':
     # 
