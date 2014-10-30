@@ -48,7 +48,7 @@ cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
 module purge \n\
-module load massive virtualgl
+module load massive virtualgl\n\
 module load python/2.7.1-gcc \n\
 module load python/2.7.3-gcc \n\
 module load dcmtk mrtrix \n\
@@ -58,6 +58,17 @@ else \n\
 echo ''Not in MASSIVE'' \n\
 fi \n\
 echo ''Done''\n '
+
+mrview_header='if test ${MASSIVE_USERNAME+defined} \n\
+then \n\
+echo ''On Massive'' \n\
+module purge \n\
+module load massive virtualgl\n\
+module load mrtrix \n\
+module list \n\
+else echo ''Not in MASSIVE'' \n\
+fi; vglrun mrview '
+
 
 class Agilent2DicomWindow(QtGui.QMainWindow):
     def __init__(self):
@@ -113,8 +124,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 
     def accept(self):
         '''Execute the command in response to the OK button.'''
-        #print 'The volume of drinks is {0} liters ({1} jiggers).'.format(self.getLiters(), self.getJiggers())
-        #print 'The blender is running at speed "{0}"'.format(self.getSpeedName())
         self.close()
 
     def reject(self):
@@ -324,11 +333,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         try:
             output_dir = str(self.ui.lineEdit_dicompath.text())
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
-            cmd1 ='mrview '+ output_dir
+            cmd1 =mrview_header + output_dir 
             print(cmd1)
-            cmd=cmd_header + cmd1 +')'
-            print(cmd)
-            os.system(cmd)
+            os.system(cmd1)
         except ValueError:
             pass
 						      
@@ -381,41 +388,54 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.UpdateGUI()
         except ValueError:
             pass
-										
-    def CheckFID(*args):  #send_button):
-        try:
-            
-            output_dir = self.ui.lineEdit_dicompath2.text()
+
+    def CheckFID(self):  #send_button):
+        try:            
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             print 'check path: %s' % thispath
-            cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + str(output_dir)
-            print(cmd1)
-            cmd=cmd_header + cmd1 +')'
-            print(cmd)
-            os.system(cmd)
-            cmd1 ='[ -x mrview ] && mrview '+ str(output_dir)
-            print(cmd1)
-            cmd=cmd_header + cmd1 +')'
-            print(cmd)
-            os.system(cmd)
+            dicom_raw_dir = str(self.ui.lineEdit_dicompath2.text())
+            # Shorten string if it ends in '/'
+            if dicom_raw_dir[-1] == '/': dicom_raw_dir=dicom_raw_dir[:-1]
+            # Get tuple of root path and raw/unfiltered dicom path
+            (dicom_dir_root, dicom_raw) = os.path.split(dicom_raw_dir)
+            # Do a regex and get all the dicom paths produced by Agilent2Dicom
+            rgx = re.compile(r''+re.sub('.dcm','',dicom_raw)+".*.dcm")
+            for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)): #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
+                dcmpath=os.path.join(dicom_dir_root,dicom_dir)
+                if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath))<=2:
+                    cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + str(dcmpath)
+                    print(cmd1)
+                    cmd=cmd_header + cmd1 +')'
+                    print(cmd)
+                    os.system(cmd)
+            
             self.UpdateGUI()
         except ValueError:
             pass
 										    
     def ViewFID(self):
         try:
-            output_dir = self.ui.lineEdit_dicompath2.text()
+            
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
-            cmd1 = os.path.join(thispath,'mrview') + '  ' + output_dir
-            print(cmd1)
-            cmd=cmd_header + cmd1 +')'
-            print(cmd)
-            os.system(cmd)
+            dicom_raw_dir = str(self.ui.lineEdit_dicompath2.text())
+            # Shorten string if it ends in '/'
+            if dicom_raw_dir[-1] == '/': dicom_raw_dir=dicom_raw_dir[:-1]
+            # Get tuple of root path and raw/unfiltered dicom path
+            (dicom_dir_root, dicom_raw) = os.path.split(dicom_raw_dir)
+            # Do a regex and get all the dicom paths produced by Agilent2Dicom
+            rgx = re.compile(r''+re.sub('.dcm','',dicom_raw)+".*.dcm")
+            for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)): #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
+                dcmpath=os.path.join(dicom_dir_root,dicom_dir)
+                if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath))<=2:
+                    cmd1 =mrview_header + dcmpath +' & '
+                    
+                    print(cmd1)
+                    os.system(cmd1)
             self.UpdateGUI()
         except ValueError:
             pass
 											
-    def Send2Daris2(*args):
+    def Send2Daris2(self):
         try:
             daris_ID = self.ui.lineEdit_darisid2.text()
             if str(daris_ID)=="": 
@@ -433,12 +453,13 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             # Do a regex and get all the dicom paths produced by Agilent2Dicom
             rgx = re.compile(r''+re.sub('.dcm','',dicom_raw)+".*.dcm")
             for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)): #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
-                if not os.path.isdir(dicom_dir) or len(os.path.listdir(path))<=2:
+                dcmpath=os.path.join(dicom_dir_root,dicom_dir)
+                if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath))<=2:
                     QtGui.QMessageBox.warning(self, 'Warning',"Cannot send to DaRIS. Directory "+dicom_dir+" is empty")
                 else:
-                    cmd = os.path.join(thispath,'dpush') + ' -c ' + str(daris_ID) + ' -s mf-erc ' + str(dicom_dir)
+                    cmd = os.path.join(thispath,'dpush') + ' -c ' + str(daris_ID) + ' -s mf-erc ' + str(dcmpath)
                     send_msg = "Are you sure you want to send to DaRIS the dicom directory\n"+ \
-                        str(dicom_dir)+"\n using the ID: "+str(daris_ID)+"   ?"
+                        str(dcmpath)+"\n using the ID: "+str(daris_ID)+"   ?"
                     reply = QtGui.QMessageBox.question(self, 'Message', send_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
                         os.system(cmd)
