@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: $
-# $Id: $
+# $Header:$
+# $Id:$
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -38,8 +38,8 @@ DEBUGGING=0
 
 
 __author__ = "Michael Eager, Monash Biomedical Imaging"
-__version__ = str(Agilent2DicomAppVersion)+"-$Revision: 961b2e2a3ffd $"
-__date__ = "$Date: 2014/10/28 05:36:33 $"
+__version__ = str(Agilent2DicomAppVersion)+"-$Revision: afda4010725b $"
+__date__ = "$Date: 2014/10/30 05:58:51 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
