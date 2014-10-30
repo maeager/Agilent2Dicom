@@ -140,7 +140,7 @@ if __name__ == "__main__":
     # Change dicom for specific FID header info
     ds,matsize,ImageTransformationMatrix = FID.ParseFID(ds,hdr,procpar,args)
 
-    image_data,ksp=FID.recon(procpar,dims,hdr,image_data_real,image_data_imag)
+    image_data,ksp=FID.recon(procpar,dims,hdr,image_data_real,image_data_imag,args)
 
     
     if args.verbose:
