@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>563</width>
-    <height>476</height>
+    <width>625</width>
+    <height>557</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -297,7 +297,7 @@
             <item>
              <widget class="QPushButton" name="pushButton_convert">
               <property name="toolTip">
-               <string>Convert FDF folder to DICOM</string>
+               <string>Convert FDF folder to DICOM using fdf2dcm.sh</string>
               </property>
               <property name="text">
                <string>Convert</string>
@@ -309,6 +309,9 @@
               <property name="enabled">
                <bool>false</bool>
               </property>
+              <property name="toolTip">
+               <string>Check dicom output using Dicom3Tool's DCIODVFY</string>
+              </property>
               <property name="text">
                <string>Check</string>
               </property>
@@ -318,6 +321,9 @@
              <widget class="QPushButton" name="pushButton_view">
               <property name="enabled">
                <bool>false</bool>
+              </property>
+              <property name="toolTip">
+               <string>View dicom output using MRtrix's MRVIEW</string>
               </property>
               <property name="text">
                <string>View</string>
@@ -448,7 +454,7 @@
             <item>
              <widget class="QPushButton" name="pushButton_convertfid">
               <property name="toolTip">
-               <string>Run the fid2dcm script</string>
+               <string>Process FID folder using the fid2dcm.sh script</string>
               </property>
               <property name="text">
                <string>Convert</string>
@@ -461,7 +467,7 @@
                <bool>false</bool>
               </property>
               <property name="toolTip">
-               <string>Check the unfiltered reconstruction DICM</string>
+               <string>Check the dicom outputs using Dicom3Tool's DCIODVFY</string>
               </property>
               <property name="text">
                <string>Check</string>
@@ -474,7 +480,7 @@
                <bool>false</bool>
               </property>
               <property name="toolTip">
-               <string>View the filtered and unfiltered images</string>
+               <string>View the filtered and unfiltered images in MRVIEW</string>
               </property>
               <property name="text">
                <string>View</string>
@@ -487,7 +493,7 @@
                <bool>false</bool>
               </property>
               <property name="toolTip">
-               <string>Send DICOMs to Daris</string>
+               <string>Send DICOMs to DaRIS</string>
               </property>
               <property name="text">
                <string>Send to DaRIS</string>
@@ -1035,7 +1041,7 @@ scipy.signal.wiener(im, mysize=None, noise=None)
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
       <item>
-       <widget class="QLabel" name="label_38">
+       <widget class="QLabel" name="Version_tag">
         <property name="frameShadow">
          <enum>QFrame::Sunken</enum>
         </property>
@@ -1045,7 +1051,7 @@ scipy.signal.wiener(im, mysize=None, noise=None)
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_37">
+       <widget class="QLabel" name="bottom_tag">
         <property name="layoutDirection">
          <enum>Qt::RightToLeft</enum>
         </property>
@@ -1075,8 +1081,8 @@ scipy.signal.wiener(im, mysize=None, noise=None)
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>563</width>
-     <height>21</height>
+     <width>625</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1095,6 +1101,7 @@ scipy.signal.wiener(im, mysize=None, noise=None)
      <string>Settings</string>
     </property>
     <addaction name="actionPreferences"/>
+    <addaction name="actionSave_Filter_Outputs_to_Nifti"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1216,6 +1223,11 @@ scipy.signal.wiener(im, mysize=None, noise=None)
    </property>
    <property name="shortcut">
     <string>F8, Ctrl+8</string>
+   </property>
+  </action>
+  <action name="actionSave_Filter_Outputs_to_Nifti">
+   <property name="text">
+    <string>Save Filter Outputs to Nifti</string>
    </property>
   </action>
  </widget>

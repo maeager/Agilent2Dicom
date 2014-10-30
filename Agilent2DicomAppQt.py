@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 1acf25fa0573 2014/10/30 22:45:46 michael $
-# $Id: Agilent2DicomAppQt.py,v 1acf25fa0573 2014/10/30 22:45:46 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 7fa6e0d344f0 2014/10/30 23:41:07 mick $
+# $Id: Agilent2DicomAppQt.py,v 7fa6e0d344f0 2014/10/30 23:41:07 mick $
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -39,11 +39,11 @@ DEBUGGING=0
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/10/30 22:45:46 $"
+__date__ = "$Date: 2014/10/30 23:41:07 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 1acf25fa0573 2014/10/30 22:45:46 michael $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 7fa6e0d344f0 2014/10/30 23:41:07 mick $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -80,6 +80,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per pixel)")
+        self.NIFTI=0
         
         # Disable some features
         if DEBUGGING == 0:
@@ -122,6 +123,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_view2.clicked.connect(self.ViewFID)
         self.ui.pushButton_send2daris2.clicked.connect(self.Send2Daris2)
 
+        QtCore.QObject.connect(self.ui.actionSave_Filter_Outputs_to_Nifti, QtCore.SIGNAL(QtCore.QString.fromUtf8("triggered()")), self.setNifti)
+
         QtCore.QObject.connect(self.ui.actionAbout, QtCore.SIGNAL(QtCore.QString.fromUtf8("triggered()")), self.About)
         QtCore.QObject.connect(self.ui.actionHelp, QtCore.SIGNAL(QtCore.QString.fromUtf8("triggered()")), self.About)
 #        QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -135,7 +138,10 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
     def reject(self):
         '''Cancel.'''
         self.close() 
-      
+
+    def setNifti():
+        self.NIFTI=1
+        
     # @QtCore.pyqtSlot()
     def ChangeFDFpath(self):
         success=1
@@ -374,6 +380,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             argstr+=' -n %s ' % (str(self.ui.lineEdit_median_size.text()))
         if self.ui.checkBox_wiener.isChecked():
             argstr+=' -w %s -z %s' % (str(self.ui.lineEdit_wiener_size.text()), str(self.ui.lineEdit_wiener_noise.text()))
+        if self.NIFTI == 1:
+            argstr+=' -f'
         return argstr
 									    
 									    
