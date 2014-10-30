@@ -2,7 +2,7 @@
 
 """agilent2dicom is used to convert Agilent FDF files to DICOM format.
 
-Enhanced MR now done by dicom3tools and the fdf2dcm script
+   Enhanced MR now done by dicom3tools and the fdf2dcm script
 
 Version 0.1: Original code (Amanda Ng)
 Version 0.2: Standard 2d Dicom (Michael Eager)
@@ -11,6 +11,8 @@ Version 0.4: Combine with bash wrapper fdf2dcm.sh (Michael Eager)
 Version 0.5: Major fixes to diffusion and other sequences (Michael Eager)
 Version 0.6: Major rewrite, external recon  (Michael Eager)
 Version 1.0: Pythonised modules (Michael Eager)
+
+  $Id: agilentFDF2dicom.py,v 684a04959645 2014/10/30 06:04:34 michael $
 
  - Michael Eager  (michael.eager@monash.edu)
 """

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: $
-# $Id: $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 684a04959645 2014/10/30 06:04:34 michael $
+# $Id: Agilent2DicomAppQt.py,v 684a04959645 2014/10/30 06:04:34 michael $
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -39,11 +39,11 @@ DEBUGGING=0
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: $"
+__date__ = "$Date: 2014/10/30 06:04:34 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id:(.*)\$','\1',"$Id: $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$','\1',"$Id: Agilent2DicomAppQt.py,v 684a04959645 2014/10/30 06:04:34 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
