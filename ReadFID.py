@@ -249,7 +249,7 @@ def readfid(folder,pp,args):
 # end readfid
 
 
-def recon(pp,dims,hdr,RE,IM):
+def recon(pp,dims,hdr,RE,IM,args):
     """recon Reconstruct k-space image data into N-D image
     :param pp:   procpar dictionary
     :param dims: dimension array
@@ -427,7 +427,7 @@ def ParseDiffusionFID(ds,procpar,diffusion_idx,args):
 
     :param ds: Dicom dataset
     :param procpar: Procpar dictionary tag/value pairs
-    :param fdf_properties: Tag/value pairs of local fdf file
+    :param fid_properties: Tag/value pairs of local fid file
 
     :param args: Input arguments
     :returns: Dicom struct
@@ -471,8 +471,8 @@ def ParseDiffusionFID(ds,procpar,diffusion_idx,args):
     # Sort diffusion based on sorted index of Bvalue instead of fdf_properties['array_index']
     ds.AcquisitionNumber = BValueSortIdx[diffusion_idx] 
     
-    if (math.fabs(Bvalue[ diffusion_idx ] - fdf_properties['bvalue']) > 0.005):
-        print 'Procpar and fdf B-value mismatch: procpar value ', Bvalue[ diffusion_idx ], ' and  local fdf value ', fdf_properties['bvalue'], ' array idx ', fdf_properties['array_index'] 
+#    if (math.fabs(Bvalue[ diffusion_idx ] - fid_properties['bvalue']) > 0.005):
+#        print 'Procpar and fdf B-value mismatch: procpar value ', Bvalue[ diffusion_idx ], ' and  local fdf value ', fdf_properties['bvalue'], ' array idx ', fdf_properties['array_index'] 
 
     ## MR Diffusion Sequence (0018,9117) see DiffusionMacro.txt
     ## B0 scan does not need the MR Diffusion Gradient Direction Sequence macro and its directionality should be set to NONE
@@ -813,9 +813,8 @@ def ParseFID(ds,fid_properties,procpar,args):
         'Using local FID value '+str(fid_properties['dims'][1])+' instead of procpar value '+str(ds.Rows)+'.'
     AssertImplementation(int(float(ds.Rows)) != int(fid_properties['dims'][1]), filename, CommentStr, AssumptionStr)
     if args.verbose:
-        print 'Rows ', procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0
-        print '   Procpar: rows ', ds.Rows
-        print '   FID prop rows ', fid_properties['dims'][1]
+       # print 'Rows ', procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0
+        print '   Procpar: rows ', ds.Rows, '   FID prop rows ', fid_properties['dims'][1]
     ds.Rows = fid_properties['dims'][1]                                   #(0028,0010) Rows
             
 
@@ -828,9 +827,8 @@ def ParseFID(ds,fid_properties,procpar,args):
         'Using local FID value '+str(fid_properties['dims'][0])+' instead of procpar value '+str(ds.Columns)+'.'
     AssertImplementation(int(float(ds.Columns)) != int(fid_properties['dims'][0]), filename, CommentStr, AssumptionStr)
     if args.verbose:
-        print 'Columns ', procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0, fid_properties['dims'][0]
-        print '   Procpar: Cols ', ds.Rows
-        print '   FID prop Cols ', fid_properties['dims'][0]
+       # print 'Columns ', procpar['fn']/2.0, procpar['fn1']/2.0, procpar['nv'], procpar['np']/2.0, fid_properties['dims'][0]
+        print '   Procpar: Cols ', ds.Rows,'   FID prop Cols ', fid_properties['dims'][0]
     ds.Columns = fid_properties['dims'][0]                                 #(0028,0011) Columns
 
 
@@ -890,11 +888,11 @@ def ParseFID(ds,fid_properties,procpar,args):
 
     if ds.ImageType[2]=="MULTIECHO":# and fid_properties['echoes'] > 1:
         if args.verbose:
-            print 'Multi-echo sequence'
+            print 'Multi-echo sequence ...'
 	# TE 0018,0081 Echo Time (in ms) (optional)
         if 'TE' in fid_properties.keys():
             if ds.EchoTime != str(fid_properties['TE']*1000):
-                print "Echo Time mismatch: ",ds.EchoTime, fid_properties['TE']
+                print "Echo Time mismatch: ",ds.EchoTime, fid_properties['TE']*1000
             ds.EchoTime	 = str(fid_properties['TE']*1000) 
 	# 0018,0086 Echo Number (optional)
     if 'echo_no' in fid_properties.keys():
@@ -1015,6 +1013,7 @@ For Python >= 3.2, os.makedirs has an optional third argument exist_ok that, whe
             else: 
                 if args.verbose:
                     print "Cleaning output path" 
+                import shutil
                 shutil.rmtree(path,ignore_errors=True)
                 os.makedirs(path)
         else:
@@ -1048,7 +1047,7 @@ def SaveFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
 
     if args.magnitude:
         if args.verbose:
-            print "Exporting magnitude"
+            print "Exporting magnitude ..."
         orig_imagetype=ds.ImageType[2]
         if ds.ImageType[2]=="PHASE MAP":
             ds.ImageType[2]="MAGNITUDE"
@@ -1062,7 +1061,7 @@ def SaveFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
         
     if args.phase:
         if args.verbose:
-            print "Exporting phase "
+            print "Exporting phase ..."
         voldata=numpy.angle(image_data) # Phase
         orig_imagetype=ds.ImageType[2]
         ds.ImageType[2]="PHASE MAP"
@@ -1075,7 +1074,7 @@ def SaveFIDtoDicom(ds,procpar,image_data,fid_properties,M,args,outdir):
         ds.ComplexImageComponent='MAGNITUDE'
     if args.realimag:
         if args.verbose:
-            print "Exporting real and imag"
+            print "Exporting real and imag ..."
         voldata=numpy.real(image_data) 
         ds.ComplexImageComponent='REAL'        
         outdir1=re.sub('.dcm','-real.dcm',outdir)
@@ -1112,10 +1111,10 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
     # calculate the intercept and slope for casting to UInt16
     ds,voldata = RescaleFIDImage(ds,voldata,args)
    
-    if not os.path.isdir(outdir):
-        if args.verbose:
-            print "Save3dFIDtoDicom output path has not been created."
-        mkdir_or_cleandir(outdir,args)
+#    if not os.path.isdir(outdir):
+#        if args.verbose:
+#            print "Save3dFIDtoDicom output path has not been created."
+    mkdir_or_cleandir(outdir,args)
 
     # if procpar['recon'] == 'external':
     # 
@@ -1153,7 +1152,7 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
     if args.verbose:
         print "Columns ", ds.Columns, " Rows ", ds.Rows
         print "Range max and no slice points: ", range_max, num_slicepts
-        print "Voldata[1] shape: ", voldata.shape
+
 
    
     # Export dicom to file
@@ -1300,8 +1299,8 @@ if __name__ == "__main__":
     import nibabel as nib
 
 
-    parser = argparse.ArgumentParser(usage=' ParseFDF.py -i "Input FDF directory"',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. ParseFDF takes header info from fdf files and adjusts the dicom dataset *ds* then rescales the image data.')
-    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
+    parser = argparse.ArgumentParser(usage=' ReadFID.py -i "Input FID directory"',description='agilent2dicom is an FID to Enhanced MR DICOM converter from MBI. ReadFID takes header info from fid files and adjusts the dicom dataset *ds* then rescales the image data.')
+    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FID image directory containing procpar and fid files',required=True);
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.')
     parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
     parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
