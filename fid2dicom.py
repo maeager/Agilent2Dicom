@@ -5,7 +5,8 @@
   Version 0.1: Original code based on agilent2dicom FDF converter (Michael Eager)
   Version 0.2: Cplx filters upgraded and arguments improved for extra variables
   Version 0.3: Exporting DICOMs with correct parsing of Procpar and fid headers and rearrangement of image data
-  $Id:$
+
+  $Id$
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 

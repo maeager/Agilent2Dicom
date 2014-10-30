@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header:$
-# $Id:$
+# $Header$
+# $Id$
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -43,7 +43,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp="$Id:"
+Agilent2DicomAppStamp="$Id$"
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\

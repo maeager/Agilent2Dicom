@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id:$"
+#  "$Id$"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
 #
