@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 684a04959645 2014/10/30 06:04:34 michael $
-# $Id: Agilent2DicomAppQt.py,v 684a04959645 2014/10/30 06:04:34 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 08f7c9e4e899 2014/10/30 06:09:40 michael $
+# $Id: Agilent2DicomAppQt.py,v 08f7c9e4e899 2014/10/30 06:09:40 michael $
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -39,11 +39,11 @@ DEBUGGING=0
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/10/30 06:04:34 $"
+__date__ = "$Date: 2014/10/30 06:09:40 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$','\1',"$Id: Agilent2DicomAppQt.py,v 684a04959645 2014/10/30 06:04:34 michael $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 08f7c9e4e899 2014/10/30 06:09:40 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -488,7 +488,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.ui.pushButton_send2daris2.setEnabled(True)
 												  
     def About(self):
-        msg = "       Agilent2Dicom       \n\n"+\
+        msg = "                      Agilent2Dicom       \n\n"+\
             "Agilent2Dicom converts FDF and FID images from the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.\n\n"+\
             "Homepage: https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter \n\n"+\
             "Version: "+__version__+"\n"+\
