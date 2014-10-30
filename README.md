@@ -379,6 +379,30 @@ See examples in Makefile.
 
 *Other guidelines*
 
+Mercurial keyword expansion is used to set some important variables. The hgrc file in the development .hg folder should be the following:
+
+```
+#!bash
+
+[paths]
+default = ssh://hg@bitbucket.org/mbi-image/agilent2dicom
+[extensions]
+keyword =
+[keyword]
+agilentFDF2dicom.py =
+fdf2dcm.sh =
+agilent2dicom_globalvars.py =
+fid2dicom.py =
+fid2dcm.sh =
+Agilent2DicomAppQt.py =
+[keywordmaps]
+Author = {author|user}
+Date = {date|utcdate}
+Header = {root}/{file},v {node|short} {date|utcdate} {author|user}
+Id = {file|basename},v {node|short} {date|utcdate} {author|user}
+Revision = {node|short}
+```
+
 ## Who do I talk to? ##
 
 * Dr. Michael Eager (michael.eager@monash.edu) or someone in the Imaging Team at MBI
