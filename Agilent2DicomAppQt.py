@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 08f7c9e4e899 2014/10/30 06:09:40 michael $
-# $Id: Agilent2DicomAppQt.py,v 08f7c9e4e899 2014/10/30 06:09:40 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 1acf25fa0573 2014/10/30 22:45:46 michael $
+# $Id: Agilent2DicomAppQt.py,v 1acf25fa0573 2014/10/30 22:45:46 michael $
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -39,11 +39,11 @@ DEBUGGING=0
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/10/30 06:09:40 $"
+__date__ = "$Date: 2014/10/30 22:45:46 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 08f7c9e4e899 2014/10/30 06:09:40 michael $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 1acf25fa0573 2014/10/30 22:45:46 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -66,8 +66,9 @@ module purge \n\
 module load massive virtualgl\n\
 module load mrtrix \n\
 module list \n\
-else echo ''Not in MASSIVE'' \n\
-fi; vglrun mrview '
+GL=vglrun\n\
+else GL= \n\
+fi; $GL mrview '
 
 
 class Agilent2DicomWindow(QtGui.QMainWindow):
