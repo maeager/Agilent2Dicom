@@ -399,7 +399,7 @@ if __name__ == "__main__":
         image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag)
 
         if args.axis_order:
-            image = RearrangeImage(image,args.axis_order)
+            image = RearrangeImage(image,args.axis_order,args)
             print "Transformed image shape: ", image.shape
             #np.delete(image)
             #image = imaget
