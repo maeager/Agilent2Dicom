@@ -667,7 +667,7 @@ def ProcparToDicomMap(procpar,args):
 
     # MR Arterial Spin Labeling C.8.13.5.14 C Required if Image Type (0008,0008) Value 3 is ASL. May be present otherwise.
     if 'asltag' in procpar.keys() and procpar['asltag'] != 0:
-        print 'Processing ASL sequence images'
+        print 'Processing ASL sequence images ...'
         ds.ImageType = ["ORIGINAL","PRIMARY", "ASL","NONE"]
 
         tmp_file = open(os.path.join(args.outputdir,'ASL'),'w')
@@ -701,7 +701,7 @@ def ProcparToDicomMap(procpar,args):
     #     >Effective Echo Time (0018,9082) 1C The time in ms between the middle of the excitation pulse and the peak of the echo produced for kx=0.
 
     if ('ne' in procpar.keys()) and (procpar['ne'] > 1):
-        print 'Multi-echo sequence'
+        print 'Multi-echo sequence ...'
         tmp_file = open(os.path.join(args.outputdir,'MULTIECHO'),'w')
         tmp_file.write(str(procpar['ne']))
         tmp_file.close()
@@ -1623,9 +1623,10 @@ def ProcparToDicomMap(procpar,args):
         if 'nv' in procpar.keys() and procpar['nv'] > 0:
             AcqMatrix1 = procpar['nv']
         elif 'fn1' in procpar.keys() and procpar['fn1'] > 0:
-            print "Rows: ", procpar['fn1']/2.0, procpar['nv']
-            if procpar['fn1']/2.0 != procpar['nv']:
-                print '   Error fn1/2.0 != nv'
+            if args.verbose:
+                print "Rows (3D): fn1/2 ", procpar['fn1']/2.0," nv ", procpar['nv']
+                if procpar['fn1']/2.0 != procpar['nv']:
+                    print '   Error fn1/2.0 != nv'
             AcqMatrix1 = procpar['fn1']/2.0         
         else:
             AcqMatrix1=0
@@ -1633,9 +1634,10 @@ def ProcparToDicomMap(procpar,args):
         if 'np' in procpar.keys() and procpar['np'] > 0:
             AcqMatrix1 = procpar['np']/2.0
         elif 'fn' in procpar.keys() and procpar['fn'] > 0:		
-            print "Rows: ", procpar['fn']/2.0, procpar['np']/2.0
-            if procpar['fn'] != procpar['np']:
-                print '  Error fn/2 != np/2'
+            if args.verbose:
+                print "Rows (2D): fn/2 ", procpar['fn']/2.0," np ", procpar['np']/2.0
+                if procpar['fn'] != procpar['np']:
+                    print '  Error fn/2 != np/2'
             AcqMatrix1 = procpar['np']/2.0   #fn']/2.0         
         else:
             AcqMatrix1=0
@@ -1677,9 +1679,10 @@ def ProcparToDicomMap(procpar,args):
         if 'np' in procpar.keys() and procpar['np'] > 0:
             AcqMatrix2 = procpar['np']/2.0
         elif 'fn' in procpar.keys() and procpar['fn'] > 0:		
-            print "Columns: ", procpar['fn']/2.0, procpar['np']/2.0
-            if procpar['fn']/2.0 != procpar['np']/2.0:
-                print  '   Error  fn/2 != np/2 '
+            if args.verbose:
+                print "Columns (3D): fn/2 ", procpar['fn']/2.0," np/2 ", procpar['np']/2.0
+                if procpar['fn']/2.0 != procpar['np']/2.0:
+                    print  '   Error  fn/2 != np/2 '
             AcqMatrix2 = procpar['fn']/2.0         
         else:
             AcqMatrix2 = 0
@@ -1687,9 +1690,10 @@ def ProcparToDicomMap(procpar,args):
         if 'nv' in procpar.keys() and procpar['nv'] > 0:
             AcqMatrix2 = procpar['nv']
         elif 'fn1' in procpar.keys() and procpar['fn1'] > 0:  
-            print "Columns: ", procpar['fn1']/2.0, procpar['nv']
-            if procpar['fn1']/2.0 != procpar['nv']:
-               print '   Error fn1/2 != nv'
+            if args.verbose:
+                print "Columns (2D): fn1/2 ", procpar['fn1']/2.0, " nv ", procpar['nv']
+                if procpar['fn1']/2.0 != procpar['nv']:
+                    print '   Error fn1/2 != nv'
             AcqMatrix2 = procpar['fn1']/ 2.0         
         else:
             AcqMatrix2 = 0
@@ -1814,7 +1818,9 @@ def ProcparToDicomMap(procpar,args):
             SliceThickness = procpar['lpe2']*10.0/pe2                         
     else:
         SliceThickness = procpar['thk']  
-            
+
+    if args.verbose:
+        print "No. Slices: ", pe2, " Slice thickness ", SliceThickness
     ds.SliceThickness = str(SliceThickness)  
 
 
