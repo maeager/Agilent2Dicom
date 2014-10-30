@@ -1,9 +1,12 @@
 # -*- mode: org -*-
+#+AUTHOR: Michael Eager
 
 * Setup and install
 
 ** Prerequisites
-Install the required applications and python packages your appropriate linux distribution package manager (or Pip for local python installations).
+Install the required applications and python packages your appropriate
+linux distribution package manager (or Pip for local python
+installations).
 
 On Debian/Ubuntu/LinuxMint:
 #+begin_src bash
@@ -30,7 +33,8 @@ hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
 
 On the Agilent 9.4T MR console, download the tar zipped bundle of the
 source code and unpack it.  Add the Agilent2Dicom source path to the
-PATH environment variable.
+PATH environment variable (csh is the default shell, but also add the
+path in the bash user config file).
 
 #+begin_src sh
 
@@ -39,12 +43,13 @@ mkdir Agilent2Dicom
 tar zxvf default.tar.gz Agilent2Dicom/ 
 cd Agilent2Dicom
 echo "export PATH=`pwd`:${PATH}" >> ~/.bashrc
-
+echo "set PATH `pwd`:${PATH}" >> ~/.cshrc
 #+end_src
 
 
 ** Check 
-Check your python installation for the required packages using the check.py script:
+Check your python installation for the required packages using the
+check.py script:
 
 #+begin_src bash
 cd Agilent2Dicom
@@ -56,11 +61,12 @@ cd Agilent2Dicom
 
 ** Install Dicom3tools 
 
-Install dicom3tools from http://www.dclunie.com/dicom3tools.html into the
-Agilent2Dicom folder.  The default settings for MBI's Agilent 9.4T MR scanner
-are used below.  The default UID root value '1.3.6.1.4.1' is unique to the MBI
-Agilent 9.4T MR scanner and should be changed for other devices.  The dependencies for 
-compiling dicom3tools are imake, gcc and binutil-essentials.
+Install dicom3tools from http://www.dclunie.com/dicom3tools.html into
+the Agilent2Dicom folder.  The default settings for MBI's Agilent 9.4T
+MR scanner are used below.  The default UID root value '1.3.6.1.4.1'
+is unique to the MBI Agilent 9.4T MR scanner and should be changed for
+other devices.  The dependencies for compiling dicom3tools are imake,
+gcc and binutil-essentials.
 
 On MASSIVE use: 
 #+begin_src bash
@@ -75,8 +81,10 @@ sudo yum install imake gcc binutil-essentials
 
 
 Once the dependencies have been installed, begin by downloading the
-latest dicom3tools [[http://www.dclunie.com/dicom3tools/workinprogress/]], adjust the config/site.p-def file for the appropriate settings. Follow the compile instructions
-below for installing on the Agilent console:
+latest dicom3tools [[http://www.dclunie.com/dicom3tools/workinprogress/]],
+adjust the config/site.p-def file for the appropriate settings. Follow
+the compile instructions below for installing on the Agilent console:
+
 #+begin_src bash
 cd ~/src/    # On MASSIVE use cd ~/Monash016/eagerm/Agilent2Dicom
 wget   http://www.dclunie.com/dicom3tools/workinprogress/dicom3tools_1.00.snapshot.20140306142442.tar.bz2
