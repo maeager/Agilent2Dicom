@@ -43,7 +43,7 @@ __date__ = "$Date$"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$','\1',"$Id$")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id$")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -488,7 +488,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.ui.pushButton_send2daris2.setEnabled(True)
 												  
     def About(self):
-        msg = "       Agilent2Dicom       \n\n"+\
+        msg = "                      Agilent2Dicom       \n\n"+\
             "Agilent2Dicom converts FDF and FID images from the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.\n\n"+\
             "Homepage: https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter \n\n"+\
             "Version: "+__version__+"\n"+\
