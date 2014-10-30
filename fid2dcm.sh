@@ -96,7 +96,7 @@ function error_exit(){
 # Print usage information and exit
 print_usage(){
     echo -e "\n" \
-	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r] [-k] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001]]\n. To export components use magnitude (-m), phase (-p), real and imag (-r) or k-space (-k). Filtering is available for Gaussian filter (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n window_size), or Wiener filter (-w window_size)." \
+	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r] [-k] [-f] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001]]\n. To export components use magnitude (-m), phase (-p), real and imag (-r) or k-space (-k). Filtering is available for Gaussian filter (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n window_size), or Wiener filter (-w window_size)." \
 	"\n" \
 	"-i <inputdir>  FID source directory\n" \
 	"-o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm. \n" \
@@ -104,6 +104,7 @@ print_usage(){
 	"-m,-p,          Save magnitude and phase components.  These flags are passed to fid2dicom and should only be used from within fid2dcm or with knowledge of input fid data. \n" \
 	"-r             Save real and imaginary components of filtered image. \n" \
 	"-k             Save Kspace data. \n" \
+	"-f             Save filtered outputs to NIFTI.\n" \
 	"-g <sigma>     Gaussian filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2). \n" \
 	"-j <order>     Gaussian filter order variable argument, default 0. \n" \
 	"-e {'wrap','reflect','nearest','mirror'}  Gaussian filter mode variable argument, default=nearest. \n" \
@@ -129,7 +130,7 @@ fi
 
 
 ## Parse arguments
-while getopts ":i:o:g:l:j:e:n:w:z:hmprkdxv" opt; do
+while getopts ":i:o:g:l:j:e:n:w:z:hmprkdfxv" opt; do
     case $opt in
 	i)
 	    echo "Input dir:  $OPTARG" >&2
@@ -180,7 +181,7 @@ while getopts ":i:o:g:l:j:e:n:w:z:hmprkdxv" opt; do
 	    python_args="$python_args --wiener_filter --window_size $wiener_windown_size"
 	    do_filter=4
 	    ;;
-	z)
+ 	z)
 	    [ ${do_filter} != 4 ] && (echo "Must have -w before -z"; print_usage; exit 1)
 	    echo "Wiener noise: $OPTARG" >&2
 	    wiener_noise="$OPTARG"
@@ -202,6 +203,10 @@ while getopts ":i:o:g:l:j:e:n:w:z:hmprkdxv" opt; do
 	p)
 	    echo "Implementing phase component of FID to DICOM conversion."
 	    python_args="$python_args --phase"
+	    ;;
+	f)
+	    echo "Saving filtered outputs to NIFTI."
+	    python_args="$python_args --nifti"
 	    ;;
 	# s)
 	#     echo "Sequence type: $OPTARG" >&2

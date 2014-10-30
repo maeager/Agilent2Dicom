@@ -39,20 +39,34 @@ import ProcparToDicomMap
 import ReadFID as FID
 import cplxfilter as CPLX
 import ParseFDF
-import scipy
+import numpy,math,scipy
+import nibabel as nib
+
+def SaveNifti(image,basefilename):
+    affine = numpy.eye(4)
+    if image.ndim ==5:
+        for i in xrange(0,image.shape[4]):
+            raw_image=nib.Nifti1Image(numpy.abs(image[:,:,:,0,i]),affine)
+            raw_image.set_data_dtype(numpy.float32)
+            nib.save(raw_image,basefilename+'_0'+str(i)+'.nii.gz')
+    else:
+        raw_image=nib.Nifti1Image(numpy.abs(image),affine)
+        raw_image.set_data_dtype(numpy.float32)
+        nib.save(raw_image,basefilename+'.nii.gz')
 
 
 if __name__ == "__main__":
 
     # Parse command line arguments and validate img directory
 
-    parser = argparse.ArgumentParser(usage=' fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d -n 5] [-w -n 5]]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering enabled with -g, -l, -n or -w arguments.  FID2DICOM Version '+VersionNumber)
+    parser = argparse.ArgumentParser(usage=' fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-r] [-k] [-f] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d -n 5] [-w -n 5]]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering enabled with -g, -l, -n or -w arguments.  FID2DICOM Version '+VersionNumber)
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FID image directory containing procpar and fid files',required=True);
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
     parser.add_argument('-m','--magnitude', help='Save Magnitude component. Default output of filtered image outputput',action="store_true");
     parser.add_argument('-p','--phase', help='Save Phase component.',action="store_true");
     parser.add_argument('-k','--kspace', help='Save Kspace data in outputdir-ksp.mat file',action="store_true");
     parser.add_argument('-r','--realimag', help='Save real and imaginary data in outputdir-real and outputdir-imag.',action="store_true");
+    parser.add_argument('-f','--nifti',help='Save filtered outputs to NIFTI.',action="store_true")
 #    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL).',choices={"MULTIECHO", "DIFFUSION", "ASL"});
 #    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
     parser.add_argument('-g','--gaussian_filter', help='Gaussian filter smoothing of reconstructed RE and IM components.',action="store_true");
@@ -152,7 +166,6 @@ if __name__ == "__main__":
 
     FID.Save3dFIDtoDicom(ds,procpar,numpy.absolute(image_data),hdr,ImageTransformationMatrix,args,outdir)
     
-    image=image_data
 
     if args.gaussian_filter:
         if not args.sigma:
@@ -163,28 +176,35 @@ if __name__ == "__main__":
             args.gaussian_mode='nearest'
         if args.verbose:
             print "Computing Gaussian filtered image from Original image"
-        image_filtered = CPLX.cplxgaussian_filter(image.real,image.imag,args.sigma,args.gaussian_order,args.gaussian_mode)
+        image_filtered = CPLX.cplxgaussian_filter(image_data.real,image_data.imag,args.sigma,args.gaussian_order,args.gaussian_mode)
         ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f order=%d mode=%s.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.sigma, args.gaussian_order,args.gaussian_mode)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-gaussian.dcm',outdir))
+        if args.nifti:
+            SaveNifti(image_filtered,re.sub('.dcm','-gaussian',outdir))
+            
 
     if args.gaussian_laplace:
         if not args.sigma:
             args.sigma=0.707
         if args.verbose:
             print "Computing Gaussian Laplace filtered image from Gaussian filtered image"
-        image_filtered = CPLX.cplxgaussian_filter(image.real,image.imag,args.sigma)
+        image_filtered = CPLX.cplxgaussian_filter(image_data.real,image_data.imag,args.sigma)
         image_filtered = CPLX.cplxgaussian_laplace(image_filtered.real,image_filtered.imag,args.sigma)
         ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f order=0 mode=nearest. Complex Laplace filter: sigma.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.sigma,args.sigma)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-laplacegaussian.dcm',outdir))
+        if args.nifti:
+            SaveNifti(image_filtered,re.sub('.dcm','-laplacegauss',outdir))
 
     if args.median_filter:
         if not args.window_size:
             args.window_size=3
         if args.verbose:
             print "Computing Median filtered image from Original image"
-        image_filtered = CPLX.cplxmedian_filter(image.real,image.imag,args.window_size)
+        image_filtered = CPLX.cplxmedian_filter(image_data.real,image_data.imag,args.window_size)
         ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Median filter: windown size=%d.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.window_size)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-median.dcm',outdir))
+        if args.nifti:
+            SaveNifti(image_filtered,re.sub('.dcm','-median',outdir))
 
          
     if args.wiener_filter:
@@ -194,9 +214,11 @@ if __name__ == "__main__":
             args.wiener_noise=None
         if args.verbose:
             print "Computing Wiener filtered image from Original image"
-        image_filtered = CPLX.cplxwiener_filter(image.real,image.imag,args.window_size,args.wiener_noise)
+        image_filtered = CPLX.cplxwiener_filter(image_data.real,image_data.imag,args.window_size,args.wiener_noise)
         ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Wiener filter: window size=%d, noise=%f.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.window_size, args.wiener_noise)
         FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-wiener.dcm',outdir))
+        if args.nifti:
+            SaveNifti(image_filtered,re.sub('.dcm','-wiener',outdir))
 
 
 
