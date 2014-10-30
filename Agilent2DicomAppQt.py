@@ -38,12 +38,12 @@ DEBUGGING=0
 
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
-__version__ = str(Agilent2DicomAppVersion)+"$Revision: 1.0 $"
-__date__ = "$Date: 2014/10/3 $"
+__version__ = str(Agilent2DicomAppVersion)
+__date__ = "$Date: $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp="$Id:"
+Agilent2DicomAppStamp=re.sub(r'\$Id:(.*)\$','\1',"$Id: $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -107,8 +107,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         # Connect up the buttons.
         #self.connect(self.ui.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
         #self.connect(self.ui.buttonBox ,Qt.SIGNAL("rejected()"), self.reject)
-        #self.ui.buttonBox.Ok.clicked.connect(self.accept)
-        #self.ui.buttonBox.cancelButton.clicked.connect(self.reject)
+ 
         self.ui.pushButton_changefdf.clicked.connect(self.ChangeFDFpath)
         self.ui.pushButton_changedicom.clicked.connect(self.ChangeFDFDicomPath)
         self.ui.pushButton_changefid.clicked.connect(self.ChangeFIDpath)
@@ -122,6 +121,12 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_view2.clicked.connect(self.ViewFID)
         self.ui.pushButton_send2daris2.clicked.connect(self.Send2Daris2)
 
+        QtCore.QObject.connect(self.ui.actionAbout, QtCore.SIGNAL(QtCore.QString.fromUtf8("triggered()")), self.About)
+        QtCore.QObject.connect(self.ui.actionHelp, QtCore.SIGNAL(QtCore.QString.fromUtf8("triggered()")), self.About)
+#        QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+
+        
     def accept(self):
         '''Execute the command in response to the OK button.'''
         self.close()
@@ -486,7 +491,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         msg = "       Agilent2Dicom       \n\n"+\
             "Agilent2Dicom converts FDF and FID images from the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.\n\n"+\
             "Homepage: https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter \n\n"+\
-            "Version:"+__version__+"\n"+\
+            "Version: "+__version__+"\n"+\
+            "Stamp: "+Agilent2DicomAppStamp+"\n"+\
             "Author: "+__author__+"\n"+\
             __copyright__
         reply = QtGui.QMessageBox.question(self, 'Message', msg, QtGui.QMessageBox.Ok)
