@@ -473,5 +473,4 @@ then
     fi
     [ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
 fi
-done
 exit 0
