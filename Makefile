@@ -27,14 +27,15 @@ FSLHD=fslhd
 FSLVIEW=$(GL) fslview 
 DCM3TOOLS=$(shell /bin/ls -d ../dicom3tools_*/bin/*)
 RM=/bin/rm -f
+RMDIR=/bin/rm -rf
 FDF2DCM=time ./fdf2dcm.sh -v 
 PATH+=:$(DCM3TOOLS)
 EXAMPLEDATAPATH=../ExampleAgilentData
 
 
 
-.PHONY: check
-check: 
+.PHONY: checkdeps
+checkdeps: 
 	test -d $(EXAMPLEDATAPATH)
 	for req in $(REQUIREMENTS); do \
 	   which $$req > /dev/null || echo "Missing dependency $$req"; \
@@ -55,10 +56,14 @@ cleanup:
 
 # $(call a2d_convert,<inputdir>,<fullniftifile>)
 define a2d_convert
-echo "Convert Dicom to Nifti (mrconvert)";\
+echo "Convert Dicom to Nifti (mrconvert)"; \
+[ -d $1/tmp ] && $(RMDIR) $1/tmp; \
 if [ ! -d $1/tmp ]; then \
-[ -f $2 ] && $(RM) $2; $(MRCONVERT) $1 $2 > /dev/null ;\
-else echo "Cannot use mrconvert with tmp files."; touch $2; fi
+  [ -f $2 ] && $(RM) $2; \
+  $(MRCONVERT) $1 $2 > /dev/null ; \
+else \
+  echo "Cannot use mrconvert with tmp files."; touch $2; \
+fi
 endef
 
 # $(call a2d_check,<inputdir>,<fullniftifile>)
@@ -78,12 +83,11 @@ endef
 
 run_standard2d:
 	$(FDF2DCM) -i $(EXAMPLEDATAPATH)/standard2d/ -o ../output_data/standard2d
-	-$(call a2d_convert,../output_data/standard2d/,../output_nii/standard2d.nii)
 
 
 check_standard2d:
-	-$(call a2d_check,../output_data/standard2d/,../output_nii/standard2d.nii)
-
+	-$(call a2d_convert,../output_data/standard2d,../output_nii/standard2d.nii)	
+	-$(call a2d_check,../output_data/standard2d,../output_nii/standard2d.nii)
 
 test_standard2d:
 	$(call a2d_verify,../output_data/standard2d/0001.dcm)
@@ -100,12 +104,13 @@ standard2d: run_standard2d check_standard2d test_standard2d
 
 ## Multi-echo 3D
 run_me3d:
-	$(FDF2DCM) -i  $(EXAMPLEDATAPATH)/multiecho3d_magonly/ -o ../output_data/multiecho3d_magonly
-	-$(call a2d_convert,../output_data/multiecho3d_magonly,../output_nii/ME3d.nii)
+	$(FDF2DCM) -i  $(EXAMPLEDATAPATH)/multiecho3d_magonly -o ../output_data/multiecho3d_magonly
+
 # [ ! -d ../output_data/multiecho3d_magonly/tmp ] && $(MRCONVERT)   ../output_data/multiecho3d_magonly/ ../output_nii/ME3d.nii > /dev/null 
 #	$(FSLVIEW) ../output_nii/ME3d.nii
 
 check_me3d:
+	-$(call a2d_convert,../output_data/multiecho3d_magonly,../output_nii/ME3d.nii)	
 	-$(call a2d_check,../output_data/multiecho3d_magonly,../output_nii/ME3d.nii)
 
 test_me3d:
@@ -122,11 +127,11 @@ me3d: run_me3d check_me3d test_me3d
 
 ## Multi-echo 2D Mag and phase
 run_me2d:
-	$(FDF2DCM) -i $(EXAMPLEDATAPATH)/multiecho2d_magandphase/ -o  ../output_data/multiecho2d_magandphase
-	-$(call a2d_convert,../output_data/multiecho2d_magandphase/magnitude.dcm,../output_nii/ME2d_mag.nii)
-	-$(call a2d_convert,../output_data/multiecho2d_magandphase/phase.dcm,../output_nii/ME2d_phase.nii)
+	$(FDF2DCM) -i $(EXAMPLEDATAPATH)/multiecho2d_magandphase -o  ../output_data/multiecho2d_magandphase
 
 check_me2d:
+	-$(call a2d_convert,../output_data/multiecho2d_magandphase/magnitude.dcm,../output_nii/ME2d_mag.nii)
+	-$(call a2d_convert,../output_data/multiecho2d_magandphase/phase.dcm,../output_nii/ME2d_phase.nii)
 	-$(call a2d_check,../output_data/multiecho2d_magandphase/magnitude.dcm,../output_nii/ME2d_mag.nii)
 	-$(call a2d_check,../output_data/multiecho2d_magandphase/phase.dcm,../output_nii/ME2d_phase.nii)
 
@@ -151,11 +156,10 @@ me2d: run_me2d check_me2d test_me2d
 ## CINE
 run_cine:
 	$(FDF2DCM) -i $(EXAMPLEDATAPATH)/cine -o ../output_data/cine
-	$(call a2d_convert,../output_data/cine,../output_nii/CINE.nii)
 
 check_cine:
-	$(call a2d_check,../output_data/cine,../output_nii/CINE.nii)
-
+	-$(call a2d_convert,../output_data/cine,../output_nii/CINE.nii)
+	-$(call a2d_check,../output_data/cine,../output_nii/CINE.nii)
 
 test_cine:
 	-$(call a2d_verify,../output_data/cine/0001.dcm)
@@ -174,11 +178,10 @@ cine: run_cine check_cine test_cine
 ## ASL
 run_asl:
 	$(FDF2DCM)  -i ../example_data/1008.2.40.4.1.1/ASL_se_06.img -o ../output_data/ASL_se_06.dcm
-	$(call a2d_convert,../output_data/ASL_se_06.dcm,../output_nii/ASL.nii)
 
 check_asl:
-	$(call a2d_check,../output_data/ASL_se_06.dcm,../output_nii/ASL.nii)
-
+	-$(call a2d_convert,../output_data/ASL_se_06.dcm,../output_nii/ASL.nii)	
+	-$(call a2d_check,../output_data/ASL_se_06.dcm,../output_nii/ASL.nii)
 
 test_asl:
 	-$(call a2d_verify,../output_data/ASL_se_06.dcm/0001.dcm)
@@ -197,11 +200,12 @@ asl: run_asl check_asl test_asl
 ## Diffusion
 run_diffusion:
 	$(FDF2DCM) -i $(EXAMPLEDATAPATH)/diffusion/ -o ../output_data/diffusion
-	$(call a2d_convert,../output_data/diffusion,../output_nii/Diffusion.nii)
+
 
 
 check_diffusion:
-	$(call a2d_check,../output_data/diffusion,../output_nii/Diffusion.nii)
+	-$(call a2d_convert,../output_data/diffusion,../output_nii/Diffusion.nii)
+	-$(call a2d_check,../output_data/diffusion,../output_nii/Diffusion.nii)
 
 test_diffusion:
 	-$(call a2d_verify,../output_data/diffusion/0001.dcm)
@@ -221,11 +225,12 @@ diffusion: run_diffusion check_diffusion test_diffusion
 
 run_kidney: 
 	$(FDF2DCM)  -i $(EXAMPLEDATAPATH)/kidney512iso_01.img -o ../output_data/kidney512iso.dcm
-	$(call a2d_convert,../output_data/kidney512iso.dcm/,../output_nii/Kidney512iso.nii)
+
 
 
 check_kidney:
-	$(call a2d_check,../output_data/kidney512iso.dcm/,../output_nii/Kidney512iso.nii)
+	$(call a2d_convert,../output_data/kidney512iso.dcm,../output_nii/Kidney512iso.nii)
+	$(call a2d_check,../output_data/kidney512iso.dcm,../output_nii/Kidney512iso.nii)
 
 test_kidney:
 	-$(call a2d_verify,../output_data/kidney512iso.dcm/0001.dcm)
@@ -244,10 +249,11 @@ kidney: run_kidney check_kidney test_kidney
 ## Diffusion DTI
 run_dti:
 	$(FDF2DCM) -i ../example_data/s_2014051208/DTI_EPIP_J30_01.img/ -o ../output_data/dti/
-	$(call a2d_convert,../output_data/dti/,../output_nii/DTI.nii)
+
 
 check_dti:
-	$(call a2d_check,../output_data/dti/,../output_nii/DTI.nii)
+	$(call a2d_convert,../output_data/dti,../output_nii/DTI.nii)
+	$(call a2d_check,../output_data/dti,../output_nii/DTI.nii)
 
 test_dti:
 	$(call a2d_verify,../output_data/dti/0001.dcm)
@@ -269,11 +275,12 @@ dti: run_dti check_dti test_dti
 ## Diffusion EPIP 
 run_epip:
 	$(FDF2DCM)  -i ../example_data/s_2014051208/epip_axi_300TR_01.img/ -o ../output_data/epip/
-	$(call a2d_convert,../output_data/epip/,../output_nii/EPI.nii)
+
 
 
 check_epip:
-	$(call a2d_check,../output_data/epip/,../output_nii/EPI.nii)
+	$(call a2d_convert,../output_data/epip,../output_nii/EPI.nii)
+	$(call a2d_check,../output_data/epip,../output_nii/EPI.nii)
 
 
 test_epip:
@@ -293,11 +300,12 @@ epip: run_epip check_epip test_epip
 ## Diffusion DTI
 run_J6:
 	$(FDF2DCM)  -i ../example_data/s_2014051901/J6-500_01.img/ -o ../output_data/j6/
-	$(call a2d_convert,../output_data/j6/,../output_nii/J6.nii)
+
 
 
 check_J6: 
-	$(call a2d_check,../output_data/j6/,../output_nii/J6.nii)
+	$(call a2d_convert,../output_data/j6,../output_nii/J6.nii)
+	$(call a2d_check,../output_data/j6,../output_nii/J6.nii)
 
 test_J6:
 	$(call a2d_verify,../output_data/j6/0001.dcm)
@@ -317,14 +325,14 @@ J6: run_J6 check_J6 test_J6
 ## Diffusion EPI heart tissue - external recon
 run_heart:
 	$(FDF2DCM) -i ../example_data/s_2014061202/epi-dir30_01.img/ -o ../atrialtissue/dcm/
-	$(call a2d_convert,../atrialtissue/dcm/,../atrialtissue/nifti/heart.nii)
+
+check_heart:
+	$(call a2d_convert,../atrialtissue/dcm,../atrialtissue/nifti/heart.nii)
 	-$(RM) ../atrialtissue/mrtrix/diff.mif
 	$(MRCONVERT) ../atrialtissue/dcm/ ../atrialtissue/mrtrix/diff.mif
 	-$(RM) ../atrialtissue/mrtrix/dt_DWI.mif
 	dwi2tensor ../atrialtissue/mrtrix/diff.mif ../atrialtissue/mrtrix/dt_DWI.mif
-
-check_heart:
-	$(call a2d_check,../atrialtissue/dcm/,../atrialtissue/nifti/heart.nii)
+	$(call a2d_check,../atrialtissue/dcm,../atrialtissue/nifti/heart.nii)
 
 test_heart:
 	$(call a2d_verify,../atrialtissue/dcm/0001.dcm)
@@ -338,7 +346,6 @@ viewn_heart:
 
 .PHONY: heart run_heart check_heart test_heart view_heart
 heart: run_heart check_heart test_heart
-
 
 
 .PHONY: all 
