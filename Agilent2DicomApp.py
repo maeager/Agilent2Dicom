@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: $
-# $Id: $
+# $Header:$
+# $Id:$
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
