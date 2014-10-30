@@ -253,22 +253,32 @@ if [ "$kspace_dir" != "" ]; then
     [ ! -d "$kspace_dir" ] && mkdir -p "$kspace_dir"
 fi
 
-## Check output directory
+## Check existing output directories
 JumpToDCmulti=0
+    output_root=$(dirname $output_dir)
+    output_base=$(basename $output_dir .dcm)
+    dirs=$(find $output_root -maxdepth 1 -type d  -name  "$output_base*.dcm")
+    echo "Output dicom paths exist already: "
+    echo $dirs
 if [ -d "${output_dir}" ]; then
     if test -d "${output_dir}/tmp" && (( verbosity > 0 ))
     then
 	if yesno "Remove existing output directory, y or n (default y)?"; then
-	    echo "Removing existing output directory"
-	    rm -rf ${output_dir}
+	    echo "Removing existing output directories"
+	    for dcmdirs in ${dirs}; do
+		rm -rf ${dcmdir}
+	    done
 	else
 	    JumpToDCmulti=1
 	fi
     else
-	echo "Removing existing output directory"
-	rm -rf ${output_dir}
+	echo "Removing existing output directories"
+	for dcmdirs in ${dirs}; do
+	    rm -rf ${dcmdir}
+	done
     fi	
 fi
+
 
 if (( JumpToDCmulti == 0 ))
 then
@@ -317,8 +327,8 @@ then
     # test -e "${output_dir}"/0001.dcm && error_exit "$LINENO: Output directory of fid2dicom has no DICOM images."
     
     echo "Moving dicom images"
-    for dcmdir in $dirs; do
-	mkdir "${dcmdir}"/tmp
+    for dcmdir in ${dirs}; do
+	mkdir ${dcmdir}/tmp
 	mv "${dcmdir}"/*.dcm "${dcmdir}"/tmp/
     done
 fi ## JumpToDCMulti
@@ -439,25 +449,29 @@ fi
 
 
 ## Cleaning up temporary directories
-echo "Cleaning up."
-for dcmdir in $dirs; do
-if [ -d "${dcmdir}/tmp" ]
+echo "Cleaning up tmp directories."
+# Check the raw output only, then delete all tmp 
+if [ -d "${output_dir}/tmp" ]
 then
     if (( verbosity > 0 ))
     then
-	if yesno "Remove existing tmp output directory, y or n (default y)?"
+	if yesno "Remove existing tmp output directories, y or n (default y)?"
 	then
 	    echo "Removing existing tmp output directory"
-	    rm -rf "${dcmdir}/tmp"    
+	    for dcmdir in $dirs; do
+		rm -rf "${dcmdir}/tmp"    
+	    done
 	else
 	    echo "fid2dcm completed. Temporary dicoms still remain."
 	    exit 0
 	fi
     else
 	echo "Removing existing tmp output directory"
-	rm -rf "${dcmdir}/tmp"    
+	for dcmdir in $dirs; do
+	    rm -rf "${dcmdir}/tmp"    
+	done
     fi
-    [ -d "${dcmdir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
+    [ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
 fi
 done
 exit 0
