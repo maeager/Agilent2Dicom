@@ -66,8 +66,9 @@ module purge \n\
 module load massive virtualgl\n\
 module load mrtrix \n\
 module list \n\
-else echo ''Not in MASSIVE'' \n\
-fi; vglrun mrview '
+GL=vglrun\n\
+else GL= \n\
+fi; $GL mrview '
 
 
 class Agilent2DicomWindow(QtGui.QMainWindow):
