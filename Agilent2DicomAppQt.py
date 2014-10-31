@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 7fa6e0d344f0 2014/10/30 23:41:07 mick $
-# $Id: Agilent2DicomAppQt.py,v 7fa6e0d344f0 2014/10/30 23:41:07 mick $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v b1ad457f4a65 2014/10/31 02:21:10 mick $
+# $Id: Agilent2DicomAppQt.py,v b1ad457f4a65 2014/10/31 02:21:10 mick $
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -22,7 +22,7 @@
 
 """
 GUI for FDF/FID Agilent to Dicom converter. Extract Ui_Form.py using:
-pyuic4 --output Agilent2DicomWidget.py Agilent2DicomWidget.ui
+pyuic4 --output Agilent2DicomQt.py Agilent2DicomQt.ui
 """ 
 
 
@@ -39,11 +39,11 @@ DEBUGGING=0
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/10/30 23:41:07 $"
+__date__ = "$Date: 2014/10/31 02:21:10 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 7fa6e0d344f0 2014/10/30 23:41:07 mick $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v b1ad457f4a65 2014/10/31 02:21:10 mick $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
