@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fid2dcm.sh,v 7fa6e0d344f0 2014/10/30 23:41:07 mick $"
+#  "$Id: fid2dcm.sh,v a09d2483e025 2014/10/31 05:10:54 michael $"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
 #
@@ -270,7 +270,7 @@ if [ -d "${output_dir}" ]; then
     then
 	if yesno "Remove existing output directory, y or n (default y)?"; then
 	    echo "Removing existing output directories"
-	    for dcmdirs in ${dirs}; do
+	    for dcmdir in ${dirs}; do
 		rm -rf ${dcmdir}
 	    done
 	else
@@ -278,7 +278,7 @@ if [ -d "${output_dir}" ]; then
 	fi
     else
 	echo "Removing existing output directories"
-	for dcmdirs in ${dirs}; do
+	for dcmdir in ${dirs}; do
 	    rm -rf ${dcmdir}
 	done
     fi	
