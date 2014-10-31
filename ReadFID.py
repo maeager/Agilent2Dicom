@@ -192,7 +192,8 @@ def readfid(folder,pp,args):
     hdr['roi'] = [pp['lro'], pp['lpe'], pp['lpe2']]
     hdr['origin']=[-(float(pp['pro']))-float(pp['lro'])/2.0,  float(pp['ppe'])-float(pp['lpe'])/2.0,  float(pp['pss0'])-float(pp['lpe2'])/2.0]
     if pp['orient']=="sag":
-        hdr['orientation']= [0,0,1,1,0,0,0,1,0]
+        # TODO hdr['orientation']= [0,0,1,1,0,0,0,1,0]
+        hdr['orientation']= [1,0,0,0,1,0,0,0,1]
     else:
         hdr['orientation']= [1,0,0,0,1,0,0,0,1]
 
@@ -1110,7 +1111,8 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
     # Calculate the max and min throughout all dataset values;
     # calculate the intercept and slope for casting to UInt16
     ds,voldata = RescaleFIDImage(ds,voldata,args)
-   
+    voldata = numpy.squeeze(voldata)
+    
 #    if not os.path.isdir(outdir):
 #        if args.verbose:
 #            print "Save3dFIDtoDicom output path has not been created."
@@ -1168,7 +1170,7 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
 #        if args.verbose:
 #            print "Incrementing volume StackID ", ds.FrameContentSequence[0].StackID
 
-    ds.FrameContentSequence[0].StackID = [str(0)]        
+    ds.FrameContentSequence[0].StackID = [str(1)]        
     if voldata.ndim == 5:
         for echo in xrange(0,voldata.shape[4]):
             ds.EchoNumber=str(echo+1)
@@ -1176,7 +1178,7 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
                 ## Indexing in numpy matrix begins at 0, fid/dicom filenames begin at 1
                 for islice in xrange(0,range_max):    
                     # Reshape volume slice to 1D array
-                    slice_data = numpy.reshape(voldata[:,:,islice,n,echo],(num_slicepts,1)) 
+                    slice_data = numpy.reshape(numpy.squeeze(voldata[:,:,islice,n,echo]),(num_slicepts,1)) 
                     # Convert Pixel data to string
                     ds.PixelData = slice_data.tostring()
                     new_filename = "slice%03dimage%03decho%03d.dcm" % (islice+1,n+1,echo+1)
@@ -1206,13 +1208,13 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
     else:
         for islice in xrange(0,range_max):    
             # Reshape volume slice to 1D array
-            slice_data = numpy.reshape(voldata[:,:,islice],(num_slicepts,1)) 
+            slice_data = numpy.reshape(numpy.squeeze(voldata[:,:,islice]),(num_slicepts,1)) 
             # Convert Pixel data to string
             ds.PixelData = slice_data.tostring()
             new_filename = "slice%03dimage001echo001.dcm" % (islice+1)
 
 #        if procpar['recon'] == 'external' and fid_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
-            pos = numpy.matrix([[0],[islice],[0],[1]])
+            pos = numpy.matrix([[0],[0],[islice],[1]])
 #        else:
 #            pos = numpy.matrix([[0],[0],[islice],[1]])
 
