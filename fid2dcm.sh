@@ -270,7 +270,7 @@ if [ -d "${output_dir}" ]; then
     then
 	if yesno "Remove existing output directory, y or n (default y)?"; then
 	    echo "Removing existing output directories"
-	    for dcmdirs in ${dirs}; do
+	    for dcmdir in ${dirs}; do
 		rm -rf ${dcmdir}
 	    done
 	else
@@ -278,7 +278,7 @@ if [ -d "${output_dir}" ]; then
 	fi
     else
 	echo "Removing existing output directories"
-	for dcmdirs in ${dirs}; do
+	for dcmdir in ${dirs}; do
 	    rm -rf ${dcmdir}
 	done
     fi	
