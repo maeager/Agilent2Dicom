@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v b1ad457f4a65 2014/10/31 02:21:10 mick $
-# $Id: Agilent2DicomAppQt.py,v b1ad457f4a65 2014/10/31 02:21:10 mick $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v fefd58727ccd 2014/10/31 05:09:54 michael $
+# $Id: Agilent2DicomAppQt.py,v fefd58727ccd 2014/10/31 05:09:54 michael $
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -39,11 +39,11 @@ DEBUGGING=0
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/10/31 02:21:10 $"
+__date__ = "$Date: 2014/10/31 05:09:54 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v b1ad457f4a65 2014/10/31 02:21:10 mick $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v fefd58727ccd 2014/10/31 05:09:54 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -72,6 +72,9 @@ fi; $GL mrview '
 
 
 class Agilent2DicomWindow(QtGui.QMainWindow):
+
+    NIFTI=0 # save to nifti flag
+
     def __init__(self):
         super(Agilent2DicomWindow,self).__init__()
         self.ui=Ui_MainWindow()
@@ -80,7 +83,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per pixel)")
-        self.NIFTI=0
+
         
         # Disable some features
         if DEBUGGING == 0:
@@ -123,7 +126,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_view2.clicked.connect(self.ViewFID)
         self.ui.pushButton_send2daris2.clicked.connect(self.Send2Daris2)
 
-        QtCore.QObject.connect(self.ui.actionSave_Filter_Outputs_to_Nifti, QtCore.SIGNAL(QtCore.QString.fromUtf8("triggered()")), self.setNifti)
+        QtCore.QObject.connect(self.ui.actionSave_Filter_Outputs_to_Nifti, QtCore.SIGNAL(QtCore.QString.fromUtf8("triggered()")), self.toggleNifti)
 
         QtCore.QObject.connect(self.ui.actionAbout, QtCore.SIGNAL(QtCore.QString.fromUtf8("triggered()")), self.About)
         QtCore.QObject.connect(self.ui.actionHelp, QtCore.SIGNAL(QtCore.QString.fromUtf8("triggered()")), self.About)
@@ -139,8 +142,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         '''Cancel.'''
         self.close() 
 
-    def setNifti():
-        self.NIFTI=1
+    def toggleNifti(self):
+        self.NIFTI=(self.NIFTI + 1) % 2
         
     # @QtCore.pyqtSlot()
     def ChangeFDFpath(self):
