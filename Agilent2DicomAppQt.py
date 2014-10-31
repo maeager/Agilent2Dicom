@@ -22,7 +22,7 @@
 
 """
 GUI for FDF/FID Agilent to Dicom converter. Extract Ui_Form.py using:
-pyuic4 --output Agilent2DicomWidget.py Agilent2DicomWidget.ui
+pyuic4 --output Agilent2DicomQt.py Agilent2DicomQt.ui
 """ 
 
 
