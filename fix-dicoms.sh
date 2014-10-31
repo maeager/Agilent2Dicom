@@ -74,7 +74,7 @@ ${DCMODIFY} -m "(5200,9229)[0].(0018,9049)[0].(0018,9051)=$transcoiltype" $files
 # Tranmitter Frequency
 # > (0x0018,0x9098) FD Transmitter Frequency   VR=<FD>   VL=<0x0008>  {0}
 transfrq=$(dcdump ${output_dir}/tmp/slice001image001echo001.dcm 2>&1 >/dev/null | grep 'Transmitter Frequency' | sed 's/^.*{\(.*\)} *$/\1/' )
-echo "Fixing Tranmitter Frequency :" $transfrq 
+echo "Fixing Transmitter Frequency :" $transfrq 
 ${DCMODIFY} -m "(5200,9229)[0].(0018,9006)[0].(0018,9098)=$transfrq" $files
 
 
@@ -86,25 +86,25 @@ ${DCMODIFY} -m "(5200,9229)[0].(0018,9042)[0].(0018,9043)=$reccoiltype" $files
 
 
 ## TODO use ImageType definition rather than filename cine
-if [[ $output_dir = *cine* ]]  ## pattern match cine in output directory string
-then
-    echo "Disabling Frame anatomy modiufication in CINE";
-    MODIFY=0
-	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2218)[0].(0008,0102)=SRT" $files
-	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2228)[0].(0008,0102)=SRT" $files
+# if [[ $output_dir = *cine* ]]  ## pattern match cine in output directory string
+# then
+#     echo "Disabling Frame anatomy modification in CINE";
+#     MODIFY=0
+# 	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2218)[0].(0008,0102)=SRT" $files
+# 	${DCMODIFY} -i "(5200,9229)[0].(0020,9071)[0].(0008,2228)[0].(0008,0102)=SRT" $files
 
-fi
+# fi
 
-firsttmpdcm=$(find ${output_dir}/tmp/ -name "*.dcm"  | head -1)
-
+firsttmpdcm=$( find ${output_dir}/tmp/ -name "*.dcm"  | head -1 )
+echo $firsttmpdcm
 # multiple spin echo (0018,9011) - not in diffusion or asl
 multspinecho=$(dcdump $firsttmpdcm 2>&1 | grep 'Multiple Spin Echo' | awk '{print $8}' | tr -d '<>')
+echo "Fixing Multiple Spin Echo :" $multspinecho 
 ${DCMODIFY} -i "(0018,9011)=$multspinecho" $files
 
 if (( MODIFY == 1 )); then
 #"$(dirname $0)/dmodify"
 
-    
     dcdump "${firsttmpdcm}" 2>&1 >/dev/null | grep '(0x0008,0x010' | awk -F'>' '/</ {print $4}'| tr -d '<' > ${output_dir}/anatomy.tmp
     if [ -f  ${output_dir}/anatomy.tmp ]; then
 	declare -a FrameAnatomySequence
