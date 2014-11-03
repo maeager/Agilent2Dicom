@@ -1,5 +1,7 @@
-#!/usr/bin/env awk
+#! /bin/gawk -f
+#
 # Display procpar alpbetically sorted 
+#
 BEGIN{
 #	metadata=[]
 	str=""
