@@ -34,7 +34,7 @@ hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
 On the Agilent 9.4T MR console, download the tar zipped bundle of the
 source code and unpack it.  Add the Agilent2Dicom source path to the
 PATH environment variable (csh is the default shell, but also add the
-path in the bash user config file).
+path in the bash user config file).  
 
 #+begin_src sh
 
@@ -43,7 +43,7 @@ mkdir Agilent2Dicom
 tar zxvf default.tar.gz Agilent2Dicom/ 
 cd Agilent2Dicom
 echo "export PATH=`pwd`:${PATH}" >> ~/.bashrc
-echo "set PATH `pwd`:${PATH}" >> ~/.cshrc
+echo "setenv PATH `pwd`:$PATH" >> ~/.cshrc
 #+end_src
 
 
