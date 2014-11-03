@@ -40,9 +40,9 @@ def get_bit(value, bit_number):
 # end get_bit
    
     
-def readfid(folder,pp,args):
+def readfid(fidfolder,procpar,args):
     """
-      hdr,realpart,imagpart = readfid(folder[,pp])
+      fid_header,realpart,imagpart = readfid(fidfolder[,procpar])
      read kspace data from Agilent fid and procpar files.
      output img has dimensions [freq, phase, slice, channel, echo]
      note that the image may have to be circular shifted in the phase
@@ -53,101 +53,101 @@ def readfid(folder,pp,args):
     # warning off MATLAB:divideByZero
 
     #  get acqcycles and TE from procpar
-    if not pp:
-        pp = ReadProcpar.ReadProcpar(os.path.join(folder,'procpar'))
+    if not procpar:
+        procpar = ReadProcpar.ReadProcpar(os.path.join(fidfolder,'procpar'))
 
     #Define fid headers from procpar on first occasion
-    hdr=dict()
-    hdr['TE'] = pp['te']
+    fid_header=dict()
+    fid_header['TE'] = procpar['te']
     # FOV
-    hdr['volumes'] = pp['lpe3']
-    hdr['nEchoes'] = pp['ne']
-    # rcvrs = re.search('y',pp['rcvrs'])
-    hdr['nChannels'] = 1 #len(rcvrs);
-    hdr['mode'] = '%dD' % pp['nD']
-    if pp['nD'] == 2:
-        hdr['FOVcm'] = [pp['lro'], pp['lpe']]
-        hdr['dims'] = [pp['nf']/pp['ns'], pp['np']/2, pp['ns']]
-        #if len(pp['thk'])>1:
-        #    print "pp thk size greater than 1"
-        hdr['voxelmm'] = numpy.array([pp['lro']/hdr['dims'][0], pp['lpe']/hdr['dims'][1], pp['thk']])*10
-    elif pp['nD'] == 3:
-        hdr['FOVcm'] = [pp['lro'], pp['lpe'], pp['lpe2']]
-        hdr['dims'] = [pp['nf'], pp['np']/2, pp['nv2']]
-        hdr['voxelmm'] = numpy.array(hdr['FOVcm']) / numpy.array(hdr['dims'])*10
-    print hdr    
+    fid_header['volumes'] = procpar['lpe3']
+    fid_header['nEchoes'] = procpar['ne']
+    # rcvrs = re.search('y',procpar['rcvrs'])
+    fid_header['nChannels'] = 1 #len(rcvrs);
+    fid_header['mode'] = '%dD' % procpar['nD']
+    if procpar['nD'] == 2:
+        fid_header['FOVcm'] = [procpar['lro'], procpar['lpe']]
+        fid_header['dims'] = [procpar['nf']/procpar['ns'], procpar['np']/2, procpar['ns']]
+        #if len(procpar['thk'])>1:
+        #    print "procpar thk size greater than 1"
+        fid_header['voxelmm'] = numpy.array([procpar['lro']/fid_header['dims'][0], procpar['lpe']/fid_header['dims'][1], procpar['thk']])*10
+    elif procpar['nD'] == 3:
+        fid_header['FOVcm'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
+        fid_header['dims'] = [procpar['nf'], procpar['np']/2, procpar['nv2']]
+        fid_header['voxelmm'] = numpy.array(fid_header['FOVcm']) / numpy.array(fid_header['dims'])*10
+    print fid_header    
     
     
     # open fid file
-    f = open(os.path.join(folder,'fid'),"rb") 
+    f = open(os.path.join(fidfolder,'fid'),"rb") 
     int16size = struct.calcsize('h')
     int32size = struct.calcsize('i')
     endian='>' # > for big-endian < for little
     # Read datafileheader using: x, = struct.unpack(type,binary) method
     # unpack returns a tuple and we only want the result
-    hdr['nblocks'],   = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
-    hdr['ntraces'],   = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
-    hdr['np'],        = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
-    hdr['ebytes'],    = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
-    hdr['tbytes'],    = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
-    hdr['bbytes'],    = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
+    fid_header['nblocks'],   = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
+    fid_header['ntraces'],   = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
+    fid_header['np'],        = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
+    fid_header['ebytes'],    = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
+    fid_header['tbytes'],    = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
+    fid_header['bbytes'],    = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
     
-    hdr['vers_id'],   = struct.unpack(endian+'h',f.read(int16size)) #fid,1,'int16')
+    fid_header['vers_id'],   = struct.unpack(endian+'h',f.read(int16size)) #fid,1,'int16')
     status=f.read(int16size)
-    hdr['status'],    = struct.unpack(endian+'h',status) #fid,1,'int16')
-    hdr['nbheaders'], = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
+    fid_header['status'],    = struct.unpack(endian+'h',status) #fid,1,'int16')
+    fid_header['nbheaders'], = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
     if args.verbose:
-        print 'status : ', hdr['status'], type(hdr['status']), type(status)
-    hdr['s_data']    = int(get_bit(hdr['status'],1))
-    hdr['s_spec']    = int(get_bit(hdr['status'],2))
-    hdr['s_32']      = int(get_bit(hdr['status'],3))
-    hdr['s_float']   = int(get_bit(hdr['status'],4))
-    hdr['s_complex'] = int(get_bit(hdr['status'],5))
-    hdr['s_hyper']   = int(get_bit(hdr['status'],6))
+        print 'status : ', fid_header['status'], type(fid_header['status']), type(status)
+    fid_header['s_data']    = int(get_bit(fid_header['status'],1))
+    fid_header['s_spec']    = int(get_bit(fid_header['status'],2))
+    fid_header['s_32']      = int(get_bit(fid_header['status'],3))
+    fid_header['s_float']   = int(get_bit(fid_header['status'],4))
+    fid_header['s_complex'] = int(get_bit(fid_header['status'],5))
+    fid_header['s_hyper']   = int(get_bit(fid_header['status'],6))
     if args.verbose:
-        print hdr # ['s_data'],hdr['s_spec'],hdr['s_32'],hdr['s_float'],hdr['s_complex'],hdr['s_hyper']
+        print fid_header # ['s_data'],fid_header['s_spec'],fid_header['s_32'],fid_header['s_float'],fid_header['s_complex'],fid_header['s_hyper']
 
 
-    if hdr['s_float'] == 1:
-        # data = fread(fid,hdr.np*hdr.ntraces,'*float32')
+    if fid_header['s_float'] == 1:
+        # data = fread(fid,fid_header.np*fid_header.ntraces,'*float32')
         dtype_str=numpy.dtype(endian+'f4') # 'float32'
         if args.verbose:
             print 'reading 32bit floats '
-    elif hdr['s_32'] == 1:
-        # data = fread(fid,hdr.np*hdr.ntraces,'*int32')
+    elif fid_header['s_32'] == 1:
+        # data = fread(fid,fid_header.np*fid_header.ntraces,'*int32')
         dtype_str='int32'
         if args.verbose:
             print 'reading 32bit int'
     else:
-        # data = fread(fid,hdr.np*hdr.ntraces,'*int16')
+        # data = fread(fid,fid_header.np*fid_header.ntraces,'*int16')
         dtype_str ='int16' 
         str='reading 16bit int'
 
     
     dims=[0,0,0]
     # validate dimensions
-    if pp['nD'] == 2:
-        dims[0] = pp['np']/2        # num phase encode lines / 2
-        dims[1] = pp['nf']/pp['ns'] # num frequency lines acquired / # echoes
-        dims[2] = pp['ns']          # if 2D, num slices, else ni2
-        if pp['ni2'] > 1:           # fse3d sequence has nD == 2, but is a 3d acquisition???
-            dims[2] = pp['ni2']
-    elif pp['nD'] == 3:
-        dims[0] = pp['np']/2        # NUM phase encode lines / 2
-        dims[1] = pp['nf']/pp['ne'] # num frequency lines acquired / # echoes
-        dims[2] = pp['ni2'] 
+    if procpar['nD'] == 2:
+        dims[0] = procpar['np']/2        # num phase encode lines / 2
+        dims[1] = procpar['nf']/procpar['ns'] # num frequency lines acquired / # echoes
+        dims[2] = procpar['ns']          # if 2D, num slices, else ni2
+        if procpar['ni2'] > 1:           # fse3d sequence has nD == 2, but is a 3d acquisition???
+            dims[2] = procpar['ni2']
+    elif procpar['nD'] == 3:
+        dims[0] = procpar['np']/2        # NUM phase encode lines / 2
+        dims[1] = procpar['nf']/procpar['ne'] # num frequency lines acquired / # echoes
+        dims[2] = procpar['ni2'] 
     else:
         raise ValueError("Can only handle 2D or 3D files (based on procpar field nD)")   
     if args.verbose:
-        print 'Dimensions: ',dims, hdr['dims']
+        print 'Dimensions: ',dims, fid_header['dims']
 
-    if hdr['np'] != pp['np'] or  hdr['ntraces'] != pp['nf'] or hdr['nblocks'] != pp['arraydim']:
+    if fid_header['np'] != procpar['np'] or  fid_header['ntraces'] != procpar['nf'] or fid_header['nblocks'] != procpar['arraydim']:
         if args.verbose:
-            print 'NP ', hdr['np'], pp['np'], ' NF ', hdr['ntraces'], pp['nf'], ' Blocks ', hdr['nblocks'], pp['arraydim']
+            print 'NP ', fid_header['np'], procpar['np'], ' NF ', fid_header['ntraces'], procpar['nf'], ' Blocks ', fid_header['nblocks'], procpar['arraydim']
         raise ValueError("Cannot resolve fid header with procpar. We're probably not interpreting the procpar correctly.")
-    # hdr['nChannels'] = hdr['nblocks']/hdr['acqcycles']
-    hdr['nPhaseEncodes'] = hdr['ntraces']/hdr['nEchoes']
-    hdr['rank'] = pp['nD']                                           
+    # fid_header['nChannels'] = fid_header['nblocks']/fid_header['acqcycles']
+    fid_header['nPhaseEncodes'] = fid_header['ntraces']/fid_header['nEchoes']
+    fid_header['rank'] = procpar['nD']                                           
 
     # Axial    Orientation of the target scans is transverse (theta=0, psi=0, phi=0).
     # Coronal  Orientation of the target scans is coronal (theta=90, psi=0, phi=0).
@@ -185,29 +185,29 @@ def readfid(folder,pp,args):
 #              Thickness of slices or saturation bands (satthk).
 # thk
     if args.verbose:
-        print "Shifts of slices along z axis ",pp['pss'],pp['pss0']
+        print "Shifts of slices along z axis ",procpar['pss'],procpar['pss0']
     # Create FDF-like header variables
-    hdr['location'] = [-pp['pro'], pp['ppe'], pp['pss0'] ]
-    hdr['span'] = [pp['lro'], pp['lpe'], pp['lpe2']]
-    hdr['roi'] = [pp['lro'], pp['lpe'], pp['lpe2']]
-    hdr['origin']=[-(float(pp['pro']))-float(pp['lro'])/2.0,  float(pp['ppe'])-float(pp['lpe'])/2.0,  float(pp['pss0'])-float(pp['lpe2'])/2.0]
-    if pp['orient']=="sag":
-        # TODO hdr['orientation']= [0,0,1,1,0,0,0,1,0]
-        hdr['orientation']= [1,0,0,0,1,0,0,0,1]
+    fid_header['location'] = [-procpar['pro'], procpar['ppe'], procpar['pss0'] ]
+    fid_header['span'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
+    fid_header['roi'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
+    fid_header['origin']=[-(float(procpar['pro']))-float(procpar['lro'])/2.0,  float(procpar['ppe'])-float(procpar['lpe'])/2.0,  float(procpar['pss0'])-float(procpar['lpe2'])/2.0]
+    if procpar['orient']=="sag":
+        # TODO fid_header['orientation']= [0,0,1,1,0,0,0,1,0]
+        fid_header['orientation']= [1,0,0,0,1,0,0,0,1]
     else:
-        hdr['orientation']= [1,0,0,0,1,0,0,0,1]
+        fid_header['orientation']= [1,0,0,0,1,0,0,0,1]
 
     # reset output structures
-    RE = numpy.empty([ hdr['np']/2,hdr['ntraces'], hdr['nblocks']], dtype=float)
-    IM = numpy.empty([ hdr['np']/2,hdr['ntraces'], hdr['nblocks']], dtype=float)
+    RE = numpy.empty([ fid_header['np']/2,fid_header['ntraces'], fid_header['nblocks']], dtype=float)
+    IM = numpy.empty([ fid_header['np']/2,fid_header['ntraces'], fid_header['nblocks']], dtype=float)
     if args.verbose:
         print "Real shape:", RE.shape
     # We have to read data every time in order to increment file pointer
     nchar = 0
-    for iblock in xrange(0,hdr['nblocks']):
+    for iblock in xrange(0,fid_header['nblocks']):
         # fprintf(1, repmat('\b',1,nchar))
         if args.verbose:
-            print  'reading block ', iblock+1,' of ', hdr['nblocks']
+            print  'reading block ', iblock+1,' of ', fid_header['nblocks']
         # Read a block header
         header=dict()
         header['scale'],     = struct.unpack(endian+'h',f.read(int16size)) #fid,1,'int16')
@@ -221,14 +221,14 @@ def readfid(folder,pp,args):
         header['tlt'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         if args.verbose:
             print header
-        data = numpy.fromfile(f,count=hdr['np']*hdr['ntraces'],dtype=dtype_str)
+        data = numpy.fromfile(f,count=fid_header['np']*fid_header['ntraces'],dtype=dtype_str)
         if args.verbose:
             print "Dim and shape: ", data.ndim, data.shape
-        data = numpy.reshape(data, [hdr['ntraces'],hdr['np']])
+        data = numpy.reshape(data, [fid_header['ntraces'],fid_header['np']])
         if args.verbose:
-            print "Dim and shape: ", data.ndim, data.shape, " max np ", hdr['np']
-        RE[:,:,iblock] = numpy.matrix(data[:,:hdr['np']:2]).T   # hdr['np'] #[::2,:] #
-        IM[:,:,iblock] = numpy.matrix(data[:,1:hdr['np']:2]).T  # hdr['np'] #[1::2,:]      #
+            print "Dim and shape: ", data.ndim, data.shape, " max np ", fid_header['np']
+        RE[:,:,iblock] = numpy.matrix(data[:,:fid_header['np']:2]).T   # fid_header['np'] #[::2,:] #
+        IM[:,:,iblock] = numpy.matrix(data[:,1:fid_header['np']:2]).T  # fid_header['np'] #[1::2,:]      #
         #break
     f.close()
     #print iblock
@@ -237,7 +237,7 @@ def readfid(folder,pp,args):
             print "Reshaping single block data"
         RE = numpy.reshape(RE,dims)
         IM = numpy.reshape(IM,dims)
-    # hdr.pp = pp
+    # fid_header.procpar = procpar
     if args.verbose:
         print "Data Row 1:   %.5g %.5g %.5g %.5g %.5g  %.5g ... %.5g %.5g %.5g %.5g" % (data[0,0],data[0,1],  data[0,2],data[0,3],  data[0,4], data[0,5], data[0,-4], data[0,-3], data[0,-2], data[0,-1])
         print "Data Col 1:   %.5g %.5g %.5g %.5g %.5g %.5g  ... %.5g %.5g %.5g %.5g" % (data[0,0],data[1,0],  data[2,0],data[3,0],  data[4,0], data[5,0], data[-4,0],data[-3,0], data[-2,0], data[-1,0])
@@ -246,68 +246,73 @@ def readfid(folder,pp,args):
         print "RE : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (RE[0,0,iblock],RE[0,1,iblock],  RE[0,2,iblock],RE[1,0,iblock],  RE[2,0,iblock], RE[0,-1,iblock], RE[-1,0,iblock], RE[-1,-1,iblock])
         print "IM : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (IM[0,0,iblock],IM[0,1,iblock],  IM[0,2,iblock],IM[1,0,iblock],  IM[2,0,iblock], IM[0,-1,iblock], IM[-1,0,iblock], IM[-1,-1,iblock])
         print "Final dims and shape of RE: ",dims, RE.shape
-        return pp,hdr,dims,RE,IM
+        return procpar,fid_header,dims,RE,IM
 # end readfid
 
 
-def recon(pp,dims,hdr,RE,IM,args):
+def recon(procpar,dims,fid_header,RE,IM,args):
     """recon Reconstruct k-space image data into N-D image
-    :param pp:   procpar dictionary
+    :param procpar:   procpar dictionary
     :param dims: dimension array
-    :param hdr: header info in fid
+    :param fid_header: header info in fid
     :param RE: real component of image k-space
     :param IM: imaginary component of image k-space
     """
     if args.verbose:
         print 'Reconstructing image'
-        print dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']
-    if hdr['nChannels']==1 and  hdr['nEchoes']==1:
+        print dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']
+        print 'nchannels', fid_header['nblocks'],procpar['acqcycles']
+        print 'Image shape ', RE.shape
+
+    
+        
+    if fid_header['nChannels']==1 and  fid_header['nEchoes']==1:
         ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
         img = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
     else:
-        ksp = numpy.empty([dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']], dtype=complex) #float32
-        img = numpy.empty([dims[0], dims[1], dims[2], hdr['nChannels'], hdr['nEchoes']], dtype=complex) #float32
+        ksp = numpy.empty([dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']], dtype=complex) #float32
+        img = numpy.empty([dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']], dtype=complex) #float32
 
-    if pp['nD'] == 2 and pp['ni2'] == 1:
-        if hdr['nEchoes'] == 1 and hdr['nChannels'] == 1:
+    if procpar['nD'] == 2 and procpar['ni2'] == 1:
+        if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
             ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
             img = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
-            ksp[:,:,:].real = RE  #[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
-            ksp[:,:,:].imag = IM  #[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
+            ksp[:,:,:].real = RE  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+            ksp[:,:,:].imag = IM  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
             for islice in xrange(0,int(dims[2])):
-                if 'pelist' in pp.keys() and len(pp['pelist'])==int(dims[2]):
+                if 'pelist' in procpar.keys() and len(procpar['pelist'])==int(dims[2]):
                     if args.verbose:
-                        print pp['pelist']
-                    img[:,:,islice] = fftshift(ifftn(ifftshift(ksp[:,pp['pelist']-min(pp['pelist']),islice])))
+                        print procpar['pelist']
+                    img[:,:,islice] = fftshift(ifftn(ifftshift(ksp[:,procpar['pelist']-min(procpar['pelist']),islice])))
                 else:
                     img[:,:,islice] = fftshift(ifftn(ifftshift(ksp[:,:,islice])))
         else:
-            for echo in xrange(0,int(hdr['nEchoes'])):
-                for n in xrange(0,int(hdr['nChannels'])):
+            for echo in xrange(0,int(fid_header['nEchoes'])):
+                for n in xrange(0,int(fid_header['nChannels'])):
                     for islice in xrange(0,int(dims[2])):
-                    # ksp(:,:,islice,n,echo) = complex(RE(:,echo:hdr['nEchoes']:end,n:hdr['nChannels']:end), IM(:,echo:hdr['nEchoes']:end,n:hdr['nChannels']:end))
-                        ksp[:,:,islice,n,echo].real = RE[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
-                        ksp[:,:,islice,n,echo].imag = IM[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
-                        img[:,:,islice,n,echo] = fftshift(ifftn(ifftshift(ksp[:,pp['pelist']-minimum(pp['pelist']),islice,n,echo])))
-    else: #if pp.nD == 3
-        if hdr['nEchoes'] == 1 and hdr['nChannels'] == 1:
+                    # ksp(:,:,islice,n,echo) = complex(RE(:,echo:fid_header['nEchoes']:end,n:fid_header['nChannels']:end), IM(:,echo:fid_header['nEchoes']:end,n:fid_header['nChannels']:end))
+                        ksp[:,:,islice,n,echo].real = RE[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+                        ksp[:,:,islice,n,echo].imag = IM[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+                        img[:,:,islice,n,echo] = fftshift(ifftn(ifftshift(ksp[:,procpar['pelist']-minimum(procpar['pelist']),islice,n,echo])))
+    else: #if procpar.nD == 3
+        if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
             ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
             img = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
-            ksp[:,:,:].real = RE  #[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
-            ksp[:,:,:].imag = IM  #[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
-            if 'pelist' in pp.keys():
-                img[:,:,:] = fftshift(ifftn(ifftshift(ksp[:,pp['pelist']-min(pp['pelist']),:])))
+            ksp[:,:,:].real = RE  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+            ksp[:,:,:].imag = IM  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+            if 'pelist' in procpar.keys():
+                img[:,:,:] = fftshift(ifftn(ifftshift(ksp[:,procpar['pelist']-min(procpar['pelist']),:])))
             else:
                 img[:,:,:] = fftshift(ifftn(ifftshift(ksp[:,:,:])))
         else:
-            for echo in xrange(0,int(hdr['nEchoes'])):
-                for n in xrange(0,int(hdr['nChannels'])):
+            for echo in xrange(0,int(fid_header['nEchoes'])):
+                for n in xrange(0,int(fid_header['nChannels'])):
                     if args.verbose:
                         print "Processing echo ",echo," channel ",n
-                    ksp[:,:,:,n,echo].real = RE[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
-                    ksp[:,:,:,n,echo].imag = IM[:,echo::hdr['nEchoes'],n::hdr['nChannels']]
-                    if 'pelist' in pp.keys():
-                        img[:,:,:,n,echo] = fftshift(ifftn(ifftshift(ksp[:,pp['pelist']-min(pp['pelist']),:,n,echo])))
+                    ksp[:,:,:,n,echo].real = RE[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+                    ksp[:,:,:,n,echo].imag = IM[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+                    if 'pelist' in procpar.keys():
+                        img[:,:,:,n,echo] = fftshift(ifftn(ifftshift(ksp[:,procpar['pelist']-min(procpar['pelist']),:,n,echo])))
                     else:
                         img[:,:,:,n,echo] = fftshift(ifftn(ifftshift(ksp[:,:,:,n,echo])))
         
@@ -615,7 +620,7 @@ def ParseFID(ds,fid_properties,procpar,args):
     
     ## PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
     PixelSpacing = fid_properties['voxelmm'] 
-    if PixelSpacing[0] != ds.PixelSpacing[0] or PixelSpacing[1] != ds.PixelSpacing[1]:
+    if PixelSpacing[0] != float(ds.PixelSpacing[0]) or PixelSpacing[1] != float(ds.PixelSpacing[1]):
         print "Pixel spacing mismatch, procpar ", ds.PixelSpacing , " fid spacing ", str(PixelSpacing[0]),',', str(PixelSpacing[1])
     if args.verbose:
         print "Pixel Spacing : Procpar   ", ds.PixelSpacing
@@ -835,7 +840,7 @@ def ParseFID(ds,fid_properties,procpar,args):
 
     #---------------------------------------------------------------------------------
     # Number of frames	      
-    # DICOMHDR code:
+    # DICOMFID_HEADER code:
     #	  elseif $tag='(0028,0008)' then	" no of frames "
     #	    $dim = 2  "default 2D"
     #	    exists('nv2','parameter'):$ex     
@@ -944,16 +949,16 @@ def ParseFID(ds,fid_properties,procpar,args):
         DimIndexSeq1.DimensionIndexPointer = (0x0020,0x0032)  # Image position patient 20,32 or 20,12 
 
         # #DimIndexSeq1.DimensionIndexPrivateCreator=
-        # #DimIndexSeq1.FunctionalGroupPointer=
-        # #DimIndexSeq1.FunctionalGroupPrivateCreator=
+        # #DimIndexSeq1.FunctionalGrouppointer=
+        # #DimIndexSeq1.FunctionalGroupprivateCreator=
         DimIndexSeq1.add_new((0x0020,0x9164), 'UI',DimOrgSeq.DimensionOrganizationUID[0])
         DimIndexSeq1.DimensionDescriptionLabel='Third Spatial dimension'
 
         DimIndexSeq2 = Dataset()
         DimIndexSeq2.DimensionIndexPointer=(0x0018,0x0081)  # Echo Time
         # DimIndexSeq2.DimensionIndexPrivateCreator=
-        # DimIndexSeq2.FunctionalGroupPointer=
-        # DimIndexSeq2.FunctionalGroupPrivateCreator=
+        # DimIndexSeq2.FunctionalGrouppointer=
+        # DimIndexSeq2.FunctionalGroupprivateCreator=
         DimIndexSeq2.add_new((0x0020,0x9164), 'UI',DimOrgSeq.DimensionOrganizationUID[1])
         DimIndexSeq2.DimensionDescriptionLabel='Fourth dimension (multiecho)'
         ds.DimensionIndexSequence = Sequence([DimIndexSeq2, DimIndexSeq1])
@@ -961,8 +966,8 @@ def ParseFID(ds,fid_properties,procpar,args):
         DimIndexSeq1 = Dataset()
         DimIndexSeq1.DimensionIndexPointer = (0x0020,0x0032)  # Image position patient 20,32 or 20,12 
         # #DimIndexSeq1.DimensionIndexPrivateCreator=
-        # #DimIndexSeq1.FunctionalGroupPointer=
-        # #DimIndexSeq1.FunctionalGroupPrivateCreator=
+        # #DimIndexSeq1.FunctionalGrouppointer=
+        # #DimIndexSeq1.FunctionalGroupprivateCreator=
         DimIndexSeq1.add_new((0x0020,0x9164), 'UI',[DimensionOrganizationUID])
         DimIndexSeq1.DimensionDescriptionLabel='Third Spatial dimension'
         ds.DimensionIndexSequence = Sequence([DimIndexSeq1])
@@ -1128,7 +1133,7 @@ def Save3dFIDtoDicom(ds,procpar,voldata,fid_properties,M,args,outdir,isPhase=0):
      #   if procpar['seqfil'] == "fse3d":
      #       print "Transposing external recon 3D"
      #       voldata = numpy.transpose(voldata,(2,0,1)) # 0,2,1 works
-    # readpp.m procpar('nD') == 3            
+    # readprocpar.m procpar('nD') == 3            
     #        acq.FOVcm = [pps.lro pps.lpe pps.lpe2];
     #        acq.dims = [pps.nf pps.np/2 pps.nv2];
     #        acq.voxelmm = acq.FOVcm./acq.dims*10;
@@ -1328,16 +1333,16 @@ if __name__ == "__main__":
     if args.verbose:
         print "Reading FID"
     filename = fidfiles[len(fidfiles)-1]
-    pp,hdr,dims,image_data_real,image_data_imag=readfid(args.inputdir,procpar,args)
+    procpar,fid_header,dims,image_data_real,image_data_imag=readfid(args.inputdir,procpar,args)
     if args.verbose:
-        print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
+        print "Echoes: ", fid_header['nEchoes'], " Channels: ", fid_header['nChannels']
     affine = numpy.eye(4)
     # # affine[:3,:3]= np.arange(9).reshape((3,3))
     # raw_data=nib.Nifti1Image(normalise(image_data_real),affine)
     # nib.save(raw_data,'raw_data.nii.gz')
 
     # Change dicom for specific FID header info
-    ds,matsize,ImageTransformationMatrix = ParseFID(ds,hdr,procpar,args)
+    ds,matsize,ImageTransformationMatrix = ParseFID(ds,fid_header,procpar,args)
 
     
     if os.path.exists('raw_image_00.nii.gz'):
@@ -1354,7 +1359,7 @@ if __name__ == "__main__":
     else:
         if args.verbose:
             print "Computing Original image (reconstruction)"
-        image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag)
+        image,ksp=recon(procpar,dims,fid_header,image_data_real,image_data_imag)
 
         if args.verbose:
             print "Saving raw image"
