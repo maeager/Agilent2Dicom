@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v fefd58727ccd 2014/10/31 05:09:54 michael $
-# $Id: Agilent2DicomAppQt.py,v fefd58727ccd 2014/10/31 05:09:54 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v c60195ce129c 2014/11/04 04:48:54 michael $
+# $Id: Agilent2DicomAppQt.py,v c60195ce129c 2014/11/04 04:48:54 michael $
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -27,6 +27,7 @@ pyuic4 --output Agilent2DicomQt.py Agilent2DicomQt.ui
 
 
 import os
+import subprocess
 import sys
 import re
 from PyQt4 import Qt, QtGui, QtCore
@@ -39,11 +40,11 @@ DEBUGGING=0
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/10/31 05:09:54 $"
+__date__ = "$Date: 2014/11/04 04:48:54 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v fefd58727ccd 2014/10/31 05:09:54 michael $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v c60195ce129c 2014/11/04 04:48:54 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -52,7 +53,7 @@ module load massive virtualgl\n\
 module load python/2.7.1-gcc \n\
 module load python/2.7.3-gcc \n\
 module load dcmtk mrtrix \n\
-module list \n\
+#module list \n\
 #export PYTHONPATH=/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages \n\
 else \n\
 echo ''Not in MASSIVE'' \n\
@@ -267,8 +268,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 
             print(cmd1)
             cmd= cmd_header + cmd1 +')'
-            print(cmd)
-            os.system(cmd)
+            #print(cmd)
+            print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
+            #os.system(cmd)
             self.UpdateGUI()
         except ValueError:
             pass
@@ -320,7 +322,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             reply = QtGui.QMessageBox.question(self, 'Message', 
                      send_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
-                os.system(cmd)
+                print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
+                #os.system(cmd)
             self.UpdateGUI()
         except ValueError:
             pass
@@ -329,17 +332,14 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         try:
             output_dir = str(self.ui.lineEdit_dicompath.text())
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
-            print 'check path: %s' % thispath
-            cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + output_dir
-            print(cmd1)
-            cmd=cmd_header + cmd1 +')'
-            print(cmd)
-            os.system(cmd)
             cmd1 ='mrinfo '+ output_dir
             print(cmd1)
             cmd=cmd_header + cmd1 +')'
-            print(cmd)
-            os.system(cmd)
+            #print(cmd)
+            print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
+            cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + output_dir
+            #print(cmd1)
+            print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
             self.UpdateGUI()
         except ValueError:
             pass
@@ -349,8 +349,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             output_dir = str(self.ui.lineEdit_dicompath.text())
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             cmd1 =mrview_header + output_dir 
-            print(cmd1)
-            os.system(cmd1)
+            #print(cmd1)
+            print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
+#            os.system(cmd1)
         except ValueError:
             pass
 						      
@@ -400,8 +401,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd1 = cmd1+' -i ' + str(input_dir) + ' -o ' + str(output_dir)
             print(cmd1)
             cmd=cmd_header + cmd1 +')'
-            print(cmd)
-            os.system(cmd)
+            #print(cmd)
+            print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
+            #os.system(cmd)
             self.UpdateGUI()
         except ValueError:
             pass
@@ -417,14 +419,16 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             (dicom_dir_root, dicom_raw) = os.path.split(dicom_raw_dir)
             # Do a regex and get all the dicom paths produced by Agilent2Dicom
             rgx = re.compile(r''+re.sub('.dcm','',dicom_raw)+".*.dcm")
-            for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)): #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
+            for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)):
+                #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
                 dcmpath=os.path.join(dicom_dir_root,dicom_dir)
                 if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath))<=2:
                     cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + str(dcmpath)
-                    print(cmd1)
-                    cmd=cmd_header + cmd1 +')'
-                    print(cmd)
-                    os.system(cmd)
+                    #print(cmd1)
+                    #cmd=cmd_header + cmd1 +')'
+                    #print(cmd)
+                    print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
+                    #os.system(cmd1)
             
             self.UpdateGUI()
         except ValueError:
@@ -441,13 +445,15 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             (dicom_dir_root, dicom_raw) = os.path.split(dicom_raw_dir)
             # Do a regex and get all the dicom paths produced by Agilent2Dicom
             rgx = re.compile(r''+re.sub('.dcm','',dicom_raw)+".*.dcm")
-            for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)): #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
+            for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)):
+                #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
                 dcmpath=os.path.join(dicom_dir_root,dicom_dir)
                 if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath))<=2:
                     cmd1 =mrview_header + dcmpath +' & '
                     
                     print(cmd1)
-                    os.system(cmd1)
+                    print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
+                    #os.system(cmd1)
             self.UpdateGUI()
         except ValueError:
             pass
@@ -469,7 +475,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             (dicom_dir_root, dicom_raw) = os.path.split(dicom_raw_dir)
             # Do a regex and get all the dicom paths produced by Agilent2Dicom
             rgx = re.compile(r''+re.sub('.dcm','',dicom_raw)+".*.dcm")
-            for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)): #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
+            for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)):
+                #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
                 dcmpath=os.path.join(dicom_dir_root,dicom_dir)
                 if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath))<=2:
                     QtGui.QMessageBox.warning(self, 'Warning',"Cannot send to DaRIS. Directory "+dicom_dir+" is empty")
@@ -479,7 +486,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                         str(dcmpath)+"\n using the ID: "+str(daris_ID)+"   ?"
                     reply = QtGui.QMessageBox.question(self, 'Message', send_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
-                        os.system(cmd)
+                        print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
+                        #os.system(cmd)
         except ValueError:
             pass
 											    
@@ -499,6 +507,28 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.ui.pushButton_view2.setEnabled(True)
             self.ui.pushButton_send2daris2.setEnabled(True)
 												  
+
+    def TableUpdate(self):
+        from ReadProcpar import ReadProcpar
+        from ProcparToDicomMap import ProcparToDicomMap
+        procpar, procpartext = ReadProcpar(os.path.join(self.ui.lineEdit_fdfpath.text(),'procpar'))
+        ds,MRAcq_type = ProcparToDicomMap(procpar)
+
+
+        print "StudyID: ",  ds.StudyID
+        print "Patient ID: ", ds.PatientID
+        print "Protocol name: ", ds.ProtocolName
+        print "Series Desc: ", ds.SeriesDescription
+        print "Acq Matrix:", ds.AcquisitionMatrix
+        print "Pixel Spacing: ", ds.PixelSpacing
+        print "Slice thickness: ", ds.SliceThickness
+        print 'Image type:', ds.ImageType
+        print 'MR Acquisition Type: ', MRAcq_type
+        for column, key in enumerate(self.data):
+            for row, item in enumerate(self.data[key]):
+                newitem = QTableWidgetItem(item)
+                self.setItem(row, column, newitem)
+
     def About(self):
         msg = "                      Agilent2Dicom       \n\n"+\
             "Agilent2Dicom converts FDF and FID images from the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.\n\n"+\
