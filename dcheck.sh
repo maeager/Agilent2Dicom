@@ -9,7 +9,7 @@ VERBOSE=0
 E_BADARGS=65
 
 #Check whether we are on MASSIVE or the Agilent console (Redhat 6.5)
-if test ${MASSIVEUSERNAME+defined}; then 
+if test ${MASSIVE_USERNAME+defined}; then 
     FDF2DCMPATH=$(dirname $0)
     # export PATH=${PATH}:${DCMTK}
 else
@@ -23,18 +23,18 @@ else
 fi
 
 echo $FDF2DCMPATH
-KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
-DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
+#KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
+#DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
+DCM3TOOLS=$(/bin/ls -d "${FDF2DCMPATH}"/../dicom3tools_*/bin/*)
 export PATH=${PATH}:${DCM3TOOLS}
 
-test -x dciodvfy || (echo "dciodvfy not found"; exit 1)
-
+DCIODVFY=${DCM3TOOLS}/dciodvfy
 
 
 # Print usage information and exit
 print_usage(){
     echo -e "\n" \
-	"usage: ./fdf2dcmdcheck.sh -o outputdir\n" \
+	"usage: ./dcheck.sh -o outputdir\n" \
 	"\n" \
 	"-o <outputdir> DICOM directory.  \n" \
 	"-v             verbose output. \n" \
@@ -46,7 +46,7 @@ print_usage(){
 
 # Check for number of args
 if [ $# -eq 0 ]; then
-    echo "fdfdcm.sh must have one argument: -i, --input [directory of FDF images]"
+    echo "dcheck.sh must have one argument: -i, --input [directory of FDF images]"
     print_usage
     exit $E_BADARGS
 fi
@@ -93,4 +93,9 @@ if [ ! -f "$output_dir"/0001.dcm ]; then
     exit $E_BADARGS
 fi
 
-dciodvfy "$output_dir"/0001.dcm
+if [ ! -x ${DCIODVFY} ]; then
+    echo "dciodvfy not found"
+    exit 1
+fi
+
+${DCIODVFY} "$output_dir"/0001.dcm
