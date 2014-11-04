@@ -55,6 +55,19 @@ def SaveNifti(image,basefilename):
         nib.save(raw_image,basefilename+'.nii.gz')
 
 
+def sigmaparse(s):
+    try:
+        print "Sigma parse ",s
+        if s.find(','):
+            print "Mapping "
+            x, y, z = map(float, s.split(','))
+            print x,y,z
+            return (x, y, z)
+        else:
+            return (float(s),)
+    except:
+        raise argparse.ArgumentTypeError("Sigma must be single value or comma-seperated (eg. 1.0,1.0,3.0)")
+        
 if __name__ == "__main__":
 
     # Parse command line arguments and validate img directory
@@ -70,8 +83,8 @@ if __name__ == "__main__":
 #    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL).',choices={"MULTIECHO", "DIFFUSION", "ASL"});
 #    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
     parser.add_argument('-g','--gaussian_filter', help='Gaussian filter smoothing of reconstructed RE and IM components.',action="store_true");
-    parser.add_argument('-l','--gaussian_laplace', help='Gaussian Laplace filter smoothing of reconstructed RE and IM components. --sigma variable must be declared.',action="store_true");
-    parser.add_argument('-s','--sigma',help='Gaussian and Laplace-Gaussian sigma variable. Default 1/srqt(2).',type=float,default=0.707)
+    parser.add_argument('-l','--gaussian_laplace', help='Gaussian Laplace filter smoothing of reconstructed RE and IM components. -s/--sigma variable must be declared.',action="store_true");
+    parser.add_argument('-s','--sigma',help='Gaussian and Laplace-Gaussian sigma variable. Default 1/srqt(2).',type=sigmaparse) # ,default='0.707',type=float
     parser.add_argument('-go','--gaussian_order',help='Gaussian and Laplace-Gaussian order variable. Default 0.',type=int,choices=[0,1,2,3],default=0)
     parser.add_argument('-gm','--gaussian_mode',help='Gaussian and Laplace-Gaussian mode variable. Default nearest.',choices=['reflect','constant','nearest','mirror','wrap'],default='nearest')
     parser.add_argument('-d','--median_filter', help='Median filter smoothing of reconstructed RE and IM components. ',action="store_true");
