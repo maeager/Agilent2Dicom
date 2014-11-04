@@ -1018,8 +1018,8 @@ def ProcparToDicomMap(procpar,args):
 #                                                      SPIN or BOTH.
     if len(ds.ImageType) >=3 and ds.ImageType[2]=="MULTIECHO":
         ds.MultipleSpinEcho="YES"
-    else:
-        ds.MultipleSpinEcho="NO"
+    #else:
+    #    ds.MultipleSpinEcho="NO"
 # Multi-planar Excitation          (0018,9012)     1C  Technique that simultaneously excites
 #                                                      several volumes.
 #                                                      Enumerated Values:
@@ -1806,6 +1806,7 @@ def ProcparToDicomMap(procpar,args):
     
     # Slice Thickness
     # 0018,0050 Slice Thickness (optional)
+    pe2=procpar['lpe2']
     if MRAcquisitionType == '3D':
         if 'fn2' in procpar.keys() and procpar['fn2'] > 0:
             pe2 = procpar['fn2']/2.0
