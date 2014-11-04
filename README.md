@@ -19,7 +19,7 @@ The Agilent2Dicom package is for converting high-field MR images to
 enhanced DICOM formats.  The idea stemmed from poor reconstruction and
 implementation of the DICOM format on the Vnmrj system used by the
 Agilent 9.4 MR scanner. Amanda Ng initiated the project with a simple
-fdf converter. Michael Eager took over and expanded the features to
+fdf converter. Michael Eager has since expanded the features to
 include enhanced DICOM conversion, full implementation for all
 sequences, FID complex filtering, and pyqt4 GUIs.
 
@@ -78,6 +78,8 @@ core. The arguments to *fid2dicom* are similar to *fdf2dcm* in that it
 requires an input directory, and an optional output directory.
 *fid2dicom* has additional arguments for complex filtering including
 Gaussian, Gaussian Laplace, Median, and Wiener filters.
+
+** Warning: filtering applicable to isotropic 3D volumes **
 
 Basic FID2DCM usage from the commandline is as follows:
 ```
@@ -170,7 +172,7 @@ Advanced FID2DCM usage from the commandline is as follows:
 ```
 #!bash
 
-[eagerm@m2108 Agilent2Dicom]$ python ./fid2dicom.py -h
+[eagerm@m2108 Agilent2Dicom]$ ./fid2dicom.py -h
 usage:  fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 0.707] [-d -n 5] [-w -n 5]]
 
 fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering
@@ -215,6 +217,22 @@ optional arguments:
   -v, --verbose         Verbose.
 ```
 
+The sigma variable can be a single scalar value or a three-element
+tuple. The preferred method for ansitropic images is to calculate the
+full width half maximum in millimeters in each dimension, then divide
+by the voxel resolution.  The kidney example below is isotropic.  The
+T2 coronal example has a resolution of 0.02 mm x 0.02 mm x 0.4 mm. In
+this case we want to reduce the smoothing in the third dimension by a
+factor of 20.
+
+```
+#!bash
+
+[eagerm@m2108 Agilent2Dicom]$ ./fid2dicom.py -v -m -g -s 0.707 -i ../ExampleAgilentData//kidney512iso_01.fid 
+[eagerm@m2108 Agilent2Dicom]$ ./fid2dicom.py -v -m -g -s 0.707,0.707,0.035 -i ../example_data/s_2014072901/T2-cor_01.fid -o ../output_data/s_2014072901/T2-cor_01.dcm
+```
+
+
 # Agilent Console GUI #
 
 A first attempt at a GUI interface, *fdf2dicom*, was developed to be
@@ -226,14 +244,14 @@ conversion only. This requires python 2.6 and Tkinter.
 [vnmr1@vnmrj1 s_2014062002]$ fdf2dicom
 ```
 
-An updated GUI, *Agilent2DicomApp*, now uses PyQt4 and enables more
+An updated GUI, *Agilent2DicomAppQt*, now uses PyQt4 and enables more
 features including FID conversion.  With the Agilent2Dicom path
 included in the PATH variable, the GUI can be loaded from the terminal
 from any folder:
 ```
 #!bash
 
-[vnmr1@vnmrj1 s_2014062002]$ Agilent2DicomApp
+[vnmr1@vnmrj1 s_2014062002]$ Agilent2DicomAppQt.py
 ```
 
 On MASSIVE, enable the scipy and pyqt4 packages using the following commands:
@@ -242,7 +260,7 @@ On MASSIVE, enable the scipy and pyqt4 packages using the following commands:
 
 module load python/2.7.3-gcc pyqt4
 export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages/:/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages 
-./Agilent2DicomApp.py
+./Agilent2DicomAppQt.py
 ```
 
 
@@ -260,10 +278,12 @@ See INSTALL.txt
  * python (2.6 or greater)
    - python-dicom
    - python-numpy
-   - tkinter (for python 2.6 GUI fdf2dicom on Agilent console)
-   - pyqt4 (for Agilent2DicomQt and Agilent2DicomApp)
- * dicom3tools
- * dcmtk
+   - python-scipy (for complex filtering)
+   - pyqt4 (for newest GUI Agilent2DicomQt and Agilent2DicomAppQt)
+   - nibabel (for quick NiFTI creation)
+   - tkinter (for old GUI fdf2dicom on Agilent console)
+ * dicom3tools  (dcmulti, dciodvfy, dcdump)
+ * dcmtk  (dcmodify and dcmdump)
  * mrtrix (0.2.12 or mrtrix3)
 
 
@@ -325,7 +345,6 @@ diffusion examples:
 #!bash
 
 python ./ParseFDF.py -v -i ../ExampleAgilentData/multiecho3d_magonly/
-python ./ParseFDF.py -v -i ../ExampleAgilentData//kidney512iso_01.fid
 python ./ParseFDF.py -v -i ../ExampleAgilentData/diffusion/
 ```
 
@@ -378,30 +397,6 @@ See examples in Makefile.
 
 
 *Other guidelines*
-
-Mercurial keyword expansion is used to set some important variables. The hgrc file in the development .hg folder should be the following:
-
-```
-#!bash
-
-[paths]
-default = ssh://hg@bitbucket.org/mbi-image/agilent2dicom
-[extensions]
-keyword =
-[keyword]
-agilentFDF2dicom.py =
-fdf2dcm.sh =
-agilent2dicom_globalvars.py =
-fid2dicom.py =
-fid2dcm.sh =
-Agilent2DicomAppQt.py =
-[keywordmaps]
-Author = {author|user}
-Date = {date|utcdate}
-Header = {root}/{file},v {node|short} {date|utcdate} {author|user}
-Id = {file|basename},v {node|short} {date|utcdate} {author|user}
-Revision = {node|short}
-```
 
 ## Who do I talk to? ##
 
