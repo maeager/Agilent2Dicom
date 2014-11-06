@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>625</width>
-    <height>557</height>
+    <width>786</width>
+    <height>581</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
        <string/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_fdf_2">
        <attribute name="title">
@@ -30,13 +30,6 @@
        <layout class="QVBoxLayout" name="verticalLayout_7">
         <item>
          <layout class="QGridLayout" name="gridLayout_4">
-          <item row="3" column="1">
-           <widget class="QLabel" name="label_12">
-            <property name="text">
-             <string>Options</string>
-            </property>
-           </widget>
-          </item>
           <item row="0" column="4">
            <widget class="QPushButton" name="pushButton_changefdf">
             <property name="toolTip">
@@ -123,175 +116,6 @@
           <item row="5" column="3">
            <layout class="QHBoxLayout" name="horizontalLayout_2"/>
           </item>
-          <item row="3" column="3">
-           <widget class="QTabWidget" name="Multiecho_2">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="currentIndex">
-             <number>0</number>
-            </property>
-            <widget class="QWidget" name="tab_generic_2">
-             <attribute name="title">
-              <string>Generic</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_6">
-              <item>
-               <layout class="QGridLayout" name="gridLayout_7">
-                <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_debugging">
-                  <property name="toolTip">
-                   <string>Display more verbose debugging</string>
-                  </property>
-                  <property name="text">
-                   <string>Show debugging</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QCheckBox" name="checkBox_nodcmulti">
-                  <property name="toolTip">
-                   <string>Do not convert 2D slices to enhance DICOM format</string>
-                  </property>
-                  <property name="text">
-                   <string>Keep 2D DICOM slices</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="tab_diffusion">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <attribute name="title">
-              <string>Diffusion</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_11">
-              <item>
-               <layout class="QGridLayout" name="gridLayout_8">
-                <item row="7" column="1">
-                 <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0">
-                  <property name="spacing">
-                   <number>5</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>5</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>5</number>
-                  </property>
-                  <item>
-                   <widget class="QRadioButton" name="radioButton_bmatrixdiff">
-                    <property name="text">
-                     <string>Bmatrix</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="radioButton_directionaldiff">
-                    <property name="text">
-                     <string>Directional</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item row="7" column="0">
-                 <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="0,0">
-                  <property name="spacing">
-                   <number>5</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>5</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>5</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="label_18">
-                    <property name="text">
-                     <string>TextLabel</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="lineEdit_8"/>
-                  </item>
-                 </layout>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_diffusion1">
-                  <property name="text">
-                   <string>Diffusion</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="tab_multiecho">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <attribute name="title">
-              <string>Multi echo</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_12">
-              <item>
-               <layout class="QGridLayout" name="gridLayout_10">
-                <item row="6" column="0">
-                 <layout class="QHBoxLayout" name="horizontalLayout_12">
-                  <property name="spacing">
-                   <number>5</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>5</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>5</number>
-                  </property>
-                 </layout>
-                </item>
-                <item row="6" column="1">
-                 <layout class="QHBoxLayout" name="horizontalLayout_13" stretch="0,0">
-                  <property name="spacing">
-                   <number>5</number>
-                  </property>
-                  <property name="topMargin">
-                   <number>5</number>
-                  </property>
-                  <property name="bottomMargin">
-                   <number>5</number>
-                  </property>
-                  <item>
-                   <widget class="QLabel" name="label_21">
-                    <property name="text">
-                     <string>Echo Train List</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QLineEdit" name="lineEdit_13"/>
-                  </item>
-                 </layout>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QCheckBox" name="checkBox_8">
-                  <property name="text">
-                   <string>Multi-echo</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </widget>
-          </item>
           <item row="3" column="4">
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
@@ -345,6 +169,83 @@
             </item>
            </layout>
           </item>
+          <item row="3" column="3">
+           <widget class="QTabWidget" name="Multiecho_2">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="tab_generic_2">
+             <attribute name="title">
+              <string>Options</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <item>
+               <layout class="QGridLayout" name="gridLayout_7">
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_debugging">
+                  <property name="toolTip">
+                   <string>Display more verbose debugging</string>
+                  </property>
+                  <property name="text">
+                   <string>Show debugging</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QCheckBox" name="checkBox_nodcmulti">
+                  <property name="toolTip">
+                   <string>Do not convert 2D slices to enhance DICOM format</string>
+                  </property>
+                  <property name="text">
+                   <string>Keep 2D DICOM slices</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="tab_procpar">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <attribute name="title">
+              <string>Procpar Info</string>
+             </attribute>
+             <layout class="QVBoxLayout" name="verticalLayout_11">
+              <item>
+               <widget class="QScrollArea" name="scrollArea">
+                <property name="widgetResizable">
+                 <bool>true</bool>
+                </property>
+                <widget class="QWidget" name="scrollAreaWidgetContents">
+                 <property name="geometry">
+                  <rect>
+                   <x>0</x>
+                   <y>0</y>
+                   <width>417</width>
+                   <height>238</height>
+                  </rect>
+                 </property>
+                 <layout class="QVBoxLayout" name="verticalLayout_15">
+                  <item>
+                   <widget class="QLabel" name="FDFprocparInfo">
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </widget>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
          </layout>
         </item>
        </layout>
@@ -363,13 +264,6 @@
             </property>
             <property name="buddy">
              <cstring>lineEdit_darisid2</cstring>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
-           <widget class="QLabel" name="label_23">
-            <property name="text">
-             <string>Options</string>
             </property>
            </widget>
           </item>
@@ -510,11 +404,139 @@
                <bool>true</bool>
               </property>
               <property name="toolTip">
-               <string>Multidimensional median, Gaussian or Wiener  filters.</string>
+               <string>Multidimensional median, Gaussian or Wiener  filters.  Warning: use on isotropic images only.</string>
               </property>
               <property name="currentIndex">
-               <number>0</number>
+               <number>4</number>
               </property>
+              <widget class="QWidget" name="tab_7">
+               <attribute name="title">
+                <string>Options</string>
+               </attribute>
+               <layout class="QVBoxLayout" name="verticalLayout_22">
+                <item>
+                 <layout class="QGridLayout" name="gridLayout_2">
+                  <item row="6" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_36">
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_reimag">
+                      <property name="text">
+                       <string>Save REAL and IMAG</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_ksp">
+                      <property name="text">
+                       <string>Save K space data</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_37">
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_reimag_raw">
+                      <property name="text">
+                       <string>Save REAL and IMAG</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_ksp_raw">
+                      <property name="text">
+                       <string>Save K space data</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="label_36">
+                    <property name="toolTip">
+                     <string>Outputs saved as &quot;&lt;dicom folder&gt;-&lt;filter type&gt;-&lt;magn or pha or real or imag&gt;.dcm&quot;.  K-space data is saved to MATLAB mat file &quot;&lt;dicom folder&gt;-&lt;ksp&gt;.mat&quot;</string>
+                    </property>
+                    <property name="text">
+                     <string>Outputs of filtered image(s)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_38">
+                    <property name="toolTip">
+                     <string>Outputs saved as &quot;&lt;dicom folder&gt;-&lt;filter type&gt;-&lt;magn or pha or real or imag&gt;.dcm&quot;.  K-space data is saved to MATLAB mat file &quot;&lt;dicom folder&gt;-&lt;ksp&gt;.mat&quot;</string>
+                    </property>
+                    <property name="text">
+                     <string>Outputs of original reconstructed image:</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="5" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_35">
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_magn">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="text">
+                       <string>Save Magnitude</string>
+                      </property>
+                      <property name="checkable">
+                       <bool>true</bool>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_pha">
+                      <property name="text">
+                       <string>Save Phase</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="2" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_38">
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_magn_raw">
+                      <property name="enabled">
+                       <bool>true</bool>
+                      </property>
+                      <property name="text">
+                       <string>Save Magnitude</string>
+                      </property>
+                      <property name="checkable">
+                       <bool>true</bool>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_pha_raw">
+                      <property name="text">
+                       <string>Save Phase</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="7" column="0">
+                   <widget class="QCheckBox" name="checkBox_2">
+                    <property name="text">
+                     <string>Save as NIFTI (no header info)</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
               <widget class="QWidget" name="tab_3">
                <attribute name="title">
                 <string>Gaussian</string>
@@ -522,7 +544,7 @@
                <layout class="QVBoxLayout" name="verticalLayout_3">
                 <item>
                  <layout class="QGridLayout" name="gridLayout_12">
-                  <item row="1" column="1">
+                  <item row="2" column="1">
                    <layout class="QHBoxLayout" name="horizontalLayout_28">
                     <property name="spacing">
                      <number>5</number>
@@ -535,7 +557,7 @@
                     </property>
                    </layout>
                   </item>
-                  <item row="2" column="0">
+                  <item row="3" column="0">
                    <layout class="QHBoxLayout" name="horizontalLayout_32" stretch="0,0,0">
                     <property name="spacing">
                      <number>5</number>
@@ -593,8 +615,8 @@
                     </item>
                    </layout>
                   </item>
-                  <item row="1" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout_33" stretch="0,0,0">
+                  <item row="2" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_33" stretch="0,0,0,0">
                     <property name="spacing">
                      <number>5</number>
                     </property>
@@ -637,34 +659,41 @@
                       <property name="toolTip">
                        <string>scalar or sequence of scalars
 
-    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.</string>
+    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.  Default value for isotropic GRE scans is 1/sqrt(2)=0.707.</string>
                       </property>
                       <property name="layoutDirection">
                        <enum>Qt::RightToLeft</enum>
                       </property>
                       <property name="text">
-                       <string>0.707</string>
+                       <string>0.707,0.707,0.707</string>
                       </property>
                       <property name="alignment">
                        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                       </property>
                      </widget>
                     </item>
+                    <item>
+                     <widget class="QComboBox" name="comboBox">
+                      <item>
+                       <property name="text">
+                        <string>unit voxel</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>in mm</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>in um</string>
+                       </property>
+                      </item>
+                     </widget>
+                    </item>
                    </layout>
                   </item>
-                  <item row="0" column="0">
-                   <widget class="QCheckBox" name="checkBox_gaussian">
-                    <property name="toolTip">
-                     <string> scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode='reflect', cval=0.0, truncate=4.0)[source]
-
-    Multidimensional Gaussian filter.</string>
-                    </property>
-                    <property name="text">
-                     <string>Use Gaussian Filter</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="3" column="0">
+                  <item row="4" column="0">
                    <layout class="QHBoxLayout" name="horizontalLayout_34" stretch="0,0,0,0,0">
                     <property name="spacing">
                      <number>5</number>
@@ -726,98 +755,24 @@
                     </item>
                    </layout>
                   </item>
-                 </layout>
-                </item>
-               </layout>
-              </widget>
-              <widget class="QWidget" name="tab_4">
-               <attribute name="title">
-                <string>Median</string>
-               </attribute>
-               <layout class="QVBoxLayout" name="verticalLayout_14">
-                <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_9">
-                  <item>
-                   <widget class="QCheckBox" name="checkBox_median">
-                    <property name="toolTip">
-                     <string>scipy.ndimage.filters.median_filter¶
-
-scipy.ndimage.filters.median_filter(input, size=None, footprint=None, output=None, mode='reflect', cval=0.0, origin=0)[source]
-
-    Calculates a multidimensional median filter.</string>
-                    </property>
-                    <property name="text">
-                     <string>Use Median Filter</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <layout class="QHBoxLayout" name="horizontalLayout_41">
+                  <item row="0" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout">
                     <item>
-                     <widget class="QLabel" name="label_33">
+                     <widget class="QCheckBox" name="checkBox_gaussian">
                       <property name="toolTip">
-                       <string>     
+                       <string> scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode='reflect', cval=0.0, truncate=4.0)[source]
 
-size : scalar or tuple, optional
-
-    See footprint, below
-
-footprint : array, optional
-
-    Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position,
- to define the input to the filter function. footprint is a boolean array that specifies (implicitly) a shape,
- but also which of the elements within this shape will get passed to the filter function. Thus size=(n,m) is equivalent to footprint=np.ones((n,m)).
- We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),
- and size is 2, then the actual size used is (2,2,2).
-</string>
+    Multidimensional Gaussian filter.</string>
                       </property>
                       <property name="text">
-                       <string>Window Size(s)</string>
-                      </property>
-                      <property name="buddy">
-                       <cstring>lineEdit_median_size</cstring>
+                       <string>Use 3D Gaussian filter</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <spacer name="horizontalSpacer_10">
-                      <property name="orientation">
-                       <enum>Qt::Horizontal</enum>
-                      </property>
-                      <property name="sizeHint" stdset="0">
-                       <size>
-                        <width>40</width>
-                        <height>20</height>
-                       </size>
-                      </property>
-                     </spacer>
-                    </item>
-                    <item>
-                     <widget class="QLineEdit" name="lineEdit_median_size">
-                      <property name="toolTip">
-                       <string>     
-
-size : scalar or tuple, optional
-
-    See footprint, below
-
-footprint : array, optional
-
-    Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position,
- to define the input to the filter function. footprint is a boolean array that specifies (implicitly) a shape,
- but also which of the elements within this shape will get passed to the filter function. Thus size=(n,m) is equivalent to footprint=np.ones((n,m)).
- We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),
- and size is 2, then the actual size used is (2,2,2).
-</string>
-                      </property>
-                      <property name="layoutDirection">
-                       <enum>Qt::RightToLeft</enum>
-                      </property>
+                     <widget class="QCheckBox" name="checkBox">
                       <property name="text">
-                       <string>5</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                       <string>Use 2D Gaussian filter</string>
                       </property>
                      </widget>
                     </item>
@@ -973,62 +928,137 @@ scipy.signal.wiener(im, mysize=None, noise=None)
                 </item>
                </layout>
               </widget>
+              <widget class="QWidget" name="tab_4">
+               <attribute name="title">
+                <string>Median</string>
+               </attribute>
+               <layout class="QVBoxLayout" name="verticalLayout_14">
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_9">
+                  <item>
+                   <widget class="QCheckBox" name="checkBox_median">
+                    <property name="toolTip">
+                     <string>scipy.ndimage.filters.median_filter¶
+
+scipy.ndimage.filters.median_filter(input, size=None, footprint=None, output=None, mode='reflect', cval=0.0, origin=0)[source]
+
+    Calculates a multidimensional median filter.</string>
+                    </property>
+                    <property name="text">
+                     <string>Use Median Filter</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_41">
+                    <item>
+                     <widget class="QLabel" name="label_33">
+                      <property name="toolTip">
+                       <string>     
+
+size : scalar or tuple, optional
+
+    See footprint, below
+
+footprint : array, optional
+
+    Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position,
+ to define the input to the filter function. footprint is a boolean array that specifies (implicitly) a shape,
+ but also which of the elements within this shape will get passed to the filter function. Thus size=(n,m) is equivalent to footprint=np.ones((n,m)).
+ We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),
+ and size is 2, then the actual size used is (2,2,2).
+</string>
+                      </property>
+                      <property name="text">
+                       <string>Window Size(s)</string>
+                      </property>
+                      <property name="buddy">
+                       <cstring>lineEdit_median_size</cstring>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_10">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="lineEdit_median_size">
+                      <property name="toolTip">
+                       <string>     
+
+size : scalar or tuple, optional
+
+    See footprint, below
+
+footprint : array, optional
+
+    Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position,
+ to define the input to the filter function. footprint is a boolean array that specifies (implicitly) a shape,
+ but also which of the elements within this shape will get passed to the filter function. Thus size=(n,m) is equivalent to footprint=np.ones((n,m)).
+ We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),
+ and size is 2, then the actual size used is (2,2,2).
+</string>
+                      </property>
+                      <property name="layoutDirection">
+                       <enum>Qt::RightToLeft</enum>
+                      </property>
+                      <property name="text">
+                       <string>5</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="tab">
+               <attribute name="title">
+                <string>Info</string>
+               </attribute>
+               <layout class="QVBoxLayout" name="verticalLayout_12">
+                <item>
+                 <widget class="QScrollArea" name="scrollArea_4">
+                  <property name="widgetResizable">
+                   <bool>true</bool>
+                  </property>
+                  <widget class="QWidget" name="scrollAreaWidgetContents_4">
+                   <property name="geometry">
+                    <rect>
+                     <x>0</x>
+                     <y>0</y>
+                     <width>427</width>
+                     <height>255</height>
+                    </rect>
+                   </property>
+                   <layout class="QVBoxLayout" name="verticalLayout_21">
+                    <item>
+                     <widget class="QLabel" name="FIDprocparInfo">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </widget>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
              </widget>
-            </item>
-            <item>
-             <widget class="QLabel" name="label_36">
-              <property name="toolTip">
-               <string>Outputs saved as &quot;&lt;dicom folder&gt;-&lt;filter type&gt;-&lt;magn or pha or real or imag&gt;.dcm&quot;.  K-space data is saved to MATLAB mat file &quot;&lt;dicom folder&gt;-&lt;ksp&gt;.mat&quot;</string>
-              </property>
-              <property name="text">
-               <string>Outputs of Filter</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_35">
-              <item>
-               <widget class="QCheckBox" name="checkBox_magn">
-                <property name="enabled">
-                 <bool>true</bool>
-                </property>
-                <property name="text">
-                 <string>Save Magnitude</string>
-                </property>
-                <property name="checkable">
-                 <bool>true</bool>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkBox_pha">
-                <property name="text">
-                 <string>Save Phase</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_36">
-              <item>
-               <widget class="QCheckBox" name="checkBox_reimag">
-                <property name="text">
-                 <string>Save REAL and IMAG</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QCheckBox" name="checkBox_ksp">
-                <property name="text">
-                 <string>Save K space data</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
             </item>
            </layout>
           </item>
@@ -1081,7 +1111,7 @@ scipy.signal.wiener(im, mysize=None, noise=None)
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>625</width>
+     <width>786</width>
      <height>22</height>
     </rect>
    </property>
@@ -1228,6 +1258,9 @@ scipy.signal.wiener(im, mysize=None, noise=None)
   <action name="actionSave_Filter_Outputs_to_Nifti">
    <property name="text">
     <string>Save Filter Outputs to Nifti</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Filter Outputs to skeleton Nifti.  Nifti will not have pixel dimensions or correct orientation.  Only filter magnitude is saved.</string>
    </property>
   </action>
  </widget>
