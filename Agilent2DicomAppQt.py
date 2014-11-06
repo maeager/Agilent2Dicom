@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 9d1f62d889d7 2014/11/06 09:57:14 michael $
-# $Id: Agilent2DicomAppQt.py,v 9d1f62d889d7 2014/11/06 09:57:14 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v c7cd8dc1fc06 2014/11/06 10:58:18 michael $
+# $Id: Agilent2DicomAppQt.py,v c7cd8dc1fc06 2014/11/06 10:58:18 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -45,11 +45,11 @@ DEBUGGING=0
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/11/06 09:57:14 $"
+__date__ = "$Date: 2014/11/06 10:58:18 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 9d1f62d889d7 2014/11/06 09:57:14 michael $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v c7cd8dc1fc06 2014/11/06 10:58:18 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -177,7 +177,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 self.ui.lineEdit_dicompath.setText(out)
                 self.ui.lineEdit_darisid.setText(self.GetDarisID(newdir))
                 
-            self.ui.checkBox_gaussian.setChecked(False)
+            self.ui.checkBox_gaussian3D.setChecked(False)
+            self.ui.checkBox_gaussian2D.setChecked(False)
             self.ui.checkBox_median.setChecked(False)
             self.ui.checkBox_wiener.setChecked(False)
             self.UpdateGUI()
@@ -231,7 +232,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 self.ui.lineEdit_dicompath2.setText(out)
                 self.ui.lineEdit_darisid2.setText(self.GetDarisID(newdir))
                 
-            self.ui.checkBox_gaussian.setChecked(False)
+            self.ui.checkBox_gaussian3D.setChecked(False)
+            self.ui.checkBox_gaussian2D.setChecked(False)
             self.ui.checkBox_median.setChecked(False)
             self.ui.checkBox_wiener.setChecked(False)
             self.UpdateGUI()
@@ -375,8 +377,31 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         if self.ui.checkBox_reimag.isChecked():
             argstr+=' -r'
         
-        if self.ui.checkBox_gaussian.isChecked():
-            argstr+=' -g %s -j %s' % (str(self.ui.lineEdit_gsigma.text()),str(self.ui.lineEdit_gorder.text()))
+        if self.ui.checkBox_gaussian2D.isChecked():
+            argstr+=' -2'
+            s=str(self.ui.lineEdit_gsigma.text())
+            try: #if s.find(','):
+                x, y, z = map(float, s.split(','))
+                argstr+=' -g %f,%f,%f' % (x,y,z)
+            except ValueError:
+                argstr+=' -g %s' % float(s)            
+            argstr+=' -j %s' % str(self.ui.lineEdit_gorder.text())
+            if self.ui.nearest.isChecked():
+                argstr+=' -e nearest'
+            elif self.ui.reflect.isChecked():
+                argstr+=' -e reflect'
+            elif self.ui.wrap.isChecked:
+                argstr+=' -e wrap'
+            else:
+                argstr+=' -e nearest'
+        if self.ui.checkBox_gaussian3D.isChecked():
+            s=str(self.ui.lineEdit_gsigma.text())
+            try: #if s.find(','):
+                x, y, z = map(float, s.split(','))
+                argstr+=' -g %f,%f,%f' % (x,y,z)
+            except ValueError:
+                argstr+=' -g %f' % float(s)
+            argstr+=' -j %s' % str(self.ui.lineEdit_gorder.text())
             if self.ui.nearest.isChecked():
                 argstr+=' -e nearest'
             elif self.ui.reflect.isChecked():
@@ -392,8 +417,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         if self.NIFTI == 1:
             argstr+=' -f'
         return argstr
-									    
-									    
 									    
     def ConvertFID(self):
         try:
@@ -441,7 +464,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 										    
     def ViewFID(self):
         try:
-            
             thispath = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
             dicom_raw_dir = str(self.ui.lineEdit_dicompath2.text())
             # Shorten string if it ends in '/'
