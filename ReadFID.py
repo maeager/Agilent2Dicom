@@ -62,8 +62,11 @@ def readfid(fidfolder,procpar,args):
     # FOV
     fid_header['volumes'] = procpar['lpe3']
     fid_header['nEchoes'] = procpar['ne']
-    # rcvrs = re.search('y',procpar['rcvrs'])
-    fid_header['nChannels'] = 1 #len(rcvrs);
+    rcvrs = re.findall('y',procpar['rcvrs'])
+    if rcvrs:
+        fid_header['nChannels'] = len(rcvrs);
+    else:
+        fid_header['nChannels'] = 1
     fid_header['mode'] = '%dD' % procpar['nD']
     if procpar['nD'] == 2:
         fid_header['FOVcm'] = [procpar['lro'], procpar['lpe']]
@@ -75,6 +78,8 @@ def readfid(fidfolder,procpar,args):
         fid_header['FOVcm'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
         fid_header['dims'] = [procpar['nf'], procpar['np']/2, procpar['nv2']]
         fid_header['voxelmm'] = numpy.array(fid_header['FOVcm']) / numpy.array(fid_header['dims'])*10
+    else:
+        print 'Unknown nD', procpar['nD']
     print fid_header    
     
     
@@ -98,12 +103,45 @@ def readfid(fidfolder,procpar,args):
     fid_header['nbheaders'], = struct.unpack(endian+'i',f.read(int32size)) #fid,1,'int32')
     if args.verbose:
         print 'status : ', fid_header['status'], type(fid_header['status']), type(status)
+
+  #       status is bits as defined below with their hexadecimal values.
+  # All other bits must be zero.
+  # Bits 0–6: file header and block header status bits (bit 6 is unused):
+  #  0         S_DATA                   0x1          0 = no data, 1 = data
+  #  1         S_SPEC                   0x2          0 = FID, 1 = spectrum
+  #  2         S_32                     0x4          *
+  #  3         S_FLOAT                  0x8          0 = integer, 1 = floating point
+  #  4         S_COMPLEX                0x10         0 = real, 1 = complex
+  #  5         S_HYPERCOMPLEX           0x20         1 = hypercomplex
+  #            
+  #* If S_FLOAT=0, S_32=0 for 16-bit integer, or S_32=1 for 32-bit integer.
+  #  If S_FLOAT=1, S_32 is ignored.
+
     fid_header['s_data']    = int(get_bit(fid_header['status'],1))
     fid_header['s_spec']    = int(get_bit(fid_header['status'],2))
     fid_header['s_32']      = int(get_bit(fid_header['status'],3))
     fid_header['s_float']   = int(get_bit(fid_header['status'],4))
     fid_header['s_complex'] = int(get_bit(fid_header['status'],5))
     fid_header['s_hyper']   = int(get_bit(fid_header['status'],6))
+
+
+  #  Bits 7–14: file header status bits (bits 10 and 15 are unused):
+  # 7        S_ACQPAR            0x80       0 = not Acqpar, 1 = Acqpar
+  # 8        S_SECND             0x100      0 = first FT, 1 = second FT
+  # 9        S_TRANSF            0x200      0 = regular, 1 = transposed
+  # 11       S_NP                0x800      1 = np dimension is active
+  # 12       S_NF                0x1000     1 = nf dimension is active
+  # 13       S_NI                0x2000     1 = ni dimension is active
+  # 14       S_NI2               0x4000     1 = ni2 dimension is active
+    fid_header['s_acqpar']    = int(get_bit(fid_header['status'],8))
+    fid_header['s_secnd']    = int(get_bit(fid_header['status'],9))
+    fid_header['s_transf']      = int(get_bit(fid_header['status'],10))
+    fid_header['s_np']   = int(get_bit(fid_header['status'],12))
+    fid_header['s_nf'] = int(get_bit(fid_header['status'],13))
+    fid_header['s_ni']   = int(get_bit(fid_header['status'],14))
+    fid_header['s_ni2']   = int(get_bit(fid_header['status'],15))
+         
+
     if args.verbose:
         print fid_header # ['s_data'],fid_header['s_spec'],fid_header['s_32'],fid_header['s_float'],fid_header['s_complex'],fid_header['s_hyper']
 
@@ -145,7 +183,9 @@ def readfid(fidfolder,procpar,args):
         if args.verbose:
             print 'NP ', fid_header['np'], procpar['np'], ' NF ', fid_header['ntraces'], procpar['nf'], ' Blocks ', fid_header['nblocks'], procpar['arraydim']
         raise ValueError("Cannot resolve fid header with procpar. We're probably not interpreting the procpar correctly.")
-    # fid_header['nChannels'] = fid_header['nblocks']/fid_header['acqcycles']
+    if fid_header['nChannels'] != fid_header['nblocks']/procpar['acqcycles']:
+        print "ReadFID error nChannels ", fid_header['nChannels'],str(float(fid_header['nblocks']/procpar['acqcycles']))
+    fid_header['nChannels'] = fid_header['nblocks']/procpar['acqcycles']
     fid_header['nPhaseEncodes'] = fid_header['ntraces']/fid_header['nEchoes']
     fid_header['rank'] = procpar['nD']                                           
 
@@ -192,7 +232,7 @@ def readfid(fidfolder,procpar,args):
     fid_header['roi'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
     fid_header['origin']=[-(float(procpar['pro']))-float(procpar['lro'])/2.0,  float(procpar['ppe'])-float(procpar['lpe'])/2.0,  float(procpar['pss0'])-float(procpar['lpe2'])/2.0]
     if procpar['orient']=="sag":
-        # TODO fid_header['orientation']= [0,0,1,1,0,0,0,1,0]
+        ##TODO fid_header['orientation']= [0,0,1,1,0,0,0,1,0]
         fid_header['orientation']= [1,0,0,0,1,0,0,0,1]
     else:
         fid_header['orientation']= [1,0,0,0,1,0,0,0,1]
@@ -219,6 +259,80 @@ def readfid(fidfolder,procpar,args):
         header['rpval'],     = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         header['lvl'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
         header['tlt'],       = struct.unpack(endian+'f',f.read(int32size)) #fid,1,'float32')
+
+        header['s_data']    = int(get_bit(header['bstatus'],1))
+        header['s_spec']    = int(get_bit(header['bstatus'],2))
+        header['s_32']      = int(get_bit(header['bstatus'],3))
+        header['s_float']   = int(get_bit(header['bstatus'],4))
+        header['s_complex'] = int(get_bit(header['bstatus'],5))
+        header['s_hyper']   = int(get_bit(header['bstatus'],6))
+
+
+# status is bits 0?6 defined the same as for file header status. Bits 7?11 are defined
+# below (all other bits must be zero):
+#  7                                   0x80       0 = absent, 1 = present
+#           MORE_BLOCKS
+#  8                                   0x100      0 = real, 1 = complex
+#           NP_CMPLX
+#  9                                   0x200      0 = real, 1 = complex
+#           NF_CMPLX
+#  10                                  0x400      0 = real, 1 = complex
+#           NI_CMPLX
+#  11                                  0x800      0 = real, 1 = complex
+#           NI2_CMPLX
+        header['s_more']        = int(get_bit(header['bstatus'],8))
+        header['s_np_cmplx']    = int(get_bit(header['bstatus'],9))
+        header['s_nf_cmplx']    = int(get_bit(header['bstatus'],10))
+        header['s_ni_cmplx']    = int(get_bit(header['bstatus'],11))
+        header['s_ni2_cpmlx']   = int(get_bit(header['bstatus'],12))
+        if header['s_hyper']:
+            header['hyper_spare1'],   = struct.unpack(endian+'h',f.read(int16size)) #short s_spare1; /* short word: spare */
+            header['hyper_status'],   = struct.unpack(endian+'h',f.read(int16size)) #short status;   /* status word for block header */
+            header['hyper_spare2'],   = struct.unpack(endian+'h',f.read(int16size)) #short s_spare2; /* short word: spare */
+            header['hyper_spare3'],   = struct.unpack(endian+'h',f.read(int16size)) #short s_spare3; /* short word: spare */
+            header['hyper_lspare1'],   = struct.unpack(endian+'i',f.read(int32size)) #long l_spare1;  /* long word: spare */
+            header['hyper_lpval1'],     = struct.unpack(endian+'f',f.read(int32size)) #float lpval1;   /* 2D-f2 left phase */
+            header['hyper_rpval1'],     = struct.unpack(endian+'f',f.read(int32size)) #float rpval1;   /* 2D-f2 right phase */
+            header['hyper_f_spare1'],     = struct.unpack(endian+'f',f.read(int32size)) #float f_spare1; /* float word: spare */
+            header['hyper_f_spare2'],     = struct.unpack(endian+'f',f.read(int32size)) #float f_spare2; /* float word: spare */
+
+# Main data block header mode bits 0–15:
+#    Bits 0–3: bit 3 is currently unused
+#      0        NP_PHMODE                           0x1    1 = ph mode
+#      1        NP_AVMODE                           0x2    1 = av mode
+#      2        NP_PWRMODE                           0x4    1 = pwr mode
+#    Bits 4–7: bit 7 is currently unused
+#      4        NF_PHMODE                           0x10   1 = ph mode
+#      5        NF_AVMODE                           0x20   1 = av mode
+#      6        NF_PWRMODE                           0x40   1 = pwr mode
+#    Bits 8–11: bit 11 is currently unused
+#      8        NI_PHMODE                           0x100  1 = ph mode
+#      9        NI_AVMODE                           0x200  1 = av mode
+#      10       NI_PWRMODE                           0x400  1 = pwr mode
+#    Bits 12–15: bit 15 is currently unused
+#      12       NI2_PHMODE                           0x8    1 = ph mode
+#      13       NI2_AVMODE                           0x100  1 = av mode
+#      14       NI2_PWRMODE                           0x2000 1 = pwr mode
+        header['np_phmode']    = int(get_bit(header['mode'],1))
+        header['np_avmode']    = int(get_bit(header['mode'],2))
+        header['np_pwrmode']   = int(get_bit(header['mode'],3))
+        header['nf_phmode'] = int(get_bit(header['mode'],5))
+        header['nf_avmode'] = int(get_bit(header['mode'],6))
+        header['nf_pwrmode']= int(get_bit(header['mode'],7))
+        header['ni_phmode'] = int(get_bit(header['mode'],9))
+        header['ni_avmode'] = int(get_bit(header['mode'],10))
+        header['ni_pwrmode']= int(get_bit(header['mode'],11))
+        header['ni2_phmode'] = int(get_bit(header['mode'],13))
+        header['ni2_avmode'] = int(get_bit(header['mode'],14))
+        header['ni2_pwrmode']= int(get_bit(header['mode'],15))
+        
+        
+   
+
+
+
+        
+        
         if args.verbose:
             print header
         data = numpy.fromfile(f,count=fid_header['np']*fid_header['ntraces'],dtype=dtype_str)
@@ -234,7 +348,7 @@ def readfid(fidfolder,procpar,args):
     #print iblock
     if iblock == 0:
         if args.verbose:
-            print "Reshaping single block data"
+            print "Reshaping single block data ", dims
         RE = numpy.reshape(RE,dims)
         IM = numpy.reshape(IM,dims)
     # fid_header.procpar = procpar
@@ -264,7 +378,8 @@ def recon(procpar,dims,fid_header,RE,IM,args):
         print 'nchannels', fid_header['nblocks'],procpar['acqcycles']
         print 'Image shape ', RE.shape
 
-    
+    if numpy.product(dims) != numpy.product(RE.shape):
+        print "ksp not arrangd properly"
         
     if fid_header['nChannels']==1 and  fid_header['nEchoes']==1:
         ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
