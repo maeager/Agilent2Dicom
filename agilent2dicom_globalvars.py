@@ -19,7 +19,7 @@
 
 
 VersionNumber="1.3.1"
-Agilent2DicomAppVersion="1.2.5"
+Agilent2DicomAppVersion="1.3.0"
 FDF2DCMVERSION="1.2"
 FID2DCMVERSION="1.2"
 DVCSstamp="$Id$"
