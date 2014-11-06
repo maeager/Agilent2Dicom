@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v c60195ce129c 2014/11/04 04:48:54 michael $
-# $Id: Agilent2DicomAppQt.py,v c60195ce129c 2014/11/04 04:48:54 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 9d1f62d889d7 2014/11/06 09:57:14 michael $
+# $Id: Agilent2DicomAppQt.py,v 9d1f62d889d7 2014/11/06 09:57:14 michael $
+#
+# Version 1.2.5: Working version on Redhat Workstation
+# Version 1.3.0: Info tab panels show information from Procpar
+
+#
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -32,7 +37,7 @@ import sys
 import re
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
-from Agilent2DicomQt import Ui_MainWindow
+from Agilent2DicomQt2 import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING=0
@@ -40,11 +45,11 @@ DEBUGGING=0
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/11/04 04:48:54 $"
+__date__ = "$Date: 2014/11/06 09:57:14 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v c60195ce129c 2014/11/04 04:48:54 michael $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 9d1f62d889d7 2014/11/06 09:57:14 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -88,8 +93,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         
         # Disable some features
         if DEBUGGING == 0:
-            self.ui.tab_diffusion.setEnabled(False)
-            self.ui.tab_multiecho.setEnabled(False)
+#            self.ui.tab_diffusion.setEnabled(False)
+#            self.ui.tab_multiecho.setEnabled(False)
             self.ui.pushButton_check.setEnabled(False)
             self.ui.pushButton_view.setEnabled(False)
             self.ui.pushButton_send2daris.setEnabled(False)
@@ -506,29 +511,53 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.ui.pushButton_check2.setEnabled(True)
             self.ui.pushButton_view2.setEnabled(True)
             self.ui.pushButton_send2daris2.setEnabled(True)
+        if self.ui.lineEdit_fdfpath.text():
+            self.FDFInfoUpdate()
+        if self.ui.lineEdit_fidpath.text():
+            self.FIDInfoUpdate()
+            
 												  
+    def FDFInfoUpdate(self):
+        from ReadProcpar import ReadProcpar, ProcparInfo            
+        procpar, procpartext = ReadProcpar(os.path.join(str(self.ui.lineEdit_fdfpath.text()),'procpar'))
+        SequenceText="FDF image:"
+        
+        p = ProcparInfo(procpar)
+        self.ui.FDFprocparInfo.setText(SequenceText+'\n'.join("%s:\t\t%r" % (key,val) for (key,val) in p.iteritems()))
 
-    def TableUpdate(self):
-        from ReadProcpar import ReadProcpar
-        from ProcparToDicomMap import ProcparToDicomMap
-        procpar, procpartext = ReadProcpar(os.path.join(self.ui.lineEdit_fdfpath.text(),'procpar'))
-        ds,MRAcq_type = ProcparToDicomMap(procpar)
 
+        
+    def FIDInfoUpdate(self):
+        from ReadProcpar import ReadProcpar, ProcparInfo
+        procpar, procpartext = ReadProcpar(os.path.join(str(self.ui.lineEdit_fidpath.text()),'procpar'))
+        #ds,MRAcq_type = ProcparToDicomMap(procpar)
+        try:
+            ftext= open(os.path.join(str(self.ui.lineEdit_fidpath.text()),'text'),'r')
+            SequenceText="FID image:\n%s" % ftext.readline()
+            ftext.close()
+        except ValueError:
+            SequenceText="FID image:\n-no text-"
+            pass
+        # DisplayText=[ SequenceText+"\n",    
+        #  "StudyID: %s\n" %  ds.StudyID,
+        #  "Patient ID: %s\n" % ds.PatientID,
+        #  "Protocol name: %s\n"%  ds.ProtocolName,
+        #  "Series Desc: %s\n" % ds.SeriesDescription,
+        #  "Image type: %s\n" % ds.ImageType,
+        #  "MR Acquisition Type: %s\n" % MRAcq_type,
+        #  "Acq Matrix: %s, %s\n" % (ds.Rows, ds.Columns),
+        #  "Pixel Spacing: %s, %s\n" % (ds.PixelSpacing[0], ds.PixelSpacing[1]),
+        #  "Slice thickness: %s\n" % ds.SliceThickness]
+        # #for column, key in enumerate(self.data):
+        # #    for row, item in enumerate(self.data[key]):
+        # #        newitem = QTableWidgetItem(item)
+        # #        self.ui.listViewsetItem(row, column, newitem)
+        # print DisplayText
+        # QtGui.QMessageBox.question(self, 'Info','\n'.join(DisplayText),QtGui.QMessageBox.Ok)
 
-        print "StudyID: ",  ds.StudyID
-        print "Patient ID: ", ds.PatientID
-        print "Protocol name: ", ds.ProtocolName
-        print "Series Desc: ", ds.SeriesDescription
-        print "Acq Matrix:", ds.AcquisitionMatrix
-        print "Pixel Spacing: ", ds.PixelSpacing
-        print "Slice thickness: ", ds.SliceThickness
-        print 'Image type:', ds.ImageType
-        print 'MR Acquisition Type: ', MRAcq_type
-        for column, key in enumerate(self.data):
-            for row, item in enumerate(self.data[key]):
-                newitem = QTableWidgetItem(item)
-                self.setItem(row, column, newitem)
-
+        p = ProcparInfo(procpar)
+        self.ui.FIDprocparInfo.setText(SequenceText+'\n'.join("%s:\t\t%r" % (key,val) for (key,val) in p.iteritems()))
+        
     def About(self):
         msg = "                      Agilent2Dicom       \n\n"+\
             "Agilent2Dicom converts FDF and FID images from the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.\n\n"+\
