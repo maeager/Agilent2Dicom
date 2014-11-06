@@ -21,7 +21,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-import os,sys
+import os,sys,re
 import argparse
 
 
@@ -119,7 +119,49 @@ Notes:
     f.seek(0)
     procpartext = f.readlines()
     return (procpar, procpartext)
+# ReadProcpar
 
+
+def ProcparInfo(procpar):
+    header=dict()
+    header['Protocol_Name']=procpar['pslabel']
+    header['StudyID']=procpar['name']
+    header['Mode'] = '%dD' % procpar['nD']
+    if procpar['nD'] == 2:
+        header['FOV_cm'] = [procpar['lro'], procpar['lpe']]
+        header['Dims'] = [procpar['nf']/procpar['ns'], procpar['np']/2, procpar['ns']]
+        #if len(procpar['thk'])>1:
+        #    print "procpar thk size greater than 1"
+        header['Voxel_Res_mm'] = [procpar['lro']*10/header['dims'][0], procpar['lpe']*10/header['dims'][1], procpar['thk']*10]
+    elif procpar['nD'] == 3:
+        header['FOV_cm'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
+        header['Dims'] = [procpar['nf'], procpar['np']/2, procpar['nv2']]
+        header['Voxel_Res_mm'] =[procpar['lro']*10/header['dims'][0], procpar['lpe']*10/header['dims'][1], procpar['lpe2']*10/header['dims'][2]]
+    header['Volumes'] = procpar['lpe3']
+    header['nEchoes'] = procpar['ne']
+    rcvrs = re.findall('y',procpar['rcvrs'])
+    if rcvrs:
+        header['nChannels'] = len(rcvrs);
+    else:
+        header['nChannels'] = 1
+                            
+    
+    dims=[1,1,1,1,1]
+    # validate dimensions
+    if procpar['nD'] == 2:
+        dims[0] = procpar['np']/2        # num phase encode lines / 2
+        dims[1] = procpar['nf']/procpar['ns'] # num frequency lines acquired / # echoes
+        dims[2] = procpar['ns']          # if 2D, num slices, else ni2
+        if procpar['ni2'] > 1:           # fse3d sequence has nD == 2, but is a 3d acquisition???
+            dims[2] = procpar['ni2']
+    elif procpar['nD'] == 3:
+        dims[0] = procpar['np']/2        # NUM phase encode lines / 2
+        dims[1] = procpar['nf']/procpar['ne'] # num frequency lines acquired / # echoes
+        dims[2] = procpar['ni2'] 
+    dims[3] = header['nChannels']
+    dims[4] = header['nEchoes']
+    header['Dims2']=dims
+    return header
 
 if __name__ == "__main__":
 
@@ -130,3 +172,7 @@ if __name__ == "__main__":
 
     procpar, procpartext = ReadProcpar(os.path.join(args.inputdir, 'procpar'))
     print procpar
+    print "Basic info:"
+    p = ProcparInfo(procpar)
+    #print '\n'.join(p)
+    print '\n'.join("%s:  %r" % (key,val) for (key,val) in p.iteritems())
