@@ -361,7 +361,30 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 #            os.system(cmd1)
         except ValueError:
             pass
-						      
+
+    def comboSigmaScale(self,text):
+        if text == "unit voxel":
+            self.sigmafactor=1
+        else:
+            from ReadProcpar import ReadProcpar, ProcparInfo            
+            procpar, procpartext = ReadProcpar(os.path.join(str(self.ui.lineEdit_fdfpath.text()),'procpar'))
+            p = ProcparInfo(procpar)
+            if text == "in mm":
+                self.sigmafactor=p['Voxel_Res_mm']
+            else:
+                self.sigmafactor=p['Voxel_Res_mm']*1000
+            
+    def SigmaString(self):
+        s=str(self.ui.lineEdit_gsigma.text())
+        if len(self.sigmafactor)!=3:
+            print "Sigma units needs to be three elements"
+        try: #if s.find(','):
+            x, y, z = map(float, s.split(','))
+            argstr=' -g %f,%f,%f' % (x/self.sigmafactor[0],y/self.sigmafactor[1],z/self.sigmafactor[2])
+        except ValueError:
+            argstr=' -g %f,%f,%f' % (float(s)/self.sigmafactor[0],float(s)/self.sigmafactor[1],float(s)/self.sigmafactor[2])            
+        return argstr
+            
     def getCommandArgs(self):
         argstr=''
         if not (self.ui.checkBox_magn.isChecked() and self.ui.checkBox_pha.isChecked()
@@ -378,13 +401,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             argstr+=' -r'
         
         if self.ui.checkBox_gaussian2D.isChecked():
-            argstr+=' -2'
-            s=str(self.ui.lineEdit_gsigma.text())
-            try: #if s.find(','):
-                x, y, z = map(float, s.split(','))
-                argstr+=' -g %f,%f,%f' % (x,y,z)
-            except ValueError:
-                argstr+=' -g %s' % float(s)            
+            argstr+=' -2 -g ' % self.SigmaString()            
             argstr+=' -j %s' % str(self.ui.lineEdit_gorder.text())
             if self.ui.nearest.isChecked():
                 argstr+=' -e nearest'
@@ -395,12 +412,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             else:
                 argstr+=' -e nearest'
         if self.ui.checkBox_gaussian3D.isChecked():
-            s=str(self.ui.lineEdit_gsigma.text())
-            try: #if s.find(','):
-                x, y, z = map(float, s.split(','))
-                argstr+=' -g %f,%f,%f' % (x,y,z)
-            except ValueError:
-                argstr+=' -g %f' % float(s)
+            argstr+=' -g ' % self.SigmaString()
             argstr+=' -j %s' % str(self.ui.lineEdit_gorder.text())
             if self.ui.nearest.isChecked():
                 argstr+=' -e nearest'
