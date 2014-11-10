@@ -106,7 +106,7 @@ def readfid(fidfolder,procpar,args):
 
   #       status is bits as defined below with their hexadecimal values.
   # All other bits must be zero.
-  # Bits 0–6: file header and block header status bits (bit 6 is unused):
+  # Bits 0-6: file header and block header status bits (bit 6 is unused):
   #  0         S_DATA                   0x1          0 = no data, 1 = data
   #  1         S_SPEC                   0x2          0 = FID, 1 = spectrum
   #  2         S_32                     0x4          *
@@ -125,7 +125,7 @@ def readfid(fidfolder,procpar,args):
     fid_header['s_hyper']   = int(get_bit(fid_header['status'],6))
 
 
-  #  Bits 7–14: file header status bits (bits 10 and 15 are unused):
+  #  Bits 7-14: file header status bits (bits 10 and 15 are unused):
   # 7        S_ACQPAR            0x80       0 = not Acqpar, 1 = Acqpar
   # 8        S_SECND             0x100      0 = first FT, 1 = second FT
   # 9        S_TRANSF            0x200      0 = regular, 1 = transposed
@@ -268,7 +268,7 @@ def readfid(fidfolder,procpar,args):
         header['s_hyper']   = int(get_bit(header['bstatus'],6))
 
 
-# status is bits 0?6 defined the same as for file header status. Bits 7?11 are defined
+# status is bits 0?6 defined the same as for file header status. Bits 7-11 are defined
 # below (all other bits must be zero):
 #  7                                   0x80       0 = absent, 1 = present
 #           MORE_BLOCKS
@@ -296,20 +296,20 @@ def readfid(fidfolder,procpar,args):
             header['hyper_f_spare1'],     = struct.unpack(endian+'f',f.read(int32size)) #float f_spare1; /* float word: spare */
             header['hyper_f_spare2'],     = struct.unpack(endian+'f',f.read(int32size)) #float f_spare2; /* float word: spare */
 
-# Main data block header mode bits 0–15:
-#    Bits 0–3: bit 3 is currently unused
+# Main data block header mode bits 0-15:
+#    Bits 0-3: bit 3 is currently unused
 #      0        NP_PHMODE                           0x1    1 = ph mode
 #      1        NP_AVMODE                           0x2    1 = av mode
 #      2        NP_PWRMODE                           0x4    1 = pwr mode
-#    Bits 4–7: bit 7 is currently unused
+#    Bits 4-7: bit 7 is currently unused
 #      4        NF_PHMODE                           0x10   1 = ph mode
 #      5        NF_AVMODE                           0x20   1 = av mode
 #      6        NF_PWRMODE                           0x40   1 = pwr mode
-#    Bits 8–11: bit 11 is currently unused
+#    Bits 8-11: bit 11 is currently unused
 #      8        NI_PHMODE                           0x100  1 = ph mode
 #      9        NI_AVMODE                           0x200  1 = av mode
 #      10       NI_PWRMODE                           0x400  1 = pwr mode
-#    Bits 12–15: bit 15 is currently unused
+#    Bits 12-15: bit 15 is currently unused
 #      12       NI2_PHMODE                           0x8    1 = ph mode
 #      13       NI2_AVMODE                           0x100  1 = av mode
 #      14       NI2_PWRMODE                           0x2000 1 = pwr mode
