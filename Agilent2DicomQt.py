@@ -318,11 +318,11 @@ class Ui_MainWindow(object):
         self.gridLayout_12.addLayout(self.horizontalLayout_34, 4, 0, 1, 1)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
-        self.checkBox_gaussian = QtGui.QCheckBox(self.tab_3)
-        self.checkBox_gaussian.setObjectName(_fromUtf8("checkBox_gaussian"))
-        self.horizontalLayout.addWidget(self.checkBox_gaussian)
+        self.checkBox_gaussian3D = QtGui.QCheckBox(self.tab_3)
+        self.checkBox_gaussian3D.setObjectName(_fromUtf8("checkBox_gaussian3D"))
+        self.horizontalLayout.addWidget(self.checkBox_gaussian3D)
         self.checkBox = QtGui.QCheckBox(self.tab_3)
-        self.checkBox.setObjectName(_fromUtf8("checkBox"))
+        self.checkBox_gaussian2D.setObjectName(_fromUtf8("checkBox_gaussian2D"))
         self.horizontalLayout.addWidget(self.checkBox)
         self.gridLayout_12.addLayout(self.horizontalLayout, 0, 0, 1, 1)
         self.verticalLayout_3.addLayout(self.gridLayout_12)
@@ -606,11 +606,11 @@ class Ui_MainWindow(object):
         self.nearest.setText(_translate("MainWindow", "Nearest", None))
         self.reflect.setText(_translate("MainWindow", "Reflect", None))
         self.wrap.setText(_translate("MainWindow", "Wrap", None))
-        self.checkBox_gaussian.setToolTip(_translate("MainWindow", " scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode=\'reflect\', cval=0.0, truncate=4.0)[source]\n"
+        self.checkBox_gaussian3D.setToolTip(_translate("MainWindow", " scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode=\'reflect\', cval=0.0, truncate=4.0)[source]\n"
 "\n"
 "    Multidimensional Gaussian filter.", None))
-        self.checkBox_gaussian.setText(_translate("MainWindow", "Use 3D Gaussian filter", None))
-        self.checkBox.setText(_translate("MainWindow", "Use 2D Gaussian filter", None))
+        self.checkBox_gaussian3D.setText(_translate("MainWindow", "Use 3D Gaussian filter", None))
+        self.checkBox_gaussian2D.setText(_translate("MainWindow", "Use 2D Gaussian filter", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_3), _translate("MainWindow", "Gaussian", None))
         self.checkBox_wiener.setToolTip(_translate("MainWindow", "NOT ENABLED - Speak to MBI Imaging Team\n"
 "\n"
