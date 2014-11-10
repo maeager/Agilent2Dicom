@@ -137,6 +137,55 @@ def cplxgaussian_filter(real_input, imag_input,sigma=0.707,order_=0,mode_='neare
 
 
 
+def cplx2dgaussian_filter(real_input, imag_input,sigma=0.707,order_=0,mode_='nearest', cval_=0.0):
+    """CPLX2DFILTER gaussian filter of complex 3D image
+     ndimage.filters.gaussian_filter is used to smooth real and imag components
+    
+    filtered_magnitude = cplxfilter(realimg,imagimg)
+
+    :param RE,IM: real and imag NDimages
+    :param sigma: [optional] optimal sigma = 1/sqrt(2).  Standard deviation for
+    Gaussian kernel. The standard deviations of the Gaussian filter
+    are given for each axis as a sequence, or as a single number, in
+    which case it is equal for all axes.
+    :param order: [optional] ]{0, 1, 2, 3} or sequence from same set, optional.
+    The order of the filter along each axis is given as a sequence of
+    integers, or as a single number. An order of 0 corresponds to
+    convolution with a Gaussian kernel. An order of 1, 2, or 3
+    corresponds to convolution with the first, second or third
+    derivatives of a Gaussian. Higher order derivatives are not
+    implemented
+    :param mode: [optional] ]{'reflect', 'constant', 'nearest', 'mirror', 'wrap'},
+    optional. The mode parameter determines how the array borders are
+    handled, where cval is the value when mode is equal to
+    'constant'. Default is 'reflect'
+    :param cval: [optional] Value to fill past edges of input if mode is 'constant'. Default is 0.0
+
+    :return filtered_image:  complex 3D array of gaussian filtered image,
+
+    """
+    print "Complex 2D Gaussian filter sigma ", sigma, " order ", order_, " mode ", mode_
+    if real_input.ndim == 3:
+        for islice in xrange(0,real_input.shape[2]):
+            real_img[:,:,islice] = ndimage.filters.gaussian_filter(real_input[:,:,islice], sigma, order=order_, mode=mode_, cval=cval_) #, truncate=4.0) truncate not supported in scipy 0.10
+            imag_img[:,:,islice] = ndimage.filters.gaussian_filter(imag_input[:,:,islice], sigma, order=order_, mode=mode_, cval=cval_) #, truncate=4.0)
+    else:
+        real_img = np.empty_like(real_input)
+        imag_img = np.empty_like(real_input)
+        for echo in xrange(0,real_input.shape[4]):
+            for n in xrange(0,real_input.shape[3]):
+                for islice in xrange(0,real_input.shape[2]):
+                    real_img[:,:,islice,n,echo] = ndimage.filters.gaussian_filter(real_input[:,:,islice,n,echo], sigma, order=order_, mode=mode_, cval=cval_)
+                    imag_img[:,:,islice,n,echo] = ndimage.filters.gaussian_filter(imag_input[:,:,islice,n,echo], sigma, order=order_, mode=mode_, cval=cval_)              
+    filtered_image = np.empty(real_input.shape, dtype=complex)
+    filtered_image.real = real_img
+    filtered_image.imag = imag_img
+    
+    return filtered_image
+# end cplx2dfilter_gaussian    
+
+
+
 """
 scipy.ndimage.filters.gaussian_laplace
 
@@ -164,7 +213,8 @@ def cplxgaussian_laplace(real_input, imag_input,sigma=0.707,mode_='reflect', cva
     
     filtered_magnitude = cplxfilter(realimg,imagimg)
 
-    :param sigma:  optimal sigma = 1/sqrt(2).  Standard deviation for kernel. The standard deviations of the Gaussian Laplace filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.
+    :param sigma:  optimal sigma = 1/sqrt(2).  Standard
+    deviation for kernel. The standard deviations of the Gaussian Laplace filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.
  
     :param mode: {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional. The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to 'constant'. Default is 'reflect'
     :param cval: [optional] Value to fill past edges of input if mode is 'constant'. Default is 0.0
@@ -175,7 +225,7 @@ def cplxgaussian_laplace(real_input, imag_input,sigma=0.707,mode_='reflect', cva
     print "Complex Gaussian_laplace filter sigma ",sigma, " mode ", mode_
     if real_input.ndim ==3:
         real_img = ndimage.filters.gaussian_laplace(real_input, sigma,  mode=mode_, cval=cval_)
-        imag_img = ndimage.filters.gaussian_laplace(imag_input, sigma,  mode_, cval=cval_)
+        imag_img = ndimage.filters.gaussian_laplace(imag_input, sigma,  mode=mode_, cval=cval_)
     else:
         real_img = np.empty_like(real_input)
         imag_img = np.empty_like(real_input)
@@ -191,7 +241,9 @@ def cplxgaussian_laplace(real_input, imag_input,sigma=0.707,mode_='reflect', cva
 # end cplxgaussian_laplace    
 
 
-"""
+
+def cplxlaplacian_filter(real_input, imag_input,mode_='reflect', cval_=0.0):
+    """
 scipy.ndimage.filters.laplace
 
 scipy.ndimage.filters.laplace(input, output=None, mode='reflect', cval=0.0)[source]
@@ -207,7 +259,36 @@ The mode parameter determines how the array borders are handled, where cval is t
 cval : scalar, optional
 Value to fill past edges of input if mode is 'constant'. Default is 0.0
 
-"""
+    """
+    """CPLXFILTER laplace filter of complex 3D image
+
+    
+    filtered_image = cplxlaplacian_filter(realimg,imagimg)
+
+    :param mode: {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional. The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to 'constant'. Default is 'reflect'
+    :param cval: [optional] Value to fill past edges of input if mode is 'constant'. Default is 0.0
+
+    :return filtered_image:  complex 3D array of gaussian laplace filtered image, 
+    """
+
+    print "Complex Gaussian_laplace filter  ", " mode ", mode_
+    if real_input.ndim ==3:
+        real_img = ndimage.filters.laplace(real_input,   mode=mode_, cval=cval_)
+        imag_img = ndimage.filters.laplace(imag_input,   mode=mode_, cval=cval_)
+    else:
+        real_img = np.empty_like(real_input)
+        imag_img = np.empty_like(real_input)
+        for echo in xrange(0,real_input.shape[4]):
+            for n in xrange(0,real_input.shape[3]):
+                real_img[:,:,:,n,echo] = ndimage.filters.laplace(real_input[:,:,:,n,echo],  mode=mode_, cval=cval_)
+                imag_img[:,:,:,n,echo] = ndimage.filters.laplace(imag_input[:,:,:,n,echo],  mode=mode_, cval=cval_)
+    filtered_image = np.empty(real_input.shape, dtype=complex)
+    filtered_image.real = real_img
+    filtered_image.imag = imag_img
+    
+    return filtered_image
+# end cplxlaplace    
+
 
 
 """
@@ -396,7 +477,7 @@ if __name__ == "__main__":
         nii = nib.load('raw_image_02.nii.gz')
         image[:,:,:,0,2] = nii.get_data()
     else:
-        image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag)
+        image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag,args)
 
         if args.axis_order:
             image = RearrangeImage(image,args.axis_order,args)
@@ -430,6 +511,20 @@ if __name__ == "__main__":
         new_image.set_data_dtype(numpy.float32)
         nib.save(new_image,'gauss_image.nii.gz')
 
+    # print "Computing Laplacian enhanced image from Original image"
+    # image_filtered = image-cplxlaplacian_filter(image.real,image.imag,0.707)
+    # print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
+    # if image_filtered.ndim ==5:
+    #     for i in xrange(0,image_filtered.shape[4]):
+    #         new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
+    #         new_image.set_data_dtype(numpy.float32)
+    #         nib.save(new_image,'laplace_image_0'+str(i)+'.nii.gz')
+    # else:
+    #     new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
+    #     new_image.set_data_dtype(numpy.float32)
+    #     nib.save(new_image,'laplace_image.nii.gz')
+
+        
 #    print "Computing Gaussian Laplace image from Smoothed image"
 #    Log_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag)
 #    Log_image = nib.Nifti1Image(normalise(np.abs(Log_filtered)),affine)
