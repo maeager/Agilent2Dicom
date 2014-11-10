@@ -758,7 +758,7 @@
                   <item row="0" column="0">
                    <layout class="QHBoxLayout" name="horizontalLayout">
                     <item>
-                     <widget class="QCheckBox" name="checkBox_gaussian">
+                     <widget class="QCheckBox" name="checkBox_gaussian3D">
                       <property name="toolTip">
                        <string> scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode='reflect', cval=0.0, truncate=4.0)[source]
 
@@ -770,7 +770,7 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QCheckBox" name="checkBox">
+                     <widget class="QCheckBox" name="checkBox_gaussian2D">
                       <property name="text">
                        <string>Use 2D Gaussian filter</string>
                       </property>
