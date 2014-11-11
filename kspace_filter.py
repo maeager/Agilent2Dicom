@@ -131,7 +131,7 @@ def fourierlaplace(ksp_shape):
     (u,v,w)= (x[np.newaxis,:,np.newaxis]*mult_fact, \
         y[:,np.newaxis,np.newaxis]*mult_fact, \
     z[np.newaxis,np.newaxis,:]*mult_fact)
-    return -(4*np.pi*np.pi)*(u*u+v*v+w*w)
+    return -(4*np.pi*np.pi)*(u*u+v*v+w*w)/(siz[0]*siz[1]*siz[2])
 
 def fouriergauss(siz,sigma):
     """
@@ -201,7 +201,9 @@ def inhomogeneousCorrection(ksp,siz,sigma):
     fsmoothed=abs(fftshift(ifftn(ifftshift(kspHG))))
     fsmoothed=fsmoothed/ndimage.mean(fsmoothed)
     return fsmoothed
+# end inhomogeneousCorrection
 
+    
 def kspacegaussian_filter2(ksp,sigma_=None):
     siz=ksp.shape[0:3]
     if not sigma_:
@@ -246,9 +248,17 @@ def kspacelaplacegaussian_filter(ksp,sigma_=None):
                 #out_img[:,:,:,n,echo] = ndimage.filters.fourier_gaussian(ksp, sigma, n=n_, axis=axis_)
                 out_img[:,:,:,n,echo] = ksp[:,:,:,n,echo] * Flaplace * Fgauss
     return out_img
-# end kspacegaussian_filter    
+# end kspacelaplacegaussian_filter    
 
-
+def kspaceshift(ksp):
+    kmax = np.array(ndimage.maximum_position(ksp))
+    siz=np.array(ksp.shape[0:3])
+    sub=int(siz.astype(float)/2.) - int(kmax)
+    print "Shifting kspace ", sub
+    for x in xrange(0,3):
+        ksp=np.roll(ksp,sub[x],axis=x)
+    return 
+#end kspaceshift
 
 
 
@@ -354,21 +364,31 @@ if __name__ == "__main__":
         new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
         new_image.set_data_dtype(numpy.float32)
         nib.save(new_image,'gauss_image2.nii.gz')
-        
+
+    # inhomogeneousCorrection
+    image_corr = inhomogeneousCorrection(ksp,ksp.shape,3.0/60.0)
+    # print "Saving Correction image"
+    
+    new_image = nib.Nifti1Image(normalise(np.abs(image_filtered/image_corr)),affine)
+    new_image.set_data_dtype(numpy.float32)
+    nib.save(new_image,'image_inhCorr3.nii.gz')
+
+
     print "Computing Laplacian enhanced image"
-    alpha=0.2
-    image_filtered = image_filtered - alpha*fftshift(fftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
+    laplacian = fftshift(fftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
+    alpha=ndimage.mean(image_filtered)/ndimage.mean(laplacian)
+    image_lfiltered = image_filtered - alpha*laplacian
     print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
-    if image_filtered.ndim ==5:
+    if image_lfiltered.ndim ==5:
         for i in xrange(0,image_filtered.shape[4]):
-            new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
+            new_image = nib.Nifti1Image(normalise(np.abs(image_lfiltered[:,:,:,0,i])),affine)
             new_image.set_data_dtype(numpy.float32)
             nib.save(new_image,'laplacian_image_0'+str(i)+'.nii.gz')
     else:
-        new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
+        new_image = nib.Nifti1Image(normalise(np.abs(limage_filtered)),affine)
         new_image.set_data_dtype(numpy.float32)
-        nib.save(new_image,'laplacian_image.nii.gz')
-
+        nib.save(new_image,'laplacian_enhanced.nii.gz')
+    del image_filtered, image_lfiltered
         
     print "Computing Gaussian Laplace image from Smoothed image"
     image_filtered = fftshift(fftn(ifftshift(kspacelaplacegaussian_filter(ksp,256.0/0.707))))
@@ -397,18 +417,4 @@ if __name__ == "__main__":
         nib.save(new_image,'gauss_large.nii.gz')
 
 
-    # inhomogeneousCorrection
-    image_corr = inhomogeneousCorrection(ksp,ksp.shape,3.0/60.0)
-    # print "Saving Correction image"
-    
-    new_image = nib.Nifti1Image(normalise(np.abs(image_filtered/image_corr)),affine)
-    new_image.set_data_dtype(numpy.float32)
-    nib.save(new_image,'image_inhCorr3.nii.gz')
 
-    # image_filtered = inhomogeneousCorrection(ksp,ksp.shape,60.0/3.0)
-    # print "Saving Gaussian image"
-    
-    # new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
-    # new_image.set_data_dtype(numpy.float32)
-    # nib.save(new_image,'image_inhCorr60.nii.gz')
- 
