@@ -424,6 +424,19 @@ def normalise(data):
     #return as float32
     return data.astype(numpy.float32) #(data - min) * (max - min) 
 
+def save_nifti(image,basename):
+    import nibabel as nib
+    affine = np.eye(4)
+    if image_filtered.ndim ==5:
+        for i in xrange(0,image_filtered.shape[4]):
+            new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
+            new_image.set_data_dtype(numpy.float32)
+            nib.save(new_image,basename+'_0'+str(i)+'.nii.gz')
+    else:
+        new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
+        new_image.set_data_dtype(numpy.float32)
+        nib.save(new_image,basename+'.nii.gz')
+
     
 if __name__ == "__main__":
 
@@ -433,8 +446,8 @@ if __name__ == "__main__":
     import ReadProcpar as Procpar
     import ProcparToDicomMap
     import RescaleFDF
-    import nibabel as nib
     from ReadFID import *
+    import nibabel as nib
 
     parser = argparse.ArgumentParser(usage=' ParseFDF.py -i "Input FDF directory"',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. ParseFDF takes header info from fdf files and adjusts the dicom dataset *ds* then rescales the image data.')
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
@@ -485,60 +498,31 @@ if __name__ == "__main__":
             #np.delete(image)
             #image = imaget
         print "Saving raw image"
-        if image.ndim ==5:
-            for i in xrange(0,image.shape[4]):
-                raw_image=nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
-                raw_image.set_data_dtype(numpy.float32)
-                nib.save(raw_image,'raw_image_0'+str(i)+'.nii.gz')
-        else:
-            raw_image=nib.Nifti1Image(normalise(np.abs(image)),affine)
-            raw_image.set_data_dtype(numpy.float32)
-            nib.save(raw_image,'raw_image.nii.gz')
-       
+        save_nifti(np.abs(image),'raw_image')       
 
 
         
     print "Computing Gaussian filtered image from Original image"
     image_filtered = cplxgaussian_filter(image.real,image.imag,0.707,0,'nearest')
     print "Saving Gaussian image"
-    if image_filtered.ndim ==5:
-        for i in xrange(0,image_filtered.shape[4]):
-            new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
-            new_image.set_data_dtype(numpy.float32)
-            nib.save(new_image,'gauss_image_0'+str(i)+'.nii.gz')
-    else:
-        new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
-        new_image.set_data_dtype(numpy.float32)
-        nib.save(new_image,'gauss_image.nii.gz')
+    save_nifti(np.abs(image_filtered),'gauss_image')
 
-    # print "Computing Laplacian enhanced image from Original image"
-    # image_filtered = image-cplxlaplacian_filter(image.real,image.imag,0.707)
-    # print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
-    # if image_filtered.ndim ==5:
-    #     for i in xrange(0,image_filtered.shape[4]):
-    #         new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
-    #         new_image.set_data_dtype(numpy.float32)
-    #         nib.save(new_image,'laplace_image_0'+str(i)+'.nii.gz')
-    # else:
-    #     new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
-    #     new_image.set_data_dtype(numpy.float32)
-    #     nib.save(new_image,'laplace_image.nii.gz')
+    print "Computing Laplacian enhanced image from Original image"
+    image_filtered = image-cplxlaplacian_filter(image.real,image.imag,0.707)
+    print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
+    save_nifti(np.abs(image_filtered),'laplace_image')
 
-        
-#    print "Computing Gaussian Laplace image from Smoothed image"
-#    Log_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag)
-#    Log_image = nib.Nifti1Image(normalise(np.abs(Log_filtered)),affine)
-#    nib.save(Log_image,'Log_image.nii.gz')
+    print "Computing Gaussian Laplace image from Smoothed image"
+    Log_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag)
+    save_nifti(normalise(np.abs(Log_filtered)),'Log_image')
 
-    # print "Computing Median filtered image"
-    # median_filtered = cplxmedian_filter(image.real,image.imag,3)
-    # print "Saving Median image"
-    # median_image = nib.Nifti1Image(normalise(np.abs(median_filtered)),affine)
-    # nib.save(median_image,'median_image.nii.gz')
+    print "Computing Median filtered image"
+    median_filtered = cplxmedian_filter(image.real,image.imag,3)
+    print "Saving Median"
+    save_nifti(normalise(np.abs(median_filtered)),'median_image')
 
-    # print "Computing Wiener filtered image"
-    # wiener_filtered = cplxwiener_filter(image.real,image.imag,3,0.0001)
-    # print "Saving Wiener image"
-    # wiener_image = nib.Nifti1Image(normalise(np.abs(wiener_filtered)),affine)
-    # nib.save(wiener_image,'wiener_image.nii.gz')
+    print "Computing Wiener filtered image"
+    wiener_filtered = cplxwiener_filter(image.real,image.imag,3,0.0001)
+    print "Saving Wiener image"
+    save_nifti(normalise(np.abs(wiener_filtered)),'wiener_image')
 
