@@ -379,6 +379,16 @@ fslview raw_image.nii.gz new_image.nii.gz median_image.nii.gz
  the slices along the axis. 
 
 
+*kspace_filter.py* can perform filtering in the fourier domain.  FID k-space data can be filtered before recon - drastically improving processing time.
+Filter methods include Gaussian, Laplacian enhancement, Laplace of Gaussian, and inhomogeneous MR bias correction.  
+Double image resolution can also be achieved by zero-padding the outside of the kspace data. 
+ 
+```
+#!bash
+
+python -i ./kspace_filter.py -v -i ../ExampleAntData/kidney512iso_01.fid/ -o ../ExampleAgilentData/kidney512iso_01.dcm/ 
+```
+
 ## Contribution guidelines ##
 
 *Writing tests*
