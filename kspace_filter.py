@@ -376,7 +376,7 @@ if __name__ == "__main__":
 
     print "Computing Laplacian enhanced image"
     laplacian = fftshift(fftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
-    alpha=ndimage.mean(image_filtered)/ndimage.mean(laplacian)
+    alpha=ndimage.mean(np.abs(image_filtered))/ndimage.mean(np.abs(laplacian))
     image_lfiltered = image_filtered - alpha*laplacian
     print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
     if image_lfiltered.ndim ==5:
