@@ -231,11 +231,11 @@ def kspacelaplacegaussian_filter(ksp,sigma_=None):
     if type(sigma_) is float:
         sigma= np.ones(3)*sigma_
     else:
-        sigm=sigma_.copy()
+        sigma=sigma_.copy()
       
     Flaplace = fourierlaplace(siz)
     Fgauss = fouriergauss(siz,1/sigma)
-    print "Complex Laplace Gaussian filter sigma ", sigma, " order ", order_, " mode ", mode_
+    print "Complex Laplace Gaussian filter sigma ", sigma
     if ksp.ndim == 3:
         out_img = ksp * Fgauss * Flaplace
     else:
