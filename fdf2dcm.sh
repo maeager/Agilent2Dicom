@@ -115,9 +115,9 @@ print_usage(){
 
 ## Check for number of args
 if [ $# -eq 0 ]; then
-    echo "fdfdcm.sh must have one argument: -i, --input [directory of FDF images]"
-    print_usage
-    exit $E_BADARGS
+	echo "fdfdcm.sh must have one argument: -i, --input [directory of FDF images]"
+	print_usage
+	exit $E_BADARGS
 fi
 
 

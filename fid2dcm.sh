@@ -123,9 +123,9 @@ print_usage(){
 
 ## Check for number of args
 if [ $# -eq 0 ]; then
-    echo "fiddcm.sh must have one argument: -i, --input [directory of FID images]"
-    print_usage
-    exit $E_BADARGS
+	echo "fiddcm.sh must have one argument: -i, --input [directory of FID images]"
+	print_usage
+	exit $E_BADARGS
 fi
 
 
@@ -181,7 +181,7 @@ while getopts ":i:o:g:l:j:e:n:w:z:hmprkdfxv" opt; do
 	    python_args="$python_args --wiener_filter --window_size $wiener_windown_size"
 	    do_filter=4
 	    ;;
- 	z)
+	z)
 	    [ ${do_filter} != 4 ] && (echo "Must have -w before -z"; print_usage; exit 1)
 	    echo "Wiener noise: $OPTARG" >&2
 	    wiener_noise="$OPTARG"
@@ -239,7 +239,6 @@ while getopts ":i:o:g:l:j:e:n:w:z:hmprkdfxv" opt; do
     esac
 done
 
-
 # Clean up input args
 if [ ! -d "$input_dir" ]; then
     echo "fiddcm.sh must have a valid input directory of FID images."
@@ -260,11 +259,11 @@ fi
 
 ## Check existing output directories
 JumpToDCmulti=0
-    output_root=$(dirname $output_dir)
-    output_base=$(basename $output_dir .dcm)
-    dirs=$(find $output_root -maxdepth 1 -type d  -name  "$output_base*.dcm")
-    echo "Output dicom paths exist already: "
-    echo $dirs
+output_root=$(dirname $output_dir)
+output_base=$(basename $output_dir .dcm)
+dirs=$(find $output_root -maxdepth 1 -type d  -name  "$output_base*.dcm")
+echo "Output dicom paths exist already: "
+echo $dirs
 if [ -d "${output_dir}" ]; then
     if test -d "${output_dir}/tmp" && (( verbosity > 0 ))
     then

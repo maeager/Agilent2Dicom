@@ -147,10 +147,10 @@ total_anatseq=$(dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Erro
 echo "Total Frame Anatomy Errors ", "$total_anatseq" 
 current_anatseq=$total_anatseq
 #while (( current_anatseq > 0 )); do
-    for ((i=0;index<total_anatseq;++index)); do
-	echo "# $index of $total_anatseq"
-	${DCMODIFY} -ea "(5200,9230)[$index].(0020,9071)" $files
-    done
+for ((i=0;index<total_anatseq;++index)); do
+    echo "# $index of $total_anatseq"
+    ${DCMODIFY} -ea "(5200,9230)[$index].(0020,9071)" $files
+done
 #    current_anatseq=$(dciodvfy ${output_dir}/0001.dcm 2>&1 >/dev/null | grep -e '^Error - Functional Group Sequence already used in Shared Functional Groups Sequence - (0x0020,0x9071) Frame Anatomy Sequence - in Per-frame Functional Groups Sequence' | wc -l)
 #done
 
