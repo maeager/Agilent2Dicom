@@ -260,6 +260,22 @@ def kspaceshift(ksp):
     return 
 #end kspaceshift
 
+    
+def close_image(ksp):
+    c = ndimage.grey_closing(np.abs(image_filtered),size=(5,5,5))
+    new_image = nib.Nifti1Image(normalise(c),affine)
+    new_image.set_data_dtype(numpy.float32)
+    nib.save(new_image,'image_fill.nii.gz')
+    
+
+def sobel_image(image):
+    d = ndimage.filters.sobel(c,axis=0)
+    e = ndimage.filters.sobel(c,axis=1)
+
+    f = ndimage.filters.sobel(c,axis=2)
+    new_image = nib.Nifti1Image(np.abs(d)+np.abs(e)+np.abs(f),affine)
+    new_image.set_data_dtype(numpy.float32)
+    nib.save(new_image,'sobel.nii.gz')
 
 
 
@@ -269,6 +285,19 @@ def normalise(data):
     print "Normalise max %f  min %f" % (max, min)
     #return as float32
     return data.astype(numpy.float32) #(data - min) * (max - min) 
+
+def save_nifti(image,basename):
+    import nibabel as nib
+    affine = np.eye(4)
+    if image.ndim ==5:
+        for i in xrange(0,image.shape[4]):
+            new_image = nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
+            new_image.set_data_dtype(numpy.float32)
+            nib.save(new_image,basename+'_0'+str(i)+'.nii.gz')
+    else:
+        new_image = nib.Nifti1Image(normalise(np.abs(image)),affine)
+        new_image.set_data_dtype(numpy.float32)
+        nib.save(new_image,basename+'.nii.gz')
 
     
 if __name__ == "__main__":
@@ -317,12 +346,14 @@ if __name__ == "__main__":
     print "Computing Original image (reconstruction)"
     image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag,args)
 
+    ksp = kspaceshift(ksp)
+    
     if args.axis_order:
         image = RearrangeImage(image,args.axis_order,args)
         print "Transformed image shape: ", image.shape
         #np.delete(image)
         #image = imaget
-    print "Saving raw image"
+    #print "Saving raw image"
     # if image.ndim ==5:
     #     for i in xrange(0,image.shape[4]):
     #         raw_image=nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
@@ -355,48 +386,26 @@ if __name__ == "__main__":
     kspgauss =kspacegaussian_filter2(ksp,256/0.707)
     image_filtered = fftshift(fftn(ifftshift(kspgauss)))
     print "Saving Gaussian image"
-    if image_filtered.ndim ==5:
-        for i in xrange(0,image_filtered.shape[4]):
-            new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
-            new_image.set_data_dtype(numpy.float32)
-            nib.save(new_image,'gauss_image2_0'+str(i)+'.nii.gz')
-    else:
-        new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
-        new_image.set_data_dtype(numpy.float32)
-        nib.save(new_image,'gauss_image2.nii.gz')
+    save_nifti(normalise(np.abs(image_filtered)),'gauss_image')
 
     # inhomogeneousCorrection
     image_corr = inhomogeneousCorrection(ksp,ksp.shape,3.0/60.0)
     # print "Saving Correction image"
-    
-    new_image = nib.Nifti1Image(normalise(np.abs(image_filtered/image_corr)),affine)
-    new_image.set_data_dtype(numpy.float32)
-    nib.save(new_image,'image_inhCorr3.nii.gz')
+    save_nifti(np.abs(image_filtered/image_corr),'image_inhCorr3.nii.gz')
 
 
     print "Computing Laplacian enhanced image"
     laplacian = fftshift(fftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
     alpha=ndimage.mean(np.abs(image_filtered))/ndimage.mean(np.abs(laplacian))
-    image_lfiltered = image_filtered - alpha*laplacian
+    image_lfiltered = image_filtered - 0.5*alpha*laplacian
     print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
-    if image_lfiltered.ndim ==5:
-        for i in xrange(0,image_filtered.shape[4]):
-            new_image = nib.Nifti1Image(normalise(np.abs(image_lfiltered[:,:,:,0,i])),affine)
-            new_image.set_data_dtype(numpy.float32)
-            nib.save(new_image,'laplacian_image_0'+str(i)+'.nii.gz')
-    else:
-        new_image = nib.Nifti1Image(normalise(np.abs(limage_filtered)),affine)
-        new_image.set_data_dtype(numpy.float32)
-        nib.save(new_image,'laplacian_enhanced.nii.gz')
+    save_nifti(np.abs(image_lfiltered),'laplacian_enhanced.nii.gz')
+
     del image_filtered, image_lfiltered
         
     print "Computing Gaussian Laplace image from Smoothed image"
     image_filtered = fftshift(fftn(ifftshift(kspacelaplacegaussian_filter(ksp,256.0/0.707))))
-#    Log_filtered = kspacegaussian_laplace(image_filtered.real,image_filtered.imag)
-    Log_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
-    Log_image.set_data_dtype(numpy.float32)
-    nib.save(Log_image,'Log_image.nii.gz')
-
+    save_nifti(np.abs(image_filtered),'Log_image.nii.gz')
 
 
     print "Double res and gaussian filter"
@@ -405,16 +414,8 @@ if __name__ == "__main__":
     szmax = np.array(ksp.shape) + szmin 
     ksplarge[szmin[0]:szmax[0],szmin[1]:szmax[1],szmin[2]:szmax[2]]=kspacegaussian_filter2(ksp,256/0.707)
     image_filtered = fftshift(fftn(ifftshift(ksplarge)))
-    print "Saving Gaussian image"
-    if image_filtered.ndim ==5:
-        for i in xrange(0,image_filtered.shape[4]):
-            new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
-            new_image.set_data_dtype(numpy.float32)
-            nib.save(new_image,'gauss_large_0'+str(i)+'.nii.gz')
-    else:
-        new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
-        new_image.set_data_dtype(numpy.float32)
-        nib.save(new_image,'gauss_large.nii.gz')
+    print "Saving Double res image"
+    save_nifti(np.abs(image_filtered),'gauss_large.nii.gz')
 
 
 
