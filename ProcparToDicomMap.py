@@ -1406,19 +1406,21 @@ def ProcparToDicomMap(procpar,args):
     if 'seqfil' in procpar.keys():
         if re.search('ep',procpar["seqfil"]):
             ds.ScanningSequence   =  "EP"  
-        if re.search('ge',procpar["seqfil"]):  # apptype im3D 
+        elif re.search('ge',procpar["seqfil"]):  # apptype im3D 
             ds.ScanningSequence =  "GR"  
-        if re.search('se',procpar["seqfil"]):
+        elif re.search('se',procpar["seqfil"]):
             ds.ScanningSequence   =  "SE"  
-        
-    if ds.ScanningSequence == "IR":
+        elif re.search('ir',procpar["seqfil"]):
+            ds.ScanningSequence   =  "IR"    
+
         # 0018,0082 Inversion Time (optional)
-    #Inversion Time (0018,0082) 2C Time in msec after the middle of inverting
-        #                          RF pulse to middle of excitation pulse to
-        #                          detect the amount of longitudinal
-        #                          magnetization. Required if Scanning
-        #                          Sequence (0018,0020) has values of IR.
-        ds.InversionTime = str(procpar['ti']*1000.0)                     
+        # Inversion Time (0018,0082) 2C
+        #    Time in msec after the middle of inverting
+        #    RF pulse to middle of excitation pulse to
+        #    detect the amount of longitudinal
+        #    magnetization. Required if Scanning
+        #    Sequence (0018,0020) has values of IR.
+            ds.InversionTime = str(procpar['ti']*1000.0)                     
 
 
 
