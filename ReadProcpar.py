@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """ReadProcpar is used to read Agilent FDF config files
 
    -  Michael Eager (michael.eager@monash.edu)
@@ -123,27 +122,37 @@ Notes:
 
 
 def ProcparInfo(procpar):
+    """ProcparInfo create basic information from procpar for displaying
+
+       This method is primarily for the Agilent2DicomAppQt GUI.
+    """
     header=dict()
     header['Protocol_Name']=procpar['pslabel']
+    header['Sequence_Name']=procpar['seqfil']
     header['StudyID']=procpar['name']
+    header['SeriesDescription'] = procpar['comment']
     header['Mode'] = '%dD' % procpar['nD']
     if procpar['nD'] == 2:
         header['FOV_cm'] = [procpar['lro'], procpar['lpe']]
-        header['Dims'] = [procpar['nf']/procpar['ns'], procpar['np']/2, procpar['ns']]
+        header['Dimensions'] = [procpar['nf']/procpar['ns'], procpar['np']/2, procpar['ns']]
         #if len(procpar['thk'])>1:
         #    print "procpar thk size greater than 1"
-        header['Voxel_Res_mm'] = [procpar['lro']*10/header['dims'][0], procpar['lpe']*10/header['dims'][1], procpar['thk']*10]
+        header['Voxel_Res_mm'] = [procpar['lro']*10/header['Dimensions'][0], procpar['lpe']*10/header['Dimensions'][1], procpar['thk']*10]
     elif procpar['nD'] == 3:
-        header['FOV_cm'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
-        header['Dims'] = [procpar['nf'], procpar['np']/2, procpar['nv2']]
-        header['Voxel_Res_mm'] =[procpar['lro']*10/header['dims'][0], procpar['lpe']*10/header['dims'][1], procpar['lpe2']*10/header['dims'][2]]
-    header['Volumes'] = procpar['lpe3']
-    header['nEchoes'] = procpar['ne']
+        header['FOV_cm'] = [procpar['lro'], procpar['lpe'], procpar['lpe2'],procpar['lpe3']]
+        header['Dimensions'] = [procpar['nf'], procpar['np']/2, procpar['nv2']]
+        header['Voxel_Resolution_mm'] =[procpar['lro']*10/header['Dimensions'][0], procpar['lpe']*10/header['Dimensions'][1], procpar['lpe2']*10/header['Dimensions'][2]]
+    header['Volumes'] = procpar['volumes']
+    header['NumberOfEchoes'] = procpar['ne']
+    header['FOV_ORIENTATION'] = [procpar['orient'],procpar['psi'],procpar['phi'],[procpar['theta']]
+    
+    header['GRADIENTS'] = [procpar['gcoil'],procpar['gro'],procpar['gpe'],procpar['gss'],procpar['gspoil'],procpar['rewind']]
+    header['ACQ CONTROL'] = 'seqcon:'+procpar['seqcon']+'nD:'+procpar['nD']+'ni:'+procpar['ni']+'nf:'+procpar['nf']+'cf:'+procpar['cf']+'ne:'+procpar[',ne']+'ns:'+procpar['ns']+'np:'+procpar[',np']+'nv:'+procpar['nv']+'nv2:'+procpar['nv2']+'nv3:'+procpar['nv3']
     rcvrs = re.findall('y',procpar['rcvrs'])
     if rcvrs:
-        header['nChannels'] = len(rcvrs);
+        header['NumberOfChannels'] = len(rcvrs);
     else:
-        header['nChannels'] = 1
+        header['NumberOfChannels'] = 1
                             
     
     dims=[1,1,1,1,1]
@@ -158,21 +167,31 @@ def ProcparInfo(procpar):
         dims[0] = procpar['np']/2        # NUM phase encode lines / 2
         dims[1] = procpar['nf']/procpar['ne'] # num frequency lines acquired / # echoes
         dims[2] = procpar['ni2'] 
-    dims[3] = header['nChannels']
-    dims[4] = header['nEchoes']
+    dims[3] = header['NumberOfChannels']
+    dims[4] = header['NumberOfEchoes']
     header['Dims2']=dims
+    header['DimXYZ']=[procpar[procpar['dimX']],procpar[procpar['dimY']],procpar[procpar['dimZ']]]
+    header['PosXYZ']=[procpar[procpar['posX']],procpar[procpar['posY']],procpar[procpar['posZ']]]
+    header['VoxelSize']=[procpar['vox1'],procpar['vox2'],procpar['vox3']]
+    header['TR']  = str(procpar['tr']*1000.0)
+    if 'te' in procpar.keys():
+        header['TE']  = str(procpar['te']*1000.0) 
     return header
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(usage=' ReadProcpar -i "Input FDF directory" ',description='ReadProcpar is part of agilent2dicom, an FDF to Enhanced MR DICOM converter from MBI.')
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF directory',required=True);
+    parser.add_argument('-s','--show', help='Show procpar info.',action="store_true");
+    parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     args = parser.parse_args()
 
 
     procpar, procpartext = ReadProcpar(os.path.join(args.inputdir, 'procpar'))
-    print procpar
-    print "Basic info:"
+    if not args.show:
+        print procpar
+        print "Basic info:"
+
     p = ProcparInfo(procpar)
     #print '\n'.join(p)
     print '\n'.join("%s:  %r" % (key,val) for (key,val) in p.iteritems())
