@@ -427,13 +427,13 @@ def normalise(data):
 def save_nifti(image,basename):
     import nibabel as nib
     affine = np.eye(4)
-    if image_filtered.ndim ==5:
-        for i in xrange(0,image_filtered.shape[4]):
-            new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
+    if image.ndim ==5:
+        for i in xrange(0,image.shape[4]):
+            new_image = nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
             new_image.set_data_dtype(numpy.float32)
             nib.save(new_image,basename+'_0'+str(i)+'.nii.gz')
     else:
-        new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
+        new_image = nib.Nifti1Image(normalise(np.abs(image)),affine)
         new_image.set_data_dtype(numpy.float32)
         nib.save(new_image,basename+'.nii.gz')
 
@@ -505,12 +505,12 @@ if __name__ == "__main__":
     print "Computing Gaussian filtered image from Original image"
     image_filtered = cplxgaussian_filter(image.real,image.imag,0.707,0,'nearest')
     print "Saving Gaussian image"
-    save_nifti(np.abs(image_filtered),'gauss_image')
+    save_nifti(normalise(np.abs(image_filtered)),'gauss_image')
 
     print "Computing Laplacian enhanced image from Original image"
     image_filtered = image-cplxlaplacian_filter(image.real,image.imag,0.707)
     print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
-    save_nifti(np.abs(image_filtered),'laplace_image')
+    save_nifti(normalise(np.abs(image_filtered)),'laplace_image')
 
     print "Computing Gaussian Laplace image from Smoothed image"
     Log_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag)
