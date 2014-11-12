@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fdf2dcm.sh,v 8e2f8a38984a 2014/10/22 01:38:31 root $"
+#  "$Id: fdf2dcm.sh,v 5b25513ec65b 2014/11/12 06:31:43 michael $"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #  Version 1.1: Supporting Diffusion and Multiecho
@@ -115,9 +115,9 @@ print_usage(){
 
 ## Check for number of args
 if [ $# -eq 0 ]; then
-    echo "fdfdcm.sh must have one argument: -i, --input [directory of FDF images]"
-    print_usage
-    exit $E_BADARGS
+	echo "fdfdcm.sh must have one argument: -i, --input [directory of FDF images]"
+	print_usage
+	exit $E_BADARGS
 fi
 
 

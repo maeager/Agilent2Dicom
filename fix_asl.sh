@@ -50,25 +50,25 @@
                       
 
 
-    firsttmpdcm=$(ls -1 "${output_dir}"/tmp/*.dcm| head -1)
-    dcdump "${firsttmpdcm}" 2>&1| grep -A30 'MR Arterial' | sed -e 's/.*VL=<[^>]*>\s*\(.*\)/\1/' -e '/---/d' -e '/^$/d' | tr -d '<>{}[]' > "${output_dir}"/arterial.tmp
+firsttmpdcm=$(ls -1 "${output_dir}"/tmp/*.dcm| head -1)
+dcdump "${firsttmpdcm}" 2>&1| grep -A30 'MR Arterial' | sed -e 's/.*VL=<[^>]*>\s*\(.*\)/\1/' -e '/---/d' -e '/^$/d' | tr -d '<>{}[]' > "${output_dir}"/arterial.tmp
 
-    if [ -f  ${output_dir}/arterial.tmp ]; then
-	declare -a ArterialSpinLabelling
-	let i=0;while IFS=$'\r\n' read -r line_data; do 
-	    ArterialSpinLabelling[i]="${line_data}"; ((++i)); 
-	done < "${output_dir}"/arterial.tmp
-	rm -f "${output_dir}"/arterial.tmp
-    else
-	echo "Cannot find arterial.tmp in output dir"
-    fi
+if [ -f  ${output_dir}/arterial.tmp ]; then
+    declare -a ArterialSpinLabelling
+    let i=0;while IFS=$'\r\n' read -r line_data; do 
+	ArterialSpinLabelling[i]="${line_data}"; ((++i)); 
+    done < "${output_dir}"/arterial.tmp
+    rm -f "${output_dir}"/arterial.tmp
+else
+    echo "Cannot find arterial.tmp in output dir"
+fi
 
-    echo "ASL : ${firsttmpdcm} size: " ${#ArterialSpinLabelling[*]}
-    if [[ ${#ArterialSpinLabelling[*]} -ne 17 ]];then
-	echo "DCM modification error. Not enough ASL parameters."
-	echo " Ignoring ASL modifications."
-    else
-	echo "FrameAnt 7: " ${ArterialSpinLabelling[7]}
+echo "ASL : ${firsttmpdcm} size: " ${#ArterialSpinLabelling[*]}
+if [[ ${#ArterialSpinLabelling[*]} -ne 17 ]];then
+    echo "DCM modification error. Not enough ASL parameters."
+    echo " Ignoring ASL modifications."
+else
+    echo "FrameAnt 7: " ${ArterialSpinLabelling[7]}
 
     ${DCMODIFY} -i "(0018,9251)[0].(0018,9250)=${ArterialSpinLabelling[0]}" $files	   #  Arterial Spin Labeling Contrast	      VR=<CS>	VL=<000a>
     ${DCMODIFY} -i "(0018,9251)[0].(0018,9252)=${ArterialSpinLabelling[1]}" $files     # ASL Technique Description       VR=<LO>   VL=<0004>  <FAIR> 
@@ -92,7 +92,7 @@
     ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9255)=${ArterialSpinLabelling[14]}" $files #ASL Slab Orientation	VR=<FD>	  VL=<0018>  {1.38,180.661,87.387}
     ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9256)=${ArterialSpinLabelling[15]}" $files #ASL Mid Slab Position   VR=<FD>   VL=<0018>  {0,0,0}
     ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9258)=${ArterialSpinLabelling[16]}" $files #ASL Pulse Train Duration	VR=<UL>	  VL=<0004>  [00000000]
- 
+    
 
-    fi # array check
-    echo "DCModify ASL done"
+fi # array check
+echo "DCModify ASL done"

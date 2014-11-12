@@ -35,7 +35,7 @@ if [ $# -eq 3 ];then
 fi
 STOPATMASK=0
 if [ $# -eq 4 ];then
-    STOPATMASK=1
+	STOPATMASK=1
 fi
 
 
@@ -73,16 +73,16 @@ fi
 dwi2tensor ${outpath}/diff.mif ${outpath}/dt_DWI.mif
 
 ## FA map
- tensor2ADC ${outpath}/dt_DWI.mif  - | mrmult - ${outpath}/mask_DWI.mif ${outpath}/adc_DWI.mif
+tensor2ADC ${outpath}/dt_DWI.mif  - | mrmult - ${outpath}/mask_DWI.mif ${outpath}/adc_DWI.mif
 
 ## FA map
- tensor2FA ${outpath}/dt_DWI.mif  - | mrmult - ${outpath}/mask_DWI.mif ${outpath}/fa_DWI.mif
+tensor2FA ${outpath}/dt_DWI.mif  - | mrmult - ${outpath}/mask_DWI.mif ${outpath}/fa_DWI.mif
 
 ## eigenvector map
- tensor2vector ${outpath}/dt_DWI.mif  - | mrmult - ${outpath}/fa_DWI.mif ${outpath}/ev_DWI.mif
+tensor2vector ${outpath}/dt_DWI.mif  - | mrmult - ${outpath}/fa_DWI.mif ${outpath}/ev_DWI.mif
 
 ## Constrained spherical deconvolution (CSD), masking single voxels
- erode ${outpath}/mask_DWI.mif -npass 3 - | mrmult ${outpath}/fa_DWI.mif - - | threshold - -abs 0.7 ${outpath}/sf_DWI.mif
+erode ${outpath}/mask_DWI.mif -npass 3 - | mrmult ${outpath}/fa_DWI.mif - - | threshold - -abs 0.7 ${outpath}/sf_DWI.mif
 
 
 ## Fibre tracking
@@ -92,10 +92,10 @@ tracks2prob ${outpath}/DWI_wholetissue.tck -colour -vox 0.5 ${outpath}/tdi.mif
 
 
 ## Response function coefficient
- estimate_response ${outpath}/diff.mif ${outpath}/sf_DWI.mif ${outpath}/response.txt
+estimate_response ${outpath}/diff.mif ${outpath}/sf_DWI.mif ${outpath}/response.txt
 
 ## display response
- disp_profile -response ${outpath}/response.txt
+disp_profile -response ${outpath}/response.txt
 
 ##
 estimate_response ${outpath}/diff.mif ${outpath}/sf_DWI.mif -lmax 6 ${outpath}/response-6max.txt
@@ -122,7 +122,7 @@ if [ $MAKENIFTI -eq 1 ]; then
 
 fi
 
- 
+
 #  mkdir dti_rep1_01.mif
 #  cd dti_rep1_01.mif
 #  mrconvert ../dti_rep1_01.dcm dwi_01.mif -datatype float32
