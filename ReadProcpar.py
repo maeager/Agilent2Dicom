@@ -144,10 +144,9 @@ def ProcparInfo(procpar):
         header['Voxel_Resolution_mm'] =[procpar['lro']*10/header['Dimensions'][0], procpar['lpe']*10/header['Dimensions'][1], procpar['lpe2']*10/header['Dimensions'][2]]
     header['Volumes'] = procpar['volumes']
     header['NumberOfEchoes'] = procpar['ne']
-    header['FOV_ORIENTATION'] = [procpar['orient'],procpar['psi'],procpar['phi'],[procpar['theta']]
-    
-    header['GRADIENTS'] = [procpar['gcoil'],procpar['gro'],procpar['gpe'],procpar['gss'],procpar['gspoil'],procpar['rewind']]
-    header['ACQ CONTROL'] = 'seqcon:'+procpar['seqcon']+'nD:'+procpar['nD']+'ni:'+procpar['ni']+'nf:'+procpar['nf']+'cf:'+procpar['cf']+'ne:'+procpar[',ne']+'ns:'+procpar['ns']+'np:'+procpar[',np']+'nv:'+procpar['nv']+'nv2:'+procpar['nv2']+'nv3:'+procpar['nv3']
+    header['FOV_ORIENTATION'] = [procpar['orient'],procpar['psi'],procpar['phi'],procpar['theta']]
+    header['GRADIENTS'] = [procpar['gcoil'],procpar['gro'],procpar['gpe']]#,procpar['gss'],procpar['gspoil'],procpar['rewind']]
+    header['ACQ_CONTROL'] = 'seqcon:'+procpar['seqcon']+'nD:'+procpar['nD']+'ni:'+procpar['ni']+'nf:'+procpar['nf']+'cf:'+procpar['cf']+'ne:'+procpar[',ne']+'ns:'+procpar['ns']+'np:'+procpar[',np']+'nv:'+procpar['nv']+'nv2:'+procpar['nv2']+'nv3:'+procpar['nv3']
     rcvrs = re.findall('y',procpar['rcvrs'])
     if rcvrs:
         header['NumberOfChannels'] = len(rcvrs);
