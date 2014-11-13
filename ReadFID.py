@@ -238,8 +238,8 @@ def readfid(fidfolder,procpar,args):
         fid_header['orientation']= [1,0,0,0,1,0,0,0,1]
 
     # reset output structures
-    RE = numpy.empty([ fid_header['np']/2,fid_header['ntraces'], fid_header['nblocks']], dtype=float)
-    IM = numpy.empty([ fid_header['np']/2,fid_header['ntraces'], fid_header['nblocks']], dtype=float)
+    RE = numpy.empty([ fid_header['np']/2,fid_header['ntraces'], fid_header['nblocks']], dtype=numpy.float32)
+    IM = numpy.empty([ fid_header['np']/2,fid_header['ntraces'], fid_header['nblocks']], dtype=numpy.float32)
     if args.verbose:
         print "Real shape:", RE.shape
     # We have to read data every time in order to increment file pointer
@@ -375,23 +375,23 @@ def recon(procpar,dims,fid_header,RE,IM,args):
     if args.verbose:
         print 'Reconstructing image'
         print dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']
-        print 'nchannels', fid_header['nblocks'],procpar['acqcycles']
+        print 'nchannels ', fid_header['nblocks'], 'acqcycles ', procpar['acqcycles']
         print 'Image shape ', RE.shape
 
     if numpy.product(dims) != numpy.product(RE.shape):
         print "ksp not arrangd properly"
         
     if fid_header['nChannels']==1 and  fid_header['nEchoes']==1:
-        ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
-        img = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
+        ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=numpy.complex64) #float32
+        img = numpy.empty([dims[0], dims[1], dims[2]], dtype=numpy.complex64) #float32
     else:
-        ksp = numpy.empty([dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']], dtype=complex) #float32
-        img = numpy.empty([dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']], dtype=complex) #float32
+        ksp = numpy.empty([dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']], dtype=numpy.complex64) #float32
+        img = numpy.empty([dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']], dtype=numpy.complex64) #float32
 
     if procpar['nD'] == 2 and procpar['ni2'] == 1:
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
-            ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
-            img = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
+            ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=numpy.complex64) #two float32
+            img = numpy.empty([dims[0], dims[1], dims[2]], dtype=numpy.complex64) #two float32
             ksp[:,:,:].real = RE  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
             ksp[:,:,:].imag = IM  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
             for islice in xrange(0,int(dims[2])):
@@ -411,8 +411,8 @@ def recon(procpar,dims,fid_header,RE,IM,args):
                         img[:,:,islice,n,echo] = fftshift(ifftn(ifftshift(ksp[:,procpar['pelist']-minimum(procpar['pelist']),islice,n,echo])))
     else: #if procpar.nD == 3
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
-            ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
-            img = numpy.empty([dims[0], dims[1], dims[2]], dtype=complex) #float32
+            ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=numpy.complex64) #float32
+            img = numpy.empty([dims[0], dims[1], dims[2]], dtype=numpy.complex64) #float32
             ksp[:,:,:].real = RE  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
             ksp[:,:,:].imag = IM  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
             if 'pelist' in procpar.keys():
@@ -486,8 +486,8 @@ def RearrangeImage(image,axis_order,args):
     else:
 
         if image.ndim ==5:
-            image_treal = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
-            image_timag = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]])
+            image_treal = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]],dtype=numpy.float32)
+            image_timag = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]],dtype=numpy.float32)
             if args.verbose:
                 print "Transposing 5D image to ", axis_order
                 print  image.shape, ' -> ', image_treal.shape
@@ -518,7 +518,7 @@ def RearrangeImage(image,axis_order,args):
             image_timag = numpy.transpose(image.imag,(iaxes[0],iaxes[1],iaxes[2]))
             image.reshape([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]]])
             #print image.shape
-        image = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]],dtype=complex)
+        image = numpy.empty([dims[iaxes[0]],dims[iaxes[1]],dims[iaxes[2]],dims[3],dims[4]],dtype=numpy.complex64)
         image.real = image_treal
         image.imag = image_timag
         if args.verbose:
@@ -1405,8 +1405,9 @@ def SaveKspace(ksp,args):
 
             (ImgBaseName, ImgExtension)=os.path.splitext(imgdir)
             outdir = os.path.join(dirName,ImgBaseName + '-ksp.mat')
-        
-    scipy.io.savemat(outfile, mdict={'ksp': ksp})
+    #Force ksp type to be two 32-bit floats
+    ksp=ksp.astype(numpy.complex64)
+    scipy.io.savemat(outfile, mdict={'ksp': ksp},do_compression=True)
 # end SaveSaveKspace
 
 if __name__ == "__main__":
@@ -1465,7 +1466,7 @@ if __name__ == "__main__":
             print "Getting Original image (reconstruction)"
         nii = nib.load('raw_image_00.nii.gz')
         
-        image=numpy.empty([nii.shape[0], nii.shape[1],nii.shape[2],1,3],dtype=complex)
+        image=numpy.empty([nii.shape[0], nii.shape[1],nii.shape[2],1,3],dtype=numpy.complex64)
         image[:,:,:,0,0] = nii.get_data()
         nii = nib.load('raw_image_01.nii.gz')
         image[:,:,:,0,1] = nii.get_data()
