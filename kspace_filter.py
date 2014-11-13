@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """
-kspacegaussian_filter, kspacegaussian_laplace, kspacelaplacian_filter
+   kspacegaussian_filter, kspacegaussian_laplace, kspacelaplacian_filter
 
-Methods for fourier-domain filtering of 3D k-space data
+   Methods for fourier-domain filtering of 3D k-space data
 
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
@@ -107,7 +107,7 @@ The filtered input. If output is given as a parameter, None is returned.
     if ksp.ndim == 3:
         out_img = ndimage.fourier.fourier_gaussian(ksp, sigma, n=n_, axis=axis_)
     else:
-        img = np.empty_like(ksp)
+        img = np.empty_like(ksp,dtype=numpy.complex64)
         
         for echo in xrange(0,ksp.shape[4]):
             for n in xrange(0,ksp.shape[3]):
@@ -217,7 +217,7 @@ def kspacegaussian_filter2(ksp,sigma_=None):
     if ksp.ndim == 3:
         out_img = ksp * Fgauss
     else:
-        img = np.empty_like(ksp)
+        img = np.empty_like(ksp,dtype=numpy.complex64)
         
         for echo in xrange(0,ksp.shape[4]):
             for n in xrange(0,ksp.shape[3]):
@@ -241,8 +241,7 @@ def kspacelaplacegaussian_filter(ksp,sigma_=None):
     if ksp.ndim == 3:
         out_img = ksp * Fgauss * Flaplace
     else:
-        img = np.empty_like(ksp)
-        
+        img = np.empty_like(ksp,dtype=numpy.complex64)
         for echo in xrange(0,ksp.shape[4]):
             for n in xrange(0,ksp.shape[3]):
                 #out_img[:,:,:,n,echo] = ndimage.filters.fourier_gaussian(ksp, sigma, n=n_, axis=axis_)
@@ -251,17 +250,26 @@ def kspacelaplacegaussian_filter(ksp,sigma_=None):
 # end kspacelaplacegaussian_filter    
 
 def kspaceshift(ksp):
+    print "K-space shift ", ksp.shape
     kmax = np.array(ndimage.maximum_position(ksp))
     siz=np.array(ksp.shape[0:3])
-    sub=int(siz.astype(float)/2.) - int(kmax)
+    
+    sub=(siz/2.).astype(int) - kmax
     print "Shifting kspace ", sub
     for x in xrange(0,3):
         ksp=np.roll(ksp,sub[x],axis=x)
-    return 
+    print ""
+    return ksp
 #end kspaceshift
 
+
+def open_image(image_filtered):
+    c = ndimage.grey_opening(np.abs(image_filtered),size=(5,5,5))
+    new_image = nib.Nifti1Image(normalise(c),affine)
+    new_image.set_data_dtype(numpy.float32)
+    nib.save(new_image,'image_open.nii.gz')
     
-def close_image(ksp):
+def close_image(image_filtered):
     c = ndimage.grey_closing(np.abs(image_filtered),size=(5,5,5))
     new_image = nib.Nifti1Image(normalise(c),affine)
     new_image.set_data_dtype(numpy.float32)
@@ -271,7 +279,6 @@ def close_image(ksp):
 def sobel_image(image):
     d = ndimage.filters.sobel(c,axis=0)
     e = ndimage.filters.sobel(c,axis=1)
-
     f = ndimage.filters.sobel(c,axis=2)
     new_image = nib.Nifti1Image(np.abs(d)+np.abs(e)+np.abs(f),affine)
     new_image.set_data_dtype(numpy.float32)
@@ -290,15 +297,61 @@ def save_nifti(image,basename):
     import nibabel as nib
     affine = np.eye(4)
     if image.ndim ==5:
-        for i in xrange(0,image.shape[4]):
-            new_image = nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
-            new_image.set_data_dtype(numpy.float32)
-            nib.save(new_image,basename+'_0'+str(i)+'.nii.gz')
+        for echo in xrange(0,image.shape[4]):
+            for channel in xrange(0,image.shape[3]):
+                new_image = nib.Nifti1Image(normalise(np.abs(image[:,:,:,channel,echo])),affine)
+                new_image.set_data_dtype(numpy.float32)
+                nib.save(new_image,basename+'_'+str(channel)+str(echo)+'.nii.gz')
     else:
         new_image = nib.Nifti1Image(normalise(np.abs(image)),affine)
         new_image.set_data_dtype(numpy.float32)
         nib.save(new_image,basename+'.nii.gz')
 
+
+        
+def test_double_resolution(ksp,basename):
+    print "Double res and "+basename+" filter"
+    ksplarge=np.zeros(np.array(ksp.shape)*2, dtype=numpy.complex64) # two 32-bit float
+    szmin = np.array(ksp.shape)/2 - 1
+    szmax = np.array(ksp.shape) + szmin 
+    ksplarge[szmin[0]:szmax[0],szmin[1]:szmax[1],szmin[2]:szmax[2]]=ksp
+    image_filtered = fftshift(fftn(ifftshift(ksplarge)))
+    print "Saving Double res image: "+basename+" filtered"
+    save_nifti(np.abs(image_filtered),basename+'_large.nii.gz')
+
+
+def test_depth_algorithm(image_filtered,basename='depth'):
+    print "Testing depth algorithm"
+    # Close gaussian filtered image
+    c = ndimage.grey_closing(np.abs(image_filtered),size=(5,5,5))
+    #Mask closed image
+    cm = c* (c>8000).astype(float)
+    cm = cm/(ndimage.maximum(cm))
+    # avoid div by zero
+    cm=0.99*cm +0.001
+    #Regularise gaussian filtered image
+    gm=(np.abs(image_filtered)/cm)* (c>8000).astype(float)
+    # Depth = difference between closed image and regularised gaussian
+    gm = c/ndimage.maximum(c)  - gm/ndimage.maximum(gm)
+    # mask again
+    gm = gm* (c>8000).astype(float)
+    # Normalise
+    gm = (gm - ndimage.minimum(gm))/(ndimage.maximum(gm)-ndimage.minimum(gm))
+    #save to nifti
+    new_image = nib.Nifti1Image(np.abs(gm),affine)
+    new_image.set_data_dtype(numpy.float32)
+    nib.save(new_image,basename+'.nii.gz')
+
+def test_double_resolution_depth(ksp,basename):
+    print "Double res and gaussian filter"
+    ksplarge=np.zeros(np.array(ksp.shape)*2, dtype=numpy.complex64)  
+    szmin = np.array(ksp.shape)/2 - 1
+    szmax = np.array(ksp.shape) + szmin 
+    ksplarge[szmin[0]:szmax[0],szmin[1]:szmax[1],szmin[2]:szmax[2]]=ksp
+    image_filtered = fftshift(fftn(ifftshift(ksplarge)))
+    test_depth_algorithm(image_filtered,basename)
+
+    
     
 if __name__ == "__main__":
 
@@ -345,7 +398,8 @@ if __name__ == "__main__":
 
     print "Computing Original image (reconstruction)"
     image,ksp=recon(pp,dims,hdr,image_data_real,image_data_imag,args)
-
+    del image_data_real, image_data_imag
+    print "Shift kspace centre to max point"
     ksp = kspaceshift(ksp)
     
     if args.axis_order:
@@ -353,16 +407,8 @@ if __name__ == "__main__":
         print "Transformed image shape: ", image.shape
         #np.delete(image)
         #image = imaget
-    #print "Saving raw image"
-    # if image.ndim ==5:
-    #     for i in xrange(0,image.shape[4]):
-    #         raw_image=nib.Nifti1Image(normalise(np.abs(image[:,:,:,0,i])),affine)
-    #         raw_image.set_data_dtype(numpy.float32)
-    #         nib.save(raw_image,'raw_image_0'+str(i)+'.nii.gz')
-    # else:
-    #     raw_image=nib.Nifti1Image(normalise(np.abs(image)),affine)
-    #     raw_image.set_data_dtype(numpy.float32)
-    #     nib.save(raw_image,'raw_image.nii.gz')
+    print "Saving raw image"
+    save_nifti(normalise(np.abs(image)),'raw_image')
        
 
 
@@ -370,52 +416,40 @@ if __name__ == "__main__":
 #     print "Computing Gaussian filtered image from Original image"
 #     image_filtered = fftshift(fftn(ifftshift(kspacegaussian_filter(ksp,0.707,0,'nearest'))))
 #     print "Saving Gaussian image"
-#     if image_filtered.ndim ==5:
-#         for i in xrange(0,image_filtered.shape[4]):
-#             new_image = nib.Nifti1Image(normalise(np.abs(image_filtered[:,:,:,0,i])),affine)
-#             new_image.set_data_dtype(numpy.float32)
-#             nib.save(new_image,'gauss_image_0'+str(i)+'.nii.gz')
-#     else:
-#         new_image = nib.Nifti1Image(normalise(np.abs(image_filtered)),affine)
-#         new_image.set_data_dtype(numpy.float32)
-#         nib.save(new_image,'gauss_image.nii.gz')
-
+#    save_nifti(normalise(np.abs(image_filtered)),'gauss_image')
 
         
     print "Computing Gaussian filtered2 image from Original image"
     kspgauss =kspacegaussian_filter2(ksp,256/0.707)
-    image_filtered = fftshift(fftn(ifftshift(kspgauss)))
-    print "Saving Gaussian image"
-    save_nifti(normalise(np.abs(image_filtered)),'gauss_image')
+    # image_filtered = fftshift(fftn(ifftshift(kspgauss)))
+    # print "Saving Gaussian image"
+    # save_nifti(normalise(np.abs(image_filtered)),'gauss_image')
 
-    # inhomogeneousCorrection
-    image_corr = inhomogeneousCorrection(ksp,ksp.shape,3.0/60.0)
-    # print "Saving Correction image"
-    save_nifti(np.abs(image_filtered/image_corr),'image_inhCorr3.nii.gz')
+    # # inhomogeneousCorrection
+    # image_corr = inhomogeneousCorrection(ksp,ksp.shape,3.0/60.0)
+    # # print "Saving Correction image"
+    # save_nifti(np.abs(image_filtered/image_corr),'image_inhCorr3')
 
 
-    print "Computing Laplacian enhanced image"
-    laplacian = fftshift(fftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
-    alpha=ndimage.mean(np.abs(image_filtered))/ndimage.mean(np.abs(laplacian))
-    image_lfiltered = image_filtered - 0.5*alpha*laplacian
-    print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
-    save_nifti(np.abs(image_lfiltered),'laplacian_enhanced.nii.gz')
+    # print "Computing Laplacian enhanced image"
+    # laplacian = fftshift(fftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
+    # alpha=ndimage.mean(np.abs(image_filtered))/ndimage.mean(np.abs(laplacian))
+    # image_lfiltered = image_filtered - 0.5*alpha*laplacian
+    # print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
+    # save_nifti(np.abs(image_lfiltered),'laplacian_enhanced')
 
-    del image_filtered, image_lfiltered
-        
+    # del image_filtered, image_lfiltered
+    
     print "Computing Gaussian Laplace image from Smoothed image"
-    image_filtered = fftshift(fftn(ifftshift(kspacelaplacegaussian_filter(ksp,256.0/0.707))))
-    save_nifti(np.abs(image_filtered),'Log_image.nii.gz')
+    ksplog=kspacelaplacegaussian_filter(ksp,256.0/0.707)
+    # image_filtered = fftshift(fftn(ifftshift(ksplog)))
+    # save_nifti(np.abs(image_filtered),'Log_image')
 
+    
+    test_double_resolution(kspgauss,'Gauss')
 
-    print "Double res and gaussian filter"
-    ksplarge=np.zeros(np.array(ksp.shape)*2, dtype=complex )
-    szmin = np.array(ksp.shape)/2 - 1
-    szmax = np.array(ksp.shape) + szmin 
-    ksplarge[szmin[0]:szmax[0],szmin[1]:szmax[1],szmin[2]:szmax[2]]=kspacegaussian_filter2(ksp,256/0.707)
-    image_filtered = fftshift(fftn(ifftshift(ksplarge)))
-    print "Saving Double res image"
-    save_nifti(np.abs(image_filtered),'gauss_large.nii.gz')
+    test_double_resolution(ksplog,'LoG')
 
+    test_depth_algorithm(kspgauss,'gauss_depth')
 
-
+    test_double_resolution_depth(kspgauss,'gauss_depth_large')
