@@ -114,7 +114,7 @@ def cplxgaussian_filter(real_input, imag_input,sigma=0.707,order_=0,mode_='neare
     # imcplx=(imgmag.img).*exp((1i).*(imph.img))
     # c = fftshift(ifftn(fftshift(imcplx)))
     # c = flipdim(flipdim(flipdim(c,1),2),3)
-    #f = fspecial3('gaussian', [3 3 3], 1) %/sqrt(2))
+    # f = fspecial3('gaussian', [3 3 3], 1) %/sqrt(2))
     # compleximg = complex(imfilter(real(c), f), imfilter(imag(c), f))
 
     print "Complex Gaussian filter sigma ", sigma, " order ", order_, " mode ", mode_
@@ -128,7 +128,7 @@ def cplxgaussian_filter(real_input, imag_input,sigma=0.707,order_=0,mode_='neare
             for n in xrange(0,real_input.shape[3]):
                 real_img[:,:,:,n,echo] = ndimage.filters.gaussian_filter(real_input[:,:,:,n,echo], sigma, order=order_, mode=mode_, cval=cval_)
                 imag_img[:,:,:,n,echo] = ndimage.filters.gaussian_filter(imag_input[:,:,:,n,echo], sigma, order=order_, mode=mode_, cval=cval_)              
-    filtered_image = np.empty(real_input.shape, dtype=numpy.complex64)
+    filtered_image = np.empty_like(real_input,dtype=numpy.complex64)
     filtered_image.real = real_img
     filtered_image.imag = imag_img
     
@@ -164,6 +164,7 @@ def cplx2dgaussian_filter(real_input, imag_input,sigma=0.707,order_=0,mode_='nea
     :return filtered_image:  complex 3D array of gaussian filtered image,
 
     """
+    
     print "Complex 2D Gaussian filter sigma ", sigma, " order ", order_, " mode ", mode_
     if real_input.ndim == 3:
         for islice in xrange(0,real_input.shape[2]):
@@ -177,7 +178,7 @@ def cplx2dgaussian_filter(real_input, imag_input,sigma=0.707,order_=0,mode_='nea
                 for islice in xrange(0,real_input.shape[2]):
                     real_img[:,:,islice,n,echo] = ndimage.filters.gaussian_filter(real_input[:,:,islice,n,echo], sigma, order=order_, mode=mode_, cval=cval_)
                     imag_img[:,:,islice,n,echo] = ndimage.filters.gaussian_filter(imag_input[:,:,islice,n,echo], sigma, order=order_, mode=mode_, cval=cval_)              
-    filtered_image = np.empty(real_input.shape, dtype=complex)
+    filtered_image = np.empty_like(real_input, dtype=numpy.complex64)
     filtered_image.real = real_img
     filtered_image.imag = imag_img
     
@@ -233,7 +234,7 @@ def cplxgaussian_laplace(real_input, imag_input,sigma=0.707,mode_='reflect', cva
             for n in xrange(0,real_input.shape[3]):
                 real_img[:,:,:,n,echo] = ndimage.filters.gaussian_laplace(real_input[:,:,:,n,echo], sigma, mode=mode_, cval=cval_)
                 imag_img[:,:,:,n,echo] = ndimage.filters.gaussian_laplace(imag_input[:,:,:,n,echo], sigma, mode=mode_, cval=cval_)
-    filtered_image = np.empty(real_input.shape, dtype=complex)
+    filtered_image = np.empty_like(real_input, dtype=numpy.complex64)
     filtered_image.real = real_img
     filtered_image.imag = imag_img
     
@@ -244,20 +245,20 @@ def cplxgaussian_laplace(real_input, imag_input,sigma=0.707,mode_='reflect', cva
 
 def cplxlaplacian_filter(real_input, imag_input,mode_='reflect', cval_=0.0):
     """
-scipy.ndimage.filters.laplace
+    scipy.ndimage.filters.laplace
 
-scipy.ndimage.filters.laplace(input, output=None, mode='reflect', cval=0.0)[source]
-N-dimensional Laplace filter based on approximate second derivatives.
+    scipy.ndimage.filters.laplace(input, output=None, mode='reflect', cval=0.0)[source]
+    N-dimensional Laplace filter based on approximate second derivatives.
 
-Parameters:
-input : array_like
-Input array to filter.
-output : array, optional
-The output parameter passes an array in which to store the filter output.
-mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
-The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to 'constant'. Default is 'reflect'
-cval : scalar, optional
-Value to fill past edges of input if mode is 'constant'. Default is 0.0
+    Parameters:
+    input : array_like
+    Input array to filter.
+    output : array, optional
+    The output parameter passes an array in which to store the filter output.
+    mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+    The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to 'constant'. Default is 'reflect'
+    cval : scalar, optional
+    Value to fill past edges of input if mode is 'constant'. Default is 0.0
 
     """
     """CPLXFILTER laplace filter of complex 3D image
@@ -282,7 +283,7 @@ Value to fill past edges of input if mode is 'constant'. Default is 0.0
             for n in xrange(0,real_input.shape[3]):
                 real_img[:,:,:,n,echo] = ndimage.filters.laplace(real_input[:,:,:,n,echo],  mode=mode_, cval=cval_)
                 imag_img[:,:,:,n,echo] = ndimage.filters.laplace(imag_input[:,:,:,n,echo],  mode=mode_, cval=cval_)
-    filtered_image = np.empty(real_input.shape, dtype=complex)
+    filtered_image = np.empty_like(real_input,dtype=numpy.complex64)
     filtered_image.real = real_img
     filtered_image.imag = imag_img
     
@@ -362,7 +363,7 @@ def cplxmedian_filter(real_input,imag_input,size_=5,mode_='reflect'):
                 real_img[:,:,:,n,echo] = ndimage.filters.median_filter(real_input[:,:,:,n,echo], (size_,size_,size_),mode=mode_) 
                 imag_img[:,:,:,n,echo] = ndimage.filters.median_filter(imag_input[:,:,:,n,echo], (size_,size_,size_),mode=mode_)
                                                                                
-    filtered_image = np.empty(real_input.shape, dtype=numpy.complex64)
+    filtered_image = np.empty_like(real_input,dtype=numpy.complex64)
 
     filtered_image.real = real_img
     filtered_image.imag = imag_img
@@ -408,7 +409,7 @@ def cplxwiener_filter(real_input,imag_input,size_=5, noise_=None):
                 real_img[:,:,:,n,echo] = signal.wiener(real_input[:,:,:,n,echo], (size_,size_,size_),noise=noise_)
                 imag_img[:,:,:,n,echo] = signal.wiener(imag_input[:,:,:,n,echo], (size_,size_,size_),noise=noise_)
 
-    filtered_image = np.empty(real_input.shape,dtype=numpy.complex64)
+    filtered_image = np.empty_like(real_input,dtype=numpy.complex64)
     filtered_image.real = real_img
     filtered_image.imag = imag_img
     
@@ -506,11 +507,16 @@ if __name__ == "__main__":
     image_filtered = cplxgaussian_filter(image.real,image.imag,0.707,0,'nearest')
     print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)),'gauss_image')
-
-    print "Computing Laplacian enhanced image from Original image"
-    image_filtered = image-cplxlaplacian_filter(image.real,image.imag,0.707)
-    print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
-    save_nifti(normalise(np.abs(image_filtered)),'laplace_image')
+    
+    print "Computing Gaussian filtered image from Original image"
+    image_filtered = cplxgaussian_filter(image.real,image.imag,20.0,0,'nearest')
+    print "Saving Gaussian image"
+    save_nifti(normalise(np.abs(image_filtered)),'gauss_smooth')
+    
+    # print "Computing Laplacian enhanced image from Original image"
+    # image_filtered = image-cplxlaplacian_filter(image.real,image.imag,0.707)
+    # print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
+    # save_nifti(normalise(np.abs(image_filtered)),'laplace_image')
 
     print "Computing Gaussian Laplace image from Smoothed image"
     Log_filtered = cplxgaussian_laplace(image_filtered.real,image_filtered.imag)
