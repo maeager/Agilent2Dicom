@@ -22,6 +22,7 @@
 
 """
 
+import time
 
 import numpy as np
 import scipy
@@ -181,7 +182,7 @@ def inhomogeneousCorrection(ksp,siz,sigma):
     uu = xx[np.newaxis,:,np.newaxis]*mult_fact
     vv = yy[:,np.newaxis,np.newaxis]*mult_fact
     ww = zz[np.newaxis,np.newaxis,:]*mult_fact
-    del xx,yy,zz
+    del xx,yy,zz,mult_fact
     
 #    arg   = -(xx.*xx + yy.*yy)/(2*sigma*sigma)
     # arg = -(uu*uu+vv*vv+ww*ww)/(2*sigma*sigma)
@@ -217,8 +218,7 @@ def kspacegaussian_filter2(ksp,sigma_=None):
     if ksp.ndim == 3:
         out_img = ksp * Fgauss
     else:
-        img = np.empty_like(ksp,dtype=numpy.complex64)
-        
+        img = np.empty_like(ksp,dtype=numpy.complex64)        
         for echo in xrange(0,ksp.shape[4]):
             for n in xrange(0,ksp.shape[3]):
                 out_img[:,:,:,n,echo] = ksp[:,:,:,n,echo] * Fgauss
@@ -234,7 +234,6 @@ def kspacelaplacegaussian_filter(ksp,sigma_=None):
         sigma= np.ones(3)*sigma_
     else:
         sigma=sigma_.copy()
-      
     Flaplace = fourierlaplace(siz)
     Fgauss = fouriergauss(siz,1/sigma)
     print "Complex Laplace Gaussian filter sigma ", sigma
@@ -307,6 +306,20 @@ def save_nifti(image,basename):
         new_image.set_data_dtype(numpy.float32)
         nib.save(new_image,basename+'.nii.gz')
 
+def save_nifti_int(image,basename):
+    import nibabel as nib
+    affine = np.eye(4)
+    if image.ndim ==5:
+        for echo in xrange(0,image.shape[4]):
+            for channel in xrange(0,image.shape[3]):
+                new_image = nib.Nifti1Image(np.abs(image[:,:,:,channel,echo]).astype(int),affine)
+                new_image.set_data_dtype(numpy.int32)
+                nib.save(new_image,basename+'_'+str(channel)+str(echo)+'.nii.gz')
+    else:
+        new_image = nib.Nifti1Image(np.abs(image).astype(int),affine)
+        new_image.set_data_dtype(numpy.int32)
+        nib.save(new_image,basename+'.nii.gz')
+
 
         
 def test_double_resolution(ksp,basename):
@@ -315,30 +328,32 @@ def test_double_resolution(ksp,basename):
     szmin = np.array(ksp.shape)/2 - 1
     szmax = np.array(ksp.shape) + szmin 
     ksplarge[szmin[0]:szmax[0],szmin[1]:szmax[1],szmin[2]:szmax[2]]=ksp
-    image_filtered = fftshift(fftn(ifftshift(ksplarge)))
+    image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
     print "Saving Double res image: "+basename+" filtered"
     save_nifti(np.abs(image_filtered),basename+'_large.nii.gz')
 
 
 def test_depth_algorithm(image_filtered,basename='depth'):
     print "Testing depth algorithm"
+    t1 = time.time()
+
     # Close gaussian filtered image
     c = ndimage.grey_closing(np.abs(image_filtered),size=(5,5,5))
-    #Mask closed image
-    cm = c* (c>8000).astype(float)
-    cm = cm/(ndimage.maximum(cm))
+    # Mask closed image
+    #cm = c * (c>8000).astype(float)
+    cm = c/(ndimage.maximum(c))
     # avoid div by zero
-    cm=0.99*cm +0.001
-    #Regularise gaussian filtered image
-    gm=(np.abs(image_filtered)/cm)* (c>8000).astype(float)
+    cm=0.99*cm +0.00001
+    # Regularise gaussian filtered image
+    gm=(np.abs(image_filtered)/cm)  #* (c>8000).astype(float)
     # Depth = difference between closed image and regularised gaussian
-    gm = c/ndimage.maximum(c)  - gm/ndimage.maximum(gm)
-    # mask again
-    gm = gm* (c>8000).astype(float)
+    depth = c/ndimage.maximum(c)  - gm/ndimage.maximum(gm)
+    # mask regularised image
+    depth = depth* (c>0.00015).astype(float)
     # Normalise
-    gm = (gm - ndimage.minimum(gm))/(ndimage.maximum(gm)-ndimage.minimum(gm))
+    # depth = (depth - ndimage.minimum(depth))/(ndimage.maximum(depth)-ndimage.minimum(depth))
     #save to nifti
-    new_image = nib.Nifti1Image(np.abs(gm),affine)
+    new_image = nib.Nifti1Image(np.abs(depth),affine)
     new_image.set_data_dtype(numpy.float32)
     nib.save(new_image,basename+'.nii.gz')
 
@@ -348,12 +363,13 @@ def test_double_resolution_depth(ksp,basename):
     szmin = np.array(ksp.shape)/2 - 1
     szmax = np.array(ksp.shape) + szmin 
     ksplarge[szmin[0]:szmax[0],szmin[1]:szmax[1],szmin[2]:szmax[2]]=ksp
-    image_filtered = fftshift(fftn(ifftshift(ksplarge)))
+    image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
     test_depth_algorithm(image_filtered,basename)
 
     
     
 if __name__ == "__main__":
+
 
     import os,sys,math
     import re
@@ -408,31 +424,28 @@ if __name__ == "__main__":
         #np.delete(image)
         #image = imaget
     print "Saving raw image"
-    save_nifti(normalise(np.abs(image)),'raw_image')
+    #save_nifti(normalise(np.abs(image)),'raw_image')
        
-
-
         
-#     print "Computing Gaussian filtered image from Original image"
-#     image_filtered = fftshift(fftn(ifftshift(kspacegaussian_filter(ksp,0.707,0,'nearest'))))
-#     print "Saving Gaussian image"
-#    save_nifti(normalise(np.abs(image_filtered)),'gauss_image')
+    # print "Computing Gaussian filtered image from Original image"
+    # image_filtered = fftshift(ifftn(ifftshift(kspacegaussian_filter(ksp,0.707,0,'nearest'))))
+    # print "Saving Gaussian image"
+    # save_nifti(normalise(np.abs(image_filtered)),'gauss_fourierimage')
 
         
     print "Computing Gaussian filtered2 image from Original image"
     kspgauss =kspacegaussian_filter2(ksp,256/0.707)
-    # image_filtered = fftshift(fftn(ifftshift(kspgauss)))
+    image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
     # print "Saving Gaussian image"
-    # save_nifti(normalise(np.abs(image_filtered)),'gauss_image')
+    save_nifti(normalise(np.abs(image_filtered)),'gauss_kspimage')
 
     # # inhomogeneousCorrection
     # image_corr = inhomogeneousCorrection(ksp,ksp.shape,3.0/60.0)
     # # print "Saving Correction image"
     # save_nifti(np.abs(image_filtered/image_corr),'image_inhCorr3')
 
-
     # print "Computing Laplacian enhanced image"
-    # laplacian = fftshift(fftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
+    # laplacian = fftshift(ifftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
     # alpha=ndimage.mean(np.abs(image_filtered))/ndimage.mean(np.abs(laplacian))
     # image_lfiltered = image_filtered - 0.5*alpha*laplacian
     # print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
@@ -440,16 +453,16 @@ if __name__ == "__main__":
 
     # del image_filtered, image_lfiltered
     
-    print "Computing Gaussian Laplace image from Smoothed image"
-    ksplog=kspacelaplacegaussian_filter(ksp,256.0/0.707)
-    # image_filtered = fftshift(fftn(ifftshift(ksplog)))
+    #print "Computing Gaussian Laplace image from Smoothed image"
+    #ksplog=kspacelaplacegaussian_filter(ksp,256.0/0.707)
+    # image_filtered = fftshift(ifftn(ifftshift(ksplog)))
     # save_nifti(np.abs(image_filtered),'Log_image')
+    
+    #   test_double_resolution(kspgauss,'Gauss')
+    #   test_double_resolution(ksplog,'LoG')
+
+    test_depth_algorithm(fftshift(ifftn(ifftshift(kspgauss))),'gauss_kspdepth')
+#    test_double_resolution_depth(kspgauss,'gauss_depth_large')
+
 
     
-    test_double_resolution(kspgauss,'Gauss')
-
-    test_double_resolution(ksplog,'LoG')
-
-    test_depth_algorithm(kspgauss,'gauss_depth')
-
-    test_double_resolution_depth(kspgauss,'gauss_depth_large')
