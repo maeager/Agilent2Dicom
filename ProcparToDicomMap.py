@@ -376,9 +376,12 @@ def ProcparToDicomMap(procpar,args):
     GeneralAnatMandatoryMacro.CodeSchemeDesignator='SRT'
     # GeneralAnatMandatoryMacro.CodeSchemeVersion='1'
     GeneralAnatMandatoryMacro.CodeMeaning = 'Head'
-    thispath = os.path.dirname(__file__)
-        #print(thispath)    
-    codes = file(thispath+"/docs/AnatomyCodes.txt","r") 
+    try: # ipython doesn't define __file__
+        thispath = os.path.dirname(__file__)
+    except:
+        thispath="."
+        pass
+    codes = file(os.path.join(thispath,"docs/AnatomyCodes.txt"),"r")
     cols, indToName = getColumns(codes) 
     for codeidx in xrange(0,len(cols['Meaning'])-1):
         if re.search(procpar['anatomy'].lower(),cols['Meaning'][codeidx].lower()):
@@ -394,7 +397,7 @@ def ProcparToDicomMap(procpar,args):
     AnatRegionModifierSeq.CodeSchemeDesignator='SRT'
     #AnatRegionModifierSeq.CodeSchemeVersion
     AnatRegionModifierSeq.CodeMeaning = 'Coronal'
-    codes = file(thispath+"/docs/AnatomicModifier.txt","r") 
+    codes = file(os.path.join(thispath,"docs/AnatomicModifier.txt"),"r") 
     cols, indToName = getColumns(codes) 
     for codeidx in xrange(0,len(cols['Meaning'])-1):
         if re.search(procpar['sorient'].lower(),cols['Meaning'][codeidx].lower()):
