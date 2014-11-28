@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v fc77212a5790 2014/11/10 23:08:00 michael $
-# $Id: Agilent2DicomAppQt.py,v fc77212a5790 2014/11/10 23:08:00 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 37c8f4fcc611 2014/11/28 07:11:32 michael $
+# $Id: Agilent2DicomAppQt.py,v 37c8f4fcc611 2014/11/28 07:11:32 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -45,11 +45,11 @@ DEBUGGING=0
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/11/10 23:08:00 $"
+__date__ = "$Date: 2014/11/28 07:11:32 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v fc77212a5790 2014/11/10 23:08:00 michael $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 37c8f4fcc611 2014/11/28 07:11:32 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -275,9 +275,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 
             print(cmd1)
             cmd= cmd_header + cmd1 +')'
-            #print(cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-            #os.system(cmd)
             self.UpdateGUI()
         except ValueError:
             pass
@@ -330,7 +328,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                      send_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
                 print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-                #os.system(cmd)
             self.UpdateGUI()
         except ValueError:
             pass
@@ -342,10 +339,10 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd1 ='mrinfo '+ output_dir
             print(cmd1)
             cmd=cmd_header + cmd1 +')'
-            #print(cmd)
+
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
             cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + output_dir
-            #print(cmd1)
+
             print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
             self.UpdateGUI()
         except ValueError:
@@ -358,7 +355,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd1 =mrview_header + output_dir 
             #print(cmd1)
             print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-#            os.system(cmd1)
         except ValueError:
             pass
 
@@ -443,7 +439,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd=cmd_header + cmd1 +')'
             #print(cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-            #os.system(cmd)
+            
             self.UpdateGUI()
         except ValueError:
             pass
@@ -460,7 +456,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             # Do a regex and get all the dicom paths produced by Agilent2Dicom
             rgx = re.compile(r''+re.sub('.dcm','',dicom_raw)+".*.dcm")
             for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)):
-                #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
+                # os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
                 dcmpath=os.path.join(dicom_dir_root,dicom_dir)
                 if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath))<=2:
                     cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + str(dcmpath)
@@ -468,7 +464,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     #cmd=cmd_header + cmd1 +')'
                     #print(cmd)
                     print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-                    #os.system(cmd1)
+                  
             
             self.UpdateGUI()
         except ValueError:
@@ -492,7 +488,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     
                     print(cmd1)
                     print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-                    #os.system(cmd1)
+                    
             self.UpdateGUI()
         except ValueError:
             pass
@@ -526,7 +522,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     reply = QtGui.QMessageBox.question(self, 'Message', send_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
                         print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-                        #os.system(cmd)
+                        
         except ValueError:
             pass
 											    
