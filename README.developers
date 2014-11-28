@@ -53,3 +53,94 @@ being printed.
 #+begin_src sh
 diff -y <(./sortpp <../ExampleAgilentData/kidney512iso_01.fid/procpar) <(./sortpp <../example_data/s_2014072901/T2-cor_01.fid/procpar)
 #+end_src
+
+
+
+* K space
+
+Use ipython for interactive sessions with kspace_filter: 
+#+begin_src sh
+ipython -i ./kspace_filter.py -- -v -i ../ExampleAntData/kidney512iso_01.fid/ -o ../ExampleAgilentData/kidney512iso_01.dcm/ 
+#+end_src
+
+
+
+** Standard Gaussian
+
+#+begin_src python
+   kspgauss =kspacegaussian_filter2(ksp,256/0.707)
+   image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
+   # print "Saving Gaussian image"
+   save_nifti(normalise(np.abs(image_filtered)),'gauss_kspimage')
+#+end_src
+
+** Gaussian with sub-band1.5 
+
+#+begin_src python
+   print "Computing Gaussian sub-band1.5 image from Original image"
+   kspsubband =fouriergausssubband15(ksp.shape,0.707/256)
+   image_filtered = fftshift(ifftn(ifftshift(kspsubband)))
+   # print "Saving Gaussian image"
+   save_nifti(normalise(np.abs(image_filtered)),'gauss_subband')
+
+#+end_src
+
+** Inhomogeneous bias correction
+
+#+begin_src python
+   image_corr = inhomogeneousCorrection(ksp,ksp.shape,3.0/60.0)
+   save_nifti(np.abs(image_filtered/image_corr),'image_inhCorr3')
+#+end_src
+
+** Enhanced laplacian 
+
+   F{ D^2 f(x,y,z) } = (-2 pi k)^2 F(k)
+
+#+begin_src python
+   print "Computing Laplacian enhanced image"
+   laplacian = fftshift(ifftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
+   alpha=ndimage.mean(np.abs(image_filtered))/ndimage.mean(np.abs(laplacian))
+   image_lfiltered = image_filtered - 0.5*alpha*laplacian
+   save_nifti(np.abs(image_lfiltered),'laplacian_enhanced')
+#+end_src
+
+** LoG - second-order edge detector/ blob detector    
+#+begin_src python
+   print "Computing Gaussian Laplace image from Smoothed image"
+   ksplog=kspacelaplacegaussian_filter(ksp,256.0/0.707)
+   image_filtered = fftshift(ifftn(ifftshift(ksplog)))
+   image_filtered= (np.abs(image_filtered))
+   image_filtered= (image_filtered-ndimage.minimum(image_filtered))/(ndimage.maximum(image_filtered) - ndimage.minimum(image_filtered))
+   save_nifti(np.abs(image_filtered),'Log_image')
+#+end_src
+
+** Smoothed LoG 
+
+#+begin_src python
+  Flaplace = fourierlaplace(ksp.shape)
+  #Flaplace = (Flaplace - ndimage.minimum(Flaplace))/(ndimage.maximum(Flaplace)-ndimage.minimum(Flaplace))
+  Fsmooth =fouriergauss(ksp.shape,(4.0*np.sqrt(2.0*np.log(2.0)))/512.0)
+  Fgauss = fouriergauss(ksp.shape,0.707/512)  # 
+  laplacian = fftshift(ifftn(ifftshift(ksp * (Fgauss/ndimage.maximum(Fgauss)) * Flaplace * (Fsmooth/ndimage.maximum(Fsmooth)) )))
+  smoothlaplacian = (laplacian - ndimage.minimum(laplacian))/(ndimage.maximum(laplacian)-ndimage.minimum(laplacian))
+  print "Saving Smoothed Gauss Laplacian"
+  save_nifti(np.abs(smoothlaplacian),'Log_smoothed')
+  image_filtered = fftshift(ifftn(ifftshift(ksplog*Fsmooth)))
+  save_nifti(np.abs(image_filtered),'Log_smoothed2')
+#+end_src
+    
+
+** Double resolution
+    
+#+begin_src python
+  test_double_resolution(kspgauss,'Gauss')
+  test_double_resolution(ksplog,'LoG')
+#+end_src
+
+** Depth algorithm
+
+#+begin_src python
+  test_depth_algorithm(fftshift(ifftn(ifftshift(kspgauss))),'gauss_kspdepth')
+  test_double_resolution_depth(kspgauss,'gauss_depth_large')
+#+end_src 
+
