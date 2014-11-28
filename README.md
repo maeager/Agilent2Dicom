@@ -330,6 +330,7 @@ Test the Procpar methods for multi-echo 3D:
 ```
 #!bash
 
+python ./ReadProcpar.py -v -i  ../ExampleAgilentData/multiecho3d_magonly/
 python ./ProcparToDicomMap.py -v -i  ../ExampleAgilentData/multiecho3d_magonly/
 ```
 
@@ -350,7 +351,7 @@ python ./ParseFDF.py -v -i ../ExampleAgilentData/diffusion/
 
 
 
-### Testing the complex filtering and reconstruction of FID data feature ###
+### Complex filtering and reconstruction of FID data ###
 
 *ReadFID.py* contains the readfid and recon methods for FID data conversion.
 *cplxfilter.py* includes the complex filtering methods from
@@ -382,11 +383,12 @@ fslview raw_image.nii.gz new_image.nii.gz median_image.nii.gz
 *kspace_filter.py* can perform filtering in the fourier domain.  FID k-space data can be filtered before recon - drastically improving processing time.
 Filter methods include Gaussian, Laplacian enhancement, Laplace of Gaussian, and inhomogeneous MR bias correction.  
 Double image resolution can also be achieved by zero-padding the outside of the kspace data. 
- 
+
+Use ipython for interactive sessions with kspace_filter: 
 ```
 #!bash
 
-python -i ./kspace_filter.py -v -i ../ExampleAntData/kidney512iso_01.fid/ -o ../ExampleAgilentData/kidney512iso_01.dcm/ 
+ipython -i ./kspace_filter.py -- -v -i ../ExampleAntData/kidney512iso_01.fid/ -o ../ExampleAgilentData/kidney512iso_01.dcm/ 
 ```
 
 ## Contribution guidelines ##
