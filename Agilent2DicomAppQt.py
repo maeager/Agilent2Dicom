@@ -275,9 +275,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 
             print(cmd1)
             cmd= cmd_header + cmd1 +')'
-            #print(cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-            #os.system(cmd)
             self.UpdateGUI()
         except ValueError:
             pass
@@ -330,7 +328,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                      send_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
                 print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-                #os.system(cmd)
             self.UpdateGUI()
         except ValueError:
             pass
@@ -342,10 +339,10 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd1 ='mrinfo '+ output_dir
             print(cmd1)
             cmd=cmd_header + cmd1 +')'
-            #print(cmd)
+
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
             cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + output_dir
-            #print(cmd1)
+
             print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
             self.UpdateGUI()
         except ValueError:
@@ -358,7 +355,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd1 =mrview_header + output_dir 
             #print(cmd1)
             print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-#            os.system(cmd1)
         except ValueError:
             pass
 
@@ -443,7 +439,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd=cmd_header + cmd1 +')'
             #print(cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-            #os.system(cmd)
+            
             self.UpdateGUI()
         except ValueError:
             pass
@@ -460,7 +456,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             # Do a regex and get all the dicom paths produced by Agilent2Dicom
             rgx = re.compile(r''+re.sub('.dcm','',dicom_raw)+".*.dcm")
             for dicom_dir in filter(rgx.match,os.listdir(dicom_dir_root)):
-                #os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
+                # os.system("ls "+dicom_dir_root+" | grep '"+re.sub('.dcm','',dicom_raw)+".*.dcm'"):
                 dcmpath=os.path.join(dicom_dir_root,dicom_dir)
                 if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath))<=2:
                     cmd1 = os.path.join(thispath,'dcheck.sh') + ' -o ' + str(dcmpath)
@@ -468,7 +464,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     #cmd=cmd_header + cmd1 +')'
                     #print(cmd)
                     print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-                    #os.system(cmd1)
+                  
             
             self.UpdateGUI()
         except ValueError:
@@ -492,7 +488,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     
                     print(cmd1)
                     print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-                    #os.system(cmd1)
+                    
             self.UpdateGUI()
         except ValueError:
             pass
@@ -526,7 +522,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     reply = QtGui.QMessageBox.question(self, 'Message', send_msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
                         print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-                        #os.system(cmd)
+                        
         except ValueError:
             pass
 											    
