@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 37c8f4fcc611 2014/11/28 07:11:32 michael $
-# $Id: Agilent2DicomAppQt.py,v 37c8f4fcc611 2014/11/28 07:11:32 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 602e0a778fc4 2014/12/11 06:05:19 michael $
+# $Id: Agilent2DicomAppQt.py,v 602e0a778fc4 2014/12/11 06:05:19 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -37,19 +37,19 @@ import sys
 import re
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
-from Agilent2DicomQt2 import Ui_MainWindow
+from Agilent2DicomQt import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
-DEBUGGING=0
+DEBUGGING=1
 
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/11/28 07:11:32 $"
+__date__ = "$Date: 2014/12/11 06:05:19 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 37c8f4fcc611 2014/11/28 07:11:32 michael $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 602e0a778fc4 2014/12/11 06:05:19 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -395,6 +395,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             argstr+=' -k'
         if self.ui.checkBox_reimag.isChecked():
             argstr+=' -r'
+        if self.ui.checkBox_doubleresolution.isChecked():
+            argstr+=' -D'
         
         if self.ui.checkBox_gaussian2D.isChecked():
             argstr+=' -2 -g ' % self.SigmaString()            
@@ -418,6 +420,18 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 argstr+=' -e wrap'
             else:
                 argstr+=' -e nearest'
+        if self.ui.checkBox_fgaussian.isChecked():
+            argstr+=' -G ' % self.SigmaString()
+            argstr+=' -j %s' % str(self.ui.lineEdit_gorder.text())
+            if self.ui.nearest.isChecked():
+                argstr+=' -e nearest'
+            elif self.ui.reflect.isChecked():
+                argstr+=' -e reflect'
+            elif self.ui.wrap.isChecked:
+                argstr+=' -e wrap'
+            else:
+                argstr+=' -e nearest'
+
         if self.ui.checkBox_median.isChecked():
             argstr+=' -n %s ' % (str(self.ui.lineEdit_median_size.text()))
         if self.ui.checkBox_wiener.isChecked():
@@ -439,7 +453,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd=cmd_header + cmd1 +')'
             #print(cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-            
             self.UpdateGUI()
         except ValueError:
             pass
@@ -464,8 +477,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     #cmd=cmd_header + cmd1 +')'
                     #print(cmd)
                     print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-                  
-            
             self.UpdateGUI()
         except ValueError:
             pass
