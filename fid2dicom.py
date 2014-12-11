@@ -6,7 +6,7 @@
   Version 0.2: Cplx filters upgraded and arguments improved for extra variables
   Version 0.3: Exporting DICOMs with correct parsing of Procpar and fid headers and rearrangement of image data
 
-  $Id: fid2dicom.py,v efa236d8a4bd 2014/11/04 02:11:01 michael $
+  $Id: fid2dicom.py,v aa092d1b78c2 2014/12/11 06:01:46 michael $
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
@@ -38,6 +38,7 @@ import ReadProcpar
 import ProcparToDicomMap
 import ReadFID as FID
 import cplxfilter as CPLX
+import kspace_filter as KSP
 import ParseFDF
 import numpy,math,scipy
 import nibabel as nib
@@ -79,21 +80,23 @@ if __name__ == "__main__":
     parser.add_argument('-p','--phase', help='Save Phase component.',action="store_true");
     parser.add_argument('-k','--kspace', help='Save Kspace data in outputdir-ksp.mat file',action="store_true");
     parser.add_argument('-r','--realimag', help='Save real and imaginary data in outputdir-real and outputdir-imag.',action="store_true");
-    parser.add_argument('-f','--nifti',help='Save filtered outputs to NIFTI.',action="store_true")
+    parser.add_argument('-f','--nifti',help='Save filtered outputs to NIFTI.',action="store_true");
+    parser.add_argument('-D','--dblresolution',help='Zero pad k-space data before recnstruction to double resolution in image space.',action="store_true");
 #    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL).',choices={"MULTIECHO", "DIFFUSION", "ASL"});
 #    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
     parser.add_argument('-g','--gaussian_filter', help='Gaussian filter smoothing of reconstructed RE and IM components.',action="store_true");
+    parser.add_argument('-G','--FT_gaussian_filter', help='Gaussian filter smoothing in Fourier domain. Fourier transform of Gaussian filter applied to Kspace before reconstruction.',action="store_true");
     parser.add_argument('-l','--gaussian_laplace', help='Gaussian Laplace filter smoothing of reconstructed RE and IM components. -s/--sigma variable must be declared.',action="store_true");
     parser.add_argument('-s','--sigma',help='Gaussian and Laplace-Gaussian sigma variable. Default 1/srqt(2).',type=sigmaparse) # ,default='0.707',type=float
     parser.add_argument('-go','--gaussian_order',help='Gaussian and Laplace-Gaussian order variable. Default 0.',type=int,choices=[0,1,2,3],default=0)
-    parser.add_argument('-gm','--gaussian_mode',help='Gaussian and Laplace-Gaussian mode variable. Default nearest.',choices=['reflect','constant','nearest','mirror','wrap'],default='nearest')
+    parser.add_argument('-gm','--gaussian_mode',help='Gaussian and Laplace-Gaussian mode variable. Default nearest.',choices=['reflect','constant','nearest','mirror','wrap'],default='nearest');
     parser.add_argument('-d','--median_filter', help='Median filter smoothing of reconstructed RE and IM components. ',action="store_true");
     parser.add_argument('-w','--wiener_filter', help='Wiener filter smoothing of reconstructed RE and IM components.',action="store_true");
-    parser.add_argument('-n','--window_size',type=int,help='Window size of Wiener and Median filters. Default 5.',default=5)
-    parser.add_argument('-wn','--wiener_noise',help='Wiener filter noise. Estimated variance of image. If none or zero, local variance is calculated. Default 0=None.',default=0)
+    parser.add_argument('-E','--epanechnikov_filter', help='Epanechnikov filter smoothing of reconstructed RE and IM components.',action="store_true");    parser.add_argument('-n','--window_size',type=int,help='Window size of Wiener and Median filters. Default 5.',default=5);
+    parser.add_argument('-wn','--wiener_noise',help='Wiener filter noise. Estimated variance of image. If none or zero, local variance is calculated. Default 0=None.',default=0);
     parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     
-    # parser.add_argument("imgdir", help="Agilent .img directory containing procpar and fdf files")
+    # parser.add_argument("imgdir", help="Agilent .img directory containing procpar and fdf files");
 
     args = parser.parse_args()
     if args.verbose:
@@ -121,7 +124,7 @@ if __name__ == "__main__":
         print 'Error: FID folder does not contain any fid files'
         sys.exit(1)
     print "Number of FID files: ", len(fidfiles)
-    # Check output directory
+    ## Check output directory
     if not args.outputdir:
         outdir = os.path.splitext(args.inputdir)[0]
         if not outdir.find('.img'):
@@ -147,7 +150,6 @@ if __name__ == "__main__":
             print 'Making output folder: ' + outdir    
         os.makedirs(outdir)
         
-    
 
     ## Read in data procpar
     procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir,'procpar'))

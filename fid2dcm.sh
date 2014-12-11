@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fid2dcm.sh,v 5b25513ec65b 2014/11/12 06:31:43 michael $"
+#  "$Id: fid2dcm.sh,v aa092d1b78c2 2014/12/11 06:01:46 michael $"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
 #
@@ -101,17 +101,33 @@ print_usage(){
 	"-i <inputdir>  FID source directory\n" \
 	"-o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm. \n" \
 	"-d             Disable dcmodify fixes to DICOMs.\n" \
-	"-m,-p,          Save magnitude and phase components.  These flags are passed to fid2dicom and should only be used from within fid2dcm or with knowledge of input fid data. \n" \
+
+	"-D             Double resolution in k-space. Warning, this increases size
+	on disk by a factor of 8.\n " \
+
+	"-m,-p,         Save magnitude and phase components.  These flags are
+	passed to fid2dicom and should only be used from within
+	fid2dcm or with knowledge of input fid data. \n" \
 	"-r             Save real and imaginary components of filtered image. \n" \
 	"-k             Save Kspace data. \n" \
 	"-f             Save filtered outputs to NIFTI.\n" \
-	"-g <sigma>     Gaussian filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2). \n" \
+	"-g <sigma>     Gaussian filter smoothing of reconstructed RE and
+	                IM components. Sigma variable argument, default 1/srqt(2). \n" \
+	"-G <sigma>     Fourier Gaussian filter smoothing of k-space RE and
+	                IM components. Sigma variable argument, default size/1/srqt(2). \n" \
 	"-j <order>     Gaussian filter order variable argument, default 0. \n" \
-	"-e {'wrap','reflect','nearest','mirror'}  Gaussian filter mode variable argument, default=nearest. \n" \
-	"-l <simga>     Gaussian Laplace filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2).\n" \
-	"-n <wsize>     Median filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.\n" \
-	"-w <wsize>     Wiener filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.\n" \
-	"-z <noise>     Wiener filter noise variable, default 0 (none=default variance calculated in local region).\n" \
+	"-e {'wrap','reflect','nearest','mirror'}  Gaussian filter mode variable 
+                        argument, default=nearest. \n" \
+	"-l <simga>     Gaussian Laplace filter smoothing of reconstructed RE and 
+                        IM components. Sigma variable argument, default 1/srqt(2).\n" \
+	"-n <wsize>     Median filter smoothing of reconstructed RE and IM components. 
+                        Size variable argument, default 5.\n" \
+	"-w <wsize>     Wiener filter smoothing of reconstructed RE and IM components. 
+                        Size variable argument, default 5.\n" \
+	"-z <noise>     Wiener filter noise variable. 
+                        Default 0 (or none) variance calculated in local region and 
+                        can be quite computationally expensive.\n" \
+	"-E <width>     Epanechnikov filter."
 	"-x             Debug mode. \n" \
 	"-v             Verbose output. \n" \
 	"-h             this help\n" \
@@ -151,6 +167,12 @@ while getopts ":i:o:g:l:j:e:n:w:z:hmprkdfxv" opt; do
 	    python_args="$python_args --gaussian_filter --sigma $gaussian_sigma --gaussian_order 0 --gaussian_mode nearest"
 	    do_filter=1
 	    ;;
+	G)
+	    echo "Fourier domain Gaussian filter sigma: $OPTARG" >&2
+	    gaussian_sigma="$OPTARG"
+	    python_args="$python_args --FT_gaussian_filter --sigma $gaussian_sigma --gaussian_order 0 --gaussian_mode nearest"
+	    do_filter=1
+	    ;;
 	j)
 	    [ ${do_filter} != 1 ] && (echo "Must have -g before -j"; print_usage; exit 1)
 	    echo "Gaussian filter order: $OPTARG" >&2
@@ -169,24 +191,38 @@ while getopts ":i:o:g:l:j:e:n:w:z:hmprkdfxv" opt; do
 	    python_args="$python_args --gaussian_laplace --sigma $gaussian_sigma"
 	    do_filter=2
 	    ;;
+	L)
+	    echo "Fourier Domain Gaussian Laplace filter sigma: $OPTARG" >&2
+	    gaussian_sigma="$OPTARG"
+	    python_args="$python_args --FT_gaussian_laplace --sigma $gaussian_sigma"
+	    do_filter=2
+	    ;;
 	n)
 	    echo "Median filter size: $OPTARG" >&2
 	    median_window_size="$OPTARG"
 	    python_args="$python_args --median_filter --window_size $median_window_size"
 	    do_filter=3
 	    ;;
-	w)
+ 	w)
 	    echo "Wiener filter size: $OPTARG" >&2
-	    wiener_windown_size="$OPTARG"
-	    python_args="$python_args --wiener_filter --window_size $wiener_windown_size"
+	    wiener_window_size="$OPTARG"
+	    python_args="$python_args --wiener_filter --window_size $wiener_window_size"
 	    do_filter=4
 	    ;;
-	z)
+ 	z)
 	    [ ${do_filter} != 4 ] && (echo "Must have -w before -z"; print_usage; exit 1)
 	    echo "Wiener noise: $OPTARG" >&2
 	    wiener_noise="$OPTARG"
 	    python_args="$python_args --wiener_noise $wiener_noise"
 	    ;;
+ 	E)
+	    echo "Epanechnikov  filter size: $OPTARG" >&2
+	    epan_window_size="$OPTARG"
+	    python_args="$python_args --epanechnikov_filter --window_size $epan_window_size"
+	    do_filter=5
+	    ;;
+
+
 	h)
 	    print_usage
 	    ${FID2DCMPATH}/fid2dicom.py -h
