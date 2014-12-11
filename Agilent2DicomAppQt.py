@@ -37,10 +37,10 @@ import sys
 import re
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
-from Agilent2DicomQt2 import Ui_MainWindow
+from Agilent2DicomQt import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
-DEBUGGING=0
+DEBUGGING=1
 
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
@@ -395,6 +395,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             argstr+=' -k'
         if self.ui.checkBox_reimag.isChecked():
             argstr+=' -r'
+        if self.ui.checkBox_doubleresolution.isChecked():
+            argstr+=' -D'
         
         if self.ui.checkBox_gaussian2D.isChecked():
             argstr+=' -2 -g ' % self.SigmaString()            
@@ -418,6 +420,18 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 argstr+=' -e wrap'
             else:
                 argstr+=' -e nearest'
+        if self.ui.checkBox_fgaussian.isChecked():
+            argstr+=' -G ' % self.SigmaString()
+            argstr+=' -j %s' % str(self.ui.lineEdit_gorder.text())
+            if self.ui.nearest.isChecked():
+                argstr+=' -e nearest'
+            elif self.ui.reflect.isChecked():
+                argstr+=' -e reflect'
+            elif self.ui.wrap.isChecked:
+                argstr+=' -e wrap'
+            else:
+                argstr+=' -e nearest'
+
         if self.ui.checkBox_median.isChecked():
             argstr+=' -n %s ' % (str(self.ui.lineEdit_median_size.text()))
         if self.ui.checkBox_wiener.isChecked():
@@ -439,7 +453,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd=cmd_header + cmd1 +')'
             #print(cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-            
             self.UpdateGUI()
         except ValueError:
             pass
@@ -464,8 +477,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     #cmd=cmd_header + cmd1 +')'
                     #print(cmd)
                     print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, executable="/bin/bash").stdout.read()
-                  
-            
             self.UpdateGUI()
         except ValueError:
             pass
