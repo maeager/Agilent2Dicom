@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>786</width>
-    <height>581</height>
+    <width>793</width>
+    <height>611</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (1.2.2)</string>
+   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (1.5.0)</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -21,7 +21,7 @@
        <string/>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_fdf_2">
        <attribute name="title">
@@ -116,7 +116,83 @@
           <item row="5" column="3">
            <layout class="QHBoxLayout" name="horizontalLayout_2"/>
           </item>
-          <item row="3" column="4">
+          <item row="4" column="3">
+           <widget class="QTabWidget" name="Multiecho_2">
+            <property name="enabled">
+             <bool>true</bool>
+            </property>
+            <property name="currentIndex">
+             <number>0</number>
+            </property>
+            <widget class="QWidget" name="tab_generic_2">
+             <attribute name="title">
+              <string>Options</string>
+             </attribute>
+             <widget class="QWidget" name="layoutWidget">
+              <property name="geometry">
+               <rect>
+                <x>0</x>
+                <y>0</y>
+                <width>161</width>
+                <height>44</height>
+               </rect>
+              </property>
+              <layout class="QGridLayout" name="gridLayout_7">
+               <item row="0" column="0">
+                <widget class="QCheckBox" name="checkBox_debugging">
+                 <property name="toolTip">
+                  <string>Display more verbose debugging</string>
+                 </property>
+                 <property name="text">
+                  <string>Show debugging</string>
+                 </property>
+                </widget>
+               </item>
+               <item row="1" column="0">
+                <widget class="QCheckBox" name="checkBox_nodcmulti">
+                 <property name="toolTip">
+                  <string>Do not convert 2D slices to enhance DICOM format</string>
+                 </property>
+                 <property name="text">
+                  <string>Keep 2D DICOM slices</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </widget>
+           </widget>
+          </item>
+          <item row="3" column="3">
+           <widget class="QScrollArea" name="scrollArea">
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>550</width>
+               <height>174</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_15">
+              <item>
+               <widget class="QLabel" name="FDFprocparInfo">
+                <property name="text">
+                 <string>Metatdata information: </string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
+          </item>
+          <item row="4" column="4">
            <layout class="QVBoxLayout" name="verticalLayout_4">
             <item>
              <widget class="QPushButton" name="pushButton_convert">
@@ -168,83 +244,6 @@
              </widget>
             </item>
            </layout>
-          </item>
-          <item row="3" column="3">
-           <widget class="QTabWidget" name="Multiecho_2">
-            <property name="enabled">
-             <bool>true</bool>
-            </property>
-            <property name="currentIndex">
-             <number>0</number>
-            </property>
-            <widget class="QWidget" name="tab_generic_2">
-             <attribute name="title">
-              <string>Options</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_6">
-              <item>
-               <layout class="QGridLayout" name="gridLayout_7">
-                <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_debugging">
-                  <property name="toolTip">
-                   <string>Display more verbose debugging</string>
-                  </property>
-                  <property name="text">
-                   <string>Show debugging</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QCheckBox" name="checkBox_nodcmulti">
-                  <property name="toolTip">
-                   <string>Do not convert 2D slices to enhance DICOM format</string>
-                  </property>
-                  <property name="text">
-                   <string>Keep 2D DICOM slices</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-            <widget class="QWidget" name="tab_procpar">
-             <property name="enabled">
-              <bool>false</bool>
-             </property>
-             <attribute name="title">
-              <string>Procpar Info</string>
-             </attribute>
-             <layout class="QVBoxLayout" name="verticalLayout_11">
-              <item>
-               <widget class="QScrollArea" name="scrollArea">
-                <property name="widgetResizable">
-                 <bool>true</bool>
-                </property>
-                <widget class="QWidget" name="scrollAreaWidgetContents">
-                 <property name="geometry">
-                  <rect>
-                   <x>0</x>
-                   <y>0</y>
-                   <width>417</width>
-                   <height>238</height>
-                  </rect>
-                 </property>
-                 <layout class="QVBoxLayout" name="verticalLayout_15">
-                  <item>
-                   <widget class="QLabel" name="FDFprocparInfo">
-                    <property name="text">
-                     <string/>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </widget>
-               </widget>
-              </item>
-             </layout>
-            </widget>
-           </widget>
           </item>
          </layout>
         </item>
@@ -343,7 +342,7 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="3">
+          <item row="4" column="3">
            <layout class="QVBoxLayout" name="verticalLayout_5">
             <item>
              <widget class="QPushButton" name="pushButton_convertfid">
@@ -396,7 +395,7 @@
             </item>
            </layout>
           </item>
-          <item row="3" column="2">
+          <item row="4" column="2">
            <layout class="QVBoxLayout" name="verticalLayout_8">
             <item>
              <widget class="QTabWidget" name="tabWidget_3">
@@ -407,7 +406,7 @@
                <string>Multidimensional median, Gaussian or Wiener  filters.  Warning: use on isotropic images only.</string>
               </property>
               <property name="currentIndex">
-               <number>4</number>
+               <number>0</number>
               </property>
               <widget class="QWidget" name="tab_7">
                <attribute name="title">
@@ -529,7 +528,25 @@
                   <item row="7" column="0">
                    <widget class="QCheckBox" name="checkBox_2">
                     <property name="text">
-                     <string>Save as NIFTI (no header info)</string>
+                     <string>Save as NIFTI (limited header info)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="9" column="0">
+                   <widget class="QCheckBox" name="checkBox_doubleresolution">
+                    <property name="toolTip">
+                     <string>Use zero padding in k-space to double image resolution. 
+WARNING this will increase 3D volume sizes by a factor of 8.</string>
+                    </property>
+                    <property name="text">
+                     <string>Double Resolution</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="8" column="0">
+                   <widget class="Line" name="line">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
                     </property>
                    </widget>
                   </item>
@@ -694,7 +711,7 @@
                    </layout>
                   </item>
                   <item row="4" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout_34" stretch="0,0,0,0,0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_34" stretch="0,0,0,0,0,0">
                     <property name="spacing">
                      <number>5</number>
                     </property>
@@ -707,9 +724,8 @@
                     <item>
                      <widget class="QLabel" name="label_32">
                       <property name="toolTip">
-                       <string>scalar or sequence of scalars
-
-    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.</string>
+                       <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
                       </property>
                       <property name="text">
                        <string>Mode:</string>
@@ -717,9 +733,13 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="nearest">
+                     <widget class="QRadioButton" name="reflect">
+                      <property name="toolTip">
+                       <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to constant.</string>
+                      </property>
                       <property name="text">
-                       <string>Nearest</string>
+                       <string>Reflect</string>
                       </property>
                       <property name="checked">
                        <bool>true</bool>
@@ -727,16 +747,38 @@
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="reflect">
+                     <widget class="QRadioButton" name="nearest">
+                      <property name="toolTip">
+                       <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
+                      </property>
                       <property name="text">
-                       <string>Reflect</string>
+                       <string>Nearest</string>
+                      </property>
+                      <property name="checked">
+                       <bool>false</bool>
                       </property>
                      </widget>
                     </item>
                     <item>
                      <widget class="QRadioButton" name="wrap">
+                      <property name="toolTip">
+                       <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
+                      </property>
                       <property name="text">
                        <string>Wrap</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="radioButton_2">
+                      <property name="toolTip">
+                       <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
+                      </property>
+                      <property name="text">
+                       <string>Mirror</string>
                       </property>
                      </widget>
                     </item>
@@ -1025,42 +1067,459 @@ footprint : array, optional
                 </item>
                </layout>
               </widget>
-              <widget class="QWidget" name="tab">
+              <widget class="QWidget" name="tab_5">
                <attribute name="title">
-                <string>Info</string>
+                <string>Epanechnikov</string>
                </attribute>
-               <layout class="QVBoxLayout" name="verticalLayout_12">
+               <layout class="QVBoxLayout" name="verticalLayout_17">
                 <item>
-                 <widget class="QScrollArea" name="scrollArea_4">
-                  <property name="widgetResizable">
-                   <bool>true</bool>
-                  </property>
-                  <widget class="QWidget" name="scrollAreaWidgetContents_4">
-                   <property name="geometry">
-                    <rect>
-                     <x>0</x>
-                     <y>0</y>
-                     <width>427</width>
-                     <height>255</height>
-                    </rect>
-                   </property>
-                   <layout class="QVBoxLayout" name="verticalLayout_21">
+                 <layout class="QGridLayout" name="gridLayout_14">
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_30">
+                    <property name="spacing">
+                     <number>5</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>5</number>
+                    </property>
+                   </layout>
+                  </item>
+                  <item row="3" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_39" stretch="0,0">
+                    <property name="spacing">
+                     <number>5</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>5</number>
+                    </property>
                     <item>
-                     <widget class="QLabel" name="FIDprocparInfo">
+                     <widget class="QLabel" name="label_37">
+                      <property name="toolTip">
+                       <string>order : {0, 1, 2, 3} or sequence from same set, optional
+
+    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented
+</string>
+                      </property>
                       <property name="text">
-                       <string/>
+                       <string>bandwidth = gaussian sigma * sqrt(n + 4), where n is dim  </string>
+                      </property>
+                      <property name="buddy">
+                       <cstring>lineEdit_gorder</cstring>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_4">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="2" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_45" stretch="0,0,0,0">
+                    <property name="spacing">
+                     <number>5</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>5</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="label_41">
+                      <property name="toolTip">
+                       <string>scalar or sequence of scalars
+
+    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.</string>
+                      </property>
+                      <property name="text">
+                       <string>Bandwidth</string>
+                      </property>
+                      <property name="buddy">
+                       <cstring>lineEdit_gsigma</cstring>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_15">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="lineEdit_gsigma_2">
+                      <property name="toolTip">
+                       <string>scalar or sequence of scalars
+
+    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.  Default value for isotropic GRE scans is 1/sqrt(2)=0.707.</string>
+                      </property>
+                      <property name="layoutDirection">
+                       <enum>Qt::RightToLeft</enum>
+                      </property>
+                      <property name="text">
+                       <string>1.8708,1.8708,1.8708</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QComboBox" name="comboBox_3">
+                      <item>
+                       <property name="text">
+                        <string>unit voxel</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>in mm</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>in um</string>
+                       </property>
+                      </item>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="4" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_46" stretch="0,0,0,0,0,0">
+                    <property name="spacing">
+                     <number>5</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>5</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="label_42">
+                      <property name="toolTip">
+                       <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
+                      </property>
+                      <property name="text">
+                       <string>Mode:</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="reflect_3">
+                      <property name="toolTip">
+                       <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
+                      </property>
+                      <property name="text">
+                       <string>Reflect</string>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="nearest_3">
+                      <property name="toolTip">
+                       <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
+                      </property>
+                      <property name="text">
+                       <string>Nearest</string>
+                      </property>
+                      <property name="checked">
+                       <bool>false</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="wrap_3">
+                      <property name="toolTip">
+                       <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
+                      </property>
+                      <property name="text">
+                       <string>Wrap</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QRadioButton" name="radioButton">
+                      <property name="toolTip">
+                       <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
+The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
+                      </property>
+                      <property name="text">
+                       <string>Mirror</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_16">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="0" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_5">
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_epanechnikov3D">
+                      <property name="toolTip">
+                       <string> scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode='reflect', cval=0.0, truncate=4.0)[source]
+
+    Multidimensional Gaussian filter.</string>
+                      </property>
+                      <property name="text">
+                       <string>Use 3D Epenechnikov filter</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_epanechnikov2D">
+                      <property name="enabled">
+                       <bool>false</bool>
+                      </property>
+                      <property name="text">
+                       <string>Use 2D Epanechnikov filter</string>
                       </property>
                      </widget>
                     </item>
                    </layout>
-                  </widget>
-                 </widget>
+                  </item>
+                 </layout>
                 </item>
                </layout>
+              </widget>
+              <widget class="QWidget" name="tab_2">
+               <attribute name="title">
+                <string>K-space Gaussian</string>
+               </attribute>
+               <layout class="QVBoxLayout" name="verticalLayout_16">
+                <item>
+                 <layout class="QGridLayout" name="gridLayout_13">
+                  <item row="2" column="1">
+                   <layout class="QHBoxLayout" name="horizontalLayout_29">
+                    <property name="spacing">
+                     <number>5</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>5</number>
+                    </property>
+                   </layout>
+                  </item>
+                  <item row="0" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_4">
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_fouriergaussian">
+                      <property name="toolTip">
+                       <string> scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode='reflect', cval=0.0, truncate=4.0)[source]
+
+    Multidimensional Gaussian filter.</string>
+                      </property>
+                      <property name="text">
+                       <string>Use Fourier Domain Gaussian filter</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_kspaceshift">
+                      <property name="toolTip">
+                       <string>Check if you do not want the image to be shifted in kapce</string>
+                      </property>
+                      <property name="text">
+                       <string>No Shift</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="1" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_40" stretch="0,0,0,0">
+                    <property name="spacing">
+                     <number>5</number>
+                    </property>
+                    <property name="topMargin">
+                     <number>5</number>
+                    </property>
+                    <property name="bottomMargin">
+                     <number>5</number>
+                    </property>
+                    <item>
+                     <widget class="QLabel" name="label_39">
+                      <property name="toolTip">
+                       <string>scalar or sequence of scalars
+
+    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.
+
+Effective Fourier domain sigma is calculated as the image size divided by image domain sigma. sigma.</string>
+                      </property>
+                      <property name="text">
+                       <string>Effective Image Domain Sigma</string>
+                      </property>
+                      <property name="buddy">
+                       <cstring>lineEdit_gsigma</cstring>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_13">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="lineEdit_gfsigma">
+                      <property name="toolTip">
+                       <string>scalar or sequence of scalars
+
+    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.  Default value for isotropic GRE scans is 1/sqrt(2)=0.707.</string>
+                      </property>
+                      <property name="layoutDirection">
+                       <enum>Qt::RightToLeft</enum>
+                      </property>
+                      <property name="text">
+                       <string>0.707</string>
+                      </property>
+                      <property name="alignment">
+                       <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QComboBox" name="comboBox_2">
+                      <item>
+                       <property name="text">
+                        <string>unit voxel</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>in mm</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>in um</string>
+                       </property>
+                      </item>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="2" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_6">
+                    <item>
+                     <widget class="QLabel" name="label">
+                      <property name="text">
+                       <string>Actual FT Gaussian sigma
+(matrix size/sigma)</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="lineEdit"/>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="tab">
+               <attribute name="title">
+                <string>Info</string>
+               </attribute>
+               <layout class="QVBoxLayout" name="verticalLayout_12"/>
               </widget>
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="3" column="2">
+           <widget class="QScrollArea" name="scrollArea_4">
+            <property name="widgetResizable">
+             <bool>true</bool>
+            </property>
+            <widget class="QWidget" name="scrollAreaWidgetContents_4">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>556</width>
+               <height>111</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_21">
+              <item>
+               <widget class="QLabel" name="FIDprocparInfo">
+                <property name="text">
+                 <string>Metadata display:</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
           </item>
          </layout>
         </item>
@@ -1076,7 +1535,7 @@ footprint : array, optional
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string>Agilent2Dicom v1.2.2</string>
+         <string>Agilent2Dicom v1.5.0</string>
         </property>
        </widget>
       </item>
@@ -1111,8 +1570,8 @@ footprint : array, optional
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>786</width>
-     <height>22</height>
+     <width>793</width>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
