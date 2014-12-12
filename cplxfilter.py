@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 """
 cplxgaussian_filter, cplxgaussian_laplace, cplxmedian_filter, cplxwiener_filter
@@ -423,18 +422,24 @@ def cplxwiener_filter(real_input,imag_input,size_=5, noise_=None):
     return filtered_image
 # end cplxwiener_filter        
 
-def epanechnikov(siz,sigma):    
+def epanechnikov(filtersiz,sigma_):    
     """
     Epanechnikov filter  3/4 * (1-|u|^2), -1<=u<=1
     u=x/sigma
     """
-    if siz[0]%2 ==1:
-        sz = (np.array(siz))/2
+    print filtersiz
+    print sigma_
+    if not hasattr(sigma_,"__len__"):
+        sigma=np.ones()*sigma_
+    else:
+        sigma = np.array(sigma_)
+    if np.mod(np.array(filtersiz),2).any():
+        sz = (np.array(filtersiz))/2
         xx = np.array(range(-int(sz[0]),int(sz[0])+1))
         yy = np.array(range(-int(sz[1]),int(sz[1])+1))
         zz = np.array(range(-int(sz[2]),int(sz[2])+1))
     else:
-        sz = (np.array(siz)-1)/2.0
+        sz = (np.array(filtersiz)-1)/2.0
         xx = np.array(range(-int(sz[0]),int(sz[0])))
         yy = np.array(range(-int(sz[1]),int(sz[1])))
         zz = np.array(range(-int(sz[2]),int(sz[2])))
@@ -442,11 +447,11 @@ def epanechnikov(siz,sigma):
     uu = xx[np.newaxis,:,np.newaxis]*mult_fact
     vv = yy[:,np.newaxis,np.newaxis]*mult_fact
     ww = zz[np.newaxis,np.newaxis,:]*mult_fact
-    if not hasattr(sigma, "__len__"):
+    #if not hasattr(sigma, "__len__"):
     #if type(sigma) is float or type(sigma) is np.float64:
-        epan= (0.75)*(1- (np.abs(uu**2+vv**2+ww**2))/(sigma**2))
-    else:
-        epan= (0.75)*(1 - ((np.abs(uu)**2)/sigma[0]**2+(np.abs(vv)**2)/sigma[1]**2+(np.abs(ww)**2)/sigma[2]**2))
+    #    epan= (0.75)*(1- (np.abs(uu**2+vv**2+ww**2))/(sigma**2))
+    #else:
+    epan= (0.75)*(1 - ((np.abs(uu)**2)/sigma[0]**2+(np.abs(vv)**2)/sigma[1]**2+(np.abs(ww)**2)/sigma[2]**2))
     epan = epan * (epan>0)
     return epan.astype(np.float32)
 
@@ -460,7 +465,7 @@ def cplxepanechnikov_filter(real_input,imag_input,sigma_=1.87, size_=3, mode_='r
     print "Complex Epanechnikov filter bandwidth ", sigma_, " size ",size_
     filtersize=(1,1,1)
     if not hasattr(size_,"__len__"):
-        filtersize=np.array((1,1,1))*size_
+        filtersize=np.ones(3)*size_
     else:
         if len(size_) != 3:
             print "cplxepanechnikov_filter: size must be 1x3"
