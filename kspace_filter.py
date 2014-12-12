@@ -80,27 +80,37 @@ def kspacegaussian_filter(ksp,sigma=0.707,n_=-1, axis_=-1):
     filtered_magnitude = kspacefilter(realimg,imagimg)
 
 
-scipy.ndimage.fourier.fourier_gaussian
+    scipy.ndimage.fourier.fourier_gaussian
 
-scipy.ndimage.fourier.fourier_gaussian(input, sigma, n=-1, axis=-1, output=None)[source]
-Multi-dimensional Gaussian fourier filter.
+    scipy.ndimage.fourier.fourier_gaussian(input, sigma, n=-1, axis=-1, output=None)[source]
+    Multi-dimensional Gaussian fourier filter.
 
-The array is multiplied with the fourier transform of a Gaussian kernel.
+    The array is multiplied with the fourier transform of a Gaussian kernel.
 
-Parameters:
-input : array_like
-The input array.
-sigma : float or sequence
-The sigma of the Gaussian kernel. If a float, sigma is the same for all axes. If a sequence, sigma has to contain one value for each axis.
-n : int, optional
-If n is negative (default), then the input is assumed to be the result of a complex fft. If n is larger than or equal to zero, the input is assumed to be the result of a real fft, and n gives the length of the array before transformation along the real transform direction.
-axis : int, optional
-The axis of the real transform.
-output : ndarray, optional
-If given, the result of filtering the input is placed in this array. None is returned in this case.
-Returns:
-fourier_gaussian : ndarray or None
-The filtered input. If output is given as a parameter, None is returned.
+    Parameters:
+    input : array_like
+    The input array.
+    sigma : float or sequence
+    
+    The sigma of the Gaussian kernel. If a float, sigma is the same
+    for all axes. If a sequence, sigma has to contain one value for
+    each axis.
+
+    n : int, optional
+
+    If n is negative (default), then the input is assumed to be the
+    result of a complex fft. If n is larger than or equal to zero, the
+    input is assumed to be the result of a real fft, and n gives the
+    length of the array before transformation along the real transform
+    direction.
+
+    axis : int, optional
+    The axis of the real transform.
+    output : ndarray, optional
+    If given, the result of filtering the input is placed in this array. None is returned in this case.
+    Returns:
+    fourier_gaussian : ndarray or None
+    The filtered input. If output is given as a parameter, None is returned.
 
     """
 
@@ -164,11 +174,18 @@ def fourierepanechnikov(siz,sigma):
     uu = xx[np.newaxis,:,np.newaxis]*mult_fact + np.spacing(1)
     vv = yy[:,np.newaxis,np.newaxis]*mult_fact + np.spacing(1)
     ww = zz[np.newaxis,np.newaxis,:]*mult_fact + np.spacing(1)
-    if not hasattr(sigma, "__len__"):
-    #if type(sigma) is float or type(sigma) is numpy.float64:
-        return ((3.0*sigma/16.0)/(np.pi*(uu+vv+ww)/(sigma))**3)*(np.sin(2*np.pi*(uu+vv+ww)/(sigma)) - np.pi*(uu+vv+ww)/(sigma)*np.cos(2*np.pi*(uu+vv+ww)/(sigma))/2)
-    else:
-        return ((3.0/16.0)/(np.pi*((uu**3)/sigma[0]**4+(vv**3)/sigma[1]**4+(ww**3)/sigma[2]**4)))*(np.sin(2*np.pi*(uu/sigma[0]+vv/sigma[1]+ww/sigma[2])) - np.pi*(uu/sigma[0]+vv/sigma[1]+ww/sigma[2])*np.cos(2*np.pi*(uu/sigma[0]+vv/sigma[1]+ww/sigma[2])))
+    Kepa=epanechnikov([np.ceil(sigma)+2,np.ceil(sigma)+2,np.ceil(sigma)+2],sigma)
+    K=np.zeros(np.array(siz), dtype=numpy.float32)  
+    szmin = np.floor(sz/2.0 - np.array(Kepa.shape)/2.0)
+    szmax = np.floor(szmin + np.array(Kepa.shape))
+    K[szmin[0]:szmax[0],szmin[1]:szmax[1],szmin[2]:szmax[2]]=Kepa
+    return fftn(K)
+    
+    # if not hasattr(sigma, "__len__"):
+    # #if type(sigma) is float or type(sigma) is numpy.float64:
+    #     return ((3.0*sigma/16.0)/(np.pi*(uu+vv+ww)/(sigma))**3)*(np.sin(2*np.pi*(uu+vv+ww)/(sigma)) - np.pi*(uu+vv+ww)/(sigma)*np.cos(2*np.pi*(uu+vv+ww)/(sigma))/2)
+    # else:
+    #     return ((3.0/16.0)/(np.pi*((uu**3)/sigma[0]**4+(vv**3)/sigma[1]**4+(ww**3)/sigma[2]**4)))*(np.sin(2*np.pi*(uu/sigma[0]+vv/sigma[1]+ww/sigma[2])) - np.pi*(uu/sigma[0]+vv/sigma[1]+ww/sigma[2])*np.cos(2*np.pi*(uu/sigma[0]+vv/sigma[1]+ww/sigma[2])))
 
     
 def fouriergauss(siz,sigma):
@@ -328,7 +345,7 @@ def kspaceepanechnikov_filter(ksp,sigma_=None):
             sigma= np.ones(3)*sigma_
         else:
             sigma=sigma_.copy()
-    Fepanechnikov = fourierepanechnikov(siz,1/sigma)
+    Fepanechnikov = fourierepanechnikov(siz,sigma)
     out_ksp = np.empty_like(ksp,dtype=numpy.complex64)
     print "Complex Gaussian filter sigma ", sigma
     if ksp.ndim == 3:
@@ -368,9 +385,9 @@ def close_image(image_filtered):
     
 
 def sobel_image(image):
-    d = ndimage.filters.sobel(c,axis=0)
-    e = ndimage.filters.sobel(c,axis=1)
-    f = ndimage.filters.sobel(c,axis=2)
+    d = ndimage.filters.sobel(image,axis=0)
+    e = ndimage.filters.sobel(image,axis=1)
+    f = ndimage.filters.sobel(image,axis=2)
     new_image = nib.Nifti1Image(np.abs(d)+np.abs(e)+np.abs(f),affine)
     new_image.set_data_dtype(numpy.float32)
     nib.save(new_image,'sobel.nii.gz')
@@ -587,7 +604,7 @@ if __name__ == "__main__":
     #save_nifti(np.abs(out_img),'kspLog_smooth')
 
     print "Computing Epanechnikov filtered image from Original image"
-    kspepan =kspaceepanechnikov_filter(ksp,np.sqrt(7.0/2.0)*512)
+    kspepan =kspaceepanechnikov_filter(ksp,np.sqrt(7.0/2.0))
     image_filtered = fftshift(ifftn(ifftshift(kspepan)))
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)),'epan_kspimage')
