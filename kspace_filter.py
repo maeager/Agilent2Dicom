@@ -175,7 +175,7 @@ def fourierepanechnikov(siz,sigma):
     vv = yy[:,np.newaxis,np.newaxis]*mult_fact + np.spacing(1)
     ww = zz[np.newaxis,np.newaxis,:]*mult_fact + np.spacing(1)
     from cplxfilter import epanechnikov
-    Kepa=epanechnikov([np.ceil(sigma)+2,np.ceil(sigma)+2,np.ceil(sigma)+2],sigma)
+    Kepa=epanechnikov((np.ceil(sigma)+2,np.ceil(sigma)+2,np.ceil(sigma)+2),sigma)
     K=np.zeros(np.array(siz), dtype=numpy.float32)  
     szmin = np.floor(sz/2.0 - np.array(Kepa.shape)/2.0)
     szmax = np.floor(szmin + np.array(Kepa.shape))
