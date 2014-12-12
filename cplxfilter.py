@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 """
 cplxgaussian_filter, cplxgaussian_laplace, cplxmedian_filter, cplxwiener_filter
@@ -398,16 +399,22 @@ def cplxwiener_filter(real_input,imag_input,size_=5, noise_=None):
     #scipy.signal.wiener(im, mysize=None, noise=None)
     # ,(size_,size_,size_)
     print "Complex Wiener filter window size ",size_, " noise ", noise_
+    if not noise_:
+        noise_=ndimage.standard_deviation(real_input)
+    if not hasattr(size_,"__len__"):
+        filter_size=(size_,size_,size_)
+    else:
+        filter_size=size_
     if real_input.ndim == 3:
-        real_img = signal.wiener(real_input,(size_,size_,size),noise=noise_) #, mysize=size_,noise=noise_)
-        imag_img = signal.wiener(imag_input,(size_,size_,size),noise=noise_) #, mysize=size_,noise=noise_)
+        real_img = signal.wiener(real_input,size=filter_size,noise=noise_) #, mysize=size_,noise=noise_)
+        imag_img = signal.wiener(imag_input,size=filter_size,noise=noise_) #, mysize=size_,noise=noise_)
     else:
         real_img = np.empty_like(real_input)
         imag_img = np.empty_like(real_input)
         for echo in xrange(0,real_input.shape[4]):
             for n in xrange(0,real_input.shape[3]):
-                real_img[:,:,:,n,echo] = signal.wiener(real_input[:,:,:,n,echo], (size_,size_,size_),noise=noise_)
-                imag_img[:,:,:,n,echo] = signal.wiener(imag_input[:,:,:,n,echo], (size_,size_,size_),noise=noise_)
+                real_img[:,:,:,n,echo] = signal.wiener(real_input[:,:,:,n,echo], size=filter_size,noise=noise_)
+                imag_img[:,:,:,n,echo] = signal.wiener(imag_input[:,:,:,n,echo], size=filter_size,noise=noise_)
 
     filtered_image = np.empty_like(real_input,dtype=np.complex64)
     filtered_image.real = real_img
@@ -421,19 +428,25 @@ def epanechnikov(siz,sigma):
     Epanechnikov filter  3/4 * (1-|u|^2), -1<=u<=1
     u=x/sigma
     """
-    sz = (np.array(siz))/2.0
-    xx = np.array(range(-int(sz[0]),int(sz[0])+1))
-    yy = np.array(range(-int(sz[1]),int(sz[1])+1))
-    zz = np.array(range(-int(sz[2]),int(sz[2])+1))
+    if siz[0]%2 ==1:
+        sz = (np.array(siz))/2
+        xx = np.array(range(-int(sz[0]),int(sz[0])+1))
+        yy = np.array(range(-int(sz[1]),int(sz[1])+1))
+        zz = np.array(range(-int(sz[2]),int(sz[2])+1))
+    else:
+        sz = (np.array(siz)-1)/2.0
+        xx = np.array(range(-int(sz[0]),int(sz[0])))
+        yy = np.array(range(-int(sz[1]),int(sz[1])))
+        zz = np.array(range(-int(sz[2]),int(sz[2])))
     mult_fact = np.ones((len(yy),len(xx),len(zz)))
     uu = xx[np.newaxis,:,np.newaxis]*mult_fact
     vv = yy[:,np.newaxis,np.newaxis]*mult_fact
     ww = zz[np.newaxis,np.newaxis,:]*mult_fact
     if not hasattr(sigma, "__len__"):
     #if type(sigma) is float or type(sigma) is np.float64:
-        epan= (0.75)*(1- (np.abs(uu+vv+ww)**2)/(sigma**2))
+        epan= (0.75)*(1- (np.abs(uu**2+vv**2+ww**2))/(sigma**2))
     else:
-        epan= (0.75)*(1 - ((np.abs(uu)**2)*sigma[0]+(np.abs(vv)**2)*sigma[1]+(np.abs(ww)**2)*sigma[2]))
+        epan= (0.75)*(1 - ((np.abs(uu)**2)/sigma[0]**2+(np.abs(vv)**2)/sigma[1]**2+(np.abs(ww)**2)/sigma[2]**2))
     epan = epan * (epan>0)
     return epan.astype(np.float32)
 
@@ -445,16 +458,16 @@ def cplxepanechnikov_filter(real_input,imag_input,sigma_=1.87, size_=3, mode_='r
 # At each element the provided function is called. The input values within the filter footprint at that element are passed to the function as a 1D array of double values.
     # ,(size_,size_,size_)
     print "Complex Epanechnikov filter bandwidth ", sigma_, " size ",size_
-    size=np.ones(1,3)
+    filtersize=(1,1,1)
     if not hasattr(size_,"__len__"):
-        size=np.ones(1,3)*size_
+        filtersize=np.array((1,1,1))*size_
     else:
         if len(size_) != 3:
             print "cplxepanechnikov_filter: size must be 1x3"
             raise ValueError
-        size=size_
+        filtersize=np.array(size_)
 
-    epfilter=epanechnikov(size,sigma_)
+    epfilter=epanechnikov(filtersize,sigma_)
 #    def epfunc(x,y,z):
 #        return max((0.75*(1 - x*x/sigma[0]**2 -y*y/sigma[1]**2 - z*z/sigma[2]**2), 0))
     real_img = np.empty_like(real_input)
