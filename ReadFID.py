@@ -475,6 +475,15 @@ def RescaleFIDImage(ds,image_data,args):
     return ds,image_data_int16
 # end RescaleFIDImage
 
+
+def flipdims(image):
+    from scipy.signal import _arraytools as ar
+    for n in xrange(0,3):
+        print "Reversing axis ", n
+        image = ar.axis_reverse(image,n)
+    return image    
+
+    
 def RearrangeImage(image,axis_order,args):
     from scipy.signal import _arraytools as ar
     axes = re.findall(r'[-]*\d',axis_order)
