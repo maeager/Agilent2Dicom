@@ -184,7 +184,7 @@ def fourierepanechnikov(siz,sigma):
     szmax = np.floor(szmin + np.array(Kepa.shape))
     print "Epa filter size ", siz, " image filter ", Kepa.shape, " szmin ", szmin, " szmax ", szmax
     K[szmin[0]:szmax[0],szmin[1]:szmax[1],szmin[2]:szmax[2]]=Kepa
-    return fftshift(fftn(K))
+    return np.abs(fftshift(fftn(K)))
     
     # if not hasattr(sigma, "__len__"):
     # #if type(sigma) is float or type(sigma) is numpy.float64:
@@ -365,7 +365,7 @@ def kspaceepanechnikov_filter(ksp,sigma_=None):
     out_ksp = np.empty_like(ksp,dtype=numpy.complex64)
     print "Complex Epanechnikov filter bandwidth ", sigma
     if ksp.ndim == 3:
-        out_ksp = ksp * Fepanechnikov
+        out_ksp = Fepanechnikov * ksp
     else:
         for echo in xrange(0,ksp.shape[4]):
             for n in xrange(0,ksp.shape[3]):
