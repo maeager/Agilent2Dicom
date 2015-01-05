@@ -434,7 +434,57 @@ def recon(procpar,dims,fid_header,RE,IM,args):
     return img,ksp
 #end recon
 
+def convksp(procpar,dims,fid_header,RE,IM,args):
+    """recon Reconstruct k-space image data into N-D k-space
+    :param procpar:   procpar dictionary
+    :param dims: dimension array
+    :param fid_header: header info in fid
+    :param RE: real component of image k-space
+    :param IM: imaginary component of image k-space
+    """
+    if args.verbose:
+        print 'Reconstructing image'
+        print dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']
+        print 'nchannels ', fid_header['nblocks'], 'acqcycles ', procpar['acqcycles']
+        print 'Image shape ', RE.shape
 
+    if numpy.product(dims) != numpy.product(RE.shape):
+        print "ksp not arrangd properly"
+        
+    if fid_header['nChannels']==1 and  fid_header['nEchoes']==1:
+        ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=numpy.complex64) #float32
+    else:
+        ksp = numpy.empty([dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']], dtype=numpy.complex64) #float32
+
+    if procpar['nD'] == 2 and procpar['ni2'] == 1:
+        if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
+            ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=numpy.complex64) #two float32
+            ksp[:,:,:].real = RE  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+            ksp[:,:,:].imag = IM  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+
+        else:
+            for echo in xrange(0,int(fid_header['nEchoes'])):
+                for n in xrange(0,int(fid_header['nChannels'])):
+                    for islice in xrange(0,int(dims[2])):
+                        ksp[:,:,islice,n,echo].real = RE[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+                        ksp[:,:,islice,n,echo].imag = IM[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+    else: #if procpar.nD == 3
+        if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
+            ksp = numpy.empty([dims[0], dims[1], dims[2]], dtype=numpy.complex64) #float32
+            ksp[:,:,:].real = RE  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+            ksp[:,:,:].imag = IM  #[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+        else:
+            for echo in xrange(0,int(fid_header['nEchoes'])):
+                for n in xrange(0,int(fid_header['nChannels'])):
+                    if args.verbose:
+                        print "Processing echo ",echo," channel ",n
+                    ksp[:,:,:,n,echo].real = RE[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+                    ksp[:,:,:,n,echo].imag = IM[:,echo::fid_header['nEchoes'],n::fid_header['nChannels']]
+        
+    return ksp
+#end convksp
+
+    
 def RescaleFIDImage(ds,image_data,args):
 
     # Read in data from all files to determine scaling
