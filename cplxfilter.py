@@ -680,11 +680,11 @@ if __name__ == "__main__":
     save_nifti(normalise(np.abs(wiener_filtered)),'wiener_image')
 
     print "Computing Epanechnikov filtered image"
-    epanechnikov_filtered = cplxepanechnikov_filter(image.real,image.imag,np.sqrt(7.0,2.0),(3,3,3))
+    epanechnikov_filtered = cplxepanechnikov_filter(image.real,image.imag,np.sqrt(7.0/2.0),(3,3,3))
     print "Saving Epanechnikov image"
     save_nifti(normalise(np.abs(epanechnikov_filtered)),'epanechnikov_image')
 
     print "Computing Epanechnikov (4th order) filtered image"
-    epanechnikov_filtered = cplxepanechnikov_filter(image.real,image.imag,np.sqrt(7.0,2.0),(3,3,3), 1)
+    epanechnikov_filtered = cplxepanechnikov_filter(image.real,image.imag,np.sqrt(7.0/2.0),(3,3,3), 1)
     print "Saving Epanechnikov image"
     save_nifti(normalise(np.abs(epanechnikov_filtered)),'epa4th_image')
