@@ -526,7 +526,7 @@
                    </layout>
                   </item>
                   <item row="7" column="0">
-                   <widget class="QCheckBox" name="checkBox_2">
+                   <widget class="QCheckBox" name="checkBox_nifti">
                     <property name="text">
                      <string>Save as NIFTI (limited header info)</string>
                     </property>

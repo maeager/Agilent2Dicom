@@ -37,7 +37,7 @@ import sys
 import re
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
-from Agilent2DicomQt2 import Ui_MainWindow
+from Agilent2DicomQt import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING=1
@@ -106,7 +106,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.ui.checkBox_wiener.setEnabled(False)
             self.ui.lineEdit_wiener_size.setEnabled(False)
             self.ui.lineEdit_wiener_noise.setEnabled(False)
-            self.ui.checkBox_magn.setEnabled(True
+            self.ui.checkBox_magn.setEnabled(True)
                                              
         
         self.ui.checkBox_magn.setChecked(True)
