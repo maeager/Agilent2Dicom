@@ -550,6 +550,32 @@ def cplxepanechnikov_filter(real_input,imag_input,sigma_=1.87, size_=3, mode_='r
     return filtered_image
 # end cplxepanechnikov_filter        
 
+def swi(cmplx_input_image):
+    """ Suseptibility weighted image
+    """
+    if np.iscomplexobj(cmplx_input_image):
+        magn = np.abs(cmplx_input_image)
+        phase = np.angle(cmplx_input_image)
+        weight = phase/np.pi + 1.0
+        weight=weight.clip(min=0.0,max=1.0)
+        return magn * weight
+    else:
+        print 'Error swi2: input image not complex'
+        return  cmplx_input_image
+
+def swi2(cmplx_input_image,order=2):
+    """ Suseptibility weighted image - modified
+    """
+    if np.iscomplexobj(cmplx_input_image):
+        magn = np.abs(cmplx_input_image)
+        phase = np.angle(cmplx_input_image)
+        weight = (phase/np.pi + 1.0)**order
+        weight = weight.clip(min=0.0,max=1.0)
+        return magn * weight
+    else:
+        print 'Error swi2: input image not complex'
+        return  cmplx_input_image
+
 
 def normalise(data):
     maxval = ndimage.maximum(data)
@@ -641,6 +667,11 @@ if __name__ == "__main__":
     gauss_filtered = cplxgaussian_filter(image.real,image.imag,0.707,0,'reflect')
     print "Saving Gaussian image"
     save_nifti(normalise(np.abs(gauss_filtered)),'gauss_image')
+
+    print "Computing SWI from Gaussian filtered image"
+    swi_image=swi(gauss_filtered)
+    print "Saving SWI image"
+    save_nifti(swi_image,'swi_image')
 
     print "Computing Laplacian enhanced image from Original image"
     laplace_enhanced = gauss_filtered-cplxlaplacian_filter(gauss_filtered.real,gauss_filtered.imag,0.707)
