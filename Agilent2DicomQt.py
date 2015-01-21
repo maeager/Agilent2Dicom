@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomQt.ui'
 #
-# Created: Thu Dec 11 17:08:16 2014
+# Created: Wed Jan 21 17:36:32 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -79,7 +79,7 @@ class Ui_MainWindow(object):
         self.tab_generic_2 = QtGui.QWidget()
         self.tab_generic_2.setObjectName(_fromUtf8("tab_generic_2"))
         self.layoutWidget = QtGui.QWidget(self.tab_generic_2)
-        self.layoutWidget.setGeometry(QtCore.QRect(0, 0, 161, 44))
+        self.layoutWidget.setGeometry(QtCore.QRect(0, 0, 162, 50))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.gridLayout_7 = QtGui.QGridLayout(self.layoutWidget)
         self.gridLayout_7.setMargin(0)
@@ -243,9 +243,6 @@ class Ui_MainWindow(object):
         self.checkBox_2 = QtGui.QCheckBox(self.tab_7)
         self.checkBox_2.setObjectName(_fromUtf8("checkBox_2"))
         self.gridLayout_2.addWidget(self.checkBox_2, 7, 0, 1, 1)
-        self.checkBox_doubleresolution = QtGui.QCheckBox(self.tab_7)
-        self.checkBox_doubleresolution.setObjectName(_fromUtf8("checkBox_doubleresolution"))
-        self.gridLayout_2.addWidget(self.checkBox_doubleresolution, 9, 0, 1, 1)
         self.line = QtGui.QFrame(self.tab_7)
         self.line.setFrameShape(QtGui.QFrame.HLine)
         self.line.setFrameShadow(QtGui.QFrame.Sunken)
@@ -492,12 +489,15 @@ class Ui_MainWindow(object):
         self.gridLayout_13.addLayout(self.horizontalLayout_29, 2, 1, 1, 1)
         self.horizontalLayout_4 = QtGui.QHBoxLayout()
         self.horizontalLayout_4.setObjectName(_fromUtf8("horizontalLayout_4"))
-        self.checkBox_fouriergaussian = QtGui.QCheckBox(self.tab_2)
-        self.checkBox_fouriergaussian.setObjectName(_fromUtf8("checkBox_fouriergaussian"))
-        self.horizontalLayout_4.addWidget(self.checkBox_fouriergaussian)
-        self.checkBox_kspaceshift = QtGui.QCheckBox(self.tab_2)
-        self.checkBox_kspaceshift.setObjectName(_fromUtf8("checkBox_kspaceshift"))
-        self.horizontalLayout_4.addWidget(self.checkBox_kspaceshift)
+        self.checkBox_kspgaussian = QtGui.QCheckBox(self.tab_2)
+        self.checkBox_kspgaussian.setObjectName(_fromUtf8("checkBox_kspgaussian"))
+        self.horizontalLayout_4.addWidget(self.checkBox_kspgaussian)
+        self.checkBox_kspgaussshift = QtGui.QCheckBox(self.tab_2)
+        self.checkBox_kspgaussshift.setObjectName(_fromUtf8("checkBox_kspgaussshift"))
+        self.horizontalLayout_4.addWidget(self.checkBox_kspgaussshift)
+        self.checkBox_kspgauss_super = QtGui.QCheckBox(self.tab_2)
+        self.checkBox_kspgauss_super.setObjectName(_fromUtf8("checkBox_kspgauss_super"))
+        self.horizontalLayout_4.addWidget(self.checkBox_kspgauss_super)
         self.gridLayout_13.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
         self.horizontalLayout_40 = QtGui.QHBoxLayout()
         self.horizontalLayout_40.setSpacing(5)
@@ -513,12 +513,12 @@ class Ui_MainWindow(object):
         self.lineEdit_gfsigma.setAlignment(QtCore.Qt.AlignRight|QtCore.Qt.AlignTrailing|QtCore.Qt.AlignVCenter)
         self.lineEdit_gfsigma.setObjectName(_fromUtf8("lineEdit_gfsigma"))
         self.horizontalLayout_40.addWidget(self.lineEdit_gfsigma)
-        self.comboBox_2 = QtGui.QComboBox(self.tab_2)
-        self.comboBox_2.setObjectName(_fromUtf8("comboBox_2"))
-        self.comboBox_2.addItem(_fromUtf8(""))
-        self.comboBox_2.addItem(_fromUtf8(""))
-        self.comboBox_2.addItem(_fromUtf8(""))
-        self.horizontalLayout_40.addWidget(self.comboBox_2)
+        self.comboBox_kspgauss_sigunit = QtGui.QComboBox(self.tab_2)
+        self.comboBox_kspgauss_sigunit.setObjectName(_fromUtf8("comboBox_kspgauss_sigunit"))
+        self.comboBox_kspgauss_sigunit.addItem(_fromUtf8(""))
+        self.comboBox_kspgauss_sigunit.addItem(_fromUtf8(""))
+        self.comboBox_kspgauss_sigunit.addItem(_fromUtf8(""))
+        self.horizontalLayout_40.addWidget(self.comboBox_kspgauss_sigunit)
         self.gridLayout_13.addLayout(self.horizontalLayout_40, 1, 0, 1, 1)
         self.horizontalLayout_6 = QtGui.QHBoxLayout()
         self.horizontalLayout_6.setObjectName(_fromUtf8("horizontalLayout_6"))
@@ -537,6 +537,47 @@ class Ui_MainWindow(object):
         self.tab.setObjectName(_fromUtf8("tab"))
         self.verticalLayout_12 = QtGui.QVBoxLayout(self.tab)
         self.verticalLayout_12.setObjectName(_fromUtf8("verticalLayout_12"))
+        self.verticalLayout_6 = QtGui.QVBoxLayout()
+        self.verticalLayout_6.setObjectName(_fromUtf8("verticalLayout_6"))
+        self.horizontalLayout_9 = QtGui.QHBoxLayout()
+        self.horizontalLayout_9.setObjectName(_fromUtf8("horizontalLayout_9"))
+        self.checkBox_kspepa = QtGui.QCheckBox(self.tab)
+        self.checkBox_kspepa.setObjectName(_fromUtf8("checkBox_kspepa"))
+        self.horizontalLayout_9.addWidget(self.checkBox_kspepa)
+        self.checkBox_kspepashift = QtGui.QCheckBox(self.tab)
+        self.checkBox_kspepashift.setObjectName(_fromUtf8("checkBox_kspepashift"))
+        self.horizontalLayout_9.addWidget(self.checkBox_kspepashift)
+        self.checkBox_kspepa_super = QtGui.QCheckBox(self.tab)
+        self.checkBox_kspepa_super.setObjectName(_fromUtf8("checkBox_kspepa_super"))
+        self.horizontalLayout_9.addWidget(self.checkBox_kspepa_super)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_9)
+        self.horizontalLayout_7 = QtGui.QHBoxLayout()
+        self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
+        self.label_2 = QtGui.QLabel(self.tab)
+        self.label_2.setObjectName(_fromUtf8("label_2"))
+        self.horizontalLayout_7.addWidget(self.label_2)
+        spacerItem11 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem11)
+        self.lineEdit_kspepa_scale = QtGui.QLineEdit(self.tab)
+        self.lineEdit_kspepa_scale.setObjectName(_fromUtf8("lineEdit_kspepa_scale"))
+        self.horizontalLayout_7.addWidget(self.lineEdit_kspepa_scale)
+        self.comboBox_kspepa_scaleunit = QtGui.QComboBox(self.tab)
+        self.comboBox_kspepa_scaleunit.setObjectName(_fromUtf8("comboBox_kspepa_scaleunit"))
+        self.comboBox_kspepa_scaleunit.addItem(_fromUtf8(""))
+        self.comboBox_kspepa_scaleunit.addItem(_fromUtf8(""))
+        self.comboBox_kspepa_scaleunit.addItem(_fromUtf8(""))
+        self.horizontalLayout_7.addWidget(self.comboBox_kspepa_scaleunit)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_7)
+        self.horizontalLayout_8 = QtGui.QHBoxLayout()
+        self.horizontalLayout_8.setObjectName(_fromUtf8("horizontalLayout_8"))
+        self.label_3 = QtGui.QLabel(self.tab)
+        self.label_3.setText(_fromUtf8(""))
+        self.label_3.setObjectName(_fromUtf8("label_3"))
+        self.horizontalLayout_8.addWidget(self.label_3)
+        spacerItem12 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_8.addItem(spacerItem12)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_8)
+        self.verticalLayout_12.addLayout(self.verticalLayout_6)
         self.tabWidget_3.addTab(self.tab, _fromUtf8(""))
         self.verticalLayout_8.addWidget(self.tabWidget_3)
         self.gridLayout_11.addLayout(self.verticalLayout_8, 4, 2, 1, 1)
@@ -544,7 +585,7 @@ class Ui_MainWindow(object):
         self.scrollArea_4.setWidgetResizable(True)
         self.scrollArea_4.setObjectName(_fromUtf8("scrollArea_4"))
         self.scrollAreaWidgetContents_4 = QtGui.QWidget()
-        self.scrollAreaWidgetContents_4.setGeometry(QtCore.QRect(0, 0, 556, 111))
+        self.scrollAreaWidgetContents_4.setGeometry(QtCore.QRect(0, 0, 556, 138))
         self.scrollAreaWidgetContents_4.setObjectName(_fromUtf8("scrollAreaWidgetContents_4"))
         self.verticalLayout_21 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents_4)
         self.verticalLayout_21.setObjectName(_fromUtf8("verticalLayout_21"))
@@ -665,7 +706,7 @@ class Ui_MainWindow(object):
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(_translate("MainWindow", "Agilent2Dicom: MBI\'s Agilent 9.4T MR Image Analysis and Dicom Converter Application (1.5.0)", None))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Agilent2Dicom: MBI\'s Agilent 9.4T MR Image Analysis and Dicom Converter Application (1.6.0)", None))
         self.pushButton_changefdf.setToolTip(_translate("MainWindow", "Change the FDF input directory", None))
         self.pushButton_changefdf.setText(_translate("MainWindow", "Change Dir", None))
         self.label_13.setText(_translate("MainWindow", "FDF folder", None))
@@ -719,9 +760,6 @@ class Ui_MainWindow(object):
         self.checkBox_magn_raw.setText(_translate("MainWindow", "Save Magnitude", None))
         self.checkBox_pha_raw.setText(_translate("MainWindow", "Save Phase", None))
         self.checkBox_2.setText(_translate("MainWindow", "Save as NIFTI (limited header info)", None))
-        self.checkBox_doubleresolution.setToolTip(_translate("MainWindow", "Use zero padding in k-space to double image resolution. \n"
-"WARNING this will increase 3D volume sizes by a factor of 8.", None))
-        self.checkBox_doubleresolution.setText(_translate("MainWindow", "Double Resolution", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_7), _translate("MainWindow", "Options", None))
         self.label_30.setToolTip(_translate("MainWindow", "order : {0, 1, 2, 3} or sequence from same set, optional\n"
 "\n"
@@ -832,7 +870,7 @@ class Ui_MainWindow(object):
 "\n"
 "    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented\n"
 "", None))
-        self.label_37.setText(_translate("MainWindow", "bandwidth = gaussian sigma * sqrt(n + 4), where n is dim  ", None))
+        self.label_37.setText(_translate("MainWindow", "bandwidth = gaussian sigma * sqrt(dim + 4) ", None))
         self.label_41.setToolTip(_translate("MainWindow", "scalar or sequence of scalars\n"
 "\n"
 "    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.", None))
@@ -862,15 +900,20 @@ class Ui_MainWindow(object):
         self.checkBox_epanechnikov3D.setToolTip(_translate("MainWindow", " scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode=\'reflect\', cval=0.0, truncate=4.0)[source]\n"
 "\n"
 "    Multidimensional Gaussian filter.", None))
-        self.checkBox_epanechnikov3D.setText(_translate("MainWindow", "Use 3D Epenechnikov filter", None))
+        self.checkBox_epanechnikov3D.setText(_translate("MainWindow", "Use 3D Epanechnikov filter", None))
         self.checkBox_epanechnikov2D.setText(_translate("MainWindow", "Use 2D Epanechnikov filter", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_5), _translate("MainWindow", "Epanechnikov", None))
-        self.checkBox_fouriergaussian.setToolTip(_translate("MainWindow", " scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode=\'reflect\', cval=0.0, truncate=4.0)[source]\n"
+        self.checkBox_kspgaussian.setToolTip(_translate("MainWindow", " scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode=\'reflect\', cval=0.0, truncate=4.0)[source]\n"
 "\n"
 "    Multidimensional Gaussian filter.", None))
-        self.checkBox_fouriergaussian.setText(_translate("MainWindow", "Use Fourier Domain Gaussian filter", None))
-        self.checkBox_kspaceshift.setToolTip(_translate("MainWindow", "Check if you do not want the image to be shifted in kapce", None))
-        self.checkBox_kspaceshift.setText(_translate("MainWindow", "No Shift", None))
+        self.checkBox_kspgaussian.setText(_translate("MainWindow", "Use K-space Gaussian filter\n"
+"(Fourier domain)", None))
+        self.checkBox_kspgaussshift.setToolTip(_translate("MainWindow", "Check if you do not want the image to be shifted in kapce", None))
+        self.checkBox_kspgaussshift.setText(_translate("MainWindow", "No Shift", None))
+        self.checkBox_kspgauss_super.setToolTip(_translate("MainWindow", "Use zero padding in k-space to double image resolution. \n"
+"WARNING this will increase 3D volume sizes by a factor of 8.", None))
+        self.checkBox_kspgauss_super.setText(_translate("MainWindow", "Super-resolution\n"
+"(Saved to NIFTI only)", None))
         self.label_39.setToolTip(_translate("MainWindow", "scalar or sequence of scalars\n"
 "\n"
 "    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.\n"
@@ -881,16 +924,28 @@ class Ui_MainWindow(object):
 "\n"
 "    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.  Default value for isotropic GRE scans is 1/sqrt(2)=0.707.", None))
         self.lineEdit_gfsigma.setText(_translate("MainWindow", "0.707", None))
-        self.comboBox_2.setItemText(0, _translate("MainWindow", "unit voxel", None))
-        self.comboBox_2.setItemText(1, _translate("MainWindow", "in mm", None))
-        self.comboBox_2.setItemText(2, _translate("MainWindow", "in um", None))
+        self.comboBox_kspgauss_sigunit.setItemText(0, _translate("MainWindow", "unit voxel", None))
+        self.comboBox_kspgauss_sigunit.setItemText(1, _translate("MainWindow", "in mm", None))
+        self.comboBox_kspgauss_sigunit.setItemText(2, _translate("MainWindow", "in um", None))
         self.label.setText(_translate("MainWindow", "Actual FT Gaussian sigma\n"
 "(matrix size/sigma)", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_2), _translate("MainWindow", "K-space Gaussian", None))
-        self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab), _translate("MainWindow", "Info", None))
+        self.checkBox_kspepa.setText(_translate("MainWindow", "Use Kspace Epa filter\n"
+"(Fourier domain)", None))
+        self.checkBox_kspepashift.setText(_translate("MainWindow", "No Shift", None))
+        self.checkBox_kspepa_super.setToolTip(_translate("MainWindow", "Super-resolution uses zero-filled k-space data to double the resolution of the image. The super-resolution image is saved to NIFTI while the standard is saved to dicom", None))
+        self.checkBox_kspepa_super.setText(_translate("MainWindow", "Super-resolution\n"
+"(Saved to NIFTI only)", None))
+        self.label_2.setText(_translate("MainWindow", "Effective Filter Bandwidth\n"
+"(Use Sigma*sqrt(dim+4) )", None))
+        self.lineEdit_kspepa_scale.setText(_translate("MainWindow", "1.8708", None))
+        self.comboBox_kspepa_scaleunit.setItemText(0, _translate("MainWindow", "unit voxel", None))
+        self.comboBox_kspepa_scaleunit.setItemText(1, _translate("MainWindow", "mm", None))
+        self.comboBox_kspepa_scaleunit.setItemText(2, _translate("MainWindow", "um", None))
+        self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab), _translate("MainWindow", "K-space Epanechnikov", None))
         self.FIDprocparInfo.setText(_translate("MainWindow", "Metadata display:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_fid_2), _translate("MainWindow", "FID converter", None))
-        self.Version_tag.setText(_translate("MainWindow", "Agilent2Dicom v1.5.0", None))
+        self.Version_tag.setText(_translate("MainWindow", "Agilent2Dicom v1.6.0", None))
         self.bottom_tag.setText(_translate("MainWindow", "--o--", None))
         self.menuFile.setTitle(_translate("MainWindow", "File", None))
         self.menuSettings.setTitle(_translate("MainWindow", "Settings", None))

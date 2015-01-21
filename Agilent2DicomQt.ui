@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (1.5.0)</string>
+   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (1.6.0)</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -133,8 +133,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>161</width>
-                <height>44</height>
+                <width>162</width>
+                <height>50</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="gridLayout_7">
@@ -529,17 +529,6 @@
                    <widget class="QCheckBox" name="checkBox_2">
                     <property name="text">
                      <string>Save as NIFTI (limited header info)</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="9" column="0">
-                   <widget class="QCheckBox" name="checkBox_doubleresolution">
-                    <property name="toolTip">
-                     <string>Use zero padding in k-space to double image resolution. 
-WARNING this will increase 3D volume sizes by a factor of 8.</string>
-                    </property>
-                    <property name="text">
-                     <string>Double Resolution</string>
                     </property>
                    </widget>
                   </item>
@@ -1107,7 +1096,7 @@ footprint : array, optional
 </string>
                       </property>
                       <property name="text">
-                       <string>bandwidth = gaussian sigma * sqrt(n + 4), where n is dim  </string>
+                       <string>bandwidth = gaussian sigma * sqrt(dim + 4) </string>
                       </property>
                       <property name="buddy">
                        <cstring>lineEdit_gorder</cstring>
@@ -1304,7 +1293,7 @@ The mode parameter determines how the array borders are handled, where cval is t
     Multidimensional Gaussian filter.</string>
                       </property>
                       <property name="text">
-                       <string>Use 3D Epenechnikov filter</string>
+                       <string>Use 3D Epanechnikov filter</string>
                       </property>
                      </widget>
                     </item>
@@ -1347,24 +1336,37 @@ The mode parameter determines how the array borders are handled, where cval is t
                   <item row="0" column="0">
                    <layout class="QHBoxLayout" name="horizontalLayout_4">
                     <item>
-                     <widget class="QCheckBox" name="checkBox_fouriergaussian">
+                     <widget class="QCheckBox" name="checkBox_kspgaussian">
                       <property name="toolTip">
                        <string> scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode='reflect', cval=0.0, truncate=4.0)[source]
 
     Multidimensional Gaussian filter.</string>
                       </property>
                       <property name="text">
-                       <string>Use Fourier Domain Gaussian filter</string>
+                       <string>Use K-space Gaussian filter
+(Fourier domain)</string>
                       </property>
                      </widget>
                     </item>
                     <item>
-                     <widget class="QCheckBox" name="checkBox_kspaceshift">
+                     <widget class="QCheckBox" name="checkBox_kspgaussshift">
                       <property name="toolTip">
                        <string>Check if you do not want the image to be shifted in kapce</string>
                       </property>
                       <property name="text">
                        <string>No Shift</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_kspgauss_super">
+                      <property name="toolTip">
+                       <string>Use zero padding in k-space to double image resolution. 
+WARNING this will increase 3D volume sizes by a factor of 8.</string>
+                      </property>
+                      <property name="text">
+                       <string>Super-resolution
+(Saved to NIFTI only)</string>
                       </property>
                      </widget>
                     </item>
@@ -1430,7 +1432,7 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                      </widget>
                     </item>
                     <item>
-                     <widget class="QComboBox" name="comboBox_2">
+                     <widget class="QComboBox" name="comboBox_kspgauss_sigunit">
                       <item>
                        <property name="text">
                         <string>unit voxel</string>
@@ -1484,9 +1486,119 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
               </widget>
               <widget class="QWidget" name="tab">
                <attribute name="title">
-                <string>Info</string>
+                <string>K-space Epanechnikov</string>
                </attribute>
-               <layout class="QVBoxLayout" name="verticalLayout_12"/>
+               <layout class="QVBoxLayout" name="verticalLayout_12">
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_6">
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_9">
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_kspepa">
+                      <property name="text">
+                       <string>Use Kspace Epa filter
+(Fourier domain)</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_kspepashift">
+                      <property name="text">
+                       <string>No Shift</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_kspepa_super">
+                      <property name="toolTip">
+                       <string>Super-resolution uses zero-filled k-space data to double the resolution of the image. The super-resolution image is saved to NIFTI while the standard is saved to dicom</string>
+                      </property>
+                      <property name="text">
+                       <string>Super-resolution
+(Saved to NIFTI only)</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_7">
+                    <item>
+                     <widget class="QLabel" name="label_2">
+                      <property name="text">
+                       <string>Effective Filter Bandwidth
+(Use Sigma*sqrt(dim+4) )</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_2">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="lineEdit_kspepa_scale">
+                      <property name="text">
+                       <string>1.8708</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QComboBox" name="comboBox_kspepa_scaleunit">
+                      <item>
+                       <property name="text">
+                        <string>unit voxel</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>mm</string>
+                       </property>
+                      </item>
+                      <item>
+                       <property name="text">
+                        <string>um</string>
+                       </property>
+                      </item>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_8">
+                    <item>
+                     <widget class="QLabel" name="label_3">
+                      <property name="text">
+                       <string/>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_5">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                   </layout>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
               </widget>
              </widget>
             </item>
@@ -1503,7 +1615,7 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                <x>0</x>
                <y>0</y>
                <width>556</width>
-               <height>111</height>
+               <height>138</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -1535,7 +1647,7 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string>Agilent2Dicom v1.5.0</string>
+         <string>Agilent2Dicom v1.6.0</string>
         </property>
        </widget>
       </item>
