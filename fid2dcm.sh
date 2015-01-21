@@ -120,6 +120,8 @@ print_usage(){
                         argument, default=nearest. \n" \
 	"-l <simga>     Gaussian Laplace filter smoothing of reconstructed RE and 
                         IM components. Sigma variable argument, default 1/srqt(2).\n" \
+	"-L <sigma>     Fourier Laplace-of-Gaussian filter smoothing of k-space RE and
+	                IM components. Sigma variable argument, default size/1/srqt(2). \n" \
 	"-n <wsize>     Median filter smoothing of reconstructed RE and IM components. 
                         Size variable argument, default 5.\n" \
 	"-w <wsize>     Wiener filter smoothing of reconstructed RE and IM components. 
@@ -127,7 +129,11 @@ print_usage(){
 	"-z <noise>     Wiener filter noise variable. 
                         Default 0 (or none) variance calculated in local region and 
                         can be quite computationally expensive.\n" \
-	"-E <width>     Epanechnikov filter."
+	"-y <bwidth>     Gaussian filter smoothing of reconstructed RE and
+	                IM components. Bandwidth variable argument, default sqrt(Dim+4))/srqt(2). \n" \
+	"-Y <bwidth>    Fourier Epanechnikov filte. Smoothing of k-space RE and
+	                IM components. Sigma variable argument, default size/sqrt(Dim+4)/srqt(2)."
+			
 	"-x             Debug mode. \n" \
 	"-v             Verbose output. \n" \
 	"-h             this help\n" \
@@ -146,7 +152,7 @@ fi
 
 
 ## Parse arguments
-while getopts ":i:o:g:l:j:e:n:w:z:hmprkdfxv" opt; do
+while getopts ":i:o:g:l:j:e:n:w:z:G:E:Dhmprkdfxv" opt; do
     case $opt in
 	i)
 	    echo "Input dir:  $OPTARG" >&2
@@ -215,11 +221,21 @@ while getopts ":i:o:g:l:j:e:n:w:z:hmprkdfxv" opt; do
 	    wiener_noise="$OPTARG"
 	    python_args="$python_args --wiener_noise $wiener_noise"
 	    ;;
- 	E)
+ 	y)
 	    echo "Epanechnikov  filter size: $OPTARG" >&2
-	    epan_window_size="$OPTARG"
-	    python_args="$python_args --epanechnikov_filter --window_size $epan_window_size"
+	    epan_bandwidth="$OPTARG"
+	    python_args="$python_args --epanechnikov_filter --window_size $epan_bandwidth"
 	    do_filter=5
+	    ;;
+ 	Y)
+	    echo "Fourier Epanechnikov  filter size: $OPTARG" >&2
+	    epan_bandwidth="$OPTARG"
+	    python_args="$python_args --FT_epanechnikov_filter --window_size $epan_bandwidth"
+	    do_filter=5
+	    ;;
+	D)
+	    echo "Implementing super-resolution of FID to double the resolution of DICOM conversion."
+	    python_args="$python_args --double-resolution"
 	    ;;
 
 
