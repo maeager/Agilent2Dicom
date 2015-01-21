@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 602e0a778fc4 2014/12/11 06:05:19 michael $
-# $Id: Agilent2DicomAppQt.py,v 602e0a778fc4 2014/12/11 06:05:19 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v fff46fce1e56 2015/01/21 06:37:16 michael $
+# $Id: Agilent2DicomAppQt.py,v fff46fce1e56 2015/01/21 06:37:16 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -37,7 +37,7 @@ import sys
 import re
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
-from Agilent2DicomQt import Ui_MainWindow
+from Agilent2DicomQt2 import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING=1
@@ -45,11 +45,11 @@ DEBUGGING=1
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2014/12/11 06:05:19 $"
+__date__ = "$Date: 2015/01/21 06:37:16 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v 602e0a778fc4 2014/12/11 06:05:19 michael $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v fff46fce1e56 2015/01/21 06:37:16 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -101,20 +101,33 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.ui.pushButton_check2.setEnabled(False)
             self.ui.pushButton_view2.setEnabled(False)
             self.ui.pushButton_send2daris2.setEnabled(False)
-            self.ui.checkBox_median.setChecked(False)
             self.ui.checkBox_median.setEnabled(False)
             self.ui.lineEdit_median_size.setEnabled(False)
             self.ui.checkBox_wiener.setEnabled(False)
             self.ui.lineEdit_wiener_size.setEnabled(False)
             self.ui.lineEdit_wiener_noise.setEnabled(False)
-            self.ui.checkBox_magn.setEnabled(True)
-            self.ui.checkBox_magn.setChecked(True)
-            self.ui.checkBox_ksp.setChecked(False)
-            self.ui.checkBox_reimag.setChecked(False)
-            self.ui.checkBox_pha.setChecked(False)
-            self.ui.checkBox_nodcmulti.setChecked(False)
-      
-      
+            self.ui.checkBox_magn.setEnabled(True
+                                             
+        
+        self.ui.checkBox_magn.setChecked(True)
+        self.ui.checkBox_ksp.setChecked(False)
+        self.ui.checkBox_reimag.setChecked(False)
+        self.ui.checkBox_pha.setChecked(False)
+        self.ui.checkBox_nodcmulti.setChecked(False)
+        self.ui.checkBox_debugging.setChecked(False)
+        self.ui.checkBox_nifti.setChecked(False)
+        self.ui.checkBox_gaussian3D.setChecked(False)
+        self.ui.checkBox_gaussian2D.setChecked(False)
+        self.ui.checkBox_median.setChecked(False)
+        self.ui.checkBox_wiener.setChecked(False)
+        self.ui.checkBox_epanechnikov3D.setChecked(False)
+        self.ui.checkBox_epanechnikov2D.setChecked(False)
+        self.ui.checkBox_kspgaussian.setChecked(False)
+        self.ui.checkBox_kspgaussshift.setChecked(False)
+        self.ui.checkBox_kspgauss_super.setChecked(False)
+        self.ui.checkBox_kspepa.setChecked(False)
+        self.ui.checkBox_kspepashift.setChecked(False)
+        self.ui.checkBox_kspepa_super.setChecked(False)
         # Connect up the buttons.
         #self.connect(self.ui.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
         #self.connect(self.ui.buttonBox ,Qt.SIGNAL("rejected()"), self.reject)
@@ -130,7 +143,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_convertfid.clicked.connect(self.ConvertFID)
         self.ui.pushButton_check2.clicked.connect(self.CheckFID)
         self.ui.pushButton_view2.clicked.connect(self.ViewFID)
-        self.ui.pushButton_send2daris2.clicked.connect(self.Send2Daris2)
+        self.ui.pushButton_send2daris2.clicked.connect(self.Send2DarisFID)
 
         QtCore.QObject.connect(self.ui.actionSave_Filter_Outputs_to_Nifti, QtCore.SIGNAL(QtCore.QString.fromUtf8("triggered()")), self.toggleNifti)
 
@@ -504,7 +517,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         except ValueError:
             pass
 											
-    def Send2Daris2(self):
+    def Send2DarisFID(self):
         try:
             daris_ID = self.ui.lineEdit_darisid2.text()
             if str(daris_ID)=="": 
