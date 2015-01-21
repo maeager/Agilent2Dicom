@@ -6,7 +6,7 @@
   Version 0.2: Cplx filters upgraded and arguments improved for extra variables
   Version 0.3: Exporting DICOMs with correct parsing of Procpar and fid headers and rearrangement of image data
 
-  $Id: fid2dicom.py,v aa092d1b78c2 2014/12/11 06:01:46 michael $
+  $Id: fid2dicom.py,v 44bbd1ed7e43 2015/01/21 06:38:00 michael $
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     # Parse command line arguments and validate img directory
 
-    parser = argparse.ArgumentParser(usage=' fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-r] [-k] [-f] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d -n 5] [-w -n 5]]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering enabled with -g, -l, -n or -w arguments.  FID2DICOM Version '+VersionNumber)
+    parser = argparse.ArgumentParser(usage=' fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-r] [-k] [-f] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d -n 5] [-w -n 5] [-y -s 1.0 -n 3]] [[-D] [-G -s 1.0] [-L -s 1.0][-Y -s 1.0 -n 3]]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering enabled with -g, -l, -n or -w arguments.  FID2DICOM Version '+VersionNumber)
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FID image directory containing procpar and fid files',required=True);
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
     parser.add_argument('-m','--magnitude', help='Save Magnitude component. Default output of filtered image outputput',action="store_true");
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     parser.add_argument('-k','--kspace', help='Save Kspace data in outputdir-ksp.mat file',action="store_true");
     parser.add_argument('-r','--realimag', help='Save real and imaginary data in outputdir-real and outputdir-imag.',action="store_true");
     parser.add_argument('-f','--nifti',help='Save filtered outputs to NIFTI.',action="store_true");
-    parser.add_argument('-D','--dblresolution',help='Zero pad k-space data before recnstruction to double resolution in image space.',action="store_true");
+    parser.add_argument('-D','--double-resolution',help='Zero pad k-space data before recnstruction to double resolution in image space.',action="store_true");
 #    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL).',choices={"MULTIECHO", "DIFFUSION", "ASL"});
 #    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
     parser.add_argument('-g','--gaussian_filter', help='Gaussian filter smoothing of reconstructed RE and IM components.',action="store_true");
@@ -92,7 +92,8 @@ if __name__ == "__main__":
     parser.add_argument('-gm','--gaussian_mode',help='Gaussian and Laplace-Gaussian mode variable. Default nearest.',choices=['reflect','constant','nearest','mirror','wrap'],default='nearest');
     parser.add_argument('-d','--median_filter', help='Median filter smoothing of reconstructed RE and IM components. ',action="store_true");
     parser.add_argument('-w','--wiener_filter', help='Wiener filter smoothing of reconstructed RE and IM components.',action="store_true");
-    parser.add_argument('-E','--epanechnikov_filter', help='Epanechnikov filter smoothing of reconstructed RE and IM components.',action="store_true");    parser.add_argument('-n','--window_size',type=int,help='Window size of Wiener and Median filters. Default 5.',default=5);
+    parser.add_argument('-y','--epanechnikov_filter', help='Epanechnikov filter smoothing of reconstructed RE and IM components.',action="store_true");
+    parser.add_argument('-n','--window_size',type=int,help='Window size of Wiener and Median filters. Default 5.',default=5);
     parser.add_argument('-wn','--wiener_noise',help='Wiener filter noise. Estimated variance of image. If none or zero, local variance is calculated. Default 0=None.',default=0);
     parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
     
@@ -237,3 +238,51 @@ if __name__ == "__main__":
 
 
 
+    if args.epanechnikov_filter:
+        if not args.sigma:
+            args.sigma=np.sqrt(7.0/2.0)
+        if not args.window_size:
+            args.window_size=3
+        if args.verbose:
+            print "Computing Epanechnikov filtered image from Original image"
+        image_filtered = CPLX.cplxepanechnikov_filter(image_data.real,image_data.imag,args.sigma,(3,3,3))
+        ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Epanechnikov filter: sigma=%f window=%d order=0 mode=reflect.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.sigma,args.window_size)
+        FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-epanechnikov.dcm',outdir))
+        if args.nifti:
+            SaveNifti(image_filtered,re.sub('.dcm','-epanechnikov',outdir))
+            
+
+    if args.FT_gaussian_filter:
+        if not args.sigma:
+            args.sigma=1.0/np.sqrt(2.0)
+        print "Computing FT Gaussian filtered image"
+        
+        kspgauss1 = KSP.kspacegaussian_filter2(ksp1,sigma_=float(512.0)/float(1.0/np.sqrt(2.0)))
+        from scipy.fftpack import ifftn,fftshift,ifftshift
+        image_filtered = fftshift(ifftn(ifftshift(kspgauss1)));
+
+        # image_filtered = CPLX.cplxgaussian_filter(image_data.real,image_data.imag,args.sigma,args.gaussian_order,args.gaussian_mode)
+        ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Fourier Gaussian filter: sigma=%f.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.sigma)
+        FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-kspgaussian.dcm',outdir))
+        
+        if args.nifti:
+            SaveNifti(image_filtered,re.sub('.dcm','-kspgaussian',outdir))
+              
+    if args.FT_epanechnikov_filter:
+        if not args.sigma:
+            args.sigma=1.0/np.sqrt(2.0)
+        if not args.window_size:
+            args.window_size = 3
+        print "Computing FT Epanechnikov filtered image"
+        
+        kspepa = KSP.kspaceepanechnikov_filter(ksp,sigma_=float(ksp.shape[0]])/float(1.0/np.sqrt(2.0)))
+        from scipy.fftpack import ifftn,fftshift,ifftshift
+        image_filtered = fftshift(ifftn(ifftshift(kspepa)));
+
+        # image_filtered = CPLX.cplxgaussian_filter(image_data.real,image_data.imag,args.sigma,args.gaussian_order,args.gaussian_mode)
+        ds.DerivationDescription='%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Fourier Epanechnikov filter: sigma=%f.' % (Derivation_Description,VersionNumber,DVCSstamp,scipy.__version__,args.sigma)
+        FID.SaveFIDtoDicom(ds,procpar,image_filtered,hdr,ImageTransformationMatrix,args,re.sub('.dcm','-kspepa.dcm',outdir))
+        
+        if args.nifti:
+            SaveNifti(image_filtered,re.sub('.dcm','-kspepa',outdir))
+              
