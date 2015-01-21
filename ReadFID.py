@@ -326,13 +326,6 @@ def readfid(fidfolder,procpar,args):
         header['ni2_avmode'] = int(get_bit(header['mode'],14))
         header['ni2_pwrmode']= int(get_bit(header['mode'],15))
         
-        
-   
-
-
-
-        
-        
         if args.verbose:
             print header
         data = numpy.fromfile(f,count=fid_header['np']*fid_header['ntraces'],dtype=dtype_str)

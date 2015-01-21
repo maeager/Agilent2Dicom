@@ -43,6 +43,37 @@ storage of phase information.  *cplxfilter.py* allows filtering of
 real and imaginary reconstructed images using gaussian, laplace-
 gaussian, median and wiener filters.
 
+## Agilent Console GUI ##
+
+A first attempt at a GUI interface, *fdf2dicom*, was developed to be
+used by instrument scientists on the Agilent RedHat console for FDF
+conversion only. This requires python 2.6 and Tkinter.
+```
+#!bash
+
+[vnmr1@vnmrj1 s_2014062002]$ fdf2dicom
+```
+
+An updated GUI, *Agilent2DicomAppQt*, now uses PyQt4 and enables more
+features including FID conversion.  With the Agilent2Dicom path
+included in the PATH variable, the GUI can be loaded from the terminal
+from any folder:
+```
+#!bash
+
+[vnmr1@vnmrj1 s_2014062002]$ Agilent2DicomAppQt.py
+```
+
+On MASSIVE, enable the scipy and pyqt4 packages using the following commands:
+```
+#!bash
+
+module load python/2.7.3-gcc pyqt4
+export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages/:/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages 
+./Agilent2DicomAppQt.py
+```
+
+
 
 ## Usage ##
 
@@ -96,6 +127,32 @@ phase of the Gaussian filtered image will be stored in
 respectively.  The -k argument saves the k-space data to a MATLAB mat
 file (<outputdir>-ksp.mat).
  
+
+
+
+
+### Current bugs and faults ###
+
+For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging).
+
+### How do I get set up? ###
+
+See INSTALL.txt
+
+### Dependencies ###
+
+ * python (2.6 or greater)
+   - python-dicom
+   - python-numpy
+   - python-scipy (for complex filtering)
+   - pyqt4 (for newest GUI Agilent2DicomQt and Agilent2DicomAppQt)
+   - nibabel (for quick NiFTI creation)
+   - tkinter (for old GUI fdf2dicom on Agilent console)
+ * dicom3tools  (dcmulti, dciodvfy, dcdump)
+ * dcmtk  (dcmodify and dcmdump)
+ * mrtrix (0.2.12 or mrtrix3)
+
+
 
 ## Advanced usage ##
 
@@ -231,60 +288,6 @@ factor of 20.
 [eagerm@m2108 Agilent2Dicom]$ ./fid2dicom.py -v -m -g -s 0.707 -i ../ExampleAgilentData//kidney512iso_01.fid 
 [eagerm@m2108 Agilent2Dicom]$ ./fid2dicom.py -v -m -g -s 0.707,0.707,0.035 -i ../example_data/s_2014072901/T2-cor_01.fid -o ../output_data/s_2014072901/T2-cor_01.dcm
 ```
-
-
-# Agilent Console GUI #
-
-A first attempt at a GUI interface, *fdf2dicom*, was developed to be
-used by instrument scientists on the Agilent RedHat console for FDF
-conversion only. This requires python 2.6 and Tkinter.
-```
-#!bash
-
-[vnmr1@vnmrj1 s_2014062002]$ fdf2dicom
-```
-
-An updated GUI, *Agilent2DicomAppQt*, now uses PyQt4 and enables more
-features including FID conversion.  With the Agilent2Dicom path
-included in the PATH variable, the GUI can be loaded from the terminal
-from any folder:
-```
-#!bash
-
-[vnmr1@vnmrj1 s_2014062002]$ Agilent2DicomAppQt.py
-```
-
-On MASSIVE, enable the scipy and pyqt4 packages using the following commands:
-```
-#!bash
-
-module load python/2.7.3-gcc pyqt4
-export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages/:/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages 
-./Agilent2DicomAppQt.py
-```
-
-
-
-## Current bugs and faults ##
-
-For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging).
-
-## How do I get set up? ##
-
-See INSTALL.txt
-
-### Dependencies ###
-
- * python (2.6 or greater)
-   - python-dicom
-   - python-numpy
-   - python-scipy (for complex filtering)
-   - pyqt4 (for newest GUI Agilent2DicomQt and Agilent2DicomAppQt)
-   - nibabel (for quick NiFTI creation)
-   - tkinter (for old GUI fdf2dicom on Agilent console)
- * dicom3tools  (dcmulti, dciodvfy, dcdump)
- * dcmtk  (dcmodify and dcmdump)
- * mrtrix (0.2.12 or mrtrix3)
 
 
 ## How to run tests ##
