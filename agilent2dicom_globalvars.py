@@ -18,11 +18,11 @@
   # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-VersionNumber="1.3.1"
-Agilent2DicomAppVersion="1.3.0"
+VersionNumber="1.6.0"
+Agilent2DicomAppVersion="1.6.0"
 FDF2DCMVERSION="1.2"
-FID2DCMVERSION="1.2"
-DVCSstamp="$Id: agilent2dicom_globalvars.py,v 9d1f62d889d7 2014/11/06 09:57:14 michael $"
+FID2DCMVERSION="1.4"
+DVCSstamp="$Id: agilent2dicom_globalvars.py,v bc2a42e8bd64 2015/01/21 23:09:14 michael $"
 
 UID_ROOT="1.3.6.1.4.1" # Agilent Root UID 1.3.6.1.4.1, default "2.25"
 UID_Type_InstanceCreator="0"

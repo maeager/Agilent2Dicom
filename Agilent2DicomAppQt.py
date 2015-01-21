@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v fff46fce1e56 2015/01/21 06:37:16 michael $
-# $Id: Agilent2DicomAppQt.py,v fff46fce1e56 2015/01/21 06:37:16 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v bc2a42e8bd64 2015/01/21 23:09:14 michael $
+# $Id: Agilent2DicomAppQt.py,v bc2a42e8bd64 2015/01/21 23:09:14 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -37,7 +37,7 @@ import sys
 import re
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog,QFileDialog,QApplication
-from Agilent2DicomQt2 import Ui_MainWindow
+from Agilent2DicomQt import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING=1
@@ -45,11 +45,11 @@ DEBUGGING=1
 #Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(Agilent2DicomAppVersion)
-__date__ = "$Date: 2015/01/21 06:37:16 $"
+__date__ = "$Date: 2015/01/21 23:09:14 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v fff46fce1e56 2015/01/21 06:37:16 michael $")
+Agilent2DicomAppStamp=re.sub(r'\$Id(.*)\$',r'\1',"$Id: Agilent2DicomAppQt.py,v bc2a42e8bd64 2015/01/21 23:09:14 michael $")
 cmd_header='(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -106,7 +106,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.ui.checkBox_wiener.setEnabled(False)
             self.ui.lineEdit_wiener_size.setEnabled(False)
             self.ui.lineEdit_wiener_noise.setEnabled(False)
-            self.ui.checkBox_magn.setEnabled(True
+            self.ui.checkBox_magn.setEnabled(True)
                                              
         
         self.ui.checkBox_magn.setChecked(True)

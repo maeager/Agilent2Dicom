@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomQt.ui'
 #
-# Created: Wed Jan 21 17:36:32 2015
+# Created: Thu Jan 22 10:05:00 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -240,9 +240,9 @@ class Ui_MainWindow(object):
         self.checkBox_pha_raw.setObjectName(_fromUtf8("checkBox_pha_raw"))
         self.horizontalLayout_38.addWidget(self.checkBox_pha_raw)
         self.gridLayout_2.addLayout(self.horizontalLayout_38, 2, 0, 1, 1)
-        self.checkBox_2 = QtGui.QCheckBox(self.tab_7)
-        self.checkBox_2.setObjectName(_fromUtf8("checkBox_2"))
-        self.gridLayout_2.addWidget(self.checkBox_2, 7, 0, 1, 1)
+        self.checkBox_nifti = QtGui.QCheckBox(self.tab_7)
+        self.checkBox_nifti.setObjectName(_fromUtf8("checkBox_nifti"))
+        self.gridLayout_2.addWidget(self.checkBox_nifti, 7, 0, 1, 1)
         self.line = QtGui.QFrame(self.tab_7)
         self.line.setFrameShape(QtGui.QFrame.HLine)
         self.line.setFrameShadow(QtGui.QFrame.Sunken)
@@ -759,7 +759,7 @@ class Ui_MainWindow(object):
         self.checkBox_pha.setText(_translate("MainWindow", "Save Phase", None))
         self.checkBox_magn_raw.setText(_translate("MainWindow", "Save Magnitude", None))
         self.checkBox_pha_raw.setText(_translate("MainWindow", "Save Phase", None))
-        self.checkBox_2.setText(_translate("MainWindow", "Save as NIFTI (limited header info)", None))
+        self.checkBox_nifti.setText(_translate("MainWindow", "Save as NIFTI (limited header info)", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_7), _translate("MainWindow", "Options", None))
         self.label_30.setToolTip(_translate("MainWindow", "order : {0, 1, 2, 3} or sequence from same set, optional\n"
 "\n"
