@@ -403,7 +403,8 @@
                <bool>true</bool>
               </property>
               <property name="toolTip">
-               <string>Multidimensional median, Gaussian or Wiener  filters.  Warning: use on isotropic images only.</string>
+               <string>Multidimensional median, Gaussian or Wiener  filters.  
+Warning: use on isotropic images only.</string>
               </property>
               <property name="currentIndex">
                <number>0</number>
@@ -608,7 +609,11 @@
                       <property name="toolTip">
                        <string>order : {0, 1, 2, 3} or sequence from same set, optional
 
-    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented
+    The order of the filter along each axis is given as a sequence of integers, 
+or as a single number. An order of 0 corresponds to convolution with a Gaussian 
+kernel. An order of 1, 2, or 3 corresponds to convolution with the first, 
+second or third derivatives of a Gaussian. 
+Higher order derivatives are not implemented
 </string>
                       </property>
                       <property name="text">
@@ -802,6 +807,10 @@ The mode parameter determines how the array borders are handled, where cval is t
                     </item>
                     <item>
                      <widget class="QCheckBox" name="checkBox_gaussian2D">
+                      <property name="toolTip">
+                       <string>Use Guassian filter on 2D slices. 
+Use the order of the sizes in the information box above to set the sigma values below.</string>
+                      </property>
                       <property name="text">
                        <string>Use 2D Gaussian filter</string>
                       </property>
@@ -1288,9 +1297,9 @@ The mode parameter determines how the array borders are handled, where cval is t
                     <item>
                      <widget class="QCheckBox" name="checkBox_epanechnikov3D">
                       <property name="toolTip">
-                       <string> scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode='reflect', cval=0.0, truncate=4.0)[source]
+                       <string>Bespoke epanechnikov_filter(input, sigma)
 
-    Multidimensional Gaussian filter.</string>
+    Fast multidimensional Epanechnikov filter.</string>
                       </property>
                       <property name="text">
                        <string>Use 3D Epanechnikov filter</string>
@@ -1351,7 +1360,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                     <item>
                      <widget class="QCheckBox" name="checkBox_kspgaussshift">
                       <property name="toolTip">
-                       <string>Check if you do not want the image to be shifted in kapce</string>
+                       <string>Disable centre-shifting in k-space</string>
                       </property>
                       <property name="text">
                        <string>No Shift</string>
@@ -1362,7 +1371,11 @@ The mode parameter determines how the array borders are handled, where cval is t
                      <widget class="QCheckBox" name="checkBox_kspgauss_super">
                       <property name="toolTip">
                        <string>Use zero padding in k-space to double image resolution. 
-WARNING this will increase 3D volume sizes by a factor of 8.</string>
+
+WARNING this will increase 3D volume sizes by a factor of 8.
+
+Super-resolution uses zero-filled k-space data to double the resolution of the image. 
+The super-resolution image is saved to NIFTI while the standard is saved to dicom. </string>
                       </property>
                       <property name="text">
                        <string>Super-resolution
@@ -1495,6 +1508,9 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                    <layout class="QHBoxLayout" name="horizontalLayout_9">
                     <item>
                      <widget class="QCheckBox" name="checkBox_kspepa">
+                      <property name="toolTip">
+                       <string>3D Epanechnikov filter in k-space (Fourier domain).   FFT of image filter used instead of calculated filter.</string>
+                      </property>
                       <property name="text">
                        <string>Use Kspace Epa filter
 (Fourier domain)</string>
@@ -1503,6 +1519,9 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                     </item>
                     <item>
                      <widget class="QCheckBox" name="checkBox_kspepashift">
+                      <property name="toolTip">
+                       <string>Disable k-space frequency shift</string>
+                      </property>
                       <property name="text">
                        <string>No Shift</string>
                       </property>
@@ -1511,7 +1530,12 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                     <item>
                      <widget class="QCheckBox" name="checkBox_kspepa_super">
                       <property name="toolTip">
-                       <string>Super-resolution uses zero-filled k-space data to double the resolution of the image. The super-resolution image is saved to NIFTI while the standard is saved to dicom</string>
+                       <string>Use zero padding in k-space to double image resolution. 
+
+WARNING this will increase 3D volume sizes by a factor of 8.
+
+Super-resolution uses zero-filled k-space data to double the resolution of the image. 
+The super-resolution image is saved to NIFTI while the standard is saved to dicom. </string>
                       </property>
                       <property name="text">
                        <string>Super-resolution
@@ -1546,6 +1570,9 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                     </item>
                     <item>
                      <widget class="QLineEdit" name="lineEdit_kspepa_scale">
+                      <property name="toolTip">
+                       <string>Bandwidth equivalent in image space.  Comma separated values (no spaces) accepted for non-isotropic slices.</string>
+                      </property>
                       <property name="text">
                        <string>1.8708</string>
                       </property>
