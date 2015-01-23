@@ -550,6 +550,27 @@ def cplxepanechnikov_filter(real_input,imag_input,sigma_=1.87, size_=3, mode_='r
     return filtered_image
 # end cplxepanechnikov_filter        
 
+from scipy.ndimage.filters import uniform_filter
+
+def window_stdev(image, radius=2.5):
+    """ STD window filter
+    https://stackoverflow.com/questions/18419871/improving-code-efficiency-standard-deviation-on-sliding-windows
+    """
+    c1 = uniform_filter(image, radius*2, mode='constant', origin=-radius)
+    c2 = uniform_filter(image*image, radius*2, mode='constant', origin=-radius)
+    return ((c2 - c1*c1)**.5)[:-radius*2+1,:-radius*2+1]
+
+def localstd_filter(phase_image):
+    return np.fmin(window_stdev(phase_image), window_stdev(phase_image + np.pi))
+    
+def unwrap():
+##NOT WORKING YET
+    p2q2=(p**2+q**2)
+    phidash=ifftn(fftn(np.cos(phiw)*ifft(p2q2*fftn(np.sin(phiw)))))-ifftn(fftn(np.sin(phiw)*ifft(p2q2*fftn(np.cos(phiw)))))
+    phij_update=phij + 2*np.pi*np.round((phidash-phij)/2*np.pi)
+
+    
+    
 def swi(cmplx_input_image):
     """ Suseptibility weighted image
     """
@@ -674,7 +695,7 @@ if __name__ == "__main__":
     save_nifti(swi_image,'swi_image')
 
     print "Computing Laplacian enhanced image from Original image"
-    laplace_enhanced = gauss_filtered-cplxlaplacian_filter(gauss_filtered.real,gauss_filtered.imag,0.707)
+    laplace_enhanced = gauss_filtered-cplxlaplacian_filter(gauss_filtered.real,gauss_filtered.imag)
     print "Saving enhanced image g(x,y,z) = f(x,y,z) - Laplacian[f(x,y,z)]"
     save_nifti(normalise(np.abs(laplace_enhanced)),'laplace_enhanced')
 
