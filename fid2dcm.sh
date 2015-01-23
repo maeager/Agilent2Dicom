@@ -96,7 +96,7 @@ function error_exit(){
 # Print usage information and exit
 print_usage(){
     echo -e "\n" \
-	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r] [-k] [-f] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001]]\n. To export components use magnitude (-m), phase (-p), real and imag (-r) or k-space (-k). Filtering is available for Gaussian filter (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n window_size), or Wiener filter (-w window_size)." \
+	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r] [-k] [-N] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001]]\n. To export components use magnitude (-m), phase (-p), real and imag (-r) or k-space (-k). Filtering is available for Gaussian filter (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n window_size), or Wiener filter (-w window_size)." \
 	"\n" \
 	"-i <inputdir>  FID source directory\n" \
 	"-o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm. \n" \
@@ -110,7 +110,7 @@ print_usage(){
 	fid2dcm or with knowledge of input fid data. \n" \
 	"-r             Save real and imaginary components of filtered image. \n" \
 	"-k             Save Kspace data. \n" \
-	"-f             Save filtered outputs to NIFTI.\n" \
+	"-N             Save filtered outputs to NIFTI.\n" \
 	"-g <sigma>     Gaussian filter smoothing of reconstructed RE and
 	                IM components. Sigma variable argument, default 1/srqt(2). \n" \
 	"-G <sigma>     Fourier Gaussian filter smoothing of k-space RE and
@@ -152,7 +152,7 @@ fi
 
 
 ## Parse arguments
-while getopts ":i:o:g:l:j:e:n:w:z:G:E:Dhmprkdfxv" opt; do
+while getopts ":i:o:g:l:j:e:n:w:z:G:E:DhmprkdNxv" opt; do
     case $opt in
 	i)
 	    echo "Input dir:  $OPTARG" >&2
@@ -256,7 +256,7 @@ while getopts ":i:o:g:l:j:e:n:w:z:G:E:Dhmprkdfxv" opt; do
 	    echo "Implementing phase component of FID to DICOM conversion."
 	    python_args="$python_args --phase"
 	    ;;
-	f)
+	N)
 	    echo "Saving filtered outputs to NIFTI."
 	    python_args="$python_args --nifti"
 	    ;;
