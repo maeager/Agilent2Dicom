@@ -6,7 +6,7 @@
   Version 0.2: Cplx filters upgraded and arguments improved for extra variables
   Version 0.3: Exporting DICOMs with correct parsing of Procpar and fid headers and rearrangement of image data
 
-  $Id: fid2dicom.py,v 44bbd1ed7e43 2015/01/21 06:38:00 michael $
+  $Id: fid2dicom.py,v d34a9504aac0 2015/01/23 03:40:06 michael $
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
@@ -73,14 +73,14 @@ if __name__ == "__main__":
 
     # Parse command line arguments and validate img directory
 
-    parser = argparse.ArgumentParser(usage=' fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-r] [-k] [-f] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d -n 5] [-w -n 5] [-y -s 1.0 -n 3]] [[-D] [-G -s 1.0] [-L -s 1.0][-Y -s 1.0 -n 3]]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering enabled with -g, -l, -n or -w arguments.  FID2DICOM Version '+VersionNumber)
+    parser = argparse.ArgumentParser(usage=' fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-r] [-k] [-N] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d -n 5] [-w -n 5] [-y -s 1.0 -n 3]] [[-D] [-G -s 1.0] [-L -s 1.0][-Y -s 1.0 -n 3]]',description='fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering enabled with -g, -l, -n or -w arguments.  FID2DICOM Version '+VersionNumber)
     parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FID image directory containing procpar and fid files',required=True);
     parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
     parser.add_argument('-m','--magnitude', help='Save Magnitude component. Default output of filtered image outputput',action="store_true");
     parser.add_argument('-p','--phase', help='Save Phase component.',action="store_true");
     parser.add_argument('-k','--kspace', help='Save Kspace data in outputdir-ksp.mat file',action="store_true");
     parser.add_argument('-r','--realimag', help='Save real and imaginary data in outputdir-real and outputdir-imag.',action="store_true");
-    parser.add_argument('-f','--nifti',help='Save filtered outputs to NIFTI.',action="store_true");
+    parser.add_argument('-N','--nifti',help='Save filtered outputs to NIFTI.',action="store_true");
     parser.add_argument('-D','--double-resolution',help='Zero pad k-space data before recnstruction to double resolution in image space.',action="store_true");
 #    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL).',choices={"MULTIECHO", "DIFFUSION", "ASL"});
 #    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
