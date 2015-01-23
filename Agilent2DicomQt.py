@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomQt.ui'
 #
-# Created: Thu Jan 22 10:05:00 2015
+# Created: Fri Jan 23 16:22:23 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -746,7 +746,8 @@ class Ui_MainWindow(object):
         self.pushButton_view2.setText(_translate("MainWindow", "View", None))
         self.pushButton_send2daris2.setToolTip(_translate("MainWindow", "Send DICOMs to DaRIS", None))
         self.pushButton_send2daris2.setText(_translate("MainWindow", "Send to DaRIS", None))
-        self.tabWidget_3.setToolTip(_translate("MainWindow", "Multidimensional median, Gaussian or Wiener  filters.  Warning: use on isotropic images only.", None))
+        self.tabWidget_3.setToolTip(_translate("MainWindow", "Multidimensional median, Gaussian or Wiener  filters.  \n"
+"Warning: use on isotropic images only.", None))
         self.checkBox_reimag.setText(_translate("MainWindow", "Save REAL and IMAG", None))
         self.checkBox_ksp.setText(_translate("MainWindow", "Save K space data", None))
         self.checkBox_reimag_raw.setText(_translate("MainWindow", "Save REAL and IMAG", None))
@@ -768,7 +769,11 @@ class Ui_MainWindow(object):
         self.label_30.setText(_translate("MainWindow", "Order", None))
         self.lineEdit_gorder.setToolTip(_translate("MainWindow", "order : {0, 1, 2, 3} or sequence from same set, optional\n"
 "\n"
-"    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented\n"
+"    The order of the filter along each axis is given as a sequence of integers, \n"
+"or as a single number. An order of 0 corresponds to convolution with a Gaussian \n"
+"kernel. An order of 1, 2, or 3 corresponds to convolution with the first, \n"
+"second or third derivatives of a Gaussian. \n"
+"Higher order derivatives are not implemented\n"
 "", None))
         self.lineEdit_gorder.setText(_translate("MainWindow", "0", None))
         self.label_31.setToolTip(_translate("MainWindow", "scalar or sequence of scalars\n"
@@ -801,6 +806,8 @@ class Ui_MainWindow(object):
 "\n"
 "    Multidimensional Gaussian filter.", None))
         self.checkBox_gaussian3D.setText(_translate("MainWindow", "Use 3D Gaussian filter", None))
+        self.checkBox_gaussian2D.setToolTip(_translate("MainWindow", "Use Guassian filter on 2D slices. \n"
+"Use the order of the sizes in the information box above to set the sigma values below.", None))
         self.checkBox_gaussian2D.setText(_translate("MainWindow", "Use 2D Gaussian filter", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_3), _translate("MainWindow", "Gaussian", None))
         self.checkBox_wiener.setToolTip(_translate("MainWindow", "NOT ENABLED - Speak to MBI Imaging Team\n"
@@ -897,9 +904,9 @@ class Ui_MainWindow(object):
         self.radioButton.setToolTip(_translate("MainWindow", "mode : {\'reflect\', \'constant\', \'nearest\', \'mirror\', \'wrap\'}, optional\n"
 "The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ", None))
         self.radioButton.setText(_translate("MainWindow", "Mirror", None))
-        self.checkBox_epanechnikov3D.setToolTip(_translate("MainWindow", " scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode=\'reflect\', cval=0.0, truncate=4.0)[source]\n"
+        self.checkBox_epanechnikov3D.setToolTip(_translate("MainWindow", "Bespoke epanechnikov_filter(input, sigma)\n"
 "\n"
-"    Multidimensional Gaussian filter.", None))
+"    Fast multidimensional Epanechnikov filter.", None))
         self.checkBox_epanechnikov3D.setText(_translate("MainWindow", "Use 3D Epanechnikov filter", None))
         self.checkBox_epanechnikov2D.setText(_translate("MainWindow", "Use 2D Epanechnikov filter", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_5), _translate("MainWindow", "Epanechnikov", None))
@@ -908,10 +915,14 @@ class Ui_MainWindow(object):
 "    Multidimensional Gaussian filter.", None))
         self.checkBox_kspgaussian.setText(_translate("MainWindow", "Use K-space Gaussian filter\n"
 "(Fourier domain)", None))
-        self.checkBox_kspgaussshift.setToolTip(_translate("MainWindow", "Check if you do not want the image to be shifted in kapce", None))
+        self.checkBox_kspgaussshift.setToolTip(_translate("MainWindow", "Disable centre-shifting in k-space", None))
         self.checkBox_kspgaussshift.setText(_translate("MainWindow", "No Shift", None))
         self.checkBox_kspgauss_super.setToolTip(_translate("MainWindow", "Use zero padding in k-space to double image resolution. \n"
-"WARNING this will increase 3D volume sizes by a factor of 8.", None))
+"\n"
+"WARNING this will increase 3D volume sizes by a factor of 8.\n"
+"\n"
+"Super-resolution uses zero-filled k-space data to double the resolution of the image. \n"
+"The super-resolution image is saved to NIFTI while the standard is saved to dicom. ", None))
         self.checkBox_kspgauss_super.setText(_translate("MainWindow", "Super-resolution\n"
 "(Saved to NIFTI only)", None))
         self.label_39.setToolTip(_translate("MainWindow", "scalar or sequence of scalars\n"
@@ -930,14 +941,22 @@ class Ui_MainWindow(object):
         self.label.setText(_translate("MainWindow", "Actual FT Gaussian sigma\n"
 "(matrix size/sigma)", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_2), _translate("MainWindow", "K-space Gaussian", None))
+        self.checkBox_kspepa.setToolTip(_translate("MainWindow", "3D Epanechnikov filter in k-space (Fourier domain).   FFT of image filter used instead of calculated filter.", None))
         self.checkBox_kspepa.setText(_translate("MainWindow", "Use Kspace Epa filter\n"
 "(Fourier domain)", None))
+        self.checkBox_kspepashift.setToolTip(_translate("MainWindow", "Disable k-space frequency shift", None))
         self.checkBox_kspepashift.setText(_translate("MainWindow", "No Shift", None))
-        self.checkBox_kspepa_super.setToolTip(_translate("MainWindow", "Super-resolution uses zero-filled k-space data to double the resolution of the image. The super-resolution image is saved to NIFTI while the standard is saved to dicom", None))
+        self.checkBox_kspepa_super.setToolTip(_translate("MainWindow", "Use zero padding in k-space to double image resolution. \n"
+"\n"
+"WARNING this will increase 3D volume sizes by a factor of 8.\n"
+"\n"
+"Super-resolution uses zero-filled k-space data to double the resolution of the image. \n"
+"The super-resolution image is saved to NIFTI while the standard is saved to dicom. ", None))
         self.checkBox_kspepa_super.setText(_translate("MainWindow", "Super-resolution\n"
 "(Saved to NIFTI only)", None))
         self.label_2.setText(_translate("MainWindow", "Effective Filter Bandwidth\n"
 "(Use Sigma*sqrt(dim+4) )", None))
+        self.lineEdit_kspepa_scale.setToolTip(_translate("MainWindow", "Bandwidth equivalent in image space.  Comma separated values (no spaces) accepted for non-isotropic slices.", None))
         self.lineEdit_kspepa_scale.setText(_translate("MainWindow", "1.8708", None))
         self.comboBox_kspepa_scaleunit.setItemText(0, _translate("MainWindow", "unit voxel", None))
         self.comboBox_kspepa_scaleunit.setItemText(1, _translate("MainWindow", "mm", None))
