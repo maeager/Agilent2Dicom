@@ -24,10 +24,8 @@ try:
         scipy.pkgload('signal')
         scipy.pkgload('ndimage')
         scipy.pkgload('fftpack')
-        
     else:
-            
-        from scipy.fftpack import fftn,ifftn,fftshift,ifftshift
+        from scipy.fftpack import fftn, ifftn, fftshift, ifftshift
         from scipy import ndimage
         from scipy import signal
 

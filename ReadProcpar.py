@@ -20,7 +20,9 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 """
-import os,sys,re
+import os
+import sys
+import re
 import argparse
 
 
@@ -65,16 +67,16 @@ First line: name subtype basictype maxvalue minvalue stepsize Ggroup Dgroup prot
   active: 0 (not active), 1 (active).
   intptr: not used (generally set to 64).
 
-if basictype = 1, 
+if basictype=1, 
   Second line: numvalues value1 [value2] [value3] ... 
 
-if basictype = 2, 
+if basictype=2, 
   Second line: numvalues value1  
   [Third line: value2]
   [Fourth line: value3]
   ...
 
-Last line: 0, or if subtype = 4 (flag), an array of possible flag values formatted as
+Last line: 0, or if subtype=4 (flag), an array of possible flag values formatted a:
    numvalues flag1 [flag2] [flag3]
 
 Notes:
@@ -85,18 +87,18 @@ Notes:
 
     """
 
-    f = open(procparfilename,'r')
+    f = open(procparfilename, 'r')
     line = f.readline()
     procpar = {}
     while line != '':
         # parse first line in property
         tokens = line.split()
         propname = tokens[0]
-        propsubtype = tokens[1]
-        proptype = tokens[2]
+        propsubtype=tokens[1]
+        proptype=tokens[2]
         # parse second line in property: [number of values] [first value] ...
         line = f.readline()
-        tokens = line.strip().split(None,1)
+        tokens = line.strip().split(None, 1)
         propnumvalues = int(tokens[0])        
         # handle property values
         if proptype == '1': # real number
@@ -109,7 +111,7 @@ Notes:
                 propvalue = tokens[1].strip('"')
             if propnumvalues > 1:
                 propvalue = [tokens[1].strip('"')]
-                for i in range(2,propnumvalues+1):
+                for i in range(2, propnumvalues + 1):
                     propvalue.append(f.readline().strip('"\n"'))
         line = f.readline() # last line in property
         line = f.readline() # next property        
@@ -126,7 +128,7 @@ def ProcparInfo(procpar):
 
        This method is primarily for the Agilent2DicomAppQt GUI.
     """
-    header=dict()
+    header = dict()
     header['Protocol_Name']=procpar['pslabel']
     header['Sequence_Name']=procpar['seqfil']
     header['StudyID']=procpar['name']
@@ -135,26 +137,26 @@ def ProcparInfo(procpar):
     if procpar['nD'] == 2:
         header['FOV_cm'] = [procpar['lro'], procpar['lpe']]
         header['Dimensions'] = [procpar['nf']/procpar['ns'], procpar['np']/2, procpar['ns']]
-        #if len(procpar['thk'])>1:
+        #if len(procpar['thk']) > 1:
         #    print "procpar thk size greater than 1"
         header['Voxel_Res_mm'] = [procpar['lro']*10/header['Dimensions'][0], procpar['lpe']*10/header['Dimensions'][1], procpar['thk']*10]
     elif procpar['nD'] == 3:
-        header['FOV_cm'] = [procpar['lro'], procpar['lpe'], procpar['lpe2'],procpar['lpe3']]
+        header['FOV_cm'] = [procpar['lro'], procpar['lpe'], procpar['lpe2'], procpar['lpe3']]
         header['Dimensions'] = [procpar['nf'], procpar['np']/2, procpar['nv2']]
         header['Voxel_Resolution_mm'] =[procpar['lro']*10/header['Dimensions'][0], procpar['lpe']*10/header['Dimensions'][1], procpar['lpe2']*10/header['Dimensions'][2]]
     header['Volumes'] = procpar['volumes']
     header['NumberOfEchoes'] = procpar['ne']
-    header['FOV_ORIENTATION'] = [procpar['orient'],procpar['psi'],procpar['phi'],procpar['theta']]
-    header['GRADIENTS'] = [procpar['gcoil'],procpar['gro'],procpar['gpe']]#,procpar['gss'],procpar['gspoil'],procpar['rewind']]
-    header['ACQ_CONTROL'] = 'seqcon:'+procpar['seqcon']+'nD:'+procpar['nD']+'ni:'+procpar['ni']+'nf:'+procpar['nf']+'cf:'+procpar['cf']+'ne:'+procpar[',ne']+'ns:'+procpar['ns']+'np:'+procpar[',np']+'nv:'+procpar['nv']+'nv2:'+procpar['nv2']+'nv3:'+procpar['nv3']
-    rcvrs = re.findall('y',procpar['rcvrs'])
+    header['FOV_ORIENTATION'] = [procpar['orient'], procpar['psi'], procpar['phi'], procpar['theta']]
+    header['GRADIENTS'] = [procpar['gcoil'], procpar['gro'], procpar['gpe']]#, procpar['gss'], procpar['gspoil'], procpar['rewind']]
+    header['ACQ_CONTROL'] = 'seqcon:' + procpar['seqcon'] + 'nD:' + procpar['nD'] + 'ni:' + procpar['ni'] + 'nf:' + procpar['nf'] + 'cf:' + procpar['cf'] + 'ne:' + procpar[', ne'] + 'ns:' + procpar['ns'] + 'np:' + procpar[', np'] + 'nv:' + procpar['nv'] + 'nv2:' + procpar['nv2'] + 'nv3:' + procpar['nv3']
+    rcvrs = re.findall('y', procpar['rcvrs'])
     if rcvrs:
         header['NumberOfChannels'] = len(rcvrs);
     else:
         header['NumberOfChannels'] = 1
                             
     
-    dims=[1,1,1,1,1]
+    dims=[1, 1, 1, 1, 1]
     # validate dimensions
     if procpar['nD'] == 2:
         dims[0] = procpar['np']/2        # num phase encode lines / 2
@@ -169,9 +171,9 @@ def ProcparInfo(procpar):
     dims[3] = header['NumberOfChannels']
     dims[4] = header['NumberOfEchoes']
     header['Dims2']=dims
-    header['DimXYZ']=[procpar[procpar['dimX']],procpar[procpar['dimY']],procpar[procpar['dimZ']]]
-    header['PosXYZ']=[procpar[procpar['posX']],procpar[procpar['posY']],procpar[procpar['posZ']]]
-    header['VoxelSize']=[procpar['vox1'],procpar['vox2'],procpar['vox3']]
+    header['DimXYZ']=[procpar[procpar['dimX']], procpar[procpar['dimY']], procpar[procpar['dimZ']]]
+    header['PosXYZ']=[procpar[procpar['posX']], procpar[procpar['posY']], procpar[procpar['posZ']]]
+    header['VoxelSize']=[procpar['vox1'], procpar['vox2'], procpar['vox3']]
     header['TR']  = str(procpar['tr']*1000.0)
     if 'te' in procpar.keys():
         header['TE']  = str(procpar['te']*1000.0) 
@@ -179,10 +181,10 @@ def ProcparInfo(procpar):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(usage=' ReadProcpar -i "Input FDF directory" ',description='ReadProcpar is part of agilent2dicom, an FDF to Enhanced MR DICOM converter from MBI.')
-    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF directory',required=True);
-    parser.add_argument('-s','--show', help='Show procpar info.',action="store_true");
-    parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
+    parser = argparse.ArgumentParser(usage=' ReadProcpar -i "Input FDF directory" ', description='ReadProcpar is part of agilent2dicom, an FDF to Enhanced MR DICOM converter from MBI.')
+    parser.add_argument('-i', '--inputdir', help='Input directory name. Must be an Agilent FDF directory', required=True);
+    parser.add_argument('-s', '--show', help='Show procpar info.', action="store_true");
+    parser.add_argument('-v', '--verbose', help='Verbose.', action="store_true");
     args = parser.parse_args()
 
 
@@ -193,4 +195,4 @@ if __name__ == "__main__":
 
     p = ProcparInfo(procpar)
     #print '\n'.join(p)
-    print '\n'.join("%s:  %r" % (key,val) for (key,val) in p.iteritems())
+    print '\n'.join("%s:  %r" % (key, val) for (key, val) in p.iteritems())

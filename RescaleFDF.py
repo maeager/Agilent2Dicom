@@ -21,7 +21,7 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os,sys,math
+import os, sys, math
 import re
 import numpy
 import argparse
@@ -34,19 +34,19 @@ from ReadProcpar import *
 import ReadFDF
 
 
-def ShortenFloatString(val,origin):
+def ShortenFloatString(val, origin):
     """Shorten float to 16 element string
     """
     if numpy.iscomplex(val):
         print "Error: ShortenFloatString given complex number, Source: %s" % origin
-        val=numpy.abs(val)
+        val = numpy.abs(val)
     if val < 0:
         print "Negative val in shorten string"
-    if len(str(val))>=15:
-        stringval=str(val)
-        if re.search('e',stringval): #scientific notation
+    if len(str(val)) >= 15:
+        stringval = str(val)
+        if re.search('e', stringval): #scientific notation
             pos = stringval.index('e')
-            stripped_val = stringval[:pos - (len(stringval)-15)]+stringval[pos:]
+            stripped_val = stringval[:pos - (len(stringval)-15)] + stringval[pos:]
         else: # normal float 
             stripped_val = stringval[:15]
         print "Cropping float string from ", str(val), " to ", stripped_val
@@ -56,7 +56,7 @@ def ShortenFloatString(val,origin):
 
 
 
-def FindScale(fdffiles,ds,procpar,args):
+def FindScale(fdffiles, ds, procpar, args):
     """RescaleFDF
      Calculate the max and min throughout all fdf iles in dataset;
      calculate the intercept and slope for casting to UInt16
@@ -71,17 +71,17 @@ def FindScale(fdffiles,ds,procpar,args):
     datamin = float("inf")
     datamax = float("-inf")
 
-    # RescaleSlope of phase imgs set to [-pi,pi]
-    if (len(ds.ImageType)>=3 and ds.ImageType[2] == "PHASE MAP") or \
-            (hasattr(ds,'ComplexImageComponent') and ds.ComplexImageComponent == 'PHASE'):
+    # RescaleSlope of phase imgs set to [-pi, pi]
+    if (len(ds.ImageType) >= 3 and ds.ImageType[2] == "PHASE MAP") or \
+            (hasattr(ds, 'ComplexImageComponent') and ds.ComplexImageComponent == 'PHASE'):
         # this implies either args.phase is on or procpar['imPH']=='y'
         datamin = -math.pi
         datamax = math.pi
     else:
         for filename in fdffiles:
             fdf_properties, data = ReadFDF.ReadFDF(os.path.join(args.inputdir, filename))
-            datamin = numpy.min([datamin,data.min()])
-            datamax = numpy.max([datamax,data.max()])
+            datamin = numpy.min([datamin, data.min()])
+            datamax = numpy.max([datamax, data.max()])
 
 
     RescaleIntercept = datamin
@@ -92,11 +92,11 @@ def FindScale(fdffiles,ds,procpar,args):
         slope_factor = Int16MaxRange
     RescaleSlope = (datamax - datamin) / slope_factor 
 
-    return RescaleIntercept,RescaleSlope
+    return RescaleIntercept, RescaleSlope
 
     
     
-def RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args):
+def RescaleImage(ds, image_data, RescaleIntercept, RescaleSlope, args):
 
     if args.verbose:
         print "Rescale data to uint16"
@@ -107,21 +107,21 @@ def RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args):
 
     ## Adjusting Dicom parameters for rescaling
     # Rescale intercept string must not be longer than 16
-    ds.RescaleIntercept = ShortenFloatString(RescaleIntercept,"RescaleIntercept")  #(0028,1052) Rescale Intercept
+    ds.RescaleIntercept = ShortenFloatString(RescaleIntercept,"RescaleIntercept")  #(0028, 1052) Rescale Intercept
     # Rescale slope string must not be longer than 16
-    ds.RescaleSlope = ShortenFloatString(RescaleSlope,"RescaleSlope")  #(0028,1053) Rescale Slope
+    ds.RescaleSlope = ShortenFloatString(RescaleSlope,"RescaleSlope")  #(0028, 1053) Rescale Slope
 
-    return ds,image_data_int16
+    return ds, image_data_int16
 
 
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(usage=' procpartodicommapping -i "Input FDF directory"',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' + VersionNumber)
-    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
-    parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
-    parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
-    parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
+    parser = argparse.ArgumentParser(usage=' procpartodicommapping -i "Input FDF directory"', description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' + VersionNumber)
+    parser.add_argument('-i', '--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files', required=True);
+    parser.add_argument('-m', '--magnitude', help='Magnitude component flag.', action="store_true");
+    parser.add_argument('-p', '--phase', help='Phase component flag.', action="store_true");
+    parser.add_argument('-v', '--verbose', help='Verbose.', action="store_true");
     args = parser.parse_args()
     
 
@@ -129,13 +129,13 @@ if __name__ == "__main__":
     import ProcparToDicomMap as ptd
 #    from ProcparToDicomMap import CreateUID
 
-    procpar, procpartext = rp.ReadProcpar(os.path.join(args.inputdir,'procpar'))
-    ds,MRAcq_type = ptd.ProcparToDicomMap(procpar, args)
+    procpar, procpartext = rp.ReadProcpar(os.path.join(args.inputdir, 'procpar'))
+    ds, MRAcq_type=ptd.ProcparToDicomMap(procpar, args)
 
     files = os.listdir(args.inputdir)
     fdffiles = [ f for f in files if f.endswith('.fdf') ]
 
-    RescaleIntercept,RescaleSlope = FindScale(fdffiles,ds,procpar,args)
+    RescaleIntercept, RescaleSlope = FindScale(fdffiles, ds, procpar, args)
 
     print "Intercept: ", RescaleIntercept
     print "Slope: ", RescaleSlope

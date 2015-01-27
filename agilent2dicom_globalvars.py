@@ -18,6 +18,7 @@
   # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
+### Ensure no spaces in variable declaration so that shell and python comply ###
 VersionNumber="1.6.0"
 Agilent2DicomAppVersion="1.6.0"
 FDF2DCMVERSION="1.2"
