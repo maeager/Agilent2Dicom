@@ -30,9 +30,9 @@ Version 0.6: Major rewrite, external recon
 """
 
 agilent2dicomVersionNumber = "0.7"
-DVCSstamp = "$Id$"
+DVCS_STAMP = "$Id$"
 from agilent2dicom_globalvars import *
-import pdb
+# import pdb
 # import ast
 import os
 import sys
@@ -62,7 +62,7 @@ UID_Type_DimensionIndex2 = "6"
 
 # Hard coded DICOM tag values
 InstanceCreatorId = ''.join(map(str, [ord(
-    c) for c in 'agilent2dicom'])) + '.' + VersionNumber + '.' + agilent2dicomVersionNumber
+    c) for c in 'agilent2dicom'])) + '.' + AGILENT2DICOM_VERSION + '.' + agilent2dicomVersionNumber
 DICOM_Tag_Manufacturer = "Agilent Technologies"
 DICOM_Tag_InstitutionName = "Monash Biomedical Imaging"
 DICOM_Tag_ManufacturerModelName = "vnmrs"
@@ -254,7 +254,7 @@ if basictype=1,
   Second line: numvalues value1 [value2] [value3] ...
 
 if basictype=2,
-  Second line: numvalues value1 
+  Second line: numvalues value1
   [Third line: value2]
   [Fourth line: value3]
   ...
@@ -332,7 +332,7 @@ Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '''
                                      + agilent2dicomVersionNumber
                                      + '''. The full Agilent2Dicom package
                                      version '''
-                                     + VersionNumber + '.')
+                                     + AGILENT2DICOM_VERSION + '.')
     parser.add_argument('-i', '--inputdir', help='''Input directory name. Must
                         be an Agilent FDF
         image directory containing procpar and *.fdf files''', required=True)
@@ -383,8 +383,8 @@ Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '''
             outdir = outdir + '.dcm'
         else:
             (dirName, imgdir) = os.path.split(outdir)
-            while imdir == '':
-                (dirName, imgdir) = os.path.split(outdir)
+            while imgdir == '':
+                (dirName, imgdir) = os.path.split(dirName)
 
             (ImgBaseName, ImgExtension) = os.path.splitext(imgdir)
             outdir = os.path.join(dirName, ImgBaseName + '.dcm')
@@ -524,8 +524,8 @@ Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '''
     # include procpar in dicom header as "Series Comments"
     # This is a retired field, so probably shouldn't be used. But, oh well.
     ds.add_new((0x0018, 0x1000), 'UT', [
-               'MBI Agilent2Dicom converter (Version ' + str(VersionNumber)])
-# + ', ' DVCSstamp +') \nProcpar text: '+ procpartext ]) # 0018,1000 Series Comments (retired)
+               'MBI Agilent2Dicom converter (Version ' + str(AGILENT2DICOM_VERSION)])
+# + ', ' DVCS_STAMP +') \nProcpar text: '+ procpartext ]) # 0018,1000 Series Comments (retired)
 
     # -------------------------------------------------------------------------
     # IE: Frame of Reference
@@ -2240,8 +2240,7 @@ Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '''
 
         # PixelSpacing - 0028,0030 Pixel Spacing (mandatory)
         PixelSpacing = map(lambda x, y: x * 10.0 / y, roi, fdf_size_matrix)
-        if PixelSpacing[0] != ds.PixelSpacing[0] or
-        PixelSpacing[1] != ds.PixelSpacing[1]:
+        if PixelSpacing[0] != ds.PixelSpacing[0] or PixelSpacing[1] != ds.PixelSpacing[1]:
             print "Pixel spacing mismatch, procpar ", ds.PixelSpacing,
             " fdf spacing ", str(PixelSpacing[0]), ', ',
             str(PixelSpacing[1])
@@ -2418,8 +2417,8 @@ Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '''
         ''' + str(procpar['fn1'] / 2.0) + ',' + str(procpar['nv']) + ''').\n
             For 2D datasets, number of rows is fn/2.0 or np ('''
         + str(procpar['fn'] / 2.0) + ',' + str(procpar['np']) + ''').\n
-        Using local FDF value ''' + str(fdf_properties['matrix'][1]) + 
-        'instead of procpar value ' + str(ds.Rows) + '.'
+        Using local FDF value ''' + str(fdf_properties['matrix'][1])
+        + 'instead of procpar value ' + str(ds.Rows) + '.'
 
         AssertImplementation(int(float(ds.Rows)) != int(
             fdf_properties['matrix'][1]), filename, CommentStr, AssumptionStr)
@@ -2668,8 +2667,10 @@ For 2D datasets, number of rows is fn1/2.0 or nv (''' + str(procpar['fn1'] / 2.0
         # ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
         if SEQUENCE == "MULTIECHO":  # or SEQUENCE == "Diffusion":
-            DimensionOrganizationUID = [CreateUID(UID_Type_DimensionIndex1, [], [
-            ], args.verbose), CreateUID(UID_Type_DimensionIndex2, [], [], args.verbose)]
+            DimensionOrganizationUID = [CreateUID(UID_Type_DimensionIndex1, [],
+                                                  [], args.verbose),
+                                        CreateUID(UID_Type_DimensionIndex2, [],
+                                                  [], args.verbose)]
             DimOrgSeq.add_new((0x0020, 0x9164), 'UI', DimensionOrganizationUID)
             ds.DimensionOrganizationType = '3D_TEMPORAL'  # or 3D_TEMPORAL
         else:
@@ -2737,8 +2738,7 @@ For 2D datasets, number of rows is fn1/2.0 or nv (''' + str(procpar['fn1'] / 2.0
         ds.RescaleIntercept = str(RescaleIntercept)
         # Rescale slope string must not be longer than 16
         if len(str(RescaleSlope)) > 16:
-            print "Cropping rescale slope from ", str(RescaleSlope), "
-            to ", str(RscaleSlope)[:15]
+            print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RscaleSlope)[:15]
         ds.RescaleSlope = str(RescaleSlope)[:15]  # (0028,1053) Rescale Slope
 
         # ds.MRAcquisitionType = '2D'
@@ -2772,8 +2772,7 @@ For 2D datasets, number of rows is fn1/2.0 or nv (''' + str(procpar['fn1'] / 2.0
             # if procpar['recon'] == 'external':
             #
             # pdb.set_trace()
-            if procpar['recon'] == 'external' and
-            fdf_properties['rank'] == 3:
+            if procpar['recon'] == 'external' and fdf_properties['rank'] == 3:
                 if procpar['seqfil'] == "epip":
                     print "Transposing external recon 3D"
                     voldata = numpy.transpose(voldata, (1, 2, 0))  # 1,2,0
@@ -2796,8 +2795,9 @@ For 2D datasets, number of rows is fn1/2.0 or nv (''' + str(procpar['fn1'] / 2.0
             range_max = fdf_properties['matrix'][2]
             num_slicepts = fdf_properties['matrix'][
                 0] * fdf_properties['matrix'][1]
-            if procpar['recon'] == 'external' and
-            fdf_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
+            if procpar['recon'] == 'external' and \
+               fdf_properties['rank'] == 3 and \
+               procpar['seqfil'] == 'fse3d':
                 range_max = fdf_properties['matrix'][1]
                 num_slicepts = fdf_properties['matrix'][
                     0] * fdf_properties['matrix'][2]
@@ -2844,8 +2844,9 @@ For 2D datasets, number of rows is fn1/2.0 or nv (''' + str(procpar['fn1'] / 2.0
                                    SliceThickness * ImageOrientationPatient[8],
                                    ImagePositionPatient[2]],
                                   [0, 0, 0, 1]])
-                if procpar['recon'] == 'external' and
-                fdf_properties['rank'] == 3 and procpar['seqfil'] == 'fse3d':
+                if procpar['recon'] == 'external' and \
+                   fdf_properties['rank'] == 3 and \
+                   procpar['seqfil'] == 'fse3d':
                     pos = numpy.matrix([[0], [0], [islice], [1]])
                 else:
                     pos = numpy.matrix([[0], [0], [islice], [1]])
@@ -2857,7 +2858,7 @@ For 2D datasets, number of rows is fn1/2.0 or nv (''' + str(procpar['fn1'] / 2.0
                 ds.FrameContentSequence[0].StackID = [str(volume)]
                 # fourthdimid
                 ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)]
-                ]# fourthdimindex
+                # fourthdimindex
                 ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber
                 #                ds.InStackPosition = islice #str(islice)
 

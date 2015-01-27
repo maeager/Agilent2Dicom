@@ -38,7 +38,7 @@ DEBUGGING = 0
 
 
 __author__ = "Michael Eager, Monash Biomedical Imaging"
-__version__ = str(Agilent2DicomAppVersion) + "-$Revision$"
+__version__ = str(AGILENT2DICOM_APP_VERSION) + "-$Revision$"
 __date__ = "$Date$"
 __copyright__ = "Copyright 2014 Michael Eager"
 
