@@ -166,7 +166,7 @@ function enhance_dicoms_fid(){
 #     sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
 #     sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
-	rm -f ${output_dir}/MULTIECHO
+	${RM} ${output_dir}/MULTIECHO
 	echo "Multi echo sequence completed."
 	
     elif  [ -f ${output_dir}/DIFFUSION ]; then
@@ -249,8 +249,8 @@ function fix_enhanced_dicoms_fid(){
 	fi
     done
     
-    [ -f ${output_dir}/DIFFUSION ] && rm -f ${output_dir}/DIFFUSION
-    [ -f ${output_dir}/ASL ] && rm -f ${output_dir}/ASL
+    [ -f ${output_dir}/DIFFUSION ] && ${RM} ${output_dir}/DIFFUSION
+    [ -f ${output_dir}/ASL ] && ${RM} ${output_dir}/ASL
 }
 
 function iodvfy(){
@@ -279,7 +279,7 @@ function clean_tmps_fid(){
 	    then
 		echo "Removing existing tmp output directory"
 		for dcmdir in $dirs; do
-		    rm -rf "${dcmdir}/tmp"    
+		    ${RMDIR} "${dcmdir}/tmp"    
 		done
 	    else
 		echo "fid2dcm completed. Temporary dicoms still remain."
@@ -288,7 +288,7 @@ function clean_tmps_fid(){
 	else
 	    echo "Removing existing tmp output directory"
 	    for dcmdir in $dirs; do
-		rm -rf "${dcmdir}/tmp"    
+		${RMDIR} "${dcmdir}/tmp"    
 	    done
 	fi
 	[ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
