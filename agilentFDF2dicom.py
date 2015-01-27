@@ -12,7 +12,7 @@ Version 0.5: Major fixes to diffusion and other sequences (Michael Eager)
 Version 0.6: Major rewrite, external recon  (Michael Eager)
 Version 1.0: Pythonised modules (Michael Eager)
 
-  $Id: agilentFDF2dicom.py,v 684a04959645 2014/10/30 06:04:34 michael $
+  $Id: agilentFDF2dicom.py,v 81a3e8ddbd21 2015/01/27 03:09:33 michael $
 
  - Michael Eager  (michael.eager@monash.edu)
 """
@@ -33,7 +33,7 @@ Version 1.0: Pythonised modules (Michael Eager)
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os
+import os 
 import sys
 import re
 import dicom
@@ -54,14 +54,19 @@ if __name__ == "__main__":
 
     # Parse command line arguments and validate img directory
 
-    parser = argparse.ArgumentParser(usage=' agilent2dicom -i "Input FDF directory" [-o "Output directory"] [-m] [-p] [-v]',description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version '+VersionNumber)
-    parser.add_argument('-i','--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files',required=True);
-    parser.add_argument('-o','--outputdir', help='Output directory name for DICOM files.');
-    parser.add_argument('-m','--magnitude', help='Magnitude component flag.',action="store_true");
-    parser.add_argument('-p','--phase', help='Phase component flag.',action="store_true");
-    parser.add_argument('-s','--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL.');
-#    parser.add_argument('-d','--disable-dcmodify', help='Dcmodify flag.',action="store_true");
-    parser.add_argument('-v','--verbose', help='Verbose.',action="store_true");
+    parser = argparse.ArgumentParser(usage=''' agilent2dicom -i "Input FDF
+        directory" [-o "Output directory"] [-m] [-p] [-v]''',
+                                     description='''agilent2dicom is an FDF
+        to Enhanced MR DICOM converter from MBI. Version ''' + VersionNumber)
+    parser.add_argument('-i', '--inputdir', help='''Input directory name. Must
+                        be an Agilent FDF image directory containing procpar
+                        and *.fdf files''', required=True);
+    parser.add_argument('-o', '--outputdir', help='Output directory name for DICOM files.');
+    parser.add_argument('-m', '--magnitude', help='Magnitude component flag.', action="store_true");
+    parser.add_argument('-p', '--phase', help='Phase component flag.', action="store_true");
+    parser.add_argument('-s', '--sequence', help='Sequence type (one of Multiecho, Diffusion, ASL.');
+#    parser.add_argument('-d', '--disable-dcmodify', help='Dcmodify flag.', action="store_true");
+    parser.add_argument('-v', '--verbose', help='Verbose.', action="store_true");
     
     # parser.add_argument("imgdir", help="Agilent .img directory containing procpar and fdf files")
 
@@ -102,7 +107,7 @@ if __name__ == "__main__":
                 (dirName, imgdir) = os.path.split(outdir)
 
             (ImgBaseName, ImgExtension)=os.path.splitext(imgdir)
-            outdir = os.path.join(dirName,ImgBaseName + '.dcm')
+            outdir = os.path.join(dirName, ImgBaseName + '.dcm')
     else:
         outdir = args.outputdir
     if args.verbose:
@@ -120,23 +125,23 @@ if __name__ == "__main__":
     
 
     ## Read in data procpar
-    procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir,'procpar'))
+    procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir, 'procpar'))
     # if args.verbose:
     #     print procpar
 
 
     ## Map procpar to DICOM and create pydicom struct
-    ds,MRAcquisitionType = ProcparToDicomMap.ProcparToDicomMap(procpar,args)
+    ds, MRAcquisitionType = ProcparToDicomMap.ProcparToDicomMap(procpar, args)
 
 
     # Calculate the max and min throughout all fdf iles in dataset;
     # calculate the intercept and slope for casting to UInt16
-    RescaleIntercept,RescaleSlope = RescaleFDF.FindScale(fdffiles,ds,procpar,args)
+    RescaleIntercept, RescaleSlope = RescaleFDF.FindScale(fdffiles, ds, procpar, args)
  
 
     ## Per frame implementation
     # Read in data from fdf file, if 3D split frames    
-    volume=1
+    volume = 1
     for filename in fdffiles:
 
         if args.verbose:
@@ -147,21 +152,27 @@ if __name__ == "__main__":
             print 'Image_data shape:', str(image_data.shape)
 
         # Change dicom for specific FDF header info
-        ds,fdfrank,fdf_matsize,ImageTransformationMatrix = ParseFDF.ParseFDF(ds,fdf_properties,procpar,args)
+        ds, fdfrank, fdf_matsize, ImageTransformationMatrix =
+        ParseFDF.ParseFDF(ds, fdf_properties, procpar, args)
 
         # Rescale image data
-        ds,image_data =RescaleFDF.RescaleImage(ds,image_data,RescaleIntercept,RescaleSlope,args)
+        ds, image_data = RescaleFDF.RescaleImage(ds, image_data,
+                                                 RescaleIntercept, RescaleSlope, args)
 
         # Export dicom to file
         if MRAcquisitionType == '3D':
-            ds=ParseFDF.Save3dFDFtoDicom(ds,procpar,image_data,fdf_properties,ImageTransformationMatrix,args,outdir,filename)
+            ds = ParseFDF.Save3dFDFtoDicom(ds, procpar, image_data,
+                                           fdf_properties,
+                                           ImageTransformationMatrix,
+                                           args, outdir, filename)
         else:
-            ParseFDF.Save2dFDFtoDicom(image_data,ds,fdf_properties, outdir, filename)
+            ParseFDF.Save2dFDFtoDicom(image_data, ds, fdf_properties, outdir, filename)
 
-        if (len(ds.ImageType)>=3 and ds.ImageType[2]=="MULTIECHO") or re.search('slab|img_',filename):
+        if (len(ds.ImageType) >= 3 and ds.ImageType[2]=="MULTIECHO")
+        or re.search('slab|img_', filename):
             print ds.FrameContentSequence[0].StackID, ds.FrameContentSequence[0].StackID[0]
             print type(ds.FrameContentSequence[0].StackID), type(ds.FrameContentSequence[0].StackID[0])
-            ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0])+1)
+            ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0]) + 1)
             if args.verbose:
                 print "Incrementing volume StackID ", ds.FrameContentSequence[0].StackID
 
