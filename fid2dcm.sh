@@ -27,17 +27,18 @@
 ###############################################
 
 
-
-## Set config variables
-FID2DCMPATH=$(dirname $0)
-source ${FID2DCMPATH}/agilent2dicom_globalvars.py
+## Debugging variables and config
 set -o nounset  # shortform: -u
 set -o errexit  # -e
 # set -o pipefail
 # touch $(dirname $0)/error.log
 # exec 2>> $(dirname $0)/error.log
 # set -x  # show debugging output
-# variable collected global FID2DCMVERSION=0.5
+
+
+## Set config variables
+FID2DCMPATH=$(dirname $0)
+source ${FID2DCMPATH}/agilent2dicom_globalvars.py
 PROGNAME=$(basename $0)
 FID2DICOM=fid2dicom.py
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
@@ -46,7 +47,8 @@ DCM3TOOLS="${FID2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KE
 DCM3TOOLS=$(/bin/ls -d "${FID2DCMPATH}"/../dicom3tools_*/bin/*)
 #DCM3TOOLS="${FID2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/"
 #DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
-
+RM='/bin/rm -f'
+RMDIR='/bin/rm -rf'
 ## Set dcmulti's arguments
 DCMULTI="dcmulti -v -makestack -sortby AcquisitionNumber -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 DCMULTI_DTI="dcmulti -v -makestack -sortby DiffusionBValue -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
@@ -322,7 +324,7 @@ if [ -d "${output_dir}" ]; then
 	if yesno "Remove existing output directory, y or n (default y)?"; then
 	    echo "Removing existing output directories"
 	    for dcmdir in ${dirs}; do
-		rm -rf ${dcmdir}
+		${RMDIR} ${dcmdir}
 	    done
 	else
 	    JumpToDCmulti=1
@@ -330,7 +332,7 @@ if [ -d "${output_dir}" ]; then
     else
 	echo "Removing existing output directories"
 	for dcmdir in ${dirs}; do
-	    rm -rf ${dcmdir}
+	    ${RMDIR} ${dcmdir}
 	done
     fi	
 fi
@@ -408,7 +410,7 @@ then
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
 #  ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
-    rm -f ${output_dir}/MULTIECHO
+    ${RM} ${output_dir}/MULTIECHO
     echo "Multi echo sequence completed."
     
 elif  [ -f ${output_dir}/DIFFUSION ]; then
@@ -488,8 +490,8 @@ then
 	fi
     done
 fi
-[ -f ${output_dir}/DIFFUSION ] && rm -f ${output_dir}/DIFFUSION
-[ -f ${output_dir}/ASL ] && rm -f ${output_dir}/ASL
+[ -f ${output_dir}/DIFFUSION ] && ${RM} ${output_dir}/DIFFUSION
+[ -f ${output_dir}/ASL ] && ${RM} ${output_dir}/ASL
 
 if (( verbosity > 0 )); then
     echo "Verifying dicom compliance using dciodvfy."
@@ -515,7 +517,7 @@ then
 	then
 	    echo "Removing existing tmp output directory"
 	    for dcmdir in $dirs; do
-		rm -rf "${dcmdir}/tmp"    
+		${RMDIR} "${dcmdir}/tmp"    
 	    done
 	else
 	    echo "fid2dcm completed. Temporary dicoms still remain."
@@ -524,7 +526,7 @@ then
     else
 	echo "Removing existing tmp output directory"
 	for dcmdir in $dirs; do
-	    rm -rf "${dcmdir}/tmp"    
+	    ${RMDIR} "${dcmdir}/tmp"    
 	done
     fi
     [ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
