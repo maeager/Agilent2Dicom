@@ -12,7 +12,7 @@ Version 0.5: Major fixes to diffusion and other sequences (Michael Eager)
 Version 0.6: Major rewrite, external recon  (Michael Eager)
 Version 1.0: Pythonised modules (Michael Eager)
 
-  $Id: agilentFDF2dicom.py,v 81a3e8ddbd21 2015/01/27 03:09:33 michael $
+  $Id: agilentFDF2dicom.py,v 7b65b76b53c7 2015/01/27 22:27:24 michael $
 
  - Michael Eager  (michael.eager@monash.edu)
 """
@@ -33,7 +33,7 @@ Version 1.0: Pythonised modules (Michael Eager)
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import os 
+import os
 import sys
 import re
 import dicom
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(usage=''' agilent2dicom -i "Input FDF
         directory" [-o "Output directory"] [-m] [-p] [-v]''',
                                      description='''agilent2dicom is an FDF
-        to Enhanced MR DICOM converter from MBI. Version ''' + VersionNumber)
+        to Enhanced MR DICOM converter from MBI. Version ''' + AGILENT2DICOM_VERSION)
     parser.add_argument('-i', '--inputdir', help='''Input directory name. Must
                         be an Agilent FDF image directory containing procpar
                         and *.fdf files''', required=True);
@@ -103,8 +103,8 @@ if __name__ == "__main__":
             outdir = outdir + '.dcm'
         else:
             (dirName, imgdir) = os.path.split(outdir)
-            while imdir == '':
-                (dirName, imgdir) = os.path.split(outdir)
+            while imgdir == '':
+                (dirName, imgdir) = os.path.split(dirName)
 
             (ImgBaseName, ImgExtension)=os.path.splitext(imgdir)
             outdir = os.path.join(dirName, ImgBaseName + '.dcm')
@@ -140,7 +140,7 @@ if __name__ == "__main__":
  
 
     ## Per frame implementation
-    # Read in data from fdf file, if 3D split frames    
+    # Read in data from fdf file, if 3D split frames
     volume = 1
     for filename in fdffiles:
 
