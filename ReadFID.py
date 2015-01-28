@@ -93,23 +93,23 @@ def readfid(fidfolder, procpar, args):
     endian = '>'  # > for big-endian < for little
     # Read datafileheader using: x, = struct.unpack(type,binary) method
     # unpack returns a tuple and we only want the result
-    fid_header['nblocks'],   = struct.unpack(
+    fid_header['nblocks'], = struct.unpack(
         endian + 'i', f.read(int32size))  # fid,1,'int32')
-    fid_header['ntraces'],   = struct.unpack(
+    fid_header['ntraces'], = struct.unpack(
         endian + 'i', f.read(int32size))  # fid,1,'int32')
-    fid_header['np'],        = struct.unpack(
+    fid_header['np'], = struct.unpack(
         endian + 'i', f.read(int32size))  # fid,1,'int32')
-    fid_header['ebytes'],    = struct.unpack(
+    fid_header['ebytes'], = struct.unpack(
         endian + 'i', f.read(int32size))  # fid,1,'int32')
-    fid_header['tbytes'],    = struct.unpack(
+    fid_header['tbytes'], = struct.unpack(
         endian + 'i', f.read(int32size))  # fid,1,'int32')
-    fid_header['bbytes'],    = struct.unpack(
+    fid_header['bbytes'], = struct.unpack(
         endian + 'i', f.read(int32size))  # fid,1,'int32')
 
-    fid_header['vers_id'],   = struct.unpack(
+    fid_header['vers_id'], = struct.unpack(
         endian + 'h', f.read(int16size))  # fid,1,'int16')
     status = f.read(int16size)
-    fid_header['status'],    = struct.unpack(
+    fid_header['status'], = struct.unpack(
         endian + 'h', status)  # fid,1,'int16')
     fid_header['nbheaders'], = struct.unpack(
         endian + 'i', f.read(int32size))  # fid,1,'int32')
@@ -198,7 +198,7 @@ def readfid(fidfolder, procpar, args):
         raise ValueError(
             "Cannot resolve fid header with procpar. We're probably not interpreting the procpar correctly.")
     if fid_header['nChannels'] != fid_header['nblocks'] / procpar['acqcycles']:
-        print "ReadFID error nChannels ", fid_header['nChannels'], str(float(fid_header['nblocks'] / procpar['acqcycles']))
+        print "ReadFID error nChannels %d %s " % (fid_header['nChannels'], str(float(fid_header['nblocks'] / procpar['acqcycles'])))
     fid_header['nChannels'] = fid_header['nblocks'] / procpar['acqcycles']
     fid_header['nPhaseEncodes'] = fid_header['ntraces'] / fid_header['nEchoes']
     fid_header['rank'] = procpar['nD']
@@ -244,8 +244,9 @@ def readfid(fidfolder, procpar, args):
     fid_header['location'] = [-procpar['pro'], procpar['ppe'], procpar['pss0']]
     fid_header['span'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
     fid_header['roi'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
-    fid_header['origin'] = [-(float(procpar['pro'])) - float(procpar['lro']) / 2.0,  float(
-        procpar['ppe']) - float(procpar['lpe']) / 2.0,  float(procpar['pss0']) - float(procpar['lpe2']) / 2.0]
+    fid_header['origin'] = [-(float(procpar['pro'])) - float(procpar['lro']) / 2.0,
+                            float(procpar['ppe']) - float(procpar['lpe']) / 2.0,
+                            float(procpar['pss0']) - float(procpar['lpe2']) / 2.0]
     if procpar['orient'] == "sag":
         # TODO fid_header['orientation']= [0,0,1,1,0,0,0,1,0]
         fid_header['orientation'] = [1, 0, 0, 0, 1, 0, 0, 0, 1]
@@ -267,23 +268,23 @@ def readfid(fidfolder, procpar, args):
             print 'reading block ', iblock + 1, ' of ', fid_header['nblocks']
         # Read a block header
         header = dict()
-        header['scale'],     = struct.unpack(
+        header['scale'], = struct.unpack(
             endian + 'h', f.read(int16size))  # fid,1,'int16')
-        header['bstatus'],   = struct.unpack(
+        header['bstatus'], = struct.unpack(
             endian + 'h', f.read(int16size))  # fid,1,'int16')
-        header['index'],     = struct.unpack(
+        header['index'], = struct.unpack(
             endian + 'h', f.read(int16size))  # fid,1,'int16')
-        header['mode'],      = struct.unpack(
+        header['mode'], = struct.unpack(
             endian + 'h', f.read(int16size))  # fid,1,'int16')
-        header['ctcount'],   = struct.unpack(
+        header['ctcount'], = struct.unpack(
             endian + 'i', f.read(int32size))  # fid,1,'int32')
-        header['lpval'],     = struct.unpack(
+        header['lpval'], = struct.unpack(
             endian + 'f', f.read(int32size))  # fid,1,'float32')
-        header['rpval'],     = struct.unpack(
+        header['rpval'], = struct.unpack(
             endian + 'f', f.read(int32size))  # fid,1,'float32')
-        header['lvl'],       = struct.unpack(
+        header['lvl'], = struct.unpack(
             endian + 'f', f.read(int32size))  # fid,1,'float32')
-        header['tlt'],       = struct.unpack(
+        header['tlt'], = struct.unpack(
             endian + 'f', f.read(int32size))  # fid,1,'float32')
 
         header['s_data'] = int(get_bit(header['bstatus'], 1))
@@ -313,31 +314,31 @@ def readfid(fidfolder, procpar, args):
         header['s_ni2_cpmlx'] = int(get_bit(header['bstatus'], 12))
         if header['s_hyper']:
             # short s_spare1; /* short word: spare */
-            header['hyper_spare1'],   = struct.unpack(
+            header['hyper_spare1'], = struct.unpack(
                 endian + 'h', f.read(int16size))
             # short status;   /* status word for block header */
-            header['hyper_status'],   = struct.unpack(
+            header['hyper_status'], = struct.unpack(
                 endian + 'h', f.read(int16size))
             # short s_spare2; /* short word: spare */
-            header['hyper_spare2'],   = struct.unpack(
+            header['hyper_spare2'], = struct.unpack(
                 endian + 'h', f.read(int16size))
             # short s_spare3; /* short word: spare */
-            header['hyper_spare3'],   = struct.unpack(
+            header['hyper_spare3'], = struct.unpack(
                 endian + 'h', f.read(int16size))
             # long l_spare1;  /* long word: spare */
-            header['hyper_lspare1'],   = struct.unpack(
+            header['hyper_lspare1'], = struct.unpack(
                 endian + 'i', f.read(int32size))
             # float lpval1;   /* 2D-f2 left phase */
-            header['hyper_lpval1'],     = struct.unpack(
+            header['hyper_lpval1'], = struct.unpack(
                 endian + 'f', f.read(int32size))
             # float rpval1;   /* 2D-f2 right phase */
-            header['hyper_rpval1'],     = struct.unpack(
+            header['hyper_rpval1'], = struct.unpack(
                 endian + 'f', f.read(int32size))
             # float f_spare1; /* float word: spare */
-            header['hyper_f_spare1'],     = struct.unpack(
+            header['hyper_f_spare1'], = struct.unpack(
                 endian + 'f', f.read(int32size))
             # float f_spare2; /* float word: spare */
-            header['hyper_f_spare2'],     = struct.unpack(
+            header['hyper_f_spare2'], = struct.unpack(
                 endian + 'f', f.read(int32size))
 
 # Main data block header mode bits 0-15:
@@ -393,12 +394,12 @@ def readfid(fidfolder, procpar, args):
         IM = numpy.reshape(IM, dims)
     # fid_header.procpar = procpar
     if args.verbose:
-        print "Data Row 1:   %.5g %.5g %.5g %.5g %.5g  %.5g ... %.5g %.5g %.5g %.5g" % (data[0, 0], data[0, 1],  data[0, 2], data[0, 3],  data[0, 4], data[0, 5], data[0, -4], data[0, -3], data[0, -2], data[0, -1])
-        print "Data Col 1:   %.5g %.5g %.5g %.5g %.5g %.5g  ... %.5g %.5g %.5g %.5g" % (data[0, 0], data[1, 0],  data[2, 0], data[3, 0],  data[4, 0], data[5, 0], data[-4, 0], data[-3, 0], data[-2, 0], data[-1, 0])
-        print "Data Row -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[-1, 0], data[-1, 1],  data[-1, 2], data[-1, 3],  data[-1, 4], data[-1, 5], data[-1, -4], data[-1, -3], data[-1, -2], data[-1, -1])
-        print "Data Col -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[0, -1], data[1, -1],  data[2, -1], data[3, -1],  data[4, -1], data[5, -1], data[-4, -1], data[-3, -1], data[-2, -1], data[-1, -1])
-        print "RE : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (RE[0, 0, iblock], RE[0, 1, iblock],  RE[0, 2, iblock], RE[1, 0, iblock],  RE[2, 0, iblock], RE[0, -1, iblock], RE[-1, 0, iblock], RE[-1, -1, iblock])
-        print "IM : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (IM[0, 0, iblock], IM[0, 1, iblock],  IM[0, 2, iblock], IM[1, 0, iblock],  IM[2, 0, iblock], IM[0, -1, iblock], IM[-1, 0, iblock], IM[-1, -1, iblock])
+        print "Data Row 1:   %.5g %.5g %.5g %.5g %.5g  %.5g ... %.5g %.5g %.5g %.5g" % (data[0, 0], data[0, 1], data[0, 2], data[0, 3], data[0, 4], data[0, 5], data[0, -4], data[0, -3], data[0, -2], data[0, -1])
+        print "Data Col 1:   %.5g %.5g %.5g %.5g %.5g %.5g  ... %.5g %.5g %.5g %.5g" % (data[0, 0], data[1, 0], data[2, 0], data[3, 0], data[4, 0], data[5, 0], data[-4, 0], data[-3, 0], data[-2, 0], data[-1, 0])
+        print "Data Row -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[-1, 0], data[-1, 1], data[-1, 2], data[-1, 3], data[-1, 4], data[-1, 5], data[-1, -4], data[-1, -3], data[-1, -2], data[-1, -1])
+        print "Data Col -1:   %.5g %.5g %.5g %.5g %.5g %.5g ... %.5g %.5g %.5g %.5g" % (data[0, -1], data[1, -1], data[2, -1], data[3, -1], data[4, -1], data[5, -1], data[-4, -1], data[-3, -1], data[-2, -1], data[-1, -1])
+        print "RE : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (RE[0, 0, iblock], RE[0, 1, iblock], RE[0, 2, iblock], RE[1, 0, iblock], RE[2, 0, iblock], RE[0, -1, iblock], RE[-1, 0, iblock], RE[-1, -1, iblock])
+        print "IM : %.5g  %.5g %.5g | %.5g %.5g | %.5g %.5g |%.5g" % (IM[0, 0, iblock], IM[0, 1, iblock], IM[0, 2, iblock], IM[1, 0, iblock], IM[2, 0, iblock], IM[0, -1, iblock], IM[-1, 0, iblock], IM[-1, -1, iblock])
         print "Final dims and shape of RE: ", dims, RE.shape
         return procpar, fid_header, dims, RE, IM
 # end readfid
@@ -427,10 +428,10 @@ def recon(procpar, dims, fid_header, RE, IM, args):
         img = numpy.empty(
             [dims[0], dims[1], dims[2]], dtype=numpy.complex64)  # float32
     else:
-        ksp = numpy.empty([dims[0], dims[1], dims[2], fid_header[
-                          'nChannels'], fid_header['nEchoes']], dtype=numpy.complex64)  # float32
-        img = numpy.empty([dims[0], dims[1], dims[2], fid_header[
-                          'nChannels'], fid_header['nEchoes']], dtype=numpy.complex64)  # float32
+        ksp = numpy.empty([dims[0], dims[1], dims[2], fid_header['nChannels'],
+                           fid_header['nEchoes']], dtype=numpy.complex64)  # float32
+        img = numpy.empty([dims[0], dims[1], dims[2], fid_header['nChannels'],
+                           fid_header['nEchoes']], dtype=numpy.complex64)  # float32
 
     if procpar['nD'] == 2 and procpar['ni2'] == 1:
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
@@ -448,11 +449,11 @@ def recon(procpar, dims, fid_header, RE, IM, args):
                 if 'pelist' in procpar.keys() and len(procpar['pelist']) == int(dims[2]):
                     if args.verbose:
                         print procpar['pelist']
-                    img[:, :, islice] = fftshift(
-                        ifftn(ifftshift(ksp[:, procpar['pelist'] - min(procpar['pelist']), islice])))
+                    img[:, :, islice] = fftshift(ifftn(ifftshift(ksp[:,
+                                                                     procpar['pelist'] - min(procpar['pelist']),
+                                                                     islice])))
                 else:
-                    img[:, :, islice] = fftshift(
-                        ifftn(ifftshift(ksp[:, :, islice])))
+                    img[:, :, islice] = fftshift(ifftn(ifftshift(ksp[:, :, islice])))
         else:
             for echo in xrange(0, int(fid_header['nEchoes'])):
                 for n in xrange(0, int(fid_header['nChannels'])):
@@ -524,8 +525,10 @@ def convksp(procpar, dims, fid_header, RE, IM, args):
         ksp = numpy.empty(
             [dims[0], dims[1], dims[2]], dtype=numpy.complex64)  # float32
     else:
-        ksp = numpy.empty([dims[0], dims[1], dims[2], fid_header[
-                          'nChannels'], fid_header['nEchoes']], dtype=numpy.complex64)  # float32
+        ksp = numpy.empty([dims[0], dims[1], dims[2],
+                           fid_header['nChannels'], fid_header['nEchoes']],
+                          dtype=numpy.complex64)
+        # float32
 
     if procpar['nD'] == 2 and procpar['ni2'] == 1:
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
@@ -627,10 +630,12 @@ def RearrangeImage(image, axis_order, args):
     else:
 
         if image.ndim == 5:
-            image_treal = numpy.empty([dims[iaxes[0]], dims[iaxes[1]], dims[
-                                      iaxes[2]], dims[3], dims[4]], dtype=numpy.float32)
-            image_timag = numpy.empty([dims[iaxes[0]], dims[iaxes[1]], dims[
-                                      iaxes[2]], dims[3], dims[4]], dtype=numpy.float32)
+            image_treal = numpy.empty([dims[iaxes[0]], dims[iaxes[1]],
+                                       dims[iaxes[2]], dims[3],
+                                       dims[4]], dtype=numpy.float32)
+            image_timag = numpy.empty([dims[iaxes[0]], dims[iaxes[1]],
+                                       dims[iaxes[2]], dims[3],
+                                       dims[4]], dtype=numpy.float32)
             if args.verbose:
                 print "Transposing 5D image to ", axis_order
                 print image.shape, ' -> ', image_treal.shape
@@ -650,8 +655,8 @@ def RearrangeImage(image, axis_order, args):
                             image_treal[:, :, :, 0, echo], n)
                         image_timag[:, :, :, 0, echo] = ar.axis_reverse(
                             image_timag[:, :, :, 0, echo], n)
-                image.reshape(
-                    [dims[iaxes[0]], dims[iaxes[1]], dims[iaxes[2]], dims[3], dims[4]])
+                image.reshape([dims[iaxes[0]], dims[iaxes[1]],
+                               dims[iaxes[2]], dims[3], dims[4]])
 #                print image.shape
         else:
             if args.verbose:
@@ -668,8 +673,9 @@ def RearrangeImage(image, axis_order, args):
                 image.imag, (iaxes[0], iaxes[1], iaxes[2]))
             image.reshape([dims[iaxes[0]], dims[iaxes[1]], dims[iaxes[2]]])
             # print image.shape
-        image = numpy.empty([dims[iaxes[0]], dims[iaxes[1]], dims[
-                            iaxes[2]], dims[3], dims[4]], dtype=numpy.complex64)
+        image = numpy.empty([dims[iaxes[0]], dims[iaxes[1]],
+                             dims[iaxes[2]], dims[3], dims[4]],
+                            dtype=numpy.complex64)
         image.real = image_treal
         image.imag = image_timag
         if args.verbose:
@@ -680,7 +686,7 @@ def RearrangeImage(image, axis_order, args):
 
 def AssertImplementation(testval, fidfilename, comment, assumption):
     """ASSERTIMPLEMENTATION - Check FID properties match up with interpretation of procpar
-  Due to lack of documentation on the use of the procpar file, the interpretation 
+  Due to lack of documentation on the use of the procpar file, the interpretation
  implemented in this script is based on various documents and scripts and may have errors.
  This function seeks to double check some of the interpretations against the fid properties.
     """
@@ -758,15 +764,18 @@ def ParseDiffusionFID(ds, procpar, diffusion_idx, args):
         diffusionseq.DiffusionDirectionality = 'NONE'
     else:
         diffusionseq.DiffusionBValue = int(Bvalue[diffusion_idx])
-        # TODO  One of: DIRECTIONAL,  BMATRIX, ISOTROPIC, NONE
+        # TODO  One of: DIRECTIONAL, BMATRIX, ISOTROPIC, NONE
         diffusionseq.DiffusionDirectionality = 'BMATRIX'
 
     # Diffusion Gradient Direction Sequence (0018,9076)
         diffusiongraddirseq = Dataset()
-        # Diffusion Gradient Orientation  (0018,9089)
-        #diffusiongraddirseq.add_new((0x0018,0x9089), 'FD',[ fdf_properties['dro'],  fdf_properties['dpe'],  fdf_properties['dsl']])
+        # Diffusion Gradient Orientation (0018,9089)
+        #diffusiongraddirseq.add_new((0x0018,0x9089), 'FD',[
+        #fdf_properties['dro'], fdf_properties['dpe'],
+        #fdf_properties['dsl']])
         diffusiongraddirseq.DiffusionGradientOrientation = [
-            procpar['dro'][diffusion_idx],  procpar['dpe'][diffusion_idx],  procpar['dsl'][0]]
+            procpar['dro'][diffusion_idx], procpar['dpe'][diffusion_idx],
+            procpar['dsl'][0]]
         diffusionseq.DiffusionGradientDirectionSequence = Sequence(
             [diffusiongraddirseq])
         #diffusionseq.add_new((0x0018,0x9076), 'SQ',Sequence([diffusiongraddirseq]))
@@ -830,10 +839,9 @@ def ParseFID(ds, fid_properties, procpar, args):
     # number of dimensions in the data file (e.g., int rank=2;).
     fidrank = fid_properties['rank']
     acqndims = procpar['acqdim']
-    CommentStr = 'Acquisition dimensionality (ie 2D or 3D) does not match between fid and procpar'
-    AssumptionStr = 'Procpar nv2 > 0 indicates 3D acquisition and fid rank property indicates dimensionality.\n' +\
-        'Using local FID value ' + \
-        str(fidrank) + ' instead of procpar value ' + str(acqndims) + '.'
+    CommentStr = '''Acquisition dimensionality (ie 2D or 3D) does not match between fid and procpar'''
+    AssumptionStr = '''Procpar nv2 > 0 indicates 3D acquisition and fid rank property indicates dimensionality.\n
+        'Using local FID value ''' + str(fidrank) + ' instead of procpar value ' + str(acqndims) + '.'
     if args.verbose:
         print 'Acqdim (type): ' + ds.MRAcquisitionType + " acqndims " + str(acqndims)
 
@@ -863,13 +871,13 @@ def ParseFID(ds, fid_properties, procpar, args):
     if fidrank == 3:
         fid_MRAcquisitionType = '3D'
     CommentStr = 'MR Acquisition type does not match between fid and procpar'
-    AssumptionStr = 'In fid, MR Acquisition type defined by spatial_rank and matrix. ' +\
-        'For 2D, spatial_rank="2dfov" and matrix has two elements eg. {256,256}. ' +\
-        'For 3D, spatial_rank="3dfov" and matrix has three elements.\n' +\
-        'In procpar, MR Acquisition type is defined by nv2 > 0 or lpe2 > 0.\n' +\
-        'Using local FID value ' + fid_MRAcquisitionType + \
-        ' instead of procpar value ' + ds.MRAcquisitionType + '.'
-    #AssertImplementation( ds.MRAcquisitionType != fid_MRAcquisitionType,  filename, CommentStr, AssumptionStr)
+    AssumptionStr = '''In fid, MR Acquisition type defined by spatial_rank and matrix.
+        For 2D, spatial_rank="2dfov" and matrix has two elements eg. {256,256}.
+        For 3D, spatial_rank="3dfov" and matrix has three elements.\n
+        In procpar, MR Acquisition type is defined by nv2 > 0 or lpe2 > 0.\n
+        Using local FID value %s
+        instead of procpar value %s. ''' % (fid_MRAcquisitionTypes,MRAcquisitionType)
+    #AssertImplementation( ds.MRAcquisitionType != fid_MRAcquisitionType, filename, CommentStr, AssumptionStr)
     ds.MRAcquisitionType = fid_MRAcquisitionType
 
     # Data Content Fields
@@ -912,11 +920,10 @@ def ParseFID(ds, fid_properties, procpar, args):
     #    fidthk = procpar['thk']*10
 
     CommentStr = 'Slice thickness does not match between fid and procpar'
-    AssumptionStr = 'In fid, slice thickness defined by roi[2] for 2D or roi[2]/matrix[2].\n' +\
-        'In procpar, slice thickness defined by thk (2D) or lpe2*10/(fn2/2) or lpe2*10/nv2.\n' +\
-        'Using local FID value ' + \
-        str(fidthk) + ' instead of procpar value ' + \
-        str(ds.SliceThickness) + '.'
+    AssumptionStr = '''In fid, slice thickness defined by roi[2] for 2D or roi[2]/matrix[2].\n
+        In procpar, slice thickness defined by thk (2D) or lpe2*10/(fn2/2) or lpe2*10/nv2.\n
+        Using local FID value %s
+         instead of procpar value %s .''' % (str(fidthk),str(ds.SliceThickness))
     if args.verbose:
         print 'fidthk : ' + str(fidthk)
         print 'SliceThinkness: ' + str(ds.SliceThickness)
@@ -1050,18 +1057,24 @@ def ParseFID(ds, fid_properties, procpar, args):
         ImageTransformationMatrix = []
 
     # Nuclear Data Fields
-    # Data fields may contain data generated by interactions between more than one nucleus
-    # (e.g., a 2D chemical shift correlation map between protons and carbon). Such data requires
-    # interpreting the term ppm for the specific nucleus, if ppm to frequency conversions are
-    # necessary, and properly labeling axes arising from different nuclei. To properly interpret
-    # ppm and label axes, the identity of the nucleus in question and the corresponding nuclear
-    # resonance frequency are needed. These fields are related to the abscissa values
-    # "ppm1", "ppm2", and "ppm3" in that the 1, 2, and 3 are indices into the nucleus and
-    # nucfreq fields. That is, the nucleus for the axis with abscissa string "ppm1" is the
+        
+    # Data fields may contain data generated by interactions between
+    # more than one nucleus (e.g., a 2D chemical shift correlation map
+    # between protons and carbon). Such data requires interpreting the
+    # term ppm for the specific nucleus, if ppm to frequency
+    # conversions are necessary, and properly labeling axes arising
+    # from different nuclei. To properly interpret ppm and label axes,
+    # the identity of the nucleus in question and the corresponding
+    # nuclear resonance frequency are needed. These fields are related
+    # to the abscissa values "ppm1", "ppm2", and "ppm3" in that the 1,
+    # 2, and 3 are indices into the nucleus and nucfreq fields. That
+    # is, the nucleus for the axis with abscissa string "ppm1" is the
     # first entry in the nucleus field.
-    #   - nucleus is one entry ("H1", "F19", same as VNMR tn parameter) for each rf
-    #       channel (e.g., char *nucleus[]={"H1","H1"};).
-    #   - nucfreq is the nuclear frequency (floating point) used for each rf channel (e.g.,
+    #   - nucleus is one entry ("H1", "F19", same as VNMR tn
+    #       parameter) for each rf channel (e.g., char
+    #       *nucleus[]={"H1","H1"};).
+    #    - nucfreq is the nuclear
+    #       frequency (floating point) used for each rf channel (e.g.,
     #       float nucfreq[]={200.067,200.067};).
 
 #    if fid_properties['nucleus'][0] != ds.ImagedNucleus:
@@ -1080,12 +1093,16 @@ def ParseFID(ds, fid_properties, procpar, args):
 
         # Implementation check
     CommentStr = 'Number of rows does not match between fid and procpar'
-    AssumptionStr = 'In FID, number of rows is defined by matrix[1]. \n' +\
-        'In procpar, for 3D datasets number of rows is either fn1/2 or nv (' + str(procpar['fn1'] / 2.0) + ',' + str(procpar['nv']) + ').\n' +\
-        'For 2D datasets, number of rows is fn/2.0 or np (' + str(procpar['fn'] / 2.0) + ',' + str(procpar['np']) + ').\n' +\
-        'Using local FID value ' + \
-        str(fid_properties['dims'][1]) + \
-        ' instead of procpar value ' + str(ds.Rows) + '.'
+    AssumptionStr = '''In FID, number of rows is defined by matrix[1]. \n
+        In procpar, for 3D datasets number of rows is either fn1/2 or nv (%s,%s).\n
+        For 2D datasets, number of rows is fn/2.0 or np (%s,%s).\n
+        Using local FID value %s
+        instead of procpar value %s.''' % (str(procpar['fn1'] / 2.0),
+                                           str(procpar['nv']),
+                                           str(procpar['fn'] / 2.0),
+                                           str(procpar['np']),
+                                           str(fid_properties['dims'][1]),
+                                           str(ds.Rows))
     AssertImplementation(int(float(ds.Rows)) != int(
         fid_properties['dims'][1]), filename, CommentStr, AssumptionStr)
     if args.verbose:
@@ -1096,14 +1113,18 @@ def ParseFID(ds, fid_properties, procpar, args):
 
     # Implementation check
     CommentStr = 'Number of columns does not match between fid and procpar'
-    AssumptionStr = 'In FID, number of columns is defined by matrix[0]. \n' +\
-        'In procpar, for 3D datasets number of columns is either fn/2 or np (' + str(procpar['fn'] / 2.0) + ',' + str(procpar['np']) + ').\n' +\
-        'For 2D datasets, number of rows is fn1/2.0 or nv (' + str(procpar['fn1'] / 2.0) + ',' + str(procpar['nv']) + ').\n' +\
-        'Using local FID value ' + \
-        str(fid_properties['dims'][0]) + \
-        ' instead of procpar value ' + str(ds.Columns) + '.'
-    AssertImplementation(int(float(ds.Columns)) != int(
-        fid_properties['dims'][0]), filename, CommentStr, AssumptionStr)
+    AssumptionStr = '''In FID, number of columns is defined by matrix[0]. \n
+        In procpar, for 3D datasets number of columns is either fn/2 or np (%s,%s).\n
+        For 2D datasets, number of rows is fn1/2.0 or nv (%s,%s).\n
+        Using local FID value %s
+         instead of procpar value %s.''' % (str(procpar['fn'] / 2.0),
+                                            str(procpar['np']),
+                                            str(procpar['fn1'] / 2.0),
+                                            str(procpar['nv']),
+                                            str(fid_properties['dims'][0]),
+                                            str(ds.Columns))
+    AssertImplementation(int(ds.Columns) != int(fid_properties['dims'][0]),
+                         filename, CommentStr, AssumptionStr)
     if args.verbose:
        # print 'Columns ', procpar['fn']/2.0, procpar['fn1']/2.0,
        # procpar['nv'], procpar['np']/2.0, fid_properties['dims'][0]
@@ -1198,8 +1219,10 @@ def ParseFID(ds, fid_properties, procpar, args):
     #ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
     if ds.ImageType[2] == "MULTIECHO":  # or SEQUENCE == "Diffusion":
-        DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex1, [], [
-        ], args.verbose), ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex2, [], [], args.verbose)]
+        DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex1,
+                                                                [], [], args.verbose),
+                                    ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex2,
+                                                                [], [], args.verbose)]
         DimOrgSeq.add_new((0x0020, 0x9164), 'UI', DimensionOrganizationUID)
         ds.DimensionOrganizationType = '3D_TEMPORAL'  # or 3D_TEMPORAL
     else:
@@ -1274,7 +1297,7 @@ def ParseFID(ds, fid_properties, procpar, args):
 # end ParseFID
 
 
-import os
+
 import errno
 
 
@@ -1335,8 +1358,8 @@ def SaveFIDtoDicom(ds, procpar, image_data, fid_properties, M, args, outdir):
         outdir1 = re.sub('.dcm', '-mag.dcm', outdir)
         if not os.path.isdir(outdir1):
             mkdir_or_cleandir(outdir1, args)
-        Save3dFIDtoDicom(
-            ds, procpar, voldata, fid_properties, M, args, outdir1)
+        Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M,
+                         args, outdir1)
         ds.ImageType[2] = orig_imagetype
 
     if args.phase:
@@ -1349,8 +1372,8 @@ def SaveFIDtoDicom(ds, procpar, image_data, fid_properties, M, args, outdir):
         outdir1 = re.sub('.dcm', '-pha.dcm', outdir)
         if not os.path.isdir(outdir1):
             mkdir_or_cleandir(outdir1, args)
-        Save3dFIDtoDicom(
-            ds, procpar, voldata, fid_properties, M, args, outdir1)
+        Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M,
+                         args, outdir1)
         ds.ImageType[2] = orig_imagetype
         ds.ComplexImageComponent = 'MAGNITUDE'
     if args.realimag:
@@ -1511,8 +1534,8 @@ def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir, isPh
             Pxyz = M * pos
             ds.ImagePositionPatient = [
                 str(Pxyz[0, 0]), str(Pxyz[1, 0]), str(Pxyz[2, 0])]
-            ds.FrameContentSequence[0].InStackPositionNumber = [
-                int(islice)]  # THIRDdimindex
+            ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)]
+            # THIRDdimindex
             ds.FrameContentSequence[0].TemporalPositionIndex = int(0)
 
             # Save DICOM
@@ -1521,12 +1544,16 @@ def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir, isPh
             ds.save_as(os.path.join(outdir, new_filename))
 
     return ds
-# end SaveSave3dFIDtoDicom
+# end Save3dFIDtoDicom
 
 
-def Save2dFIDtoDicom(ds, image_data, outdir, filename):
+def Save2dFIDtoDicom(ds, image_data, fid_properties, outdir, filename):
     """
     Export 2D image and metadata to DICOM
+
+    :param ds: dicom dataset struct
+    :param image_data: image data
+    :param fid_properties: FID header info
 
     """
 
@@ -1565,8 +1592,8 @@ def SaveKspace(ksp, args):
             outfile = outdir + '-ksp.mat'
         else:
             (dirName, imgdir) = os.path.split(outdir)
-            while imdir == '':
-                (dirName, imgdir) = os.path.split(outdir)
+            while imgdir == '':
+                (dirName, imgdir) = os.path.split(dirName)
 
             (ImgBaseName, ImgExtension) = os.path.splitext(imgdir)
             outfile = os.path.join(dirName, ImgBaseName + '-ksp.mat')
@@ -1575,8 +1602,8 @@ def SaveKspace(ksp, args):
             outfile = args.outputdir + '-ksp.mat'
         else:
             (dirName, imgdir) = os.path.split(outdir)
-            while imdir == '':
-                (dirName, imgdir) = os.path.split(outdir)
+            while imgdir == '':
+                (dirName, imgdir) = os.path.split(dirName)
 
             (ImgBaseName, ImgExtension) = os.path.splitext(imgdir)
             outdir = os.path.join(dirName, ImgBaseName + '-ksp.mat')
@@ -1587,21 +1614,19 @@ def SaveKspace(ksp, args):
 
 if __name__ == "__main__":
 
-    import os
-    import sys
     import math
-    import re
-    import argparse
-    import ProcparToDicomMap
-    import ReadProcpar
-    import ReadProcpar
     import RescaleFDF
     import nibabel as nib
 
     parser = argparse.ArgumentParser(usage=' ReadFID.py -i "Input FID directory"',
-                                     description='agilent2dicom is an FID to Enhanced MR DICOM converter from MBI. ReadFID takes header info from fid files and adjusts the dicom dataset *ds* then rescales the image data.')
+                                     description='''agilent2dicom is an FID to
+                                     Enhanced MR DICOM converter from MBI. ReadFID
+                                     takes header info from fid files and adjusts
+                                     the dicom dataset *ds* then rescales the image
+                                     data.''')
     parser.add_argument(
-        '-i', '--inputdir', help='Input directory name. Must be an Agilent FID image directory containing procpar and fid files', required=True)
+        '-i', '--inputdir', help='''Input directory name. Must be an Agilent FID
+        image directory containing procpar and fid files''', required=True)
     parser.add_argument(
         '-o', '--outputdir', help='Output directory name for DICOM files.')
     parser.add_argument(
