@@ -38,7 +38,7 @@ import sys
 import re
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog, QFileDialog, QApplication
-from Agilent2DicomQt import Ui_MainWindow
+from Agilent2DicomQt2 import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING = 1
@@ -464,26 +464,35 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     self.sigmafactor = p['Voxel_Res_mm']
                 else:
                     self.sigmafactor = p['Voxel_Res_mm'] * 1000
+            self.sigmafactor = np.array(self.sigmafactor,
+                                        self.sigmafactor,
+                                        self.sigmafactor)
             logging.info('comboSigmaScale '+str(self.sigmafactor))
         except ValueError:
             logging.info('comboSigmaScale error')
             pass
+        return self.sigmafactor
 
-    def SigmaString(self):
+    def SigmaString(self,sigmatext,combotext):
         """Calculate sigma
         """
-        s = str(self.ui.lineEdit_gsigma.text())
+        # s = str(self.ui.lineEdit_gsigma.text())
+        self.sigmafactor = self.comboSigmaScale(combotext)
         if len(self.sigmafactor) != 3:
             print "Sigma units needs to be three elements"
-        try:  # if s.find(', '):
-            x, y, z = map(float, s.split(', '))
-            argstr = ' -g %f,%f,%f' % (x / self.sigmafactor[0], y /
-                                       self.sigmafactor[1], z /
-                                       self.sigmafactor[2])
+            logging.info('SigmaString units needs to be three elements')
+            
+        try:
+            # if s.find(', '):
+            x, y, z = map(float, sigmatext.split(', '))
+            argstr = ' -g %f,%f,%f' % (x / self.sigmafactor[0],
+                                       y / self.sigmafactor[1],
+                                       z / self.sigmafactor[2])
         except ValueError:
-            argstr = ' -g %f,%f,%f' % (float(s) / self.sigmafactor[0],
-                                       float(s) / self.sigmafactor[1],
-                                       float(s) / self.sigmafactor[2])
+            argstr = ' -g %f,%f,%f' % (float(sigmatext) / self.sigmafactor[0],
+                                       float(sigmatext) / self.sigmafactor[1],
+                                       float(sigmatext) / self.sigmafactor[2])
+            pass
         return argstr
 
     def getCommandArgs(self):
@@ -504,51 +513,80 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             argstr += ' -k'
         if self.ui.checkBox_reimag.isChecked():
             argstr += ' -r'
-        if self.ui.checkBox_doubleresolution.isChecked():
-            argstr += ' -D'
 
+        # Complex Gaussian 3D
         if self.ui.checkBox_gaussian2D.isChecked():
-            argstr += ' -2 -g ' % self.SigmaString()
+            argstr += ' -2'
+        if self.ui.checkBox_gaussian3D.isChecked() or \
+           self.ui.checkBox_gaussian2D.isChecked():
+            sigma = self.SigmaString( str(self.ui.lineEdit_gsigma.text()),
+                                      str(self.ui.comboBox_gauss_sigmascale))
+            argstr += ' -g ' % sigma
             argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
             if self.ui.nearest.isChecked():
                 argstr += ' -e nearest'
             elif self.ui.reflect.isChecked():
                 argstr += ' -e reflect'
+            elif self.ui.mirror.isChecked:
+                argstr += ' -e mirror'    
             elif self.ui.wrap.isChecked:
                 argstr += ' -e wrap'
             else:
-                argstr += ' -e nearest'
-        if self.ui.checkBox_gaussian3D.isChecked():
-            argstr += ' -g ' % self.SigmaString()
-            argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
-            if self.ui.nearest.isChecked():
-                argstr += ' -e nearest'
-            elif self.ui.reflect.isChecked():
                 argstr += ' -e reflect'
-            elif self.ui.wrap.isChecked:
-                argstr += ' -e wrap'
-            else:
-                argstr += ' -e nearest'
-        if self.ui.checkBox_fgaussian.isChecked():
-            argstr += ' -G ' % self.SigmaString()
-            argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
-            if self.ui.nearest.isChecked():
-                argstr += ' -e nearest'
-            elif self.ui.reflect.isChecked():
-                argstr += ' -e reflect'
-            elif self.ui.wrap.isChecked:
-                argstr += ' -e wrap'
-            else:
-                argstr += ' -e nearest'
 
+        # Fourier Gaussian
+        if self.ui.checkBox_kspgaussian.isChecked():
+            sigma = self.SigmaString( str(self.ui.lineEdit_gfsigma.text()),
+                                      str(self.ui.comboBox_kspgauss_sigunit))
+            argstr += ' -G ' % sigma
+            if self.ui.checkBox_kspgauss_super.isChecked():
+                argstr += ' -D'
+            if self.ui.checkBox_kspgaussshift.isChecked():
+                argstr += ' -C '
+        # Complex Median
         if self.ui.checkBox_median.isChecked():
             argstr += ' -n %s ' % (str(self.ui.lineEdit_median_size.text()))
+
+        # Complex Wiener
         if self.ui.checkBox_wiener.isChecked():
             argstr += ' -w %s -z %s' % (str(self.ui.lineEdit_wiener_size.text()),
                                         str(self.ui.lineEdit_wiener_noise.text()))
+
+        # Epanechnikov
+        if self.ui.checkBox_epanechnikov2D.isChecked():
+            argstr += ' -2'
+        if self.ui.checkBox_epanechnikov3D.isChecked() or \
+           self.ui.checkBox_epanechnikov2D.isChecked():
+            sigma = self.SigmaString( str(self.ui.lineEdit_epaband.text()),
+                                      str(self.ui.comboBox_epabandwidth))
+            argstr += ' -y ' % sigma
+            # argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
+            if self.ui.nearest_epa.isChecked():
+                argstr += ' -e nearest'
+            elif self.ui.mirror_epa.isChecked():
+                argstr += ' -e mirror'
+            elif self.ui.reflect_epa.isChecked():
+                argstr += ' -e reflect'
+            elif self.ui.wrap_epa.isChecked:
+                argstr += ' -e wrap'
+            else:
+                argstr += ' -e reflect'
+
+        # Fourier Epanechnikov
+        if self.ui.checkBox_kspepa.isChecked():
+            sigma = self.SigmaString( str(self.ui.lineEdit_kspepa_band.text()),
+                                      str(self.ui.comboBox_kspepa_scaleunit))
+            argstr += ' -Y ' % sigma
+            # argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
+            if self.ui.checkBox_kspepashift.isChecked():
+                argstr += ' -C '
+
+            if self.ui.checkBox_kspgauss_super.isChecked():
+                argstr += ' -D'
+
         if self.niftiflag == 1:
-            argstr += ' -f'
-        logging.info('Command Args '+argstr)
+            argstr += ' -N'
+        logging.info('Command Args ' + argstr)
         return argstr
 
     def ConvertFID(self):
