@@ -1,4 +1,4 @@
-#!/usr/bin/env  bash 
+#!/usr/bin/env  bash
 ## FDF to DICOM converter
 #   Front-end to agilent2dicom and dcmulti
 #
@@ -183,22 +183,22 @@ if [ ! -d "$input_dir" ]; then
     exit $E_BADARGS
 fi
 ## Set output_dir if not in args, default is INPUT/.dcm
-if [ -z $output_dir ]
+if [ -z "$output_dir" ]
 then #test for empty string
     output_dir="$(dirname ${input_dir})/$(basename ${input_dir} .img).dcm"
-    echo "Output dir set to: " ${output_dir}
+    echo "Output dir set to:  ${output_dir}"
 fi
 
 ## Check for MAG/PHASE component directories
-if [ -d  ${input_dir}/magnitude.img ] || [ -d ${input_dir}/phase.img ]
+if [ -d  "${input_dir}/magnitude.img" ] || [ -d "${input_dir}/phase.img"]
 then
     echo "Input directory has 'magnitude.img' and 'phase.img' "
     verb=''; if (( verbosity > 0 )); then verb=' -v '; fi 
-    $0 $verb -m -i ${input_dir}/magnitude.img/ -o ${output_dir}/magnitude.dcm/
+    $0 $verb -m -i "${input_dir}"/magnitude.img/ -o "${output_dir}"/magnitude.dcm/
     if (( verbosity > 0 )) && ! yesno "Magnitude complete. Continue converting phase?"; then
 	echo "fdf2dcm completed without phase." && exit 0
     fi	
-    $0 $verb -p -i ${input_dir}/phase.img/ -o ${output_dir}/phase.dcm/
+    $0 $verb -p -i "${input_dir}/phase.img/" -o "${output_dir}/phase.dcm/"
     exit 0
 fi
 
@@ -209,13 +209,13 @@ if [ -d "${output_dir}" ]; then
     then
 	if yesno "Remove existing output directory, y or n (default y)?"; then
 	    echo "Removing existing output directory"
-	    ${RMDIR} ${output_dir}
+	    ${RMDIR} "${output_dir}"
 	else
 	    JumpToDCmulti=1
 	fi
     else
 	echo "Removing existing output directory"
-	${RMDIR} ${output_dir}
+	${RMDIR} "${output_dir}"
     fi	
 fi
 
@@ -238,7 +238,7 @@ then
 	echo $found, " FDF files were found"
     fi
 
-    if [ ! -f ${input_dir}/procpar ]; then
+    if [ ! -f "${input_dir}/procpar" ]; then
 	error_exit "$LINENO: Input directory has no procpar file"
     fi
 
@@ -249,7 +249,7 @@ then
 ## Crux of script - conversion of FDF images to standard DICOM images
     echo  "Calling agilent2dicom"
     echo " Arguments: ", "${python_args}" -i "${input_dir}" -o "${output_dir}"
-    ${FDF2DCMPATH}/${AGILENT2DICOM} ${python_args} -i "${input_dir}" -o "${output_dir}"
+    "${FDF2DCMPATH}/${AGILENT2DICOM}" ${python_args} -i "${input_dir}" -o "${output_dir}"
 
     [ $? -ne 0 ] && error_exit "$LINENO: agilent2dicom failed"
     
@@ -267,32 +267,40 @@ then
 fi ## JumpToDCMulti
 
 echo "Convert dicom images to single enhanced MR dicom format image"
-if [ -f ${output_dir}/MULTIECHO ]
+if [ -f "${output_dir}/MULTIECHO" ]
 then
-    echo "Contents of MULTIECHO"; cat ${output_dir}/MULTIECHO; echo '\n'
-    nechos=$(cat ${output_dir}/MULTIECHO)
+    echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; echo '\n'
+    nechos=$(cat "${output_dir}/MULTIECHO")
     nechos=$(printf "%1.0f" $nechos)
     echo "Multi echo sequence, $nechos echos"
     for ((iecho=1;iecho<=nechos;++iecho)); do
      	echoext=$(printf '%03d' $iecho)
      	echo "Converting echo ${iecho} using dcmulti"
-     	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 ${output_dir}/tmp/*echo${echoext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${echoext}.dcm" | \
+	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
+	    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     done
 
-# DCMULTI="dcmulti -v -makestack -sortby EchoTime -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
-#-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
-#  ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+# DCMULTI="dcmulti -v -makestack -sortby EchoTime -dimension StackID
+#  FrameContentSequence -dimension InStackPositionNumber
+#  FrameContentSequence -of " -makestack -sortby ImagePositionPatient
+#  -sortby AcquisitionNumber
 
-    ${RM} ${output_dir}/MULTIECHO
+#  ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm |
+#  sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3
+#  \2 \1/' | sort -n | awk
+#  '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+
+    ${RM} "${output_dir}/MULTIECHO"
     echo "Multi echo sequence completed."
     
-elif  [ -f ${output_dir}/DIFFUSION ]; then
+elif  [ -f "${output_dir}/DIFFUSION" ]; then
 
-    echo "Contents of DIFFUSION"; cat ${output_dir}/DIFFUSION; echo '\n'
+    echo "Contents of DIFFUSION"; cat "${output_dir}/DIFFUSION"; echo '\n'
 
     # nbdirs=$(cat ${output_dir}/DIFFUSION)
     # ((++nbdirs)) # increment by one for B0
-    nbdirs=$(ls -1 ${output_dir}/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
+    nbdirs=$(ls -1 "${output_dir}"/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
 
     echo "Diffusion sequence, $nbdirs B-directions"
     for ((ibdir=1;ibdir<=nbdirs;ibdir++)); do
@@ -301,14 +309,16 @@ elif  [ -f ${output_dir}/DIFFUSION ]; then
      	echo "Converting bdir ${ibdir} using dcmulti"
 
 	## Input files are sorted by image number and slice number. 
-     	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 ${output_dir}/tmp/*image${bdirext}*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 "${output_dir}/tmp/*image${bdirext}*.dcm" | \
+	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
+	    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
     done
     echo "Diffusion files compacted."
 
-elif  [ -f ${output_dir}/ASL ]; then
+elif  [ -f "${output_dir}/ASL" ]; then
 
-    echo "Contents of ASL"; cat ${output_dir}/ASL; echo '\n'
+    echo "Contents of ASL"; cat "${output_dir}/ASL"; echo '\n'
 
     # nbdirs=$(cat ${output_dir}/ASL)
     # ((++nbdirs)) # increment by one for B0
@@ -321,7 +331,9 @@ elif  [ -f ${output_dir}/ASL ]; then
      	echo "Converting ASL tag ${iasl} using dcmulti"
 
 	## Input files are sorted by image number and slice number. 
-     	${DCMULTI} "${output_dir}/0${aslext}.dcm" $(ls -1 ${output_dir}/tmp/*echo${aslext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	${DCMULTI} "${output_dir}/0${aslext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${aslext}.dcm" | \
+	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
+	    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
     done
     echo "ASL files converted."
@@ -334,7 +346,9 @@ else
     ## number. The second argument reorders the list of 2D dicom files
     ## based on echo time, then image number, then slice number.
     ## Only one output file is required, 0001.dcm. 
-    ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+    ${DCMULTI} "${output_dir}/0001.dcm" $(ls -1 "${output_dir}/tmp/*.dcm"  | \
+	sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
+	sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     [ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
 
 fi
@@ -348,27 +362,27 @@ then
     echo "Fixing dicoms complete."
 
     ## Additional corrections to diffusion files
-    if [ -f ${output_dir}/DIFFUSION ];then
-	${FDF2DCMPATH}/fix-diffusion.sh "${output_dir}"
+    if [ -f "${output_dir}/DIFFUSION" ];then
+	"${FDF2DCMPATH}"/fix-diffusion.sh "${output_dir}"
 	echo "Fixed diffusion module parameters."
-	${RM} ${output_dir}/DIFFUSION
+	${RM} "${output_dir}/DIFFUSION"
     fi
     ## Additional corrections to ASL files
-    if [ -f ${output_dir}/ASL ];then
-	${FDF2DCMPATH}/fix_asl.sh "${output_dir}"
+    if [ -f "${output_dir}/ASL" ];then
+	"${FDF2DCMPATH}"/fix_asl.sh "${output_dir}"
 	echo "Fixed ASL module parameters."
-	${RM} ${output_dir}/ASL
+	${RM} "${output_dir}/ASL"
     fi
 fi
-[ -f ${output_dir}/DIFFUSION ] && ${RM} ${output_dir}/DIFFUSION
-[ -f ${output_dir}/ASL ] && ${RM} ${output_dir}/ASL
+[ -f "${output_dir}/DIFFUSION" ] && ${RM} "${output_dir}/DIFFUSION"
+[ -f "${output_dir}/ASL" ] && ${RM} "${output_dir}/ASL"
 
 if (( verbosity > 0 )); then
     echo "Verifying dicom compliance using dciodvfy."
     if [ -f "${output_dir}/0001.dcm" ]; then
 	set +e
 	## Send dciodvfy stderr and stdout to log file
-	dciodvfy "${output_dir}/0001.dcm" &> $(dirname ${output_dir})/$(basename ${output_dir} .dcm).log
+	dciodvfy "${output_dir}/0001.dcm" &> $(dirname "${output_dir}")/$(basename "${output_dir}" .dcm).log
 	set -e  
     else
 	error_exit "$LINENO: could not find ${output_dir}/0001.dcm for verification"
