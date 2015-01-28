@@ -1,7 +1,8 @@
 #!/usr/bin/env python
-#
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 04ff977cff10 2015/01/27 22:26:28 michael $
-# $Id: Agilent2DicomAppQt.py,v 04ff977cff10 2015/01/27 22:26:28 michael $
+# pylint: disable=wildcard-import, method-hidden,no-member
+# pylint: enable=too-many-lines
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 2e1ef44943a5 2015/01/28 02:35:24 michael $
+# $Id: Agilent2DicomAppQt.py,v 2e1ef44943a5 2015/01/28 02:35:24 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -46,12 +47,12 @@ import logging
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
-__date__ = "$Date: 2015/01/27 22:26:28 $"
+__date__ = "$Date: 2015/01/28 02:35:24 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 04ff977cff10 2015/01/27 22:26:28 michael $")
+    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 2e1ef44943a5 2015/01/28 02:35:24 michael $")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -80,9 +81,10 @@ fi; $GL mrview '
 
 
 class Agilent2DicomWindow(QtGui.QMainWindow):
-
-    NIFTI = 0  # save to nifti flag
-
+    """Agilent2DicomWindow GUI for FDF and FID converter
+    """
+    niftiflag = 0  # save to nifti flag
+    sigmafactor = 1
     def __init__(self):
         super(Agilent2DicomWindow, self).__init__()
         self.ui = Ui_MainWindow()
@@ -90,9 +92,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.setupUi(self)
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per
-        logging.basicConfig(format='%(levelmane)s:%(asctime)s %(message)s',
+        logging.basicConfig(format='%(levelname)s:%(asctime)s %(message)s',
                             datefmt='%m/%d/%Y %I:%M:%S %p',
-                            filename='runtime.log',level=logging.DEBUG)
+                            filename='runtime.log', level=logging.DEBUG)
         logging.info('Starting Agilent2DicomAppQt')
         # Disable some features
         if DEBUGGING == 0:
@@ -171,11 +173,13 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.close()
 
     def toggleNifti(self):
-        self.NIFTI = (self.NIFTI + 1) % 2
+        self.niftiflag = (self.niftiflag + 1) % 2
         logging.info('Nifti toggled')
 
     # @QtCore.pyqtSlot()
     def ChangeFDFpath(self):
+        '''ChangeFDFpath
+        '''
         success = 1
         try:
             newdir = str(QFileDialog.getExistingDirectory(self, '''Select FDF
@@ -210,6 +214,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def ChangeFDFDicomPath(self):
+        """ChangeFDFDicomPath
+        """
         try:
             newdir = str(QFileDialog.getExistingDirectory(self,
                                                           '''Select
@@ -239,6 +245,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def ChangeFIDpath(self):
+        """ChangeFIDpath
+        """
         success = 1
         try:
             newdir = str(
@@ -271,6 +279,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def ChangeFIDDicomPath(self):
+        """ChangeFIDDicomPath
+        """
         try:
             newdir = str(QFileDialog.getExistingDirectory(self,
                                                           '''Select or
@@ -300,6 +310,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def ConvertFDF(self):
+        """ConvertFDF run FDF to dicom script
+        """
         try:
             input_dir = self.ui.lineEdit_fdfpath.text()
             output_dir = self.ui.lineEdit_dicompath.text()
@@ -323,6 +335,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def GetDarisID(self, inpath):
+        """GetDarisID read Daris ID from procpar
+        """
         daris_id = ''
         try:
             print "GetDarisID %s " % inpath
@@ -336,6 +350,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         return daris_id
 
     def CheckDicomDir(self, dpath):
+        """
+        """
         if dpath != "" and os.path.isdir(dpath):
             # Check folder contains procpar and *.fdf files
             files = os.listdir(dpath)
@@ -351,6 +367,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             return False
 
     def Send2Daris(self):
+        """Send DICOMs to DaRIS
+        """
         try:
             daris_ID = self.ui.lineEdit_darisid.text()
             if str(daris_ID) == "":
@@ -371,11 +389,11 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
-            cmd = os.path.join(thispath, 'dpush') + ' -c ' + str(daris_ID)
-            + ' -s mf-erc ' + str(dicom_dir)
+            cmd = os.path.join(thispath, 'dpush') + ' -c ' +\
+                  str(daris_ID) + ' -s mf-erc ' + str(dicom_dir)
             send_msg = '''Are you sure you want to send to DaRIS the dicom
-            directory\n''' + str(dicom_dir) + "\n using the ID: "
-            + str(daris_ID) + "?"
+            directory\n''' + str(dicom_dir) + "\n using the ID: " +\
+                str(daris_ID) + "?"
             reply = QtGui.QMessageBox.question(self, 'Message',
                                                send_msg,
                                                QtGui.QMessageBox.Yes,
@@ -392,6 +410,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def CheckFDF(self):  # send_button):
+        """ Run mrinfo and dcheck on dicoms
+        """
         try:
             output_dir = str(self.ui.lineEdit_dicompath.text())
             thispath = os.path.dirname(
@@ -412,6 +432,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def ViewFDF(self):
+        """View image with mrview
+        """
         try:
             output_dir = str(self.ui.lineEdit_dicompath.text())
             thispath = os.path.dirname(
@@ -426,14 +448,17 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def comboSigmaScale(self, text):
+        """comboSigmaScale combo box scaling for sigma
+        """
         try:
             if text == "unit voxel":
                 self.sigmafactor = 1
             else:
                 logging.info('comboSigmaScale '+text)
                 from ReadProcpar import ReadProcpar, ProcparInfo
-                procpar, procpartext = ReadProcpar(os.path.join(str(self.ui.lineEdit_fdfpath.text()),
-                                                            'procpar'))
+                procpar, procpartext = ReadProcpar(
+                    os.path.join(str(self.ui.lineEdit_fdfpath.text()),
+                                 'procpar'))
                 p = ProcparInfo(procpar)
                 if text == "in mm":
                     self.sigmafactor = p['Voxel_Res_mm']
@@ -445,6 +470,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def SigmaString(self):
+        """Calculate sigma
+        """
         s = str(self.ui.lineEdit_gsigma.text())
         if len(self.sigmafactor) != 3:
             print "Sigma units needs to be three elements"
@@ -460,6 +487,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         return argstr
 
     def getCommandArgs(self):
+        """getCommandArgs
+        """
         argstr = ''
         if not (self.ui.checkBox_magn.isChecked() and
                 self.ui.checkBox_pha.isChecked() and
@@ -517,12 +546,14 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         if self.ui.checkBox_wiener.isChecked():
             argstr += ' -w %s -z %s' % (str(self.ui.lineEdit_wiener_size.text()),
                                         str(self.ui.lineEdit_wiener_noise.text()))
-        if self.NIFTI == 1:
+        if self.niftiflag == 1:
             argstr += ' -f'
         logging.info('Command Args '+argstr)
         return argstr
 
     def ConvertFID(self):
+        """ConvertFID run FID2dicom script
+        """
         try:
             input_dir = self.ui.lineEdit_fidpath.text()
             output_dir = self.ui.lineEdit_dicompath2.text()
@@ -545,7 +576,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.info('ConvertFID error')
             pass
 
-    def CheckFID(self):  # send_button):
+    def CheckFID(self):
+        """CheckFID check outputs of fid2dicom
+        """
         try:
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
@@ -558,7 +591,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             (dicom_dir_root, dicom_raw) = os.path.split(dicom_raw_dir)
             # Do a regex and get all the dicom paths produced by Agilent2Dicom
             rgx = re.compile(r'' + re.sub('.dcm', '', dicom_raw) + ".*.dcm")
-            logging.info('CheckFID '+str(filter(rgx.match, os.listdir(dicom_dir_root))))
+            logging.info('CheckFID ' + str(filter(rgx.match,
+                                                  os.listdir(dicom_dir_root))))
             for dicom_dir in filter(rgx.match, os.listdir(dicom_dir_root)):
                 # os.system("ls " + dicom_dir_root + " | grep '" +
                 # re.sub('.dcm', '', dicom_raw) + ".*.dcm'"):
@@ -575,10 +609,12 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.UpdateGUI()
             logging.info('CheckFID done')
         except ValueError:
-             logging.info('CheckFID error')
+            logging.info('CheckFID error')
             pass
 
     def ViewFID(self):
+        """ViewFID
+        """
         try:
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
@@ -609,12 +645,14 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def Send2DarisFID(self):
+        """Send2DarisFID
+        """
         try:
             daris_ID = self.ui.lineEdit_darisid2.text()
             if str(daris_ID) == "":
                 print "No DaRIS ID"
-                QtGui.QMessageBox.warning(self, 'Warning',
-                                          "Cannot send to DaRIS without a proper ID.")
+                QtGui.QMessageBox.warning(self, 'Warning', '''
+                     Cannot send to DaRIS without a proper ID.''')
                 logging.warning('''Send2DarisFID Cannot send to
                                 DaRIS without a proper ID.''')
                 return
@@ -641,15 +679,15 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                               + " is empty")
                     logging.warning('''Send2Daris Cannot send to
                                 DaRIS without a proper Dicom path.
-                                    '''+ dicom_dir + " is empty")
+                                    ''' + dicom_dir + " is empty")
                 else:
-                    cmd = os.path.join(thispath, 'dpush') + ' -c '
-                    + str(daris_ID) + ' -s mf-erc ' + str(dcmpath)
+                    cmd = os.path.join(thispath, 'dpush') + ' -c ' +\
+                          str(daris_ID) + ' -s mf-erc ' + str(dcmpath)
                     send_msg = '''Are you sure you want to send
                     toDaRIS the dicom directory\n
 
-                    ''' + str(dcmpath) + "\n using the ID: "
-                    + str(daris_ID) + " ?"
+                    ''' + str(dcmpath) + "\n using the ID: " +\
+                        str(daris_ID) + " ?"
                     reply = QtGui.QMessageBox.question(self, 'Message',
                                                        send_msg,
                                                        QtGui.QMessageBox.Yes,
@@ -661,13 +699,15 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                                shell=True,
                                                executable="/bin/bash").stdout.read()
                     else:
-                         logging.info('Send2Daris cancelled')
+                        logging.info('Send2Daris cancelled')
 
         except ValueError:
             logging.info('Send2Daris error')
             pass
 
     def UpdateGUI(self):
+        """Update the GUI 
+        """
         self.ui.pushButton_check.setEnabled(False)
         self.ui.pushButton_view.setEnabled(False)
         self.ui.pushButton_send2daris.setEnabled(False)
@@ -688,6 +728,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.FIDInfoUpdate()
 
     def FDFInfoUpdate(self):
+        """
+        """
         from ReadProcpar import ReadProcpar, ProcparInfo
         procpar, procpartext = ReadProcpar(
             os.path.join(str(self.ui.lineEdit_fdfpath.text()), 'procpar'))
@@ -733,12 +775,14 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         #  '\n'.join(DisplayText), QtGui.QMessageBox.Ok)
 
         p = ProcparInfo(procpar)
-        self.ui.FIDprocparInfo.setText(SequenceText +
-                                       '\n'.join("%s:\t\t%r" %
-                                                 (key, val) for (key, val) in
-                                                 p.iteritems()))
+        self.ui.FIDprocparInfo.setText(
+            SequenceText + '\n'.join("%s:\t\t%r" % (key,
+                                                    val) for (key, val) in
+                                     p.iteritems()))
 
     def About(self):
+        """ Help dialog
+        """
         msg = '''                      Agilent2Dicom       \n\n
 Agilent2Dicom converts FDF and FID images from the Agilent 9.4T MR scanner at
 Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.\n\n
@@ -751,6 +795,8 @@ converter\n\nVersion: ''' + __version__ + "\n" + "Stamp: "
                                            QtGui.QMessageBox.Ok)
 
     def close(self):
+        """close GUI
+        """
         print "Closing Agilent2Dicom application."
         logging.info('Closing Agilent2DicomAppQt')
 
