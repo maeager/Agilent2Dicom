@@ -36,6 +36,7 @@ import os
 import subprocess
 import sys
 import re
+import numpy as np
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog, QFileDialog, QApplication
 from Agilent2DicomQt2 import Ui_MainWindow
@@ -447,49 +448,41 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.info('ViewFDF error ')
             pass
 
-    def comboSigmaScale(self, text):
-        """comboSigmaScale combo box scaling for sigma
-        """
-        try:
-            if text == "unit voxel":
-                self.sigmafactor = 1
-            else:
-                logging.info('comboSigmaScale '+text)
-                from ReadProcpar import ReadProcpar, ProcparInfo
-                procpar, procpartext = ReadProcpar(
-                    os.path.join(str(self.ui.lineEdit_fdfpath.text()),
-                                 'procpar'))
-                p = ProcparInfo(procpar)
-                if text == "in mm":
-                    self.sigmafactor = p['Voxel_Res_mm']
-                else:
-                    self.sigmafactor = p['Voxel_Res_mm'] * 1000
-            self.sigmafactor = np.array(self.sigmafactor,
-                                        self.sigmafactor,
-                                        self.sigmafactor)
-            logging.info('comboSigmaScale '+str(self.sigmafactor))
-        except ValueError:
-            logging.info('comboSigmaScale error')
-            pass
-        return self.sigmafactor
 
-    def SigmaString(self,sigmatext,combotext):
+    def SigmaString(self,sigmatext,combotext,source):
         """Calculate sigma
+        combotext: contents of the combobox scaling
+        source: must be a valid FDF or FID path with procpar file
         """
-        # s = str(self.ui.lineEdit_gsigma.text())
-        self.sigmafactor = self.comboSigmaScale(combotext)
+        self.sigmafactor = np.array((1))
+        try:
+            if combotext != "unit voxel":
+                logging.info('SigmaString '+combotext)
+                from ReadProcpar import ReadProcpar, ProcparInfo
+                procpar, procpartext = ReadProcpar(os.path.join(source,'procpar'))
+                p = ProcparInfo(procpar)
+                if combotext == "in mm":
+                    self.sigmafactor = np.array(p['Voxel_Res_mm'])
+                else:
+                    self.sigmafactor = np.array(p['Voxel_Res_mm']) * 1000
+            
+            logging.info('SigmaString '+str(self.sigmafactor))
+        except ValueError:
+            logging.info('SigmaString combobox error')
+            pass
         if len(self.sigmafactor) != 3:
             print "Sigma units needs to be three elements"
             logging.info('SigmaString units needs to be three elements')
-            
+            self.sigmafactor[1] = self.sigmafactor[0]
+            self.sigmafactor[2] = self.sigmafactor[0]
         try:
             # if s.find(', '):
             x, y, z = map(float, sigmatext.split(', '))
-            argstr = ' -g %f,%f,%f' % (x / self.sigmafactor[0],
+            argstr = ' %f,%f,%f' % (x / self.sigmafactor[0],
                                        y / self.sigmafactor[1],
                                        z / self.sigmafactor[2])
         except ValueError:
-            argstr = ' -g %f,%f,%f' % (float(sigmatext) / self.sigmafactor[0],
+            argstr = ' %f,%f,%f' % (float(sigmatext) / self.sigmafactor[0],
                                        float(sigmatext) / self.sigmafactor[1],
                                        float(sigmatext) / self.sigmafactor[2])
             pass
@@ -519,9 +512,10 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             argstr += ' -2'
         if self.ui.checkBox_gaussian3D.isChecked() or \
            self.ui.checkBox_gaussian2D.isChecked():
-            sigma = self.SigmaString( str(self.ui.lineEdit_gsigma.text()),
-                                      str(self.ui.comboBox_gauss_sigmascale))
-            argstr += ' -g ' % sigma
+            sigma = self.SigmaString(str(self.ui.lineEdit_gsigma.text()),
+                                     str(self.ui.comboBox_gauss_sigmascale),
+                                     str(self.ui.lineEdit_fidpath.text()))
+            argstr += ' -g %s' % sigma
             argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
             if self.ui.nearest.isChecked():
                 argstr += ' -e nearest'
@@ -536,9 +530,10 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 
         # Fourier Gaussian
         if self.ui.checkBox_kspgaussian.isChecked():
-            sigma = self.SigmaString( str(self.ui.lineEdit_gfsigma.text()),
-                                      str(self.ui.comboBox_kspgauss_sigunit))
-            argstr += ' -G ' % sigma
+            sigma = self.SigmaString(str(self.ui.lineEdit_gfsigma.text()),
+                                     str(self.ui.comboBox_kspgauss_sigunit),
+                                     str(self.ui.lineEdit_fidpath.text()))
+            argstr += ' -G %s ' % sigma
             if self.ui.checkBox_kspgauss_super.isChecked():
                 argstr += ' -D'
             if self.ui.checkBox_kspgaussshift.isChecked():
@@ -549,17 +544,19 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 
         # Complex Wiener
         if self.ui.checkBox_wiener.isChecked():
-            argstr += ' -w %s -z %s' % (str(self.ui.lineEdit_wiener_size.text()),
-                                        str(self.ui.lineEdit_wiener_noise.text()))
+            argstr += ' -w %s ' % (str(self.ui.lineEdit_wiener_size.text()))
+            if self.ui.lineEdit_wiener_noise.text():
+                argstr += ' -z %s ' % (str(self.ui.lineEdit_wiener_noise.text()))
 
         # Epanechnikov
         if self.ui.checkBox_epanechnikov2D.isChecked():
             argstr += ' -2'
         if self.ui.checkBox_epanechnikov3D.isChecked() or \
            self.ui.checkBox_epanechnikov2D.isChecked():
-            sigma = self.SigmaString( str(self.ui.lineEdit_epaband.text()),
-                                      str(self.ui.comboBox_epabandwidth))
-            argstr += ' -y ' % sigma
+            sigma = self.SigmaString(str(self.ui.lineEdit_epaband.text()),
+                                     str(self.ui.comboBox_epabandwidth),
+                                     str(self.ui.lineEdit_fidpath.text()))
+            argstr += ' -y %s' % sigma
             # argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
             if self.ui.nearest_epa.isChecked():
                 argstr += ' -e nearest'
@@ -574,15 +571,15 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 
         # Fourier Epanechnikov
         if self.ui.checkBox_kspepa.isChecked():
-            sigma = self.SigmaString( str(self.ui.lineEdit_kspepa_band.text()),
-                                      str(self.ui.comboBox_kspepa_scaleunit))
-            argstr += ' -Y ' % sigma
+            sigma = self.SigmaString(str(self.ui.lineEdit_kspepa_band.text()),
+                                     str(self.ui.comboBox_kspepa_scaleunit),
+                                     str(self.ui.lineEdit_fidpath.text()))
+            argstr += ' -Y %s' % sigma
             # argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
             if self.ui.checkBox_kspepashift.isChecked():
                 argstr += ' -C '
-
             if self.ui.checkBox_kspgauss_super.isChecked():
-                argstr += ' -D'
+                argstr += ' -D '
 
         if self.niftiflag == 1:
             argstr += ' -N'
@@ -593,8 +590,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         """ConvertFID run FID2dicom script
         """
         try:
-            input_dir = self.ui.lineEdit_fidpath.text()
-            output_dir = self.ui.lineEdit_dicompath2.text()
+            input_dir = str(self.ui.lineEdit_fidpath.text())
+            output_dir = str(self.ui.lineEdit_dicompath2.text())
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'fid2dcm path: %s' % thispath
