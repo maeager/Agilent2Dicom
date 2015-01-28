@@ -38,17 +38,17 @@ First line: name subtype basictype maxvalue minvalue stepsize Ggroup Dgroup prot
   subtype: 0 (undefined), 1 (real), 2 (string), 3 (delay), 4 (flag), 5 (frequency), 6 (pulse), 7 (integer).
   basictype: 0 (undefined), 1 (real), 2 (string).
   maxvalue: the maximum value that the parameter can contain, or an index to a maximum 
-            value in the parameter parmax (found in /vnmr/conpar). Applies to both 
+            value in the parameter parmax (found in /vnmr/conpar). Applies to both
             string and real types of parameters.
   minvalue: the minimum value that the parameter can contain or an index to a minimum 
-            value in the parameter parmin (found in /vnmr/conpar). Applies to real types 
+            value in the parameter parmin (found in /vnmr/conpar). Applies to real types
             of parameters only.
-  stepsize: a real number for the step size in which parameters can be entered or index 
-            to a step size in the parameter parstep (found in /vnmr/conpar). If stepsize 
+  stepsize: a real number for the step size in which parameters can be entered or index
+            to a step size in the parameter parstep (found in /vnmr/conpar). If stepsize
             is 0, it is ignored. Applies to real types only.
   Ggroup: 0 (ALL), 1 (SAMPLE), 2 (ACQUISITION), 3 (PROCESSING), 4 (DISPLAY), 5 (SPIN).
   Dgroup: The specific application determines the usage of this integer.
-  protection: a 32-bit word made up of the following bit masks, which are summed to form 
+  protection: a 32-bit word made up of the following bit masks, which are summed to form
               the full mask:
                   0  1    Cannot array the parameter
                   1  2    Cannot change active/not active status
@@ -67,11 +67,11 @@ First line: name subtype basictype maxvalue minvalue stepsize Ggroup Dgroup prot
   active: 0 (not active), 1 (active).
   intptr: not used (generally set to 64).
 
-if basictype=1, 
-  Second line: numvalues value1 [value2] [value3] ... 
+if basictype=1,
+  Second line: numvalues value1 [value2] [value3] ...
 
-if basictype=2, 
-  Second line: numvalues value1  
+if basictype=2,
+  Second line: numvalues value1 
   [Third line: value2]
   [Fourth line: value3]
   ...
@@ -81,8 +81,7 @@ Last line: 0, or if subtype=4 (flag), an array of possible flag values formatted
 
 Notes:
 1. All strings are enclosed in double quotes.
-2. Floating point values have been found associated with the subtype 'integer', 
-   therefore it is advised to read these values as floats.
+2. Floating point values have been found associated with the subtype 'integer',   therefore it is advised to read these values as floats.
 
 
     """
@@ -94,12 +93,12 @@ Notes:
         # parse first line in property
         tokens = line.split()
         propname = tokens[0]
-        propsubtype=tokens[1]
-        proptype=tokens[2]
+        propsubtype = tokens[1]
+        proptype = tokens[2]
         # parse second line in property: [number of values] [first value] ...
         line = f.readline()
         tokens = line.strip().split(None, 1)
-        propnumvalues = int(tokens[0])        
+        propnumvalues = int(tokens[0])
         # handle property values
         if proptype == '1': # real number
             if propnumvalues == 1:
@@ -129,9 +128,8 @@ def ProcparInfo(procpar):
        This method is primarily for the Agilent2DicomAppQt GUI.
     """
     header = dict()
-    header['Protocol_Name']=procpar['pslabel']
-    header['Sequence_Name']=procpar['seqfil']
-    header['StudyID']=procpar['name']
+    header['Protocol_Name'] = procpar['seqfil']
+    header['StudyID'] = procpar['name']
     header['SeriesDescription'] = procpar['comment']
     header['Mode'] = '%dD' % procpar['nD']
     if procpar['nD'] == 2:
@@ -139,16 +137,24 @@ def ProcparInfo(procpar):
         header['Dimensions'] = [procpar['nf']/procpar['ns'], procpar['np']/2, procpar['ns']]
         #if len(procpar['thk']) > 1:
         #    print "procpar thk size greater than 1"
-        header['Voxel_Res_mm'] = [procpar['lro']*10/header['Dimensions'][0], procpar['lpe']*10/header['Dimensions'][1], procpar['thk']*10]
+        header['Voxel_Res_mm'] = [procpar['lro']*10/header['Dimensions'][0],
+                                  procpar['lpe']*10/header['Dimensions'][1], procpar['thk']*10]
     elif procpar['nD'] == 3:
         header['FOV_cm'] = [procpar['lro'], procpar['lpe'], procpar['lpe2'], procpar['lpe3']]
         header['Dimensions'] = [procpar['nf'], procpar['np']/2, procpar['nv2']]
-        header['Voxel_Resolution_mm'] =[procpar['lro']*10/header['Dimensions'][0], procpar['lpe']*10/header['Dimensions'][1], procpar['lpe2']*10/header['Dimensions'][2]]
+        header['Voxel_Resolution_mm'] = [procpar['lro']*10/header['Dimensions'][0],
+                                         procpar['lpe']*10/header['Dimensions'][1],
+                                         procpar['lpe2']*10/header['Dimensions'][2]]
     header['Volumes'] = procpar['volumes']
     header['NumberOfEchoes'] = procpar['ne']
-    header['FOV_ORIENTATION'] = [procpar['orient'], procpar['psi'], procpar['phi'], procpar['theta']]
-    header['GRADIENTS'] = [procpar['gcoil'], procpar['gro'], procpar['gpe']]#, procpar['gss'], procpar['gspoil'], procpar['rewind']]
-    header['ACQ_CONTROL'] = 'seqcon:' + procpar['seqcon'] + 'nD:' + procpar['nD'] + 'ni:' + procpar['ni'] + 'nf:' + procpar['nf'] + 'cf:' + procpar['cf'] + 'ne:' + procpar[', ne'] + 'ns:' + procpar['ns'] + 'np:' + procpar[', np'] + 'nv:' + procpar['nv'] + 'nv2:' + procpar['nv2'] + 'nv3:' + procpar['nv3']
+    header['FOV_ORIENTATION'] = [procpar['orient'], procpar['psi'],
+                                 procpar['phi'], procpar['theta']]
+    header['GRADIENTS'] = [procpar['gcoil'], procpar['gro'],
+                           procpar['gpe']]  #, procpar['gss'], procpar['gspoil'], procpar['rewind']]
+    header['ACQ_CONTROL'] = 'seqcon:' + procpar['seqcon'] + 'nD:' + procpar['nD']
+    + 'ni:' + procpar['ni'] + 'nf:' + procpar['nf'] + 'cf:' + procpar['cf']
+    + 'ne:' + procpar[', ne'] + 'ns:' + procpar['ns'] + 'np:' + procpar[', np']
+    + 'nv:' + procpar['nv'] + 'nv2:' + procpar['nv2'] + 'nv3:' + procpar['nv3']
     rcvrs = re.findall('y', procpar['rcvrs'])
     if rcvrs:
         header['NumberOfChannels'] = len(rcvrs);
@@ -167,21 +173,24 @@ def ProcparInfo(procpar):
     elif procpar['nD'] == 3:
         dims[0] = procpar['np']/2        # NUM phase encode lines / 2
         dims[1] = procpar['nf']/procpar['ne'] # num frequency lines acquired / # echoes
-        dims[2] = procpar['ni2'] 
+        dims[2] = procpar['ni2']
     dims[3] = header['NumberOfChannels']
     dims[4] = header['NumberOfEchoes']
-    header['Dims2']=dims
-    header['DimXYZ']=[procpar[procpar['dimX']], procpar[procpar['dimY']], procpar[procpar['dimZ']]]
-    header['PosXYZ']=[procpar[procpar['posX']], procpar[procpar['posY']], procpar[procpar['posZ']]]
-    header['VoxelSize']=[procpar['vox1'], procpar['vox2'], procpar['vox3']]
-    header['TR']  = str(procpar['tr']*1000.0)
+    header['Dims2'] = dims
+    header['DimXYZ'] = [procpar[procpar['dimX']], procpar[procpar['dimY']],
+                        procpar[procpar['dimZ']]]
+    header['PosXYZ'] = [procpar[procpar['posX']], procpar[procpar['posY']],
+                        procpar[procpar['posZ']]]
+    header['VoxelSize'] = [procpar['vox1'], procpar['vox2'], procpar['vox3']]
+    header['TR'] = str(procpar['tr']*1000.0)
     if 'te' in procpar.keys():
-        header['TE']  = str(procpar['te']*1000.0) 
+        header['TE'] = str(procpar['te']*1000.0)
     return header
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(usage=' ReadProcpar -i "Input FDF directory" ', description='ReadProcpar is part of agilent2dicom, an FDF to Enhanced MR DICOM converter from MBI.')
+    parser = argparse.ArgumentParser(usage='ReadProcpar -i "Input FDF directory"',
+                                     description='ReadProcpar is part of agilent2dicom, an FDF to Enhanced MR DICOM converter from MBI.')
     parser.add_argument('-i', '--inputdir', help='Input directory name. Must be an Agilent FDF directory', required=True);
     parser.add_argument('-s', '--show', help='Show procpar info.', action="store_true");
     parser.add_argument('-v', '--verbose', help='Verbose.', action="store_true");

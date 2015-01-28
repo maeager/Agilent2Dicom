@@ -47,7 +47,7 @@ def ShortenFloatString(val, origin):
         if re.search('e', stringval): #scientific notation
             pos = stringval.index('e')
             stripped_val = stringval[:pos - (len(stringval)-15)] + stringval[pos:]
-        else: # normal float 
+        else: # normal float
             stripped_val = stringval[:15]
         print "Cropping float string from ", str(val), " to ", stripped_val
         return stripped_val[:15]
@@ -90,14 +90,15 @@ def FindScale(fdffiles, ds, procpar, args):
         slope_factor = UInt16MaxRange
     else:
         slope_factor = Int16MaxRange
-    RescaleSlope = (datamax - datamin) / slope_factor 
+    RescaleSlope = (datamax - datamin) / slope_factor
 
     return RescaleIntercept, RescaleSlope
 
-    
-    
-def RescaleImage(ds, image_data, RescaleIntercept, RescaleSlope, args):
 
+def RescaleImage(ds, image_data, RescaleIntercept, RescaleSlope, args):
+    """RescaleImage rescale image and adjust dicom struct
+
+    """
     if args.verbose:
         print "Rescale data to uint16"
         print "Intercept: ", RescaleIntercept, "  Slope: ", RescaleSlope
@@ -106,10 +107,11 @@ def RescaleImage(ds, image_data, RescaleIntercept, RescaleSlope, args):
     image_data_int16 = image_data.astype(numpy.int16)
 
     ## Adjusting Dicom parameters for rescaling
-    # Rescale intercept string must not be longer than 16
-    ds.RescaleIntercept = ShortenFloatString(RescaleIntercept,"RescaleIntercept")  #(0028, 1052) Rescale Intercept
-    # Rescale slope string must not be longer than 16
-    ds.RescaleSlope = ShortenFloatString(RescaleSlope,"RescaleSlope")  #(0028, 1053) Rescale Slope
+    # Rescale intercept string must not be longer than 16 (0028, 1052) Rescale Intercept
+    ds.RescaleIntercept = ShortenFloatString(RescaleIntercept, "RescaleIntercept")
+    
+    # Rescale slope string must not be longer than 16 (0028, 1053) Rescale Slope
+    ds.RescaleSlope = ShortenFloatString(RescaleSlope, "RescaleSlope")
 
     return ds, image_data_int16
 
@@ -117,11 +119,11 @@ def RescaleImage(ds, image_data, RescaleIntercept, RescaleSlope, args):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(usage=' procpartodicommapping -i "Input FDF directory"', description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' + VersionNumber)
-    parser.add_argument('-i', '--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files', required=True);
-    parser.add_argument('-m', '--magnitude', help='Magnitude component flag.', action="store_true");
-    parser.add_argument('-p', '--phase', help='Phase component flag.', action="store_true");
-    parser.add_argument('-v', '--verbose', help='Verbose.', action="store_true");
+    parser = argparse.ArgumentParser(usage=' procpartodicommapping -i "Input FDF directory"', description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' + AGILENT2DICOM_VERSION)
+    parser.add_argument('-i', '--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files', required=True)
+    parser.add_argument('-m', '--magnitude', help='Magnitude component flag.', action="store_true")
+    parser.add_argument('-p', '--phase', help='Phase component flag.', action="store_true")
+    parser.add_argument('-v', '--verbose', help='Verbose.', action="store_true")
     args = parser.parse_args()
     
 
@@ -130,10 +132,10 @@ if __name__ == "__main__":
 #    from ProcparToDicomMap import CreateUID
 
     procpar, procpartext = rp.ReadProcpar(os.path.join(args.inputdir, 'procpar'))
-    ds, MRAcq_type=ptd.ProcparToDicomMap(procpar, args)
+    ds, MRAcq_type = ptd.ProcparToDicomMap(procpar, args)
 
     files = os.listdir(args.inputdir)
-    fdffiles = [ f for f in files if f.endswith('.fdf') ]
+    fdffiles = [f for f in files if f.endswith('.fdf')]
 
     RescaleIntercept, RescaleSlope = FindScale(fdffiles, ds, procpar, args)
 

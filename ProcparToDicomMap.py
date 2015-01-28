@@ -46,11 +46,11 @@ def getColumns(inFile, delim="\t", header=True):
 
     :param inFile: column file separated by delim
     :param header: if True the first line will be considered a header line
-    :returns: a tuple of 2 dicts (cols, indexToName). cols dict has keys that 
+    :returns: a tuple of 2 dicts (cols, indexToName). cols dict has keys that
     are headings in the inFile, and values are a list of all the entries in that
-    column. indexToName dict maps column index to names that are used as keys in 
+    column. indexToName dict maps column index to names that are used as keys in
     the cols dict. The names are the same as the headings used in inFile. If
-    header is False, then column indices (starting from 0) are used for the 
+    header is False, then column indices (starting from 0) are used for the
     heading names (i.e. the keys in the cols dict)
     """
     cols = {}
@@ -83,7 +83,7 @@ def getColumns(inFile, delim="\t", header=True):
 def CreateUID(uid_type, procpar=[], study_id=[], verbose=0):
     """CREATEUID - Create and return Unique Identification (UID) 
 
-    :param uid_type: UID type instance 
+    :param uid_type: UID type instance
     :param procpar:  dictionary of procpar label/values
     :param study_id: list of study IDs
     :params verbose: if 1, print more descriptions
@@ -92,7 +92,7 @@ def CreateUID(uid_type, procpar=[], study_id=[], verbose=0):
     dt = datetime.datetime.now()
     dt = dt.strftime("%Y%m%d%H%M%S") + str(dt.microsecond / 1000)
     InstanceCreatorId = ''.join(
-        map(str, [ord(c) for c in 'agilent2dicom'])) + '.' + VersionNumber
+        map(str, [ord(c) for c in 'agilent2dicom'])) + '.' + AGILENT2DICOM_VERSION
     if uid_type == UID_Type_InstanceCreator:
         uidstr = InstanceCreatorId
     elif uid_type == UID_Type_StudyInstance:
@@ -123,7 +123,7 @@ def CreateUID(uid_type, procpar=[], study_id=[], verbose=0):
 
 def ProcparToDicomMap(procpar, args):
     """
-    Procpar dictionary mapping to pydicom dataset dictionary- 
+    Procpar dictionary mapping to pydicom dataset dictionary-
 
     """
 
@@ -131,7 +131,7 @@ def ProcparToDicomMap(procpar, args):
     # Create file meta dataset
 
     if args.verbose:
-        print("Setting file meta information...")
+        print "Setting file meta information..."
 
     # Populate required values for file meta information
     file_meta = Dataset()
@@ -146,7 +146,7 @@ def ProcparToDicomMap(procpar, args):
     # Create dicom dataset
 
     if args.verbose:
-        print("Setting dataset values...")
+        print "Setting dataset values..."
 
     # Create the FileDataset instance (initially no data elements, but file_meta supplied)
     #ds = FileDataset(filename, {}, file_meta=file_meta, preamble="\0" * 128)
@@ -241,9 +241,10 @@ def ProcparToDicomMap(procpar, args):
 
     # include procpar in dicom header as "Series Comments"
     # This is a retired field, so probably shouldn't be used. But, oh well.
-    ds.add_new((0x0018, 0x1000), 'UT', [
-               'MBI Agilent2Dicom converter (Version ' + str(VersionNumber) + ', ' + str(DVCSstamp) + ')'])
-#+ ', ' DVCSstamp +') \nProcpar text: '+ procpartext ]) # 0018,1000 Series Comments (retired)
+    ds.add_new((0x0018, 0x1000), 'UT',
+               ['MBI Agilent2Dicom converter (Version ' + str(AGILENT2DICOM_VERSION)
+                + ', ' + str(DVCS_STAMP) + ')'])
+#+ ', ' DVCS_STAMP +') \nProcpar text: '+ procpartext ]) # 0018,1000 Series Comments (retired)
 
     #-------------------------------------------------------------------------
     # IE: Frame of Reference
@@ -1814,14 +1815,15 @@ def ProcparToDicomMap(procpar, args):
     # Slice Thickness
     # 0018,0050 Slice Thickness (optional)
     pe2 = procpar['lpe2']
+    SliceThickness = None
     if MRAcquisitionType == '3D':
         if 'fn2' in procpar.keys() and procpar['fn2'] > 0:
             pe2 = procpar['fn2'] / 2.0
         else:
             pe2 = procpar['nv2']
         if pe2 == 0:
-            print '3D Acquisition slice thickness (error pe2=0): ', SliceThickness
             SliceThickness = procpar['thk']
+            print '3D Acquisition slice thickness (error pe2=0).  Using thk value in procpar ', SliceThickness
         else:
             SliceThickness = procpar['lpe2'] * 10.0 / pe2
     else:
@@ -1891,7 +1893,7 @@ def ProcparToDicomMap(procpar, args):
         print 'Patient Position: ', ds.PatientPosition
     ds.PatientPosition = 'HFS'
 
-    ds.DerivationDescription = Derivation_Description + '\n' + DVCSstamp
+    ds.DerivationDescription = Derivation_Description + '\n' + DVCS_STAMP
 
     return ds, MRAcquisitionType
 
@@ -1899,7 +1901,7 @@ def ProcparToDicomMap(procpar, args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(usage=' procpartodicommapping -i "Input FDF directory"',
-                                     description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' + VersionNumber)
+                                     description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' + AGILENT2DICOM_VERSION)
     parser.add_argument(
         '-i', '--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files', required=True)
     parser.add_argument(
@@ -1917,7 +1919,7 @@ if __name__ == "__main__":
     print "Slice thickness: ", ds.SliceThickness
     print "Patient Name: ", ds.PatientName
     print "Patient ID: ", ds.PatientID
-    print "StudyID: ",  ds.StudyID
+    print "StudyID: ", ds.StudyID
     print "Protocol name: ", ds.ProtocolName
     print "Series Desc: ", ds.SeriesDescription
     print "Acq Matrix:", ds.AcquisitionMatrix
