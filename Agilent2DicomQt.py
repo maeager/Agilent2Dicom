@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomQt.ui'
 #
-# Created: Fri Jan 23 16:22:23 2015
+# Created: Wed Jan 28 11:49:29 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -866,7 +866,7 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Send DICOMs to DaRIS", None))
         self.pushButton_send2daris2.setText(
             _translate("MainWindow", "Send to DaRIS", None))
-        self.tabWidget_3.setToolTip(_translate("MainWindow", "Multidimensional median, Gaussian or Wiener  filters.\n"
+        self.tabWidget_3.setToolTip(_translate("MainWindow", "Multidimensional median, Gaussian or Wiener  filters.  \n"
                                                "Warning: use on isotropic images only.", None))
         self.checkBox_reimag.setText(
             _translate("MainWindow", "Save REAL and IMAG", None))
@@ -917,7 +917,7 @@ class Ui_MainWindow(object):
                                                    "\n"
                                                    "    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.  Default value for isotropic GRE scans is 1/sqrt(2)=0.707.", None))
         self.lineEdit_gsigma.setText(
-            _translate("MainWindow", "0.707, 0.707, 0.707", None))
+            _translate("MainWindow", "0.707,0.707,0.707", None))
         self.comboBox.setItemText(
             0, _translate("MainWindow", "unit voxel", None))
         self.comboBox.setItemText(1, _translate("MainWindow", "in mm", None))
@@ -957,70 +957,49 @@ class Ui_MainWindow(object):
                                                    "    Apply a Wiener filter to the N-dimensional array im.", None))
         self.checkBox_wiener.setText(
             _translate("MainWindow", "Use Wiener Filter", None))
-        self.label_34.setToolTip(_translate("MainWindow",'''mysize : int or
-                                            arraylike, optional\n \n A scalar
-                                            or an N-length
-                                            list giving the size of
-                                            the Wiener filter window
-                                            in each
-                                            dimension. Elements of
-                                            mysize should be odd. If
-                                            mysize is a scalar, then
-                                            this scalar is used as the
-                                            size in each
-                                            dimension.\n
-                                            ''', None))
+        self.label_34.setToolTip(_translate("MainWindow", "mysize : int or arraylike, optional\n"
+                                            "\n"
+                                            "    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
+                                            "", None))
         self.label_34.setText(
             _translate("MainWindow", " Window Size(s)", None))
-        self.lineEdit_wiener_size.setToolTip(_translate("MainWindow",
-                                                        '''mysize : int or
-arraylike, optional\n \n A scalar or an N-length list giving the size of the
-Wiener filter window in each dimension. Elements of mysize should be odd. If
-mysize is a scalar, then this scalar is used as the size in each dimension.
-                                                        \n''', None))
+        self.lineEdit_wiener_size.setToolTip(_translate("MainWindow", "mysize : int or arraylike, optional\n"
+                                                        "\n"
+                                                        "    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
+                                                        "", None))
         self.lineEdit_wiener_size.setText(_translate("MainWindow", "5", None))
-        self.label_35.setToolTip(_translate("MainWindow",
-                                            '''<html><head/><body><p>noise:
-                                            Estimation of noise, Set to 0
-                                            for local variance to be used.
-                                            </p></body></html>''', None))
+        self.label_35.setToolTip(_translate(
+            "MainWindow", "<html><head/><body><p>noise: Estimation of noise, Set to 0 for local variance to be used.</p></body></html>", None))
         self.label_35.setText(
             _translate("MainWindow", "Noise (Est. variance)", None))
-        self.lineEdit_wiener_noise.setToolTip(_translate("MainWindow", '''mysize:
-int or arraylike, optional\n   \n    A scalar or an N-length list giving the
-size of the Wiener filter window in each dimension. Elements of mysize should be
-odd. If mysize is a scalar, then this scalar is used as the size in each
-dimension.\n''', None))
+        self.lineEdit_wiener_noise.setToolTip(_translate("MainWindow", "mysize : int or arraylike, optional\n"
+                                                         "\n"
+                                                         "    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
+                                                         "", None))
         self.lineEdit_wiener_noise.setText(_translate("MainWindow", "0", None))
         self.tabWidget_3.setTabText(
             self.tabWidget_3.indexOf(self.tab_8), _translate("MainWindow", "Wiener", None))
-        self.checkBox_median.setToolTip(_translate("MainWindow", '''scipy.ndimage.filters.median_filter\n"
-\n"
-scipy.ndimage.filters.median_filter(input, size=None, footprint=None,
-                                                   output=None, mode=\'reflect\',
-                                                   cval=0.0, origin=0)[source]\n"
-\n"
-    Calculates a multidimensional median filter.''', None))
+        self.checkBox_median.setToolTip(_translate("MainWindow", "scipy.ndimage.filters.median_filter¶\n"
+                                                   "\n"
+                                                   "scipy.ndimage.filters.median_filter(input, size=None, footprint=None, output=None, mode=\'reflect\', cval=0.0, origin=0)[source]\n"
+                                                   "\n"
+                                                   "    Calculates a multidimensional median filter.", None))
         self.checkBox_median.setText(
             _translate("MainWindow", "Use Median Filter", None))
-        self.label_33.setToolTip(_translate("MainWindow", '''
-size : scalar or tuple, optional\n"
-\n
-    See footprint, below\n
-\n
-footprint : array, optional\n
-\n
-    Either size or footprint must be defined. size gives the shape that is
-    taken from the input array, at every element position,\n
-    to define the input to the filter function. footprint is a boolean array
-    that specifies (implicitly) a shape,\n
-    but also which of the elements within this shape will get passed to the
-    filter function. Thus size=(n, m) is equivalent to footprint =
-                                            np.ones((n, m)).\n
-    We adjust size to the number of dimensions of the input array, so that,
-    if the input array is shape (10, 10, 10),\n
-    and size is 2, then the actual size used is (2, 2, 2).\n
-    ''', None))
+        self.label_33.setToolTip(_translate("MainWindow", "     \n"
+                                            "\n"
+                                            "size : scalar or tuple, optional\n"
+                                            "\n"
+                                            "    See footprint, below\n"
+                                            "\n"
+                                            "footprint : array, optional\n"
+                                            "\n"
+                                            "    Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position,\n"
+                                            " to define the input to the filter function. footprint is a boolean array that specifies (implicitly) a shape,\n"
+                                            " but also which of the elements within this shape will get passed to the filter function. Thus size=(n,m) is equivalent to footprint=np.ones((n,m)).\n"
+                                            " We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),\n"
+                                            " and size is 2, then the actual size used is (2,2,2).\n"
+                                            "", None))
         self.label_33.setText(_translate("MainWindow", "Window Size(s)", None))
         self.lineEdit_median_size.setToolTip(_translate("MainWindow", "     \n"
                                                         "\n"
@@ -1032,9 +1011,9 @@ footprint : array, optional\n
                                                         "\n"
                                                         "    Either size or footprint must be defined. size gives the shape that is taken from the input array, at every element position,\n"
                                                         " to define the input to the filter function. footprint is a boolean array that specifies (implicitly) a shape,\n"
-                                                        " but also which of the elements within this shape will get passed to the filter function. Thus size=(n, m) is equivalent to footprint = np.ones((n, m)).\n"
-                                                        " We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10, 10, 10),\n"
-                                                        " and size is 2, then the actual size used is (2, 2, 2).\n"
+                                                        " but also which of the elements within this shape will get passed to the filter function. Thus size=(n,m) is equivalent to footprint=np.ones((n,m)).\n"
+                                                        " We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),\n"
+                                                        " and size is 2, then the actual size used is (2,2,2).\n"
                                                         "", None))
         self.lineEdit_median_size.setText(_translate("MainWindow", "5", None))
         self.tabWidget_3.setTabText(
@@ -1053,7 +1032,7 @@ footprint : array, optional\n
                                                      "\n"
                                                      "    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.  Default value for isotropic GRE scans is 1/sqrt(2)=0.707.", None))
         self.lineEdit_gsigma_2.setText(
-            _translate("MainWindow", "1.8708, 1.8708, 1.8708", None))
+            _translate("MainWindow", "1.8708,1.8708,1.8708", None))
         self.comboBox_3.setItemText(
             0, _translate("MainWindow", "unit voxel", None))
         self.comboBox_3.setItemText(1, _translate("MainWindow", "in mm", None))
@@ -1137,7 +1116,7 @@ footprint : array, optional\n
         self.checkBox_kspepa_super.setText(_translate("MainWindow", "Super-resolution\n"
                                                       "(Saved to NIFTI only)", None))
         self.label_2.setText(_translate("MainWindow", "Effective Filter Bandwidth\n"
-                                        "(Use Sigma*sqrt(dim + 4) )", None))
+                                        "(Use Sigma*sqrt(dim+4) )", None))
         self.lineEdit_kspepa_scale.setToolTip(_translate(
             "MainWindow", "Bandwidth equivalent in image space.  Comma separated values (no spaces) accepted for non-isotropic slices.", None))
         self.lineEdit_kspepa_scale.setText(
@@ -1163,47 +1142,46 @@ footprint : array, optional\n
         self.menuTools.setTitle(_translate("MainWindow", "Tools", None))
         self.actionAbort.setText(_translate("MainWindow", "Abort", None))
         self.actionAbort.setShortcut(
-            _translate("MainWindow", "Ctrl + Space", None))
+            _translate("MainWindow", "Ctrl+Space", None))
         self.actionClose.setText(_translate("MainWindow", "Close", None))
-        self.actionClose.setShortcut(
-            _translate("MainWindow", "Ctrl + X", None))
+        self.actionClose.setShortcut(_translate("MainWindow", "Ctrl+X", None))
         self.actionOpen_FDF_Directory.setText(
             _translate("MainWindow", "Open FDF Directory", None))
         self.actionOpen_FDF_Directory.setShortcut(
-            _translate("MainWindow", "F2, Alt + 2", None))
+            _translate("MainWindow", "F2, Alt+2", None))
         self.actionOpen_FID_Directory.setText(
             _translate("MainWindow", "Open FID Directory", None))
         self.actionOpen_FID_Directory.setShortcut(
-            _translate("MainWindow", "F3, Alt + 3", None))
+            _translate("MainWindow", "F3, Alt+3", None))
         self.actionAbout.setText(_translate("MainWindow", "About", None))
         self.actionHelp.setText(_translate("MainWindow", "Help", None))
         self.actionHelp.setShortcut(_translate("MainWindow", "F1", None))
         self.actionChange_DICOM_path.setText(
             _translate("MainWindow", "Change DICOM path", None))
         self.actionChange_DICOM_path.setShortcut(
-            _translate("MainWindow", "Ctrl + D", None))
+            _translate("MainWindow", "Ctrl+D", None))
         self.actionPreferences.setText(
             _translate("MainWindow", "Preferences", None))
         self.actionConvert_FDF.setText(
             _translate("MainWindow", "Convert FDF", None))
         self.actionConvert_FDF.setShortcut(
-            _translate("MainWindow", "F4, Alt + 4", None))
+            _translate("MainWindow", "F4, Alt+4", None))
         self.actionConvert_FID.setText(
             _translate("MainWindow", "Convert FID", None))
         self.actionConvert_FID.setShortcut(
-            _translate("MainWindow", "F5, Alt + 5", None))
+            _translate("MainWindow", "F5, Alt+5", None))
         self.actionCheck_Dicom.setText(
             _translate("MainWindow", "Check Dicom", None))
         self.actionCheck_Dicom.setShortcut(
-            _translate("MainWindow", "F6, Alt + 6", None))
+            _translate("MainWindow", "F6, Alt+6", None))
         self.actionView_Dicom.setText(
             _translate("MainWindow", "View Dicom", None))
         self.actionView_Dicom.setShortcut(
-            _translate("MainWindow", "F7, Alt + 7", None))
+            _translate("MainWindow", "F7, Alt+7", None))
         self.actionSend_to_DaRIS.setText(
             _translate("MainWindow", "Send to DaRIS", None))
         self.actionSend_to_DaRIS.setShortcut(
-            _translate("MainWindow", "F8, Ctrl + 8", None))
+            _translate("MainWindow", "F8, Ctrl+8", None))
         self.actionSave_Filter_Outputs_to_Nifti.setText(
             _translate("MainWindow", "Save Filter Outputs to Nifti", None))
         self.actionSave_Filter_Outputs_to_Nifti.setToolTip(_translate(
