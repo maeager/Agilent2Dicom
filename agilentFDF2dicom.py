@@ -13,6 +13,7 @@ Version 0.4: Combine with bash wrapper fdf2dcm.sh (Michael Eager)
 Version 0.5: Major fixes to diffusion and other sequences (Michael Eager)
 Version 0.6: Major rewrite, external recon  (Michael Eager)
 Version 1.0: Pythonised modules (Michael Eager)
+Version 1.2: Argument updates and linting
 
   $Id$
 
