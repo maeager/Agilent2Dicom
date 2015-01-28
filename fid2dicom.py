@@ -4,9 +4,10 @@
 
   Version 0.1: Original code based on agilent2dicom FDF converter (Michael Eager)
   Version 0.2: Cplx filters upgraded and arguments improved for extra variables
-  Version 0.3: Exporting DICOMs with correct parsing of Procpar and fid headers and rearrangement of image data
+  Version 0.3: Exporting DICOMs with correct parsing of Procpar and
+               fid headers and rearrangement of image data
 
-  $Id: fid2dicom.py,v 81a3e8ddbd21 2015/01/27 03:09:33 michael $
+  $Id: fid2dicom.py,v 822570c48167 2015/01/28 00:16:49 michael $
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
@@ -29,38 +30,42 @@ import os
 import sys
 import re
 import dicom
-import numpy
+import numpy as np
+import math
+import scipy
 import argparse
 
 from agilent2dicom_globalvars import *
 
 import ReadProcpar
 import ProcparToDicomMap
+import ParseFDF
 import ReadFID as FID
 import cplxfilter as CPLX
 import kspace_filter as KSP
-import ParseFDF
-import numpy
-import math
-import scipy
+
 import nibabel as nib
 
 
-def SaveNifti(image, basefilename):
-    affine = numpy.eye(4)
+def save_as_nifti(image, basefilename):
+    """save_as_nifti Save image to NIFTI format
+    """
+    affine = np.eye(4)
     if image.ndim == 5:
         for i in xrange(0, image.shape[4]):
             raw_image = nib.Nifti1Image(
-                numpy.abs(image[:, :, :, 0, i]), affine)
-            raw_image.set_data_dtype(numpy.float32)
+                np.abs(image[:, :, :, 0, i]), affine)
+            raw_image.set_data_dtype(np.float32)
             nib.save(raw_image, basefilename + '_0' + str(i) + '.nii.gz')
     else:
-        raw_image = nib.Nifti1Image(numpy.abs(image), affine)
-        raw_image.set_data_dtype(numpy.float32)
+        raw_image = nib.Nifti1Image(np.abs(image), affine)
+        raw_image.set_data_dtype(np.float32)
         nib.save(raw_image, basefilename + '.nii.gz')
 
 
 def sigmaparse(s):
+    """Parse sigma string in command line
+    """
     try:
         print "Sigma parse ", s
         if s.find(', '):
@@ -78,59 +83,96 @@ if __name__ == "__main__":
 
     # Parse command line arguments and validate img directory
 
-    parser = argparse.ArgumentParser(usage=''' fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-r] [-k] [-N] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d -n 5] [-w -n 5] [-y -s 1.0 -n 3]] [[-D] [-G -s 1.0] [-L -s 1.0][-Y -s 1.0 -n 3]]''',
-                                     description='''fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering enabled with -g, -l, -n or -w arguments.  FID2DICOM Version ''' + VersionNumber)
+    parser = argparse.ArgumentParser(usage='''
+    fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m]
+[-p] [-r] [-k] [-N] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d
+-n 5] [-w -n 5] [-y -s 1.0 -n 3]] [[-D] [-G -s 1.0] [-L -s 1.0][-Y -s
+1.0 -n 3]]''',
+                                     description='''
+fid2dicomis an FID to Enhanced MR DICOM converter from MBI. Complex
+filtering enabled with -g, -l, -n or -w arguments.  FID2DICOM
+Version ''' + AGILENT2DICOM_VERSION)
     parser.add_argument(
-        '-i', '--inputdir', help='''Input directory name. Must be an Agilent FID image directory containing procpar and fid files''', required=True);
+        '-i', '--inputdir', help='''Input directory name. Must be an
+        Agilent FID image directory containing procpar and fid
+        files''', required=True)
     parser.add_argument(
-        '-o', '--outputdir', help='''Output directory name for DICOM files.''');
+        '-o', '--outputdir', help='''Output directory name for DICOM
+        files.''')
     parser.add_argument(
-        '-m', '--magnitude', help='''Save Magnitude component. Default output of filtered image outputput''', action="store_true");
+        '-m', '--magnitude', help='''Save Magnitude component. Default
+        output of filtered image outputput''', action="store_true")
     parser.add_argument(
-        '-p', '--phase', help='Save Phase component.', action="store_true");
+        '-p', '--phase', help='Save Phase component.', action="store_true")
     parser.add_argument(
-        '-k', '--kspace', help='''Save Kspace data in outputdir-ksp.mat file''', action="store_true");
+        '-k', '--kspace', help='''Save Kspace data in
+        outputdir-ksp.mat file''', action="store_true")
     parser.add_argument(
-        '-r', '--realimag', help='''Save real and imaginary data in outputdir-real and outputdir-imag.''', action="store_true");
+        '-r', '--realimag', help='''Save real and imaginary data in
+        outputdir-real and outputdir-imag.''', action="store_true")
     parser.add_argument(
-        '-N', '--nifti', help='''Save filtered outputs to NIFTI.''', action="store_true");
-    parser.add_argument('-D', '--double-resolution',
-                        help='''Zero pad k-space data before recnstruction to double resolution in image space.''', action="store_true");
-#    parser.add_argument('-s', '--sequence', help=''Sequence type (one of Multiecho, Diffusion, ASL).''', choices={"MULTIECHO", "DIFFUSION", "ASL"});
-# parser.add_argument('-d', '--disable-dcmodify', help='Dcmodify flag.',
-# action="store_true");
-    parser.add_argument('-g', '--gaussian_filter',
-                        help='''Gaussian filter smoothing of reconstructed RE and IM components.''', action="store_true");
-    parser.add_argument('-G', '--FT_gaussian_filter',
-                        help='''Gaussian filter smoothing in Fourier domain. Fourier transform of Gaussian filter applied to Kspace before reconstruction.''', action="store_true");
-    parser.add_argument('-l', '--gaussian_laplace',
-                        help='''Gaussian Laplace filter smoothing of reconstructed RE and IM components. -s/--sigma variable must be declared.''', action="store_true");
-    parser.add_argument('-s', '--sigma', help='''Gaussian and Laplace-Gaussian sigma variable. Default 1/srqt(2).''',
-                        type=sigmaparse)  # , default='0.707', type=float
-    parser.add_argument('-go', '--gaussian_order',
-                        help='''Gaussian and Laplace-Gaussian order variable. Default 0.''', type=int, choices=[0, 1, 2, 3], default=0)
-    parser.add_argument('-gm', '--gaussian_mode', help='''Gaussian and Laplace-Gaussian mode variable. Default nearest.''',
-                        choices=['reflect', 'constant', 'nearest', 'mirror', 'wrap'], default='nearest');
+        '-N', '--nifti', help='''Save filtered outputs to NIFTI.''',
+        action="store_true")
+    parser.add_argument('-D', '--double-resolution', help='''Zero pad
+                        k-space data before recnstruction to double
+                        resolution in image space.''',
+                        action="store_true")
+#    parser.add_argument('-s', '--sequence', help=''Sequence type (one
+# of Multiecho, Diffusion, ASL).''', choices={"MULTIECHO",
+# "DIFFUSION", "ASL"}) parser.add_argument('-d', '--disable-dcmodify',
+# help='Dcmodify flag.', action="store_true")
+    parser.add_argument('-g', '--gaussian_filter', help='''Gaussian
+                        filter smoothing of reconstructed RE and IM
+                        components.''', action="store_true")
+    parser.add_argument('-G', '--FT_gaussian_filter', help='''Gaussian
+                        filter smoothing in Fourier domain. Fourier
+                        transform of Gaussian filter applied to Kspace
+                        before reconstruction.''',
+                        action="store_true")
+    parser.add_argument('-l', '--gaussian_laplace', help='''Gaussian
+                        Laplace filter smoothing of reconstructed RE
+                        and IM components. -s/--sigma variable must be
+                        declared.''', action="store_true")
+    parser.add_argument('-s', '--sigma', help='''Gaussian and
+                        Laplace-Gaussian sigma variable. Default
+                        1/srqt(2).''', type=sigmaparse)
+    # , default='0.707', type=float
+    parser.add_argument('-go', '--gaussian_order', help='''Gaussian
+                        and Laplace-Gaussian order variable. Default
+                        0.''', type=int, choices=[0, 1, 2, 3],
+                        default=0)
+    parser.add_argument('-gm', '--gaussian_mode', help='''Gaussian and
+                        Laplace-Gaussian mode variable. Default
+                        nearest.''', choices=['reflect', 'constant',
+                                              'nearest', 'mirror', 'wrap'],
+                        default='nearest')
     parser.add_argument(
-        '-d', '--median_filter', help='''Median filter smoothing of reconstructed RE and IM components. ''', action="store_true");
+        '-d', '--median_filter', help='''Median filter smoothing of
+        reconstructed RE and IM components. ''', action="store_true")
     parser.add_argument(
-        '-w', '--wiener_filter', help='''Wiener filter smoothing of reconstructed RE and IM components.''', action="store_true");
+        '-w', '--wiener_filter', help='''Wiener filter smoothing of
+        reconstructed RE and IM components.''', action="store_true")
     parser.add_argument('-y', '--epanechnikov_filter',
-                        help='''Epanechnikov filter smoothing of reconstructed RE and IM components.''', action="store_true");
+                        help='''Epanechnikov filter smoothing of
+                        reconstructed RE and IM components.''',
+                        action="store_true")
     parser.add_argument('-n', '--window_size', type=int,
-                        help='''Window size of Wiener and Median filters. Default 5.''', default=5);
+                        help='''Window size of Wiener and Median
+                        filters. Default 5.''', default=5)
     parser.add_argument(
-        '-wn', '--wiener_noise', help='''Wiener filter noise. Estimated variance of image. If none or zero, local variance is calculated. Default 0=None.''', default=0);
+        '-wn', '--wiener_noise', help='''Wiener filter
+        noise. Estimated variance of image. If none or zero, local
+        variance is calculated. Default 0=None.''', default=0)
     parser.add_argument(
-        '-v', '--verbose', help='Verbose.', action="store_true");
+        '-v', '--verbose', help='Verbose.', action="store_true")
 
     # parser.add_argument("imgdir", help="Agilent .img directory containing
-    # procpar and fdf files");
+    # procpar and fdf files")
 
     args = parser.parse_args()
     if args.verbose:
         # .accumulate(args.integers)
-        print "Agilent2Dicom python converter FID to basic MR DICOM images\n Args: ", args
+        print "Agilent2Dicom python converter FID to basic MR DICOM: ", args
 
     # Check input folder exists
     if not os.path.exists(args.inputdir):
@@ -160,8 +202,8 @@ if __name__ == "__main__":
             outdir = outdir + '.dcm'
         else:
             (dirName, imgdir) = os.path.split(outdir)
-            while imdir == '':
-                (dirName, imgdir) = os.path.split(outdir)
+            while imgdir == '':
+                (dirName, imgdir) = os.path.split(dirName)
 
             (ImgBaseName, ImgExtension) = os.path.splitext(imgdir)
             outdir = os.path.join(dirName, ImgBaseName + '.dcm')
@@ -209,7 +251,7 @@ if __name__ == "__main__":
     # ds, image_scaled = FID.RescaleImage(ds, image_data, RescaleIntercept,
     # RescaleSlope, args)
 
-    FID.Save3dFIDtoDicom(ds, procpar, numpy.absolute(
+    FID.Save3dFIDtoDicom(ds, procpar, np.absolute(
         image_data), hdr, ImageTransformationMatrix, args, outdir)
 
     if args.gaussian_filter:
@@ -221,14 +263,24 @@ if __name__ == "__main__":
             args.gaussian_mode = 'nearest'
         if args.verbose:
             print "Computing Gaussian filtered image from Original image"
-        image_filtered = CPLX.cplxgaussian_filter(
-            image_data.real, image_data.imag, args.sigma, args.gaussian_order, args.gaussian_mode)
-        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f order=%d mode=%s.''' % (
-            Derivation_Description, VersionNumber, DVCSstamp, scipy.__version__, args.sigma, args.gaussian_order, args.gaussian_mode)
-        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr, ImageTransformationMatrix, args, re.sub(
-            '.dcm', '-gaussian.dcm', outdir))
+        image_filtered = CPLX.cplxgaussian_filter(image_data.real,
+                                                  image_data.imag,
+                                                  args.sigma,
+                                                  args.gaussian_order,
+                                                  args.gaussian_mode)
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
+        %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f
+        order=%d mode=%s.''' % (Derivation_Description,
+                                AGILENT2DICOM_VERSION, DVCS_STAMP,
+                                scipy.__version__, args.sigma,
+                                args.gaussian_order,
+                                args.gaussian_mode)
+        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
+                           ImageTransformationMatrix, args, re.sub(
+                               '.dcm', '-gaussian.dcm', outdir))
         if args.nifti:
-            SaveNifti(image_filtered, re.sub('.dcm', '-gaussian', outdir))
+            save_as_nifti(image_filtered, re.sub('.dcm', '-gaussian',
+                                                 outdir))
 
     if args.gaussian_laplace:
         if not args.sigma:
@@ -239,12 +291,17 @@ if __name__ == "__main__":
             image_data.real, image_data.imag, args.sigma)
         image_filtered = CPLX.cplxgaussian_laplace(
             image_filtered.real, image_filtered.imag, args.sigma)
-        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f order=0 mode = nearest. Complex Laplace filter: sigma.''' % (
-            Derivation_Description, VersionNumber, DVCSstamp, scipy.__version__, args.sigma, args.sigma)
-        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr, ImageTransformationMatrix, args, re.sub(
-            '.dcm', '-laplacegaussian.dcm', outdir))
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
+        %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f
+        order=0 mode = nearest. Complex Laplace filter: sigma.''' % (
+            Derivation_Description, AGILENT2DICOM_VERSION,
+            DVCS_STAMP, scipy.__version__, args.sigma, args.sigma)
+        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
+                           ImageTransformationMatrix, args, re.sub(
+                               '.dcm', '-laplacegaussian.dcm', outdir))
         if args.nifti:
-            SaveNifti(image_filtered, re.sub('.dcm', '-laplacegauss', outdir))
+            save_as_nifti(image_filtered, re.sub('.dcm',
+                                                 '-laplacegauss', outdir))
 
     if args.median_filter:
         if not args.window_size:
@@ -253,12 +310,17 @@ if __name__ == "__main__":
             print "Computing Median filtered image from Original image"
         image_filtered = CPLX.cplxmedian_filter(
             image_data.real, image_data.imag, args.window_size)
-        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Median filter: windown size=%d.''' % (
-            Derivation_Description, VersionNumber, DVCSstamp, scipy.__version__, args.window_size)
-        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr, ImageTransformationMatrix, args, re.sub(
-            '.dcm', '-median.dcm', outdir))
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
+        %s\nScipy version: %s\nComplex Median filter: windown
+        size=%d.''' % (Derivation_Description, AGILENT2DICOM_VERSION,
+                       DVCS_STAMP, scipy.__version__,
+                       args.window_size)
+        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
+                           ImageTransformationMatrix, args, re.sub(
+                               '.dcm', '-median.dcm', outdir))
         if args.nifti:
-            SaveNifti(image_filtered, re.sub('.dcm', '-median', outdir))
+            save_as_nifti(image_filtered, re.sub('.dcm', '-median',
+                                                 outdir))
 
     if args.wiener_filter:
         if not args.window_size:
@@ -267,14 +329,22 @@ if __name__ == "__main__":
             args.wiener_noise = None
         if args.verbose:
             print "Computing Wiener filtered image from Original image"
-        image_filtered = CPLX.cplxwiener_filter(
-            image_data.real, image_data.imag, args.window_size, args.wiener_noise)
-        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Wiener filter: window size=%d, noise=%f.''' % (
-            Derivation_Description, VersionNumber, DVCSstamp, scipy.__version__, args.window_size, args.wiener_noise)
-        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr, ImageTransformationMatrix, args, re.sub(
-            '.dcm', '-wiener.dcm', outdir))
+        image_filtered = CPLX.cplxwiener_filter(image_data.real,
+                                                image_data.imag,
+                                                args.window_size,
+                                                args.wiener_noise)
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
+        %s\nScipy version: %s\nComplex Wiener filter: window
+        size=%d, noise=%f.''' % (Derivation_Description,
+                                 AGILENT2DICOM_VERSION, DVCS_STAMP,
+                                 scipy.__version__, args.window_size,
+                                 args.wiener_noise)
+        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
+                           ImageTransformationMatrix, args, re.sub(
+                               '.dcm', '-wiener.dcm', outdir))
         if args.nifti:
-            SaveNifti(image_filtered, re.sub('.dcm', '-wiener', outdir))
+            save_as_nifti(image_filtered, re.sub('.dcm', '-wiener',
+                                                 outdir))
 
     if args.epanechnikov_filter:
         if not args.sigma:
@@ -285,12 +355,17 @@ if __name__ == "__main__":
             print "Computing Epanechnikov filtered image from Original image"
         image_filtered = CPLX.cplxepanechnikov_filter(
             image_data.real, image_data.imag, args.sigma, (3, 3, 3))
-        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Epanechnikov filter: sigma=%f window=%d order=0 mode = reflect.''' % (
-            Derivation_Description, VersionNumber, DVCSstamp, scipy.__version__, args.sigma, args.window_size)
-        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr, ImageTransformationMatrix, args, re.sub(
-            '.dcm', '-epanechnikov.dcm', outdir))
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
+        %s\nScipy version: %s\nComplex Epanechnikov filter:
+        sigma=%f window=%d order=0 mode = reflect.''' % (
+            Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
+            scipy.__version__, args.sigma, args.window_size)
+        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
+                           ImageTransformationMatrix, args, re.sub(
+                               '.dcm', '-epanechnikov.dcm', outdir))
         if args.nifti:
-            SaveNifti(image_filtered, re.sub('.dcm', '-epanechnikov', outdir))
+            save_as_nifti(image_filtered, re.sub('.dcm',
+                                                 '-epanechnikov', outdir))
 
     if args.FT_gaussian_filter:
         if not args.sigma:
@@ -298,21 +373,24 @@ if __name__ == "__main__":
         print "Computing FT Gaussian filtered image"
 
         kspgauss1 = KSP.kspacegaussian_filter2(
-            ksp1, sigma_=float(512.0) / float(1.0 / np.sqrt(2.0)))
+            ksp, sigma_=float(512.0) / float(1.0 / np.sqrt(2.0)))
         from scipy.fftpack import ifftn, fftshift, ifftshift
-        image_filtered = fftshift(ifftn(ifftshift(kspgauss1)));
+        image_filtered = fftshift(ifftn(ifftshift(kspgauss1)))
 
         # image_filtered = CPLX.cplxgaussian_filter(image_data.real,
         # image_data.imag, args.sigma, args.gaussian_order, args.gaussian_mode)
-        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s\nScipy
-version: %s\nComplex Fourier Gaussian filter: sigma=%f.''' %
-        (Derivation_Description, VersionNumber, DVCSstamp,
-         scipy.__version__, args.sigma)
-        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr, ImageTransformationMatrix, args, re.sub(
-            '.dcm', '-kspgaussian.dcm', outdir))
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
+        %s\nScipy version: %s\nComplex Fourier Gaussian filter:
+        sigma=%f.''' % (Derivation_Description,
+                        AGILENT2DICOM_VERSION, DVCS_STAMP, scipy.__version__,
+                        args.sigma)
+        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
+                           ImageTransformationMatrix, args, re.sub(
+                               '.dcm', '-kspgaussian.dcm', outdir))
 
         if args.nifti:
-            SaveNifti(image_filtered, re.sub('.dcm', '-kspgaussian', outdir))
+            save_as_nifti(image_filtered, re.sub('.dcm',
+                                                 '-kspgaussian', outdir))
 
     if args.FT_epanechnikov_filter:
         if not args.sigma:
@@ -320,19 +398,25 @@ version: %s\nComplex Fourier Gaussian filter: sigma=%f.''' %
         if not args.window_size:
             args.window_size = 3
         print "Computing FT Epanechnikov filtered image"
-
-        kspepa = KSP.kspaceepanechnikov_filter(ksp, sigma_=float(ksp.shape[0]]) / float(1.0 / np.sqrt(2.0)))
+        kspepa = KSP.kspaceepanechnikov_filter(ksp,
+                                               sigma_=float(ksp.shape[0])
+                                               / np.sqrt(0.5))
         from scipy.fftpack import ifftn, fftshift, ifftshift
         image_filtered = fftshift(ifftn(ifftshift(kspepa)))
 
         # image_filtered = CPLX.cplxgaussian_filter(image_data.real,
-        # image_data.imag, args.sigma, args.gaussian_order, args.gaussian_mode)
-        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s\nScipy
-version: %s\nComplex Fourier Epanechnikov filter:
-sigma=%f.''' % (Derivation_Description, VersionNumber, DVCSstamp,
-                      scipy.__version__, args.sigma)
-        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr, ImageTransformationMatrix, args, re.sub(
-            '.dcm', '-kspepa.dcm', outdir))
+        # image_data.imag, args.sigma, args.gaussian_order,
+        # args.gaussian_mode)
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
+        %s\nScipy version: %s\nComplex Fourier Epanechnikov filter:
+        sigma=%f.
+
+        ''' % (Derivation_Description, AGILENT2DICOM_VERSION,
+               DVCS_STAMP, scipy.__version__, args.sigma)
+        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
+                           ImageTransformationMatrix, args, re.sub(
+                               '.dcm', '-kspepa.dcm', outdir))
 
         if args.nifti:
-            SaveNifti(image_filtered, re.sub('.dcm', '-kspepa', outdir))
+            save_as_nifti(image_filtered, re.sub('.dcm', '-kspepa',
+                                                 outdir))
