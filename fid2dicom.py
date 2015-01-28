@@ -2,10 +2,11 @@
 
 """fid2dicom is used to convert Agilent FID files to DICOM format.
 
-  Version 0.1: Original code based on agilent2dicom FDF converter (Michael Eager)
-  Version 0.2: Cplx filters upgraded and arguments improved for extra variables
-  Version 0.3: Exporting DICOMs with correct parsing of Procpar and
+  Version 1.1: Original code based on agilent2dicom FDF converter (Michael Eager)
+  Version 1.2: Cplx filters upgraded and arguments improved for extra variables
+  Version 1.3: Exporting DICOMs with correct parsing of Procpar and
                fid headers and rearrangement of image data
+  Version 1.4: New args for epanechnikov and k-space filtering
 
   $Id$
 
@@ -34,17 +35,15 @@ import numpy as np
 import math
 import scipy
 import argparse
+import nibabel as nib
 
 from agilent2dicom_globalvars import *
-
 import ReadProcpar
 import ProcparToDicomMap
 import ParseFDF
 import ReadFID as FID
 import cplxfilter as CPLX
 import kspace_filter as KSP
-
-import nibabel as nib
 
 
 def save_as_nifti(image, basefilename):
@@ -113,7 +112,7 @@ Version ''' + AGILENT2DICOM_VERSION)
     parser.add_argument(
         '-N', '--nifti', help='''Save filtered outputs to NIFTI.''',
         action="store_true")
-    parser.add_argument('-D', '--double-resolution', help='''Zero pad
+    parser.add_argument('-D', '--double_resolution', help='''Zero pad
                         k-space data before recnstruction to double
                         resolution in image space.''',
                         action="store_true")
@@ -163,6 +162,9 @@ Version ''' + AGILENT2DICOM_VERSION)
         '-wn', '--wiener_noise', help='''Wiener filter
         noise. Estimated variance of image. If none or zero, local
         variance is calculated. Default 0=None.''', default=0)
+    parser.add_argument('-C','--no_centre_shift',
+                        help='Disable centering maximum in k-space data.',
+                        action="store_true")
     parser.add_argument(
         '-v', '--verbose', help='Verbose.', action="store_true")
 
@@ -251,6 +253,11 @@ Version ''' + AGILENT2DICOM_VERSION)
     # ds, image_scaled = FID.RescaleImage(ds, image_data, RescaleIntercept,
     # RescaleSlope, args)
 
+    if not args.no_centre_shift:
+        ksp = kspaceshift(ksp)
+        from scipy.fftpack import ifftn, fftshift, ifftshift
+        image_data = fftshift(ifftn(ifftshift(ksp)))
+        
     FID.Save3dFIDtoDicom(ds, procpar, np.absolute(
         image_data), hdr, ImageTransformationMatrix, args, outdir)
 
@@ -276,8 +283,8 @@ Version ''' + AGILENT2DICOM_VERSION)
                                 args.gaussian_order,
                                 args.gaussian_mode)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args, re.sub(
-                               '.dcm', '-gaussian.dcm', outdir))
+                           ImageTransformationMatrix, args,
+                           re.sub('.dcm', '-gaussian.dcm', outdir))
         if args.nifti:
             save_as_nifti(image_filtered, re.sub('.dcm', '-gaussian',
                                                  outdir))
@@ -297,8 +304,8 @@ Version ''' + AGILENT2DICOM_VERSION)
             Derivation_Description, AGILENT2DICOM_VERSION,
             DVCS_STAMP, scipy.__version__, args.sigma, args.sigma)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args, re.sub(
-                               '.dcm', '-laplacegaussian.dcm', outdir))
+                           ImageTransformationMatrix, args,
+                           re.sub('.dcm', '-laplacegaussian.dcm', outdir))
         if args.nifti:
             save_as_nifti(image_filtered, re.sub('.dcm',
                                                  '-laplacegauss', outdir))
@@ -316,8 +323,8 @@ Version ''' + AGILENT2DICOM_VERSION)
                        DVCS_STAMP, scipy.__version__,
                        args.window_size)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args, re.sub(
-                               '.dcm', '-median.dcm', outdir))
+                           ImageTransformationMatrix, args,
+                           re.sub('.dcm', '-median.dcm', outdir))
         if args.nifti:
             save_as_nifti(image_filtered, re.sub('.dcm', '-median',
                                                  outdir))
@@ -340,8 +347,8 @@ Version ''' + AGILENT2DICOM_VERSION)
                                  scipy.__version__, args.window_size,
                                  args.wiener_noise)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args, re.sub(
-                               '.dcm', '-wiener.dcm', outdir))
+                           ImageTransformationMatrix, args,
+                           re.sub('.dcm', '-wiener.dcm', outdir))
         if args.nifti:
             save_as_nifti(image_filtered, re.sub('.dcm', '-wiener',
                                                  outdir))
@@ -361,8 +368,8 @@ Version ''' + AGILENT2DICOM_VERSION)
             Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
             scipy.__version__, args.sigma, args.window_size)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args, re.sub(
-                               '.dcm', '-epanechnikov.dcm', outdir))
+                           ImageTransformationMatrix, args,
+                           re.sub('.dcm', '-epanechnikov.dcm', outdir))
         if args.nifti:
             save_as_nifti(image_filtered, re.sub('.dcm',
                                                  '-epanechnikov', outdir))
@@ -385,8 +392,8 @@ Version ''' + AGILENT2DICOM_VERSION)
                         AGILENT2DICOM_VERSION, DVCS_STAMP, scipy.__version__,
                         args.sigma)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args, re.sub(
-                               '.dcm', '-kspgaussian.dcm', outdir))
+                           ImageTransformationMatrix, args,
+                           re.sub('.dcm', '-kspgaussian.dcm', outdir))
 
         if args.nifti:
             save_as_nifti(image_filtered, re.sub('.dcm',
@@ -398,9 +405,7 @@ Version ''' + AGILENT2DICOM_VERSION)
         if not args.window_size:
             args.window_size = 3
         print "Computing FT Epanechnikov filtered image"
-        kspepa = KSP.kspaceepanechnikov_filter(ksp,
-                                               sigma_=float(ksp.shape[0])
-                                               / np.sqrt(0.5))
+        kspepa = KSP.kspaceepanechnikov_filter(ksp, sigma_=float(ksp.shape[0]) / np.sqrt(0.5))
         from scipy.fftpack import ifftn, fftshift, ifftshift
         image_filtered = fftshift(ifftn(ifftshift(kspepa)))
 
@@ -410,12 +415,11 @@ Version ''' + AGILENT2DICOM_VERSION)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
         %s\nScipy version: %s\nComplex Fourier Epanechnikov filter:
         sigma=%f.
-
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION,
                DVCS_STAMP, scipy.__version__, args.sigma)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args, re.sub(
-                               '.dcm', '-kspepa.dcm', outdir))
+                           ImageTransformationMatrix, args,
+                           re.sub('.dcm', '-kspepa.dcm', outdir))
 
         if args.nifti:
             save_as_nifti(image_filtered, re.sub('.dcm', '-kspepa',

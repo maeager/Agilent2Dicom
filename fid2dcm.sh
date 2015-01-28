@@ -98,7 +98,7 @@ function error_exit(){
 # Print usage information and exit
 print_usage(){
     echo -e "\n" \
-	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r] [-k] [-N] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001]]\n. To export components use magnitude (-m), phase (-p), real and imag (-r) or k-space (-k). Filtering is available for Gaussian filter (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n window_size), or Wiener filter (-w window_size)." \
+	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r] [-k] [-N] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001][-y 1.0 -j 0 -e wrap]]\n\n To export recon components use magnitude (-m), phase (-p), real and imag (-r) or k-space (-k). Filtering is available for Gaussian filter (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n window_size), Wiener filter (-w window_size) or Epanechnikov filter (-y <bandwidth>). K-space Fourier filtering is avalable for Gaussian (-G <sigma>) and Epanechnikov (-Y <bandwidth>) filters. Double resolution in k-space using -D.\n" \
 	"\n" \
 	"-i <inputdir>  FID source directory\n" \
 	"-o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm. \n" \
@@ -131,11 +131,11 @@ print_usage(){
 	"-z <noise>     Wiener filter noise variable. 
                         Default 0 (or none) variance calculated in local region and 
                         can be quite computationally expensive.\n" \
-	"-y <bwidth>     Gaussian filter smoothing of reconstructed RE and
+	"-y <bwidth>    Epanechnikov filter smoothing of reconstructed RE and
 	                IM components. Bandwidth variable argument, default sqrt(Dim+4))/srqt(2). \n" \
-	"-Y <bwidth>    Fourier Epanechnikov filte. Smoothing of k-space RE and
-	                IM components. Sigma variable argument, default size/sqrt(Dim+4)/srqt(2)."
-			
+	"-Y <bwidth>    Fourier Epanechnikov filter. Smoothing of k-space RE and
+	                IM components. Sigma variable argument, default size/sqrt(Dim+4)/srqt(2). \n" \
+	"-C             Disable k-space shift centering to maxima \n" \			
 	"-x             Debug mode. \n" \
 	"-v             Verbose output. \n" \
 	"-h             this help\n" \
@@ -154,7 +154,7 @@ fi
 
 
 ## Parse arguments
-while getopts ":i:o:g:l:j:e:n:w:z:G:E:DhmprkdNxv" opt; do
+while getopts ":i:o:g:l:j:e:n:w:z:G:E:DhmprkdNCxv" opt; do
     case $opt in
 	i)
 	    echo "Input dir:  $OPTARG" >&2
@@ -211,25 +211,25 @@ while getopts ":i:o:g:l:j:e:n:w:z:G:E:DhmprkdNxv" opt; do
 	    python_args="$python_args --median_filter --window_size $median_window_size"
 	    do_filter=3
 	    ;;
- 	w)
+	w)
 	    echo "Wiener filter size: $OPTARG" >&2
 	    wiener_window_size="$OPTARG"
 	    python_args="$python_args --wiener_filter --window_size $wiener_window_size"
 	    do_filter=4
 	    ;;
- 	z)
+	z)
 	    [ ${do_filter} != 4 ] && (echo "Must have -w before -z"; print_usage; exit 1)
 	    echo "Wiener noise: $OPTARG" >&2
 	    wiener_noise="$OPTARG"
 	    python_args="$python_args --wiener_noise $wiener_noise"
 	    ;;
- 	y)
+	y)
 	    echo "Epanechnikov  filter size: $OPTARG" >&2
 	    epan_bandwidth="$OPTARG"
 	    python_args="$python_args --epanechnikov_filter --window_size $epan_bandwidth"
 	    do_filter=5
 	    ;;
- 	Y)
+	Y)
 	    echo "Fourier Epanechnikov  filter size: $OPTARG" >&2
 	    epan_bandwidth="$OPTARG"
 	    python_args="$python_args --FT_epanechnikov_filter --window_size $epan_bandwidth"
@@ -237,13 +237,15 @@ while getopts ":i:o:g:l:j:e:n:w:z:G:E:DhmprkdNxv" opt; do
 	    ;;
 	D)
 	    echo "Implementing super-resolution of FID to double the resolution of DICOM conversion."
-	    python_args="$python_args --double-resolution"
+	    python_args="$python_args --double_resolution"
 	    ;;
-
-
+	C)
+	    echo "Disable kspace shift function to centre data to maximum."
+	    python_args="$python_args --no_centre_shift"
+	    ;;
 	h)
 	    print_usage
-	    ${FID2DCMPATH}/fid2dicom.py -h
+	    "${FID2DCMPATH}"/fid2dicom.py -h
 	    exit 0
 	    ;;
 	m)
@@ -368,7 +370,7 @@ then
 ## Crux of script - conversion of FID images to standard DICOM images
     echo  "Calling fid2dicom"
     echo " Arguments: ", "${python_args} --inputdir ${input_dir} --outputdir ${output_dir}"
-    ${FID2DCMPATH}/${FID2DICOM} ${python_args} --inputdir "${input_dir}" --outputdir "${output_dir}"
+    "${FID2DCMPATH}/${FID2DICOM}" ${python_args} --inputdir "${input_dir}" --outputdir "${output_dir}"
 
     [ $? -ne 0 ] && error_exit "$LINENO: fid2dicom failed"
     
@@ -386,23 +388,25 @@ then
     
     echo "Moving dicom images"
     for dcmdir in ${dirs}; do
-	mkdir ${dcmdir}/tmp
+	mkdir "${dcmdir}/tmp"
 	mv "${dcmdir}"/*.dcm "${dcmdir}"/tmp/
     done
 fi ## JumpToDCMulti
 
 echo "Convert dicom images to single enhanced MR dicom format image"
-if [ -f ${output_dir}/MULTIECHO ]
+if [ -f "${output_dir}/MULTIECHO" ]
 then
-    echo "Contents of MULTIECHO"; cat ${output_dir}/MULTIECHO; echo '\n'
-    nechos=$(cat ${output_dir}/MULTIECHO)
-    nechos=$(printf "%1.0f" $nechos)
+    echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; echo '\n'
+    nechos=$(cat "${output_dir}/MULTIECHO")
+    nechos=$(printf "%1.0f" "$nechos")
     echo "Multi echo sequence, $nechos echos"
     for ((iecho=1;iecho<=nechos;++iecho)); do
      	echoext=$(printf '%03d' $iecho)
      	echo "Converting echo ${iecho} using dcmulti"
      	for dcmdir in $dirs; do
-	    ${DCMULTI} "${dcmdir}/0${echoext}.dcm" $(ls -1 ${dcmdir}/tmp/*echo${echoext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+	    ${DCMULTI} "${dcmdir}/0${echoext}.dcm" $(ls -1 "${dcmdir}/tmp/*echo${echoext}.dcm" | \
+		sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
+		sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 	done
     done
 
@@ -410,16 +414,16 @@ then
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
 #  ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
-    ${RM} ${output_dir}/MULTIECHO
+    ${RM} "${output_dir}/MULTIECHO"
     echo "Multi echo sequence completed."
     
-elif  [ -f ${output_dir}/DIFFUSION ]; then
+elif  [ -f "${output_dir}/DIFFUSION" ]; then
 
-    echo "Contents of DIFFUSION"; cat ${output_dir}/DIFFUSION; echo '\n'
+    echo "Contents of DIFFUSION"; cat "${output_dir}/DIFFUSION"; echo '\n'
 
     # nbdirs=$(cat ${output_dir}/DIFFUSION)
     # ((++nbdirs)) # increment by one for B0
-    nbdirs=$(ls -1 ${output_dir}/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
+    nbdirs=$(ls -1 "${output_dir}/tmp/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
 
     echo "Diffusion sequence, $nbdirs B-directions"
     for ((ibdir=1;ibdir<=nbdirs;ibdir++)); do
@@ -428,18 +432,20 @@ elif  [ -f ${output_dir}/DIFFUSION ]; then
      	echo "Converting bdir ${ibdir} using dcmulti"
 	for dcmdir in $dirs; do
 	## Input files are sorted by image number and slice number. 
-     	    ${DCMULTI} "${dcmdir}/0${bdirext}.dcm" $(ls -1 ${dcmdir}/tmp/*image${bdirext}*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	    ${DCMULTI} "${dcmdir}/0${bdirext}.dcm" $(ls -1 "${dcmdir}/tmp/*image${bdirext}*.dcm" | \
+		sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
+		sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 	done
     done
     echo "Diffusion files compacted."
 
-elif  [ -f ${output_dir}/ASL ]; then
+elif  [ -f "${output_dir}/ASL" ]; then
 
-    echo "Contents of ASL"; cat ${output_dir}/ASL; echo '\n'
+    echo "Contents of ASL"; cat "${output_dir}/ASL"; echo '\n'
 
     # nbdirs=$(cat ${output_dir}/ASL)
     # ((++nbdirs)) # increment by one for B0
-    asltags=$(ls -1 ${output_dir}/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
+    #asltags=$(ls -1 "${output_dir}/tmp/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
 
     echo "ASL sequence"
     for ((iasl=1;iasl<=2;iasl++)); do
@@ -448,7 +454,9 @@ elif  [ -f ${output_dir}/ASL ]; then
      	echo "Converting ASL tag ${iasl} using dcmulti"
 	for dcmdir in $dirs; do
 	## Input files are sorted by image number and slice number. 
-     	    ${DCMULTI} "${dcmdir}/0${aslext}.dcm" $(ls -1 ${dcmdir}/tmp/*echo${aslext}.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	    ${DCMULTI} "${dcmdir}/0${aslext}.dcm" $(ls -1 "${dcmdir}/tmp/*echo${aslext}.dcm" | \
+		sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
+		sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 	done
     done
     echo "ASL files converted."
@@ -462,7 +470,9 @@ else
     ## based on echo time, then image number, then slice number.
     ## Only one output file is required, 0001.dcm. 
     for dcmdir in $dirs; do
-	${DCMULTI} ${dcmdir}/0001.dcm $(ls -1 ${dcmdir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+	${DCMULTI} "${dcmdir}/0001.dcm" $(ls -1 "${dcmdir}/tmp/*.dcm"  | \
+	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
+	    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 	[ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
     done
 fi
@@ -475,30 +485,30 @@ if (( do_modify == 1 ))
 then
 
     for dcmdir in $dirs; do
-	${FID2DCMPATH}/fix-dicoms.sh "${dcmdir}"
+	"${FID2DCMPATH}"/fix-dicoms.sh "${dcmdir}"
 	echo "Fixing dicom dir ${dcmdir}"
 
     ## Additional corrections to diffusion files
-	if [ -f ${output_dir}/DIFFUSION ];then
-	    ${FID2DCMPATH}/fix-diffusion.sh "${dcmdir}"
+	if [ -f "${output_dir}/DIFFUSION" ];then
+	    "${FID2DCMPATH}"/fix-diffusion.sh "${dcmdir}"
 	    echo "Fixed diffusion module parameters."
 	fi
     ## Additional corrections to ASL files
-	if [ -f ${output_dir}/ASL ];then
-	    ${FID2DCMPATH}/fix_asl.sh "${dcmdir}"
+	if [ -f "${output_dir}/ASL" ];then
+	    "${FID2DCMPATH"}/fix_asl.sh "${dcmdir}"
 	    echo "Fixed ASL module parameters."
 	fi
     done
 fi
-[ -f ${output_dir}/DIFFUSION ] && ${RM} ${output_dir}/DIFFUSION
-[ -f ${output_dir}/ASL ] && ${RM} ${output_dir}/ASL
+[ -f "${output_dir}/DIFFUSION" ] && ${RM} "${output_dir}/DIFFUSION"
+[ -f "${output_dir}/ASL" ] && ${RM} "${output_dir}/ASL"
 
 if (( verbosity > 0 )); then
     echo "Verifying dicom compliance using dciodvfy."
     if [ -f "${output_dir}/0001.dcm" ]; then
 	set +e
 	## Send dciodvfy stderr and stdout to log file
-	dciodvfy "${output_dir}/0001.dcm" &> $(dirname ${output_dir})/$(basename ${output_dir} .dcm).log
+	dciodvfy "${output_dir}/0001.dcm" &> $(dirname "${output_dir}")/$(basename "${output_dir}" .dcm).log
 	set -e  
     else
 	error_exit "$LINENO: could not find ${output_dir}/0001.dcm for verification"
