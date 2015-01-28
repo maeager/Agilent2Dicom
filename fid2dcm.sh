@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fid2dcm.sh,v 454cd8a4ae6b 2015/01/28 05:50:38 michael $"
+#  "$Id: fid2dcm.sh,v 2e743b501c6b 2015/01/28 23:50:07 michael $"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
 #
@@ -155,14 +155,14 @@ print_usage(){
 
 ## Check for number of args
 if [ $# -eq 0 ]; then
-	echo "fiddcm.sh must have one argument: -i, --input [directory of FID images]"
+	echo "fid2dcm.sh must have one argument: -i, --input [directory of FID images]"
 	print_usage
 	exit $E_BADARGS
 fi
 
 
 ## Parse arguments
-while getopts ":i:o:g:l:j:e:n:w:z:G:E:DhmprkdNCxv" opt; do
+while getopts ":i:o:g:l:j:e:n:w:y:z:G:E:Y:DhmprkdNCxv" opt; do
     case $opt in
 	i)
 	    echo "Input dir:  $OPTARG" >&2
