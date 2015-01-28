@@ -547,6 +547,21 @@ def test_double_resolution_depth(ksp, basename):
     image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
     test_depth_algorithm(image_filtered, basename)
 
+def super_resolution(ksp, basename):
+    print "Double res and "+basename+" filter"
+    tic()
+    ksplarge = np.zeros(np.array(ksp.shape)*2, dtype = numpy.complex64) # two 32-bit float
+    szmin = np.array(ksp.shape)/2 - 1
+    szmax = np.array(ksp.shape) + szmin 
+    ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]]=ksp    
+    print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
+    image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
+    print 'Double res recon '+basename+': '+toc()
+    del ksplarge
+    
+    print "Saving Double res image: "+basename+" filtered"
+    save_nifti(np.abs(image_filtered), basename+'-super')
+
 
 if __name__ == "__main__":
 
