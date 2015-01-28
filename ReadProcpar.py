@@ -134,27 +134,39 @@ def ProcparInfo(procpar):
     header['Mode'] = '%dD' % procpar['nD']
     if procpar['nD'] == 2:
         header['FOV_cm'] = [procpar['lro'], procpar['lpe']]
-        header['Dimensions'] = [procpar['nf']/procpar['ns'], procpar['np']/2, procpar['ns']]
+        header['Dimensions'] = [procpar['nf']/procpar['ns'], procpar['np']/2,
+                                procpar['ns']]
         #if len(procpar['thk']) > 1:
         #    print "procpar thk size greater than 1"
-        header['Voxel_Res_mm'] = [procpar['lro']*10/header['Dimensions'][0],
-                                  procpar['lpe']*10/header['Dimensions'][1], procpar['thk']*10]
+        header['Voxel_Res_mm'] = [procpar['lro']*10 / header['Dimensions'][0],
+                                  procpar['lpe']*10 / header['Dimensions'][1],
+                                  procpar['thk']*10]
     elif procpar['nD'] == 3:
-        header['FOV_cm'] = [procpar['lro'], procpar['lpe'], procpar['lpe2'], procpar['lpe3']]
-        header['Dimensions'] = [procpar['nf'], procpar['np']/2, procpar['nv2']]
-        header['Voxel_Resolution_mm'] = [procpar['lro']*10/header['Dimensions'][0],
-                                         procpar['lpe']*10/header['Dimensions'][1],
-                                         procpar['lpe2']*10/header['Dimensions'][2]]
+        header['FOV_cm'] = [procpar['lro'],
+                            procpar['lpe'],
+                            procpar['lpe2'],
+                            procpar['lpe3']]
+        header['Dimensions'] = [procpar['nf'],
+                                procpar['np']/2,
+                                procpar['nv2']]
+        header['Voxel_Resolution_mm'] = [
+            procpar['lro']*10 / header['Dimensions'][0],
+            procpar['lpe']*10 / header['Dimensions'][1],
+            procpar['lpe2']*10 / header['Dimensions'][2]]
     header['Volumes'] = procpar['volumes']
     header['NumberOfEchoes'] = procpar['ne']
     header['FOV_ORIENTATION'] = [procpar['orient'], procpar['psi'],
                                  procpar['phi'], procpar['theta']]
     header['GRADIENTS'] = [procpar['gcoil'], procpar['gro'],
-                           procpar['gpe']]  #, procpar['gss'], procpar['gspoil'], procpar['rewind']]
-    header['ACQ_CONTROL'] = 'seqcon:' + procpar['seqcon'] + 'nD:' + procpar['nD']
-    + 'ni:' + procpar['ni'] + 'nf:' + procpar['nf'] + 'cf:' + procpar['cf']
-    + 'ne:' + procpar[', ne'] + 'ns:' + procpar['ns'] + 'np:' + procpar[', np']
-    + 'nv:' + procpar['nv'] + 'nv2:' + procpar['nv2'] + 'nv3:' + procpar['nv3']
+                           procpar['gpe']]
+    # , procpar['gss'], procpar['gspoil'], procpar['rewind']]
+    # header['ACQ_CONTROL'] = 'seqcon: ' + str(procpar['seqcon'])
+    # + ', nD:'
+    # + str(procpar['nD']) + ', ni: ' + str(procpar['ni']) + ', nf: '
+    # + str(procpar['nf']) + ', cf:' + str(procpar['cf']) + ', ne: '
+    # + str(procpar['ne']) + ', ns: ' + str(procpar['ns']) + ', np: '
+    # + str(procpar['np']) + ', nv: ' + str(procpar['nv']) + ', nv2: '
+    # + str(procpar['nv2']) + ', nv3: ' + str(procpar['nv3'])
     rcvrs = re.findall('y', procpar['rcvrs'])
     if rcvrs:
         header['NumberOfChannels'] = len(rcvrs);
@@ -189,11 +201,18 @@ def ProcparInfo(procpar):
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(usage='ReadProcpar -i "Input FDF directory"',
-                                     description='ReadProcpar is part of agilent2dicom, an FDF to Enhanced MR DICOM converter from MBI.')
-    parser.add_argument('-i', '--inputdir', help='Input directory name. Must be an Agilent FDF directory', required=True);
-    parser.add_argument('-s', '--show', help='Show procpar info.', action="store_true");
-    parser.add_argument('-v', '--verbose', help='Verbose.', action="store_true");
+    parser = argparse.ArgumentParser(
+        usage='ReadProcpar -i "Input FDF directory"',
+        description='''ReadProcpar is part of agilent2dicom, an FDF to Enhanced
+        MR DICOM converter from MBI.''')
+    parser.add_argument(
+        '-i', '--inputdir',
+        help='Input directory name. Must be an Agilent FDF directory',
+        required=True);
+    parser.add_argument('-s', '--show', help='Show procpar info.',
+                        action="store_true");
+    parser.add_argument('-v', '--verbose', help='Verbose.',
+                        action="store_true");
     args = parser.parse_args()
 
 
