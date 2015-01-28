@@ -13,8 +13,9 @@ Version 0.4: Combine with bash wrapper fdf2dcm.sh (Michael Eager)
 Version 0.5: Major fixes to diffusion and other sequences (Michael Eager)
 Version 0.6: Major rewrite, external recon  (Michael Eager)
 Version 1.0: Pythonised modules (Michael Eager)
+Version 1.2: Argument updates and linting
 
-  $Id: agilentFDF2dicom.py,v a365b0991bb6 2015/01/28 02:07:09 michael $
+  $Id: agilentFDF2dicom.py,v 7d1e66e74ba3 2015/01/28 05:29:37 michael $
 
  - Michael Eager  (michael.eager@monash.edu)
 """
