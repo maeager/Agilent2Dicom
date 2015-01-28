@@ -17,8 +17,7 @@ DVCSstamp="$Id: agilent2dicom_globalvars.py,v 79afbe5477ec 2014/10/30 05:37:29 m
 
 ** Mercurial keywords
 
-
-Mercurial keyword expansion is used to set some important
+Mercurial keyword expansion is used to set some handy
 variables. The hgrc file in the development .hg folder should be the
 following:
 
@@ -29,11 +28,13 @@ default = ssh://hg@bitbucket.org/mbi-image/agilent2dicom
 [extensions]
 keyword =
 [keyword]
+agilent2dicom.py =
 agilentFDF2dicom.py =
 fdf2dcm.sh =
 agilent2dicom_globalvars.py =
 fid2dicom.py =
 fid2dcm.sh =
+Agilent2DicomApp.py =
 Agilent2DicomAppQt.py =
 [keywordmaps]
 Author = {author|user}
@@ -43,6 +44,11 @@ Id = {file|basename},v {node|short} {date|utcdate} {author|user}
 Revision = {node|short}
 #+end_src
 
+
+Use the kwexpand command to enable config tags to be filled correctly.
+#+begin_src sh
+hg kwexpand
+#+end_src
 
 ** Sorting Procpar files for easy diff
 
