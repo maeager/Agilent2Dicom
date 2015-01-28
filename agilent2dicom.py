@@ -11,6 +11,8 @@ Version 0.4: Combine with bash wrapper fdf2dcm.sh
 Version 0.5: Major fixes to diffusion and other sequences
 Version 0.6: Major rewrite, external recon
 
+Depreciated: use agilentFDF2dicom for FDFs or fid2dicom for FIDs
+
 """
 """
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
@@ -2252,7 +2254,8 @@ Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '''
 
         # FDF slice thickness
         if fdfrank == 3:
-            fdfthk = fdf_properties['roi'][2] / fdf_properties['matrix'][2] * 10
+            fdfthk = fdf_properties['roi'][
+                2] / fdf_properties['matrix'][2] * 10
         else:
             fdfthk = fdf_properties['roi'][2] * 10.0
 
@@ -2263,7 +2266,7 @@ Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '''
             FDF value
 
         ''' + str(fdfthk) + ' instead of procpar value ' + str(ds.SliceThickness) + '.'
-        
+
         if args.verbose:
             print 'fdfthk : ' + str(fdfthk)
             print 'SliceThinkness: ' + str(ds.SliceThickness)
@@ -2738,7 +2741,7 @@ For 2D datasets, number of rows is fn1/2.0 or nv (''' + str(procpar['fn1'] / 2.0
         ds.RescaleIntercept = str(RescaleIntercept)
         # Rescale slope string must not be longer than 16
         if len(str(RescaleSlope)) > 16:
-            print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RscaleSlope)[:15]
+            print "Cropping rescale slope from ", str(RescaleSlope), " to ", str(RescaleSlope)[:15]
         ds.RescaleSlope = str(RescaleSlope)[:15]  # (0028,1053) Rescale Slope
 
         # ds.MRAcquisitionType = '2D'
@@ -2825,7 +2828,8 @@ For 2D datasets, number of rows is fn1/2.0 or nv (''' + str(procpar['fn1'] / 2.0
                     image_number = int(
                         re.sub(r'^.*image(\d + ).*', r'\1', filename))
 
-                new_filename = "slice%03dimage%03decho%03d.dcm" % (islice + 1, image_number, fdf_properties['echo_no'])
+                new_filename = "slice%03dimage%03decho%03d.dcm" % (
+                    islice + 1, image_number, fdf_properties['echo_no'])
 
                 # Fix 3rd dimension position using transformation matrix
                 M = numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0],
@@ -2857,9 +2861,11 @@ For 2D datasets, number of rows is fn1/2.0 or nv (''' + str(procpar['fn1'] / 2.0
 
                 ds.FrameContentSequence[0].StackID = [str(volume)]
                 # fourthdimid
-                ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)]
+                ds.FrameContentSequence[
+                    0].InStackPositionNumber = [int(islice)]
                 # fourthdimindex
-                ds.FrameContentSequence[0].TemporalPositionIndex = ds.EchoNumber
+                ds.FrameContentSequence[
+                    0].TemporalPositionIndex = ds.EchoNumber
                 #                ds.InStackPosition = islice #str(islice)
 
                 # Save DICOM
@@ -2874,11 +2880,14 @@ For 2D datasets, number of rows is fn1/2.0 or nv (''' + str(procpar['fn1'] / 2.0
             if SEQUENCE == "ASL":
                 image_number = fdf_properties['array_index']
                 if fdf_properties["asltag"] == 1:               # Labelled
-                    new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'], image_number, 1)
+                    new_filename = "slice%03dimage%03decho%03d.dcm" % (
+                        fdf_properties['slice_no'], image_number, 1)
                 elif fdf_properties["asltag"] == -1:  # Control
-                    new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'], image_number, 2)
+                    new_filename = "slice%03dimage%03decho%03d.dcm" % (
+                        fdf_properties['slice_no'], image_number, 2)
                 else:                                            # Unknown
-                    new_filename = "slice%03dimage%03decho%03d.dcm" % (fdf_properties['slice_no'], image_number, 3)
+                    new_filename = "slice%03dimage%03decho%03d.dcm" % (
+                        fdf_properties['slice_no'], image_number, 3)
 
             # Save DICOM
             ds.save_as(os.path.join(outdir, new_filename))
