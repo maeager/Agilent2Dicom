@@ -155,14 +155,14 @@ print_usage(){
 
 ## Check for number of args
 if [ $# -eq 0 ]; then
-	echo "fiddcm.sh must have one argument: -i, --input [directory of FID images]"
+	echo "fid2dcm.sh must have one argument: -i, --input [directory of FID images]"
 	print_usage
 	exit $E_BADARGS
 fi
 
 
 ## Parse arguments
-while getopts ":i:o:g:l:j:e:n:w:z:G:E:DhmprkdNCxv" opt; do
+while getopts ":i:o:g:l:j:e:n:w:y:z:G:E:Y:DhmprkdNCxv" opt; do
     case $opt in
 	i)
 	    echo "Input dir:  $OPTARG" >&2
