@@ -10,7 +10,7 @@ Homepage: [MBI's Confluence homepage](https://confluence-vre.its.monash.edu.au/d
 
 Source code: [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom)
 
-Agilent2Dicom is at version 1.3.0.
+Agilent2Dicom is at version 1.6.2.
 
 
 ## Basic overview ##
@@ -21,7 +21,7 @@ implementation of the DICOM format on the Vnmrj system used by the
 Agilent 9.4 MR scanner. Amanda Ng initiated the project with a simple
 fdf converter. Michael Eager has since expanded the features to
 include enhanced DICOM conversion, full implementation for all
-sequences, FID complex filtering, and pyqt4 GUIs.
+sequences, FID complex filtering, and PYQT4 GUIs.
 
 FDF reconstructed images are converted to enhanced DICOM by the
 FDF2DCM suite (*fdf2dcm.sh*, *agilent2dicom.py*, *ReadFDF.py* and
@@ -41,7 +41,9 @@ reconstruction and convertions of images to DICOM.  A feature of the
 reconstruction enables adjustable filtering in complex space and
 storage of phase information.  *cplxfilter.py* allows filtering of
 real and imaginary reconstructed images using gaussian, laplace-
-gaussian, median and wiener filters.
+gaussian, median and wiener filters. *kspace_filter.py* allows for
+filtering in the Fourier domain, as well as zero-padding
+super-resolution methds.
 
 ## Agilent Console GUI ##
 
@@ -127,6 +129,12 @@ phase of the Gaussian filtered image will be stored in
 respectively.  The -k argument saves the k-space data to a MATLAB mat
 file (<outputdir>-ksp.mat).
  
+More advanced usage using Fourier Epanechnikov filter, with super-resolution:
+```
+#!bash
+
+[eagerm@m2102 Agilent2Dicom]$ ./fid2dcm.sh -i inputdir.fid -o outputdir.dcm -v -m -Y 1.87 -D 
+```
 
 
 
@@ -204,24 +212,57 @@ Advanced FID2DCM usage from the commandline is as follows:
 
 [eagerm@m2102 Agilent2Dicom]$ ./fid2dcm.sh -h
 
- usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r] [-k] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001]]
-. To export components use magnitude (-m), phase (-p), real and imag (-r) or k-space (-k). Filtering is available for Gaussian filter (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n window_size), or Wiener filter (-w window_size).
+
+ usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r]
+[-k] [-N] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001][-y
+1.0 -j 0 -e wrap]]
+
+
+
+  To export recon components use magnitude (-m), phase (-p), real and
+  imag (-r) or k-space (-k). Filtering is available for Gaussian filter
+  (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n
+  window_size), Wiener filter (-w window_size) or Epanechnikov filter
+  (-y <bandwidth>). K-space Fourier filtering is avalable for Gaussian
+  (-G <sigma>) and Epanechnikov (-Y <bandwidth>) filters.
+
  -i <inputdir>  FID source directory
  -o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm.
  -d             Disable dcmodify fixes to DICOMs.
- -m,-p,          Save magnitude and phase components.  These flags are passed to fid2dicom and should only be used from within fid2dcm or with knowledge of input fid data.
+ -m,-p,         Save magnitude and phase components.  These flags are passed to fid2dicom
+                        and should only be used from within fid2dcm or with knowledge of input fid data.
  -r             Save real and imaginary components of filtered image.
  -k             Save Kspace data.
- -g <sigma>     Gaussian filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2).
+ -N             Save filtered outputs to NIFTI.
+ -g <sigma>     Gaussian filter smoothing of reconstructed RE and
+                        IM components. Sigma variable argument, default 1/srqt(2).
+ -G <sigma>     Fourier Gaussian filter smoothing of k-space RE and
+                        IM components. Sigma variable argument, default size/1/srqt(2).
  -j <order>     Gaussian filter order variable argument, default 0.
- -e {'wrap','reflect','nearest','mirror'}  Gaussian filter mode variable argument, default=nearest.
- -l <simga>     Gaussian Laplace filter smoothing of reconstructed RE and IM components. Sigma variable argument, default 1/srqt(2).
- -n <wsize>     Median filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.
- -w <wsize>     Wiener filter smoothing of reconstructed RE and IM components. Size variable argument, default 5.
- -z <noise>     Wiener filter noise variable, default 0 (none=default variance calculated in local region).
+ -e {'wrap','reflect','nearest','mirror'}  Gaussian filter mode variable
+                        argument, default=nearest.
+ -l <simga>     Gaussian Laplace filter smoothing of reconstructed RE and
+                        IM components. Sigma variable argument, default 1/srqt(2).
+ -L <sigma>     Fourier Laplace-of-Gaussian filter smoothing of k-space RE and
+                        IM components. Sigma variable argument, default size/1/srqt(2).
+ -n <wsize>     Median filter smoothing of reconstructed RE and IM components.
+                        Size variable argument, default 5.
+ -w <wsize>     Wiener filter smoothing of reconstructed RE and IM components.
+                        Size variable argument, default 5.
+ -z <noise>     Wiener filter noise variable.
+                        Default 0 (or none) variance calculated in local region and
+                        can be quite computationally expensive.
+ -y <bwidth>    Epanechnikov filter smoothing of reconstructed RE and
+                        IM components. Bandwidth variable argument, default sqrt(Dim+4))/srqt(2).
+ -Y <bwidth>    Fourier Epanechnikov filter. Smoothing of k-space RE and
+                        IM components. Sigma variable argument, default size/sqrt(Dim+4)/srqt(2).
+ -D             Double resolution in k-space with zero-padding and recon.
+                        !!!Warning!!! this increases size on disk by a factor of 8.
+ -C             Disable k-space shift centering to maxima
  -x             Debug mode.
  -v             Verbose output.
  -h             this help
+
 ```
 
 
@@ -230,10 +271,16 @@ Advanced FID2DCM usage from the commandline is as follows:
 #!bash
 
 [eagerm@m2108 Agilent2Dicom]$ ./fid2dicom.py -h
-usage:  fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m] [-p] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 0.707] [-d -n 5] [-w -n 5]]
 
-fid2dicom is an FID to Enhanced MR DICOM converter from MBI. Complex filtering
-enabled with -g, -l, -n or -w arguments. FID2DICOM Version 1.3.0
+
+usage:
+    fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m]
+[-p] [-r] [-k] [-N] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d
+-n 5] [-w -n 5] [-y -s 1.0 -n 3]] [[-D] [-G -s 1.0] [-L -s 1.0][-Y -s
+1.0 -n 3]]
+
+fid2dicomis an FID to Enhanced MR DICOM converter from MBI. Complex filtering
+enabled with -g, -l, -n or -w arguments. FID2DICOM Version 1.6.4
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -248,30 +295,47 @@ optional arguments:
   -k, --kspace          Save Kspace data in outputdir-ksp.mat file
   -r, --realimag        Save real and imaginary data in outputdir-real and
                         outputdir-imag.
+  -N, --nifti           Save filtered outputs to NIFTI.
+  -D, --double_resolution
+                        Zero pad k-space data before recnstruction to double
+                        resolution in image space.
   -g, --gaussian_filter
                         Gaussian filter smoothing of reconstructed RE and IM
                         components.
+  -G, --FT_gaussian_filter
+                        Gaussian filter smoothing in Fourier domain. Fourier
+                        transform of Gaussian filter applied to Kspace before
+                        reconstruction.
   -l, --gaussian_laplace
                         Gaussian Laplace filter smoothing of reconstructed RE
-                        and IM components. --sigma variable must be declared.
+                        and IM components. -s/--sigma variable must be
+                        declared.
   -s SIGMA, --sigma SIGMA
                         Gaussian and Laplace-Gaussian sigma variable. Default
                         1/srqt(2).
   -go {0,1,2,3}, --gaussian_order {0,1,2,3}
                         Gaussian and Laplace-Gaussian order variable. Default
                         0.
-  -gm {wrap,nearest,constant,reflect,mirror}, --gaussian_mode {wrap,nearest,constant,reflect,mirror}
+  -gm {reflect,constant,nearest,mirror,wrap}, --gaussian_mode {reflect,constant,nearest,mirror,wrap}
                         Gaussian and Laplace-Gaussian mode variable. Default
                         nearest.
   -d, --median_filter   Median filter smoothing of reconstructed RE and IM
                         components.
   -w, --wiener_filter   Wiener filter smoothing of reconstructed RE and IM
                         components.
+  -y, --epanechnikov_filter
+                        Epanechnikov filter smoothing of reconstructed RE and
+                        IM components.
   -n WINDOW_SIZE, --window_size WINDOW_SIZE
                         Window size of Wiener and Median filters. Default 5.
   -wn WIENER_NOISE, --wiener_noise WIENER_NOISE
-                        Wiener filter noise. Default None.
+                        Wiener filter noise. Estimated variance of image. If
+                        none or zero, local variance is calculated. Default
+                        0=None.
+  -C, --no_centre_shift
+                        Disable centering maximum in k-space data.
   -v, --verbose         Verbose.
+
 ```
 
 The sigma variable can be a single scalar value or a three-element
@@ -383,9 +447,12 @@ fslview raw_image.nii.gz new_image.nii.gz median_image.nii.gz
  the slices along the axis. 
 
 
-*kspace_filter.py* can perform filtering in the fourier domain.  FID k-space data can be filtered before recon - drastically improving processing time.
-Filter methods include Gaussian, Laplacian enhancement, Laplace of Gaussian, and inhomogeneous MR bias correction.  
-Double image resolution can also be achieved by zero-padding the outside of the kspace data. 
+*kspace_filter.py* can perform filtering in the fourier domain.  FID
+k-space data can be filtered before recon - drastically improving
+processing time.  Filter methods include Gaussian, Laplacian
+enhancement, Laplace of Gaussian, and inhomogeneous MR bias
+correction.  Double image resolution can also be achieved by
+zero-padding the outside of the kspace data.
 
 Use ipython for interactive sessions with kspace_filter: 
 ```
@@ -419,6 +486,8 @@ See examples in Makefile.
 
 
 ## Licence ##
+
+  GPLv3.
 
   Copyright 2014 Michael Eager  (michael.eager@monash.edu).
 
