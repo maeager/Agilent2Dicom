@@ -27,17 +27,10 @@
 ###############################################
 
 
-## Debugging variables and config
-set -o nounset  # shortform: -u
-set -o errexit  # -e
-# set -o pipefail
-# touch $(dirname $0)/error.log
-# exec 2>> $(dirname $0)/error.log
-# set -x  # show debugging output
-
 
 ## Set config variables
 FID2DCMPATH=$(dirname $0)
+#source ${FDF2DCMPATH}/agilent2dicom_globalvars.py
 source ${FID2DCMPATH}/agilent2dicom_globalvars.py
 PROGNAME=$(basename $0)
 FID2DICOM=fid2dicom.py
@@ -54,6 +47,15 @@ DCMULTI="dcmulti -v -makestack -sortby AcquisitionNumber -dimension StackID Fram
 DCMULTI_DTI="dcmulti -v -makestack -sortby DiffusionBValue -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
 # Check dcmtk applications on MASSIVE or Agilent console
+
+## Debugging variables and config
+set -o nounset  # shortform: -u
+set -o errexit  # -e
+#set -o pipefail
+# touch $(dirname $0)/error.log
+# exec 2>> $(dirname $0)/error.log
+#set -x  # show debugging output
+
 if test ${MASSIVEUSERNAME+defined}; then
     test -x dcmodify || module load dcmtk 
 else
@@ -98,18 +100,22 @@ function error_exit(){
 # Print usage information and exit
 print_usage(){
     echo -e "\n" \
-	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r] [-k] [-N] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001][-y 1.0 -j 0 -e wrap]]\n\n To export recon components use magnitude (-m), phase (-p), real and imag (-r) or k-space (-k). Filtering is available for Gaussian filter (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n window_size), Wiener filter (-w window_size) or Epanechnikov filter (-y <bandwidth>). K-space Fourier filtering is avalable for Gaussian (-G <sigma>) and Epanechnikov (-Y <bandwidth>) filters. Double resolution in k-space using -D.\n" \
+	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r]
+[-k] [-N] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001][-y
+1.0 -j 0 -e wrap]]\n\n
+
+  To export recon components use magnitude (-m), phase (-p), real and
+  imag (-r) or k-space (-k). Filtering is available for Gaussian filter
+  (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n
+  window_size), Wiener filter (-w window_size) or Epanechnikov filter
+  (-y <bandwidth>). K-space Fourier filtering is avalable for Gaussian
+  (-G <sigma>) and Epanechnikov (-Y <bandwidth>) filters.\n" \
 	"\n" \
 	"-i <inputdir>  FID source directory\n" \
 	"-o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm. \n" \
 	"-d             Disable dcmodify fixes to DICOMs.\n" \
-
-	"-D             Double resolution in k-space. Warning, this increases size
-	on disk by a factor of 8.\n " \
-
-	"-m,-p,         Save magnitude and phase components.  These flags are
-	passed to fid2dicom and should only be used from within
-	fid2dcm or with knowledge of input fid data. \n" \
+	"-m,-p,         Save magnitude and phase components.  These flags are passed to fid2dicom 
+                        and should only be used from within fid2dcm or with knowledge of input fid data. \n" \
 	"-r             Save real and imaginary components of filtered image. \n" \
 	"-k             Save Kspace data. \n" \
 	"-N             Save filtered outputs to NIFTI.\n" \
@@ -135,7 +141,9 @@ print_usage(){
 	                IM components. Bandwidth variable argument, default sqrt(Dim+4))/srqt(2). \n" \
 	"-Y <bwidth>    Fourier Epanechnikov filter. Smoothing of k-space RE and
 	                IM components. Sigma variable argument, default size/sqrt(Dim+4)/srqt(2). \n" \
-	"-C             Disable k-space shift centering to maxima \n" \			
+	"-D             Double resolution in k-space with zero-padding and recon. 
+                        !!!Warning!!! this increases size on disk by a factor of 8.\n" \
+	"-C             Disable k-space shift centering to maxima \n" \
 	"-x             Debug mode. \n" \
 	"-v             Verbose output. \n" \
 	"-h             this help\n" \
@@ -245,7 +253,7 @@ while getopts ":i:o:g:l:j:e:n:w:z:G:E:DhmprkdNCxv" opt; do
 	    ;;
 	h)
 	    print_usage
-	    "${FID2DCMPATH}"/fid2dicom.py -h
+	    # "${FID2DCMPATH}"/fid2dicom.py -h
 	    exit 0
 	    ;;
 	m)
