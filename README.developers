@@ -144,3 +144,14 @@ ipython -i ./kspace_filter.py -- -v -i ../ExampleAntData/kidney512iso_01.fid/ -o
   test_double_resolution_depth(kspgauss,'gauss_depth_large')
 #+end_src 
 
+
+
+
+See Examples
+
+https://scipy-lectures.github.io/advanced/image_processing/
+https://scipy-lectures.github.io/packages/scikit-image/
+
+using PIL
+http://nbviewer.ipython.org/github/mroberts3000/GpuComputing/blob/master/
+IPython/GaussianBlur.ipynb
