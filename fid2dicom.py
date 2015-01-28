@@ -40,7 +40,6 @@ import nibabel as nib
 from agilent2dicom_globalvars import *
 import ReadProcpar
 import ProcparToDicomMap
-import ParseFDF
 import ReadFID as FID
 import cplxfilter as CPLX
 import kspace_filter as KSP
@@ -88,9 +87,23 @@ if __name__ == "__main__":
 -n 5] [-w -n 5] [-y -s 1.0 -n 3]] [[-D] [-G -s 1.0] [-L -s 1.0][-Y -s
 1.0 -n 3]]''',
                                      description='''
-fid2dicomis an FID to Enhanced MR DICOM converter from MBI. Complex
-filtering enabled with -g, -l, -n or -w arguments.  FID2DICOM
-Version ''' + AGILENT2DICOM_VERSION)
+fid2dicom is an Agilent FID to Enhanced MR DICOM converter from MBI.\n
+
+Complex filtering is available for  gaussian (-g), laplacian (-l),
+median (-n), epanechnikov (-y), stdev (-s)  or wiener (-w) filters.\n
+
+Fourier domain filtering is available for Gaussian (-G), Epanechnikov
+                                     (-Y) and Laplacian (-L).\n
+
+Super-resolution (-D) is generated from zero-padding filtered kspace.
+!!!WARNING!!! This produces images 8 times larger than the original
+and are stored as NIFTI.\n
+
+Save diffent components of reconstruction or complex filtering including
+magnitude (-m), phase (-p), or real and imaginary (-r). K-space data can
+also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
+
+\nFID2DICOM Version ''' + AGILENT2DICOM_VERSION)
     parser.add_argument(
         '-i', '--inputdir', help='''Input directory name. Must be an
         Agilent FID image directory containing procpar and fid
@@ -113,7 +126,7 @@ Version ''' + AGILENT2DICOM_VERSION)
         '-N', '--nifti', help='''Save filtered outputs to NIFTI.''',
         action="store_true")
     parser.add_argument('-D', '--double_resolution', help='''Zero pad
-                        k-space data before recnstruction to double
+                        k-space data before reconstruction to double
                         resolution in image space.''',
                         action="store_true")
 #    parser.add_argument('-s', '--sequence', help=''Sequence type (one
@@ -132,9 +145,10 @@ Version ''' + AGILENT2DICOM_VERSION)
                         Laplace filter smoothing of reconstructed RE
                         and IM components. -s/--sigma variable must be
                         declared.''', action="store_true")
-    parser.add_argument('-s', '--sigma', help='''Gaussian and
+    parser.add_argument('-s', '--sigma', help='''Gaussian,
                         Laplace-Gaussian sigma variable. Default
-                        1/srqt(2).''', type=sigmaparse)
+                        1/srqt(2).\n Epanechnikov bandwidth variable
+                        default sqrt(7/2).''', type=sigmaparse)
     # , default='0.707', type=float
     parser.add_argument('-go', '--gaussian_order', help='''Gaussian
                         and Laplace-Gaussian order variable. Default
@@ -162,7 +176,7 @@ Version ''' + AGILENT2DICOM_VERSION)
         '-wn', '--wiener_noise', help='''Wiener filter
         noise. Estimated variance of image. If none or zero, local
         variance is calculated. Default 0=None.''', default=0)
-    parser.add_argument('-C','--no_centre_shift',
+    parser.add_argument('-C', '--no_centre_shift',
                         help='Disable centering maximum in k-space data.',
                         action="store_true")
     parser.add_argument(
@@ -232,9 +246,6 @@ Version ''' + AGILENT2DICOM_VERSION)
     # Map procpar to DICOM and create pydicom struct
     ds, MRAcquisitionType = ProcparToDicomMap.ProcparToDicomMap(procpar, args)
 
-    # Read in data from fid file
-    volume = 1
-
     filename = fidfiles[len(fidfiles) - 1]
     procpar, hdr, dims, image_data_real, image_data_imag = FID.readfid(
         args.inputdir, procpar, args)
@@ -254,16 +265,25 @@ Version ''' + AGILENT2DICOM_VERSION)
     # RescaleSlope, args)
 
     if not args.no_centre_shift:
-        ksp = kspaceshift(ksp)
+        ksp = KSP.kspaceshift(ksp)
         from scipy.fftpack import ifftn, fftshift, ifftshift
         image_data = fftshift(ifftn(ifftshift(ksp)))
-        
+
     FID.Save3dFIDtoDicom(ds, procpar, np.absolute(
         image_data), hdr, ImageTransformationMatrix, args, outdir)
 
     if args.gaussian_filter:
+        sigma = np.array(ksp.shape)
         if not args.sigma:
-            args.sigma = np.sqrt(0.5)
+            sigma = sigma * np.sqrt(0.5)
+        else:
+            try:
+                sigma[0], sigma[1], sigma[2] = map(
+                    float, args.sigma.split(', '))
+                sigma = np.array(ksp.shape) * sigma
+            except ValueError:
+                sigma = sigma * float(args.sigma)
+                pass
         if not args.gaussian_order:
             args.gaussian_order = 0
         if not args.gaussian_mode:
@@ -272,16 +292,16 @@ Version ''' + AGILENT2DICOM_VERSION)
             print "Computing Gaussian filtered image from Original image"
         image_filtered = CPLX.cplxgaussian_filter(image_data.real,
                                                   image_data.imag,
-                                                  args.sigma,
+                                                  sigma,
                                                   args.gaussian_order,
                                                   args.gaussian_mode)
-        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
-        %s\nScipy version: %s\nComplex Gaussian filter: sigma=%f
-        order=%d mode=%s.''' % (Derivation_Description,
-                                AGILENT2DICOM_VERSION, DVCS_STAMP,
-                                scipy.__version__, args.sigma,
-                                args.gaussian_order,
-                                args.gaussian_mode)
+        ds.DerivationDescription = '''%s\n
+        Agilent2Dicom Version: %s - %s\n
+        Scipy version: %s\n
+        Complex Gaussian filter: sigma=%f order=%d mode=%s.''' % (
+            Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
+            scipy.__version__, sigma, args.gaussian_order,
+            args.gaussian_mode)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-gaussian.dcm', outdir))
@@ -375,14 +395,24 @@ Version ''' + AGILENT2DICOM_VERSION)
                                                  '-epanechnikov', outdir))
 
     if args.FT_gaussian_filter:
+        sigma = np.array(ksp.shape)
         if not args.sigma:
-            args.sigma = np.sqrt(0.5)
+            sigma = sigma * np.sqrt(0.5)
+        else:
+            try:
+                sigma[0], sigma[1], sigma[2] = map(
+                    float, args.sigma.split(', '))
+                sigma = np.array(ksp.shape) * sigma
+            except ValueError:
+                sigma = sigma * float(args.sigma)
+                pass
+
         print "Computing FT Gaussian filtered image"
 
-        kspgauss1 = KSP.kspacegaussian_filter2(
-            ksp, sigma_=float(512.0) / float(1.0 / np.sqrt(2.0)))
+        kspgauss = KSP.kspacegaussian_filter2(
+            ksp, sigma_=sigma)
         from scipy.fftpack import ifftn, fftshift, ifftshift
-        image_filtered = fftshift(ifftn(ifftshift(kspgauss1)))
+        image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
 
         # image_filtered = CPLX.cplxgaussian_filter(image_data.real,
         # image_data.imag, args.sigma, args.gaussian_order, args.gaussian_mode)
@@ -390,7 +420,7 @@ Version ''' + AGILENT2DICOM_VERSION)
         %s\nScipy version: %s\nComplex Fourier Gaussian filter:
         sigma=%f.''' % (Derivation_Description,
                         AGILENT2DICOM_VERSION, DVCS_STAMP, scipy.__version__,
-                        args.sigma)
+                        sigma)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-kspgaussian.dcm', outdir))
@@ -398,14 +428,25 @@ Version ''' + AGILENT2DICOM_VERSION)
         if args.nifti:
             save_as_nifti(image_filtered, re.sub('.dcm',
                                                  '-kspgaussian', outdir))
+        if args.double_resolution:
+            KSP.super_resolution(
+                kspgauss, re.sub('.dcm', '-kspgaussian', outdir))
 
     if args.FT_epanechnikov_filter:
+        # Read EPA bandwidth from sigma argument
+        epabw = np.array(ksp.shape)
         if not args.sigma:
-            args.sigma = np.sqrt(0.5)
-        if not args.window_size:
-            args.window_size = 3
+            epabw = epabw * np.sqrt(3.5)
+        else:
+            try:
+                epabw[0], epabw[1], epabw[2] = map(
+                    float, args.sigma.split(', '))
+                epabw = np.array(ksp.shape) * epabw
+            except ValueError:
+                epabw = np.array(ksp.shape) * float(args.sigma)
+                pass
         print "Computing FT Epanechnikov filtered image"
-        kspepa = KSP.kspaceepanechnikov_filter(ksp, sigma_=float(ksp.shape[0]) / np.sqrt(0.5))
+        kspepa = KSP.kspaceepanechnikov_filter(ksp, sigma_=epabw)
         from scipy.fftpack import ifftn, fftshift, ifftshift
         image_filtered = fftshift(ifftn(ifftshift(kspepa)))
 
@@ -414,13 +455,15 @@ Version ''' + AGILENT2DICOM_VERSION)
         # args.gaussian_mode)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
         %s\nScipy version: %s\nComplex Fourier Epanechnikov filter:
-        sigma=%f.
+        bandwidth=%f.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION,
-               DVCS_STAMP, scipy.__version__, args.sigma)
+               DVCS_STAMP, scipy.__version__, epabw)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-kspepa.dcm', outdir))
-
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm', '-kspepa',
-                                                 outdir))
+            save_as_nifti(image_filtered,
+                          re.sub('.dcm', '-kspepa', outdir))
+        if args.double_resolution:
+            KSP.super_resolution(
+                kspepa, re.sub('.dcm', '-kspgaussian', outdir))
