@@ -698,12 +698,39 @@ def window_stdev(image, radius=2.5):
     return ((c2 - c1 * c1) ** .5)[:-radius * 2 + 1, :-radius * 2 + 1]
 
 
-def localstd_filter(phase_image):
-    """Implementation of local stdev filter
+def phase_std_filter(phase_image,wsize=5):
+    """Implementation of local stdev filter for phase images
     """
-    return np.fmin(window_stdev(phase_image),
-                   window_stdev(phase_image + np.pi))
+    return np.fmin(window_stdev(phase_image, float(wsize/2.0)),
+                   window_stdev(phase_image + np.pi), float(wsize/2.0))
 
+def cplxstdev_filter(real_img,imag_img,window_size=5):
+    """cplxstdev_filter
+    """
+    real_img = np.empty_like(real_input)
+    imag_img = np.empty_like(real_input)
+    if window_size:
+        radius = float(window_size/2)
+    else:
+        radius = 2.5
+
+    if real_input.ndim == 3:
+        real_img = window_stdev(real_input, radius)
+        imag_img = window_stdev(imag_input, radius)
+    else:
+        for echo in xrange(0, real_input.shape[4]):
+            for acq in xrange(0, real_input.shape[3]):
+                real_img[:, :, :, acq, echo] = window_stdev(
+                    real_input[:, :, :, acq, echo], radius)
+                imag_img[:, :, :, acq, echo] = window_stdev(
+                    imag_input[:, :, :, acq, echo], radius)
+
+    filtered_image = np.empty_like(real_input, dtype=np.complex64)
+    filtered_image.real = real_img
+    filtered_image.imag = imag_img
+    return filtered_image
+# end cplxstdev_filter
+    
 # def unwrap():
 # ##NOT WORKING YET
 #     p2q2 = (p**2 + q**2)
