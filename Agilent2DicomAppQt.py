@@ -39,7 +39,7 @@ import re
 import numpy as np
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog, QFileDialog, QApplication
-from Agilent2DicomQt2 import Ui_MainWindow
+from Agilent2DicomQt import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING = 1
