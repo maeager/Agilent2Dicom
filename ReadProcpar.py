@@ -26,7 +26,6 @@ import re
 import argparse
 
 
-
 def ReadProcpar(procparfilename):
     """
 READPROCPAR - Read procpar file and return procpar dictionary and text
@@ -100,20 +99,20 @@ Notes:
         tokens = line.strip().split(None, 1)
         propnumvalues = int(tokens[0])
         # handle property values
-        if proptype == '1': # real number
+        if proptype == '1':  # real number
             if propnumvalues == 1:
                 propvalue = float(tokens[1])
             else:
                 propvalue = map(float, tokens[1].split())
-        elif proptype == '2': # string
+        elif proptype == '2':  # string
             if propnumvalues == 1:
                 propvalue = tokens[1].strip('"')
             if propnumvalues > 1:
                 propvalue = [tokens[1].strip('"')]
                 for i in range(2, propnumvalues + 1):
                     propvalue.append(f.readline().strip('"\n"'))
-        line = f.readline() # last line in property
-        line = f.readline() # next property        
+        line = f.readline()  # last line in property
+        line = f.readline()  # next property
         lastprop = propvalue
         procpar[propname] = propvalue
     f.seek(0)
@@ -134,25 +133,26 @@ def ProcparInfo(procpar):
     header['Mode'] = '%dD' % procpar['nD']
     if procpar['nD'] == 2:
         header['FOV_cm'] = [procpar['lro'], procpar['lpe']]
-        header['Dimensions'] = [procpar['nf']/procpar['ns'], procpar['np']/2,
+        header['Dimensions'] = [procpar['nf'] / procpar['ns'], procpar['np'] / 2,
                                 procpar['ns']]
-        #if len(procpar['thk']) > 1:
+        # if len(procpar['thk']) > 1:
         #    print "procpar thk size greater than 1"
-        header['Voxel_Res_mm'] = [procpar['lro']*10 / header['Dimensions'][0],
-                                  procpar['lpe']*10 / header['Dimensions'][1],
-                                  procpar['thk']*10]
+        header['Voxel_Res_mm'] = [procpar['lro'] * 10 / header['Dimensions'][0],
+                                  procpar['lpe'] * 10 /
+                                  header['Dimensions'][1],
+                                  procpar['thk'] * 10]
     elif procpar['nD'] == 3:
         header['FOV_cm'] = [procpar['lro'],
                             procpar['lpe'],
                             procpar['lpe2'],
                             procpar['lpe3']]
         header['Dimensions'] = [procpar['nf'],
-                                procpar['np']/2,
+                                procpar['np'] / 2,
                                 procpar['nv2']]
-        header['Voxel_Resolution_mm'] = [
-            procpar['lro']*10 / header['Dimensions'][0],
-            procpar['lpe']*10 / header['Dimensions'][1],
-            procpar['lpe2']*10 / header['Dimensions'][2]]
+        header['Voxel_Res_mm'] = [
+            procpar['lro'] * 10 / header['Dimensions'][0],
+            procpar['lpe'] * 10 / header['Dimensions'][1],
+            procpar['lpe2'] * 10 / header['Dimensions'][2]]
     header['Volumes'] = procpar['volumes']
     header['NumberOfEchoes'] = procpar['ne']
     header['FOV_ORIENTATION'] = [procpar['orient'], procpar['psi'],
@@ -169,22 +169,24 @@ def ProcparInfo(procpar):
     # + str(procpar['nv2']) + ', nv3: ' + str(procpar['nv3'])
     rcvrs = re.findall('y', procpar['rcvrs'])
     if rcvrs:
-        header['NumberOfChannels'] = len(rcvrs);
+        header['NumberOfChannels'] = len(rcvrs)
     else:
         header['NumberOfChannels'] = 1
-                            
-    
-    dims=[1, 1, 1, 1, 1]
+
+    dims = [1, 1, 1, 1, 1]
     # validate dimensions
     if procpar['nD'] == 2:
-        dims[0] = procpar['np']/2        # num phase encode lines / 2
-        dims[1] = procpar['nf']/procpar['ns'] # num frequency lines acquired / # echoes
+        dims[0] = procpar['np'] / 2        # num phase encode lines / 2
+        # num frequency lines acquired / # echoes
+        dims[1] = procpar['nf'] / procpar['ns']
         dims[2] = procpar['ns']          # if 2D, num slices, else ni2
-        if procpar['ni2'] > 1:           # fse3d sequence has nD == 2, but is a 3d acquisition???
+        # fse3d sequence has nD == 2, but is a 3d acquisition???
+        if procpar['ni2'] > 1:
             dims[2] = procpar['ni2']
     elif procpar['nD'] == 3:
-        dims[0] = procpar['np']/2        # NUM phase encode lines / 2
-        dims[1] = procpar['nf']/procpar['ne'] # num frequency lines acquired / # echoes
+        dims[0] = procpar['np'] / 2        # NUM phase encode lines / 2
+        # num frequency lines acquired / # echoes
+        dims[1] = procpar['nf'] / procpar['ne']
         dims[2] = procpar['ni2']
     dims[3] = header['NumberOfChannels']
     dims[4] = header['NumberOfEchoes']
@@ -194,9 +196,9 @@ def ProcparInfo(procpar):
     header['PosXYZ'] = [procpar[procpar['posX']], procpar[procpar['posY']],
                         procpar[procpar['posZ']]]
     header['VoxelSize'] = [procpar['vox1'], procpar['vox2'], procpar['vox3']]
-    header['TR'] = str(procpar['tr']*1000.0)
+    header['TR'] = str(procpar['tr'] * 1000.0)
     if 'te' in procpar.keys():
-        header['TE'] = str(procpar['te']*1000.0)
+        header['TE'] = str(procpar['te'] * 1000.0)
     return header
 
 if __name__ == "__main__":
@@ -208,13 +210,12 @@ if __name__ == "__main__":
     parser.add_argument(
         '-i', '--inputdir',
         help='Input directory name. Must be an Agilent FDF directory',
-        required=True);
+        required=True)
     parser.add_argument('-s', '--show', help='Show procpar info.',
-                        action="store_true");
+                        action="store_true")
     parser.add_argument('-v', '--verbose', help='Verbose.',
-                        action="store_true");
+                        action="store_true")
     args = parser.parse_args()
-
 
     procpar, procpartext = ReadProcpar(os.path.join(args.inputdir, 'procpar'))
     if not args.show:
@@ -222,5 +223,5 @@ if __name__ == "__main__":
         print "Basic info:"
 
     p = ProcparInfo(procpar)
-    #print '\n'.join(p)
+    # print '\n'.join(p)
     print '\n'.join("%s:  %r" % (key, val) for (key, val) in p.iteritems())

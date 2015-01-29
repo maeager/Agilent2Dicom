@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# pylint: disable=bad-whitespace
 # agilent2dicom is used to convert Agilent FDF and FID images to DICOM format.
 
   # Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)

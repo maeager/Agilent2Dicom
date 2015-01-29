@@ -74,7 +74,8 @@ if __name__ == "__main__":
         help='Sequence type (one of Multiecho, Diffusion, ASL.')
     #    parser.add_argument('-d', '--disable-dcmodify', help='Dcmodify flag.',
     # action="store_true")
-    parser.add_argument('-v', '--verbose', help='Verbose.', action="store_true")
+    parser.add_argument(
+        '-v', '--verbose', help='Verbose.', action="store_true")
 
     # parser.add_argument("imgdir", help="Agilent .img directory containing
     # procpar and fdf files")
@@ -184,7 +185,8 @@ if __name__ == "__main__":
                 ds.FrameContentSequence[0].StackID[0]
             print type(ds.FrameContentSequence[0].StackID), \
                 type(ds.FrameContentSequence[0].StackID[0])
-            ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0]) + 1)
+            ds.FrameContentSequence[0].StackID = str(
+                int(ds.FrameContentSequence[0].StackID[0]) + 1)
             if args.verbose:
                 print "Incrementing volume StackID ", \
                     ds.FrameContentSequence[0].StackID

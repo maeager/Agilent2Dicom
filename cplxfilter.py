@@ -1,10 +1,9 @@
 #!/usr/bin/env python
-# pylint: disable=wildcard-import, method-hidden,no-member
-# pylint: enable=too-many-lines
-"""
-cplxgaussian_filter, cplxgaussian_laplace, cplxmedian_filter, cplxwiener_filter
+"""cplxfilter complex filtering methods for 3D MR image data
 
-Methods for complex filtering of 3D k-space dat:
+  Methods include:
+  cplxgaussian_filter, cplxgaussian_laplace, cplxepanechnikov_filter
+  cplxmedian_filter, cplxwiener_filter
 
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
@@ -14,7 +13,7 @@ Methods for complex filtering of 3D k-space dat:
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 
-This program is distributed in the hope that it will be useful,
+  This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
@@ -85,21 +84,26 @@ def cplxgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
        ndimage.filters.gaussian_filter is used to smooth real and imag
        components filtered_magnitude = cplxfilter(realimg, imagimg)
 
-    :param RE, IM: real and imag NDimage :param sigma: [optional] optimal sigma
-    = 1/sqrt(2).  Standard deviation for Gaussian kernel. The standard
-    deviations of the Gaussian filter are given for each axis as a sequence, or
-    as a single number, in which case it is equal for all axes.  :param order:
-    [optional] ]{0, 1, 2, 3} or sequence from same set, optional.  The order of
-    the filter along each axis is given as a sequence of integers, or as a
-    single number. An order of 0 corresponds to convolution with a Gaussian
-    kernel. An order of 1, 2, or 3 corresponds to convolution with the first,
-    second or third derivatives of a Gaussian. Higher order derivatives are not
+    :param RE, IM: real and imag NDimage
+    :param sigma: [optional] optimal sigma = 1/sqrt(2).
+    Standard deviation for Gaussian kernel. The standard deviations of
+    the Gaussian filter are given for each axis as a sequence, or as a
+    single number, in which case it is equal for all axes.
+
+    :param order: [optional] ]{0, 1, 2, 3} or sequence from same set, optional.
+    The order of the filter along each axis is given as a sequence of
+    integers, or as a single number. An order of 0 corresponds to
+    convolution with a Gaussian kernel. An order of 1, 2, or 3
+    corresponds to convolution with the first, second or third
+    derivatives of a Gaussian. Higher order derivatives are not
     implemented
 
     :param mode: [optional] ]{'reflect', 'constant', 'nearest',
-    'mirror', 'wrap'}, optional. The mode parameter determines how the
-    array borders are handled, where cval is the value when mode is
-    equal to 'constant'. Default is 'reflect' :param cval: [optional]
+    'mirror', 'wrap'}, optional. Default is 'reflect'
+    The mode parameter determines how the array borders are handled,
+    where cval is the value when mode is equal to 'constant'.
+
+    :param cval: [optional]
     Value to fill past edges of input if mode is 'constant'. Default
     is 0.0
 
@@ -150,10 +154,12 @@ def cplx2dgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
        filtered_magnitude = cplxfilter(realimg, imagimg)
 
     :param RE, IM: real and imag NDimage
+    
     :param sigma: [optional] optimal sigma = 1/sqrt(2).  Standard deviation for
     Gaussian kernel. The standard deviations of the Gaussian filter
     are given for each axis as a sequence, or as a single number, in
     which case it is equal for all axes.
+    
     :param order: [optional] ]{0, 1, 2, 3} or sequence from same set, optional.
     The order of the filter along each axis is given as a sequence of
     integers, or as a single number. An order of 0 corresponds to
@@ -161,11 +167,13 @@ def cplx2dgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
     corresponds to convolution with the first, second or third
     derivatives of a Gaussian. Higher order derivatives are not
     implemented
+    
     :param mode: [optional] ]{'reflect', 'constant', 'nearest', 'mirror',
     'wrap'},
     optional. The mode parameter determines how the array borders are
     handled, where cval is the value when mode is equal to
     'constant'. Default is 'reflect'
+    
     :param cval: [optional] Value to fill past edges of input if mode is
     'constant'. Default is 0.0
 
@@ -217,7 +225,6 @@ def cplxgaussian_laplace(real_input, imag_input, sigma=0.707, mode_='reflect',
     filtered_magnitude = cplxfilter(realimg, imagimg)
 
     :param sigma:  optimal sigma = 1/sqrt(2).  Standard
-
     deviation for kernel. The standard deviations of the Gaussian Laplace
     filter are given for each axis as a sequence, or as a single number, in
     which case it is equal for all axes.
@@ -565,7 +572,7 @@ Nonparametric Econometrics: Theory and Practice
     print filtersiz
     filtersize = (1, 1, 1)
     if not hasattr(filtersiz, "__len__"):
-        filtersize = np.ones(3)*filtersiz
+        filtersize = np.ones(3) * filtersiz
     else:
         if len(filtersiz) != 3:
             print "epanechnikov filter: size must be 1x3"
@@ -573,7 +580,7 @@ Nonparametric Econometrics: Theory and Practice
         filtersize = np.array(filtersiz[0:3])
     print bandwidth
     if not hasattr(bandwidth, "__len__"):
-        sigma = np.ones(3)*bandwidth
+        sigma = np.ones(3) * bandwidth
     else:
         if len(bandwidth) != 3:
             print "epanechnikov filter: sigma must be 1x3"
@@ -581,34 +588,34 @@ Nonparametric Econometrics: Theory and Practice
         sigma = np.array(bandwidth[0:3])
 
     if np.mod(np.array(filtersize), 2).any():
-        sz = (np.array(filtersize))/2
+        sz = (np.array(filtersize)) / 2
         xx = np.array(range(-int(sz[0]), int(sz[0]) + 1))
         yy = np.array(range(-int(sz[1]), int(sz[1]) + 1))
         zz = np.array(range(-int(sz[2]), int(sz[2]) + 1))
     else:
-        sz = (np.array(filtersize)-1)/2.0
+        sz = (np.array(filtersize) - 1) / 2.0
         xx = np.array(range(-int(sz[0]), int(sz[0])))
         yy = np.array(range(-int(sz[1]), int(sz[1])))
         zz = np.array(range(-int(sz[2]), int(sz[2])))
     mult_fact = np.ones((len(yy), len(xx), len(zz)))
-    uu = xx[np.newaxis, :, np.newaxis]*mult_fact
-    vv = yy[:, np.newaxis, np.newaxis]*mult_fact
-    ww = zz[np.newaxis, np.newaxis, :]*mult_fact
+    uu = xx[np.newaxis, :, np.newaxis] * mult_fact
+    vv = yy[:, np.newaxis, np.newaxis] * mult_fact
+    ww = zz[np.newaxis, np.newaxis, :] * mult_fact
     # if not hasattr(sigma, "__len__"):
     # if type(sigma) is float or type(sigma) is np.float64:
     #    epan = (0.75)*(1- (np.abs(uu**2 + vv**2 + ww**2))/(sigma**2))
     # else:
-    zsquared = ((np.abs(uu)**2)/sigma[0]**2 +
-                (np.abs(vv)**2)/sigma[1]**2 + (np.abs(ww)**2)/sigma[2]**2)
-    epan = (0.75)*(1 - zsquared)
+    zsquared = ((np.abs(uu) ** 2) / sigma[0] ** 2 +
+                (np.abs(vv) ** 2) / sigma[1] ** 2 + (np.abs(ww) ** 2) / sigma[2] ** 2)
+    epan = (0.75) * (1 - zsquared)
     if order == 4:
         # Fourth order Epanechnikov
-        epan = (15.0/8.0 - (7.0/8.0)*zsquared)*epan
+        epan = (15.0 / 8.0 - (7.0 / 8.0) * zsquared) * epan
         # epan= (0.75)*(1.5 - 2.5((np.abs(uu)**2)/sigma[0]**2 +
         # (np.abs(vv)**2)/sigma[1]**2 + (np.abs(ww)**2)/sigma[2]**2))
     if order == 6:
-        epan = (175.0/64.0)*(1-6 * zsquared +
-                             (33.0/5.0)*zsquared*zsquared) * epan
+        epan = (175.0 / 64.0) * (1 - 6 * zsquared +
+                                 (33.0 / 5.0) * zsquared * zsquared) * epan
     # else:
     #     print "epanechnikov filter can only have order={0, 4}"
     epan = epan * (epan > 0)
@@ -633,7 +640,7 @@ def cplxepanechnikov_filter(real_input, imag_input, sigma_=1.87,
     print "Complex Epanechnikov filter bandwidth ", sigma_, " size ", size_
     filtersize = (1, 1, 1)
     if not hasattr(size_, "__len__"):
-        filtersize = np.ones(3)*size_
+        filtersize = np.ones(3) * size_
     else:
         if len(size_) != 3:
             print "cplxepanechnikov_filter: size must be 1x3"
@@ -685,9 +692,10 @@ def window_stdev(image, radius=2.5):
     standard-deviation-on-sliding-windows
     """
     from scipy.ndimage.filters import uniform_filter
-    c1 = uniform_filter(image, radius*2, mode='constant', origin=-radius)
-    c2 = uniform_filter(image*image, radius*2, mode='constant', origin=-radius)
-    return ((c2 - c1*c1)**.5)[:-radius*2 + 1, :-radius*2 + 1]
+    c1 = uniform_filter(image, radius * 2, mode='constant', origin=-radius)
+    c2 = uniform_filter(
+        image * image, radius * 2, mode='constant', origin=-radius)
+    return ((c2 - c1 * c1) ** .5)[:-radius * 2 + 1, :-radius * 2 + 1]
 
 
 def localstd_filter(phase_image):
@@ -725,7 +733,7 @@ def swi2(cmplx_input_image, order=2):
     if np.iscomplexobj(cmplx_input_image):
         magn = np.abs(cmplx_input_image)
         phase = np.angle(cmplx_input_image)
-        weight = (phase / np.pi + 1.0)**order
+        weight = (phase / np.pi + 1.0) ** order
         weight = weight.clip(min=0.0, max=1.0)
         return magn * weight
     else:
@@ -808,7 +816,7 @@ if __name__ == "__main__":
 
     # for filename in fidfiles:
     print "Reading FID"
-    filename = fidfiles[len(fidfiles)-1]
+    filename = fidfiles[len(fidfiles) - 1]
     pp, hdr, dims, image_data_real, image_data_imag = readfid(args.inputdir,
                                                               procpar, args)
     print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
@@ -849,8 +857,8 @@ if __name__ == "__main__":
 #    save_nifti(swi_image, 'swi_image')
 
     print "Computing Laplacian enhanced image from Original image"
-    laplace_enhanced = gauss_filtered-cplxlaplacian_filter(gauss_filtered.real,
-                                                           gauss_filtered.imag)
+    laplace_enhanced = gauss_filtered - cplxlaplacian_filter(gauss_filtered.real,
+                                                             gauss_filtered.imag)
     print "Saving enhanced image g(x, y, z)=f(x, y, z) - Laplacian[f(x, y, z)]"
     save_nifti(normalise(np.abs(laplace_enhanced)), 'laplace_enhanced')
 
@@ -891,7 +899,7 @@ if __name__ == "__main__":
     print "Computing Epanechnikov filtered image"
     epanechnikov_filtered = cplxepanechnikov_filter(image.real,
                                                     image.imag,
-                                                    np.sqrt(7.0/2.0),
+                                                    np.sqrt(7.0 / 2.0),
                                                     (3, 3, 3))
     print "Saving Epanechnikov image"
     save_nifti(normalise(np.abs(epanechnikov_filtered)), 'epanechnikov_image')
@@ -899,7 +907,7 @@ if __name__ == "__main__":
     print "Computing Epanechnikov (4th order) filtered image"
     epanechnikov_filtered = cplxepanechnikov_filter(image.real,
                                                     image.imag,
-                                                    np.sqrt(7.0/2.0),
+                                                    np.sqrt(7.0 / 2.0),
                                                     (3, 3, 3), 1)
     print "Saving Epanechnikov image"
     save_nifti(normalise(np.abs(epanechnikov_filtered)), 'epa4th_image')
