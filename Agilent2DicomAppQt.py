@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # Agilent2DicomAppQt GUI for Agilent 9.4T MR FDF/FID image processing
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 0585ad6e4a0a 2015/01/29 04:24:14 michael $
-# $Id: Agilent2DicomAppQt.py,v 0585ad6e4a0a 2015/01/29 04:24:14 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v da9252b06219 2015/01/29 04:56:59 michael $
+# $Id: Agilent2DicomAppQt.py,v da9252b06219 2015/01/29 04:56:59 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -39,7 +39,7 @@ import re
 import numpy as np
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog, QFileDialog, QApplication
-from Agilent2DicomQt2 import Ui_MainWindow
+from Agilent2DicomQt import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING = 1
@@ -48,12 +48,12 @@ import logging
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
-__date__ = "$Date: 2015/01/29 04:24:14 $"
+__date__ = "$Date: 2015/01/29 04:56:59 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 0585ad6e4a0a 2015/01/29 04:24:14 michael $")
+    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v da9252b06219 2015/01/29 04:56:59 michael $")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
