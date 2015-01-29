@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>793</width>
+    <width>829</width>
     <height>611</height>
    </rect>
   </property>
@@ -21,7 +21,7 @@
        <string/>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_fdf_2">
        <attribute name="title">
@@ -173,7 +173,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>550</width>
+               <width>586</width>
                <height>174</height>
               </rect>
              </property>
@@ -416,62 +416,6 @@ Warning: use on isotropic images only.</string>
                <layout class="QVBoxLayout" name="verticalLayout_22">
                 <item>
                  <layout class="QGridLayout" name="gridLayout_2">
-                  <item row="6" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout_36">
-                    <item>
-                     <widget class="QCheckBox" name="checkBox_reimag">
-                      <property name="text">
-                       <string>Save REAL and IMAG</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QCheckBox" name="checkBox_ksp">
-                      <property name="text">
-                       <string>Save K space data</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item row="3" column="0">
-                   <layout class="QHBoxLayout" name="horizontalLayout_37">
-                    <item>
-                     <widget class="QCheckBox" name="checkBox_reimag_raw">
-                      <property name="text">
-                       <string>Save REAL and IMAG</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item>
-                     <widget class="QCheckBox" name="checkBox_ksp_raw">
-                      <property name="text">
-                       <string>Save K space data</string>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
-                  </item>
-                  <item row="4" column="0">
-                   <widget class="QLabel" name="label_36">
-                    <property name="toolTip">
-                     <string>Outputs saved as &quot;&lt;dicom folder&gt;-&lt;filter type&gt;-&lt;magn or pha or real or imag&gt;.dcm&quot;.  K-space data is saved to MATLAB mat file &quot;&lt;dicom folder&gt;-&lt;ksp&gt;.mat&quot;</string>
-                    </property>
-                    <property name="text">
-                     <string>Outputs of filtered image(s)</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="0">
-                   <widget class="QLabel" name="label_38">
-                    <property name="toolTip">
-                     <string>Outputs saved as &quot;&lt;dicom folder&gt;-&lt;filter type&gt;-&lt;magn or pha or real or imag&gt;.dcm&quot;.  K-space data is saved to MATLAB mat file &quot;&lt;dicom folder&gt;-&lt;ksp&gt;.mat&quot;</string>
-                    </property>
-                    <property name="text">
-                     <string>Outputs of original reconstructed image:</string>
-                    </property>
-                   </widget>
-                  </item>
                   <item row="5" column="0">
                    <layout class="QHBoxLayout" name="horizontalLayout_35">
                     <item>
@@ -494,6 +438,56 @@ Warning: use on isotropic images only.</string>
                      <widget class="QCheckBox" name="checkBox_pha">
                       <property name="text">
                        <string>Save Phase</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="8" column="0">
+                   <widget class="Line" name="line">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="6" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_36">
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_reimag">
+                      <property name="text">
+                       <string>Save REAL and IMAG</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_ksp">
+                      <property name="text">
+                       <string>Save K space data</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="7" column="0">
+                   <widget class="QCheckBox" name="checkBox_nifti">
+                    <property name="text">
+                     <string>Save magnitude as NIFTI (limited header info)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="3" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_37">
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_reimag_raw">
+                      <property name="text">
+                       <string>Save REAL and IMAG</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_ksp_raw">
+                      <property name="text">
+                       <string>Save K space data</string>
                       </property>
                      </widget>
                     </item>
@@ -526,17 +520,23 @@ Warning: use on isotropic images only.</string>
                     </item>
                    </layout>
                   </item>
-                  <item row="7" column="0">
-                   <widget class="QCheckBox" name="checkBox_nifti">
+                  <item row="4" column="0">
+                   <widget class="QLabel" name="label_36">
+                    <property name="toolTip">
+                     <string>Outputs saved as &quot;&lt;dicom folder&gt;-&lt;filter type&gt;-&lt;magn or pha or real or imag&gt;.dcm&quot;.  K-space data is saved to MATLAB mat file &quot;&lt;dicom folder&gt;-&lt;ksp&gt;.mat&quot;</string>
+                    </property>
                     <property name="text">
-                     <string>Save as NIFTI (limited header info)</string>
+                     <string>Outputs of filtered image(s)</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="8" column="0">
-                   <widget class="Line" name="line">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
+                  <item row="1" column="0">
+                   <widget class="QLabel" name="label_38">
+                    <property name="toolTip">
+                     <string>Outputs saved as &quot;&lt;dicom folder&gt;-&lt;filter type&gt;-&lt;magn or pha or real or imag&gt;.dcm&quot;.  K-space data is saved to MATLAB mat file &quot;&lt;dicom folder&gt;-&lt;ksp&gt;.mat&quot;</string>
+                    </property>
+                    <property name="text">
+                     <string>Outputs of original reconstructed image:</string>
                     </property>
                    </widget>
                   </item>
@@ -684,7 +684,7 @@ Higher order derivatives are not implemented
                      </widget>
                     </item>
                     <item>
-                     <widget class="QComboBox" name="comboBox">
+                     <widget class="QComboBox" name="comboBox_gauss_sigmascale">
                       <item>
                        <property name="text">
                         <string>unit voxel</string>
@@ -766,7 +766,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="radioButton_2">
+                     <widget class="QRadioButton" name="mirror">
                       <property name="toolTip">
                        <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
 The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
@@ -1167,7 +1167,7 @@ footprint : array, optional
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QLineEdit" name="lineEdit_gsigma_2">
+                     <widget class="QLineEdit" name="lineEdit_epaband">
                       <property name="toolTip">
                        <string>scalar or sequence of scalars
 
@@ -1185,7 +1185,7 @@ footprint : array, optional
                      </widget>
                     </item>
                     <item>
-                     <widget class="QComboBox" name="comboBox_3">
+                     <widget class="QComboBox" name="comboBox_epabandwidth">
                       <item>
                        <property name="text">
                         <string>unit voxel</string>
@@ -1228,7 +1228,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="reflect_3">
+                     <widget class="QRadioButton" name="reflect_epa">
                       <property name="toolTip">
                        <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
 The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
@@ -1242,7 +1242,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="nearest_3">
+                     <widget class="QRadioButton" name="nearest_epa">
                       <property name="toolTip">
                        <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
 The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
@@ -1256,7 +1256,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="wrap_3">
+                     <widget class="QRadioButton" name="wrap_epa">
                       <property name="toolTip">
                        <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
 The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
@@ -1267,7 +1267,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                      </widget>
                     </item>
                     <item>
-                     <widget class="QRadioButton" name="radioButton">
+                     <widget class="QRadioButton" name="mirror_epa">
                       <property name="toolTip">
                        <string>mode : {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}, optional
 The mode parameter determines how the array borders are handled, where cval is the value when mode is equal to âconstantâ</string>
@@ -1309,7 +1309,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                     <item>
                      <widget class="QCheckBox" name="checkBox_epanechnikov2D">
                       <property name="enabled">
-                       <bool>false</bool>
+                       <bool>true</bool>
                       </property>
                       <property name="text">
                        <string>Use 2D Epanechnikov filter</string>
@@ -1512,8 +1512,8 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                        <string>3D Epanechnikov filter in k-space (Fourier domain).   FFT of image filter used instead of calculated filter.</string>
                       </property>
                       <property name="text">
-                       <string>Use Kspace Epa filter
-(Fourier domain)</string>
+                       <string>Use Kspace Epanechnikov
+ filter(Fourier domain)</string>
                       </property>
                      </widget>
                     </item>
@@ -1551,7 +1551,8 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
                      <widget class="QLabel" name="label_2">
                       <property name="text">
                        <string>Effective Filter Bandwidth
-(Use Sigma*sqrt(dim+4) )</string>
+(Use Gaussian sigma
+ times sqrt(dim+4) )</string>
                       </property>
                      </widget>
                     </item>
@@ -1569,7 +1570,7 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
                      </spacer>
                     </item>
                     <item>
-                     <widget class="QLineEdit" name="lineEdit_kspepa_scale">
+                     <widget class="QLineEdit" name="lineEdit_kspepa_band">
                       <property name="toolTip">
                        <string>Bandwidth equivalent in image space.  Comma separated values (no spaces) accepted for non-isotropic slices.</string>
                       </property>
@@ -1641,7 +1642,7 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>556</width>
+               <width>592</width>
                <height>138</height>
               </rect>
              </property>
@@ -1709,7 +1710,7 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>793</width>
+     <width>829</width>
      <height>25</height>
     </rect>
    </property>
@@ -1881,22 +1882,6 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
    </hints>
   </connection>
   <connection>
-   <sender>actionOpen_FID_Directory</sender>
-   <signal>triggered()</signal>
-   <receiver>pushButton_changefid</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>492</x>
-     <y>66</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionClose</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
@@ -1929,22 +1914,6 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
    </hints>
   </connection>
   <connection>
-   <sender>actionConvert_FID</sender>
-   <signal>triggered()</signal>
-   <receiver>pushButton_convertfid</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>492</x>
-     <y>184</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>actionView_Dicom</sender>
    <signal>triggered()</signal>
    <receiver>pushButton_view</receiver>
@@ -1973,6 +1942,38 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
     <hint type="destinationlabel">
      <x>492</x>
      <y>366</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionOpen_FID_Directory</sender>
+   <signal>triggered()</signal>
+   <receiver>pushButton_changefid</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>492</x>
+     <y>66</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionConvert_FID</sender>
+   <signal>triggered()</signal>
+   <receiver>pushButton_convertfid</receiver>
+   <slot>click()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>492</x>
+     <y>184</y>
     </hint>
    </hints>
   </connection>
