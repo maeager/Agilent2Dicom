@@ -29,10 +29,16 @@
 
 
 ## Set config variables
-FID2DCMPATH=$(dirname $0)
-#source ${FDF2DCMPATH}/agilent2dicom_globalvars.py
-source ${FID2DCMPATH}/agilent2dicom_globalvars.py
-PROGNAME=$(basename $0)
+FID2DCMPATH="$(dirname "$0")"
+source "${FID2DCMPATH}/agilent2dicom_globalvars.py"
+set -o nounset  # shortform: -u
+set -o errexit  # -e
+# set -o pipefail
+# touch $(dirname $0)/error.log
+# exec 2>> $(dirname $0)/error.log
+# set -x  # show debugging output
+# variable collected global FID2DCMVERSION=0.5
+PROGNAME=$(basename "$0")
 FID2DICOM=fid2dicom.py
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FID2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
@@ -44,7 +50,7 @@ RM='/bin/rm -f'
 RMDIR='/bin/rm -rf'
 ## Set dcmulti's arguments
 DCMULTI="dcmulti -v -makestack -sortby AcquisitionNumber -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
-DCMULTI_DTI="dcmulti -v -makestack -sortby DiffusionBValue -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
+#DCMULTI_DTI="dcmulti -v -makestack -sortby DiffusionBValue -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
 # Check dcmtk applications on MASSIVE or Agilent console
 
@@ -62,10 +68,10 @@ else
     DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
     export PATH=${PATH}:${DCMTK}
 fi
-if [ ! -d ${DCM3TOOLS} ]; then
+if [ ! -d "${DCM3TOOLS}" ]; then
     echo "${DCM3TOOLS} path not found"
     exit 1
-elif [ ! -x ${DCM3TOOLS}/dcmulti ]; then
+elif [ ! -x "${DCM3TOOLS}/dcmulti" ]; then
     echo "Unable to find Dicom3Tool's executable dcmulti"
     exit 1
 fi 
@@ -83,9 +89,9 @@ E_BADARGS=65
 #source ${FID2DCMPATH}/yesno.sh
 function yesno(){
     read -r -p "$@" response
-    response=$(echo $response | awk '{print tolower($0)}')
+    response=$(echo "$response" | awk '{print tolower($0)}')
 # response=${response,,} # tolower Bash 4.0
-    if [[ $response =~ ^(yes|y| ) ]]; then
+    if [[ "$response" =~ ^(yes|y| ) ]]; then
 	return 0
     fi
     return 1
@@ -193,7 +199,8 @@ while getopts ":i:o:g:l:j:e:n:w:y:z:G:E:Y:DhmprkdNCxv" opt; do
 	    [ ${do_filter} != 1 ] && (echo "Must have -g before -j"; print_usage; exit 1)
 	    echo "Gaussian filter order: $OPTARG" >&2
 	    gaussian_order="$OPTARG"
-	    python_args=$(echo $python_args | sed 's/--gaussian_order\s[0-3]\s/--gaussian_order '$gaussian_order' /')
+	    #python_args=$(echo $python_args | sed 's/--gaussian_order\s[0-3]\s/--gaussian_order '$gaussian_order' /')
+	    python_args="${python_args//--gaussian_order\s[0-3]\s/--gaussian_order $gaussian_order /}"
 	    ;;
 	e)
 	    [ ${do_filter} != 1 ] && (echo "Must have -g before -e"; print_usage; exit 1)
@@ -311,30 +318,30 @@ fi
 ## Set output_dir if not in args, default is INPUT/.dcm
 if [ -z "$output_dir" ]
 then #test for empty string
-    output_dir="$(dirname ${input_dir})/$(basename ${input_dir} .img).dcm"
-    echo "Output dir set to: " ${output_dir}
+    output_dir=$(dirname "${input_dir}")/$(basename "${input_dir}" .img).dcm
+    echo "Output dir set to: ${output_dir}"
 fi
 ## Set kspace_dir if not in args, default is INPUT.dcm
 if [ "$kspace_dir" != "" ]; then 
-    kspace_dir="$(dirname ${output_dir})/$(basename ${input_dir} .fid)_kspace.dcm"
-    echo "K space output dir set to: " ${kspace_dir}
+    kspace_dir=$(dirname "${output_dir}")/$(basename "${input_dir}" .fid)_kspace.dcm
+    echo "K space output dir set to: ${kspace_dir}"
     [ ! -d "$kspace_dir" ] && mkdir -p "$kspace_dir"
 fi
 
 ## Check existing output directories
 JumpToDCmulti=0
-output_root=$(dirname $output_dir)
-output_base=$(basename $output_dir .dcm)
-dirs=$(find $output_root -maxdepth 1 -type d  -name  "$output_base*.dcm")
+output_root=$(dirname "${output_dir}")
+output_base=$(basename "${output_dir}" .dcm)
+dirs=$(find "$output_root" -maxdepth 1 -type d  -name  "$output_base*.dcm")
 echo "Output dicom paths exist already: "
-echo $dirs
+echo "${dirs}"
 if [ -d "${output_dir}" ]; then
     if test -d "${output_dir}/tmp" && (( verbosity > 0 ))
     then
 	if yesno "Remove existing output directory, y or n (default y)?"; then
 	    echo "Removing existing output directories"
 	    for dcmdir in ${dirs}; do
-		${RMDIR} ${dcmdir}
+		${RMDIR} "${dcmdir}"
 	    done
 	else
 	    JumpToDCmulti=1
@@ -342,11 +349,10 @@ if [ -d "${output_dir}" ]; then
     else
 	echo "Removing existing output directories"
 	for dcmdir in ${dirs}; do
-	    ${RMDIR} ${dcmdir}
+	    ${RMDIR} "${dcmdir}"
 	done
     fi	
 fi
-
 
 if (( JumpToDCmulti == 0 ))
 then
@@ -367,7 +373,7 @@ then
 	echo $found, " FID files were found"
     fi
 
-    if [ ! -f ${input_dir}/procpar ]; then
+    if [ ! -f "${input_dir}/procpar" ]; then
 	error_exit "$LINENO: Input directory has no procpar file"
     fi
 
@@ -384,11 +390,11 @@ then
     
     [ ! -d "${output_dir}" ] && error_exit "$LINENO: Output dir not created by fid2dicom."
 
-    output_root=$(dirname $output_dir)
-    output_base=$(basename $output_dir .dcm)
-    dirs=$(find $output_root -maxdepth 1 -type d  -name  "$output_base*.dcm")
+    output_root="$(dirname "${output_dir}")"
+    output_base=$(basename "${output_dir}" .dcm)
+    dirs=$(find "${output_root}" -maxdepth 1 -type d  -name  "$output_base*.dcm")
     echo "fid2dicom.py completed successfully. Dicom paths generated were: "
-    echo $dirs
+    echo "$dirs"
 
     # dcmfiles=$(ls ${output_dir}/*.dcm)  ## Bad code - use glob
     #if[ $? -ne 0 ]
@@ -404,7 +410,7 @@ fi ## JumpToDCMulti
 echo "Convert dicom images to single enhanced MR dicom format image"
 if [ -f "${output_dir}/MULTIECHO" ]
 then
-    echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; echo '\n'
+    echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; printf '\n'
     nechos=$(cat "${output_dir}/MULTIECHO")
     nechos=$(printf "%1.0f" "$nechos")
     echo "Multi echo sequence, $nechos echos"
@@ -427,7 +433,7 @@ then
     
 elif  [ -f "${output_dir}/DIFFUSION" ]; then
 
-    echo "Contents of DIFFUSION"; cat "${output_dir}/DIFFUSION"; echo '\n'
+    echo "Contents of DIFFUSION"; cat "${output_dir}/DIFFUSION"; printf '\n'
 
     # nbdirs=$(cat ${output_dir}/DIFFUSION)
     # ((++nbdirs)) # increment by one for B0
@@ -436,7 +442,6 @@ elif  [ -f "${output_dir}/DIFFUSION" ]; then
     echo "Diffusion sequence, $nbdirs B-directions"
     for ((ibdir=1;ibdir<=nbdirs;ibdir++)); do
      	bdirext=$(printf '%03d' $ibdir)
-
      	echo "Converting bdir ${ibdir} using dcmulti"
 	for dcmdir in $dirs; do
 	## Input files are sorted by image number and slice number. 
@@ -449,16 +454,14 @@ elif  [ -f "${output_dir}/DIFFUSION" ]; then
 
 elif  [ -f "${output_dir}/ASL" ]; then
 
-    echo "Contents of ASL"; cat "${output_dir}/ASL"; echo '\n'
+    echo "Contents of ASL"; cat "${output_dir}/ASL"; printf '\n'
 
     # nbdirs=$(cat ${output_dir}/ASL)
     # ((++nbdirs)) # increment by one for B0
-    #asltags=$(ls -1 "${output_dir}/tmp/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
-
+    # asltags=$(ls -1 "${output_dir}/tmp/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
     echo "ASL sequence"
     for ((iasl=1;iasl<=2;iasl++)); do
      	aslext=$(printf '%03d' $iasl)
-
      	echo "Converting ASL tag ${iasl} using dcmulti"
 	for dcmdir in $dirs; do
 	## Input files are sorted by image number and slice number. 
@@ -486,14 +489,12 @@ else
 fi
 echo "DCMULTI complete. Fixing inconsistencies."
 
-
-
 ## Corrections to dcmulti conversion
 if (( do_modify == 1 ))
 then
 
     for dcmdir in $dirs; do
-	"${FID2DCMPATH}"/fix-dicoms.sh "${dcmdir}"
+	"${FID2DCMPATH}/fix-dicoms.sh" "${dcmdir}"
 	echo "Fixing dicom dir ${dcmdir}"
 
     ## Additional corrections to diffusion files
@@ -503,7 +504,7 @@ then
 	fi
     ## Additional corrections to ASL files
 	if [ -f "${output_dir}/ASL" ];then
-	    "${FID2DCMPATH"}/fix_asl.sh "${dcmdir}"
+	    "${FID2DCMPATH}"/fix_asl.sh "${dcmdir}"
 	    echo "Fixed ASL module parameters."
 	fi
     done
@@ -516,7 +517,7 @@ if (( verbosity > 0 )); then
     if [ -f "${output_dir}/0001.dcm" ]; then
 	set +e
 	## Send dciodvfy stderr and stdout to log file
-	dciodvfy "${output_dir}/0001.dcm" &> $(dirname "${output_dir}")/$(basename "${output_dir}" .dcm).log
+	dciodvfy "${output_dir}/0001.dcm" &> "$(dirname "${output_dir}")/$(basename "${output_dir}" .dcm).log"
 	set -e  
     else
 	error_exit "$LINENO: could not find ${output_dir}/0001.dcm for verification"

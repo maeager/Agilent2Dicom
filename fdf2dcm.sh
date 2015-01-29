@@ -1,4 +1,4 @@
-#!/usr/bin/env  bash
+#!/usr/bin/env  bash 
 ## FDF to DICOM converter
 #   Front-end to agilent2dicom and dcmulti
 #
@@ -31,8 +31,8 @@
 
 
 ## Set config variables
-FDF2DCMPATH=$(dirname $0)
-source ${FDF2DCMPATH}/agilent2dicom_globalvars.py
+FDF2DCMPATH="$(dirname "$0")"
+source "${FDF2DCMPATH}/agilent2dicom_globalvars.py"
 set -o nounset  # shortform: -u
 set -o errexit  # -e
 # set -o pipefail
@@ -40,7 +40,7 @@ set -o errexit  # -e
 # exec 2>> $(dirname $0)/error.log
 # set -x  # show debugging output
 # see globals FDF2DCMVERSION=1.2
-PROGNAME=$(basename $0)
+PROGNAME=$(basename "$0")
 AGILENT2DICOM=agilentFDF2dicom.py  # Legacy: agilent2dicom.py #
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
@@ -51,7 +51,7 @@ DCM3TOOLS=$(/bin/ls -d "${FDF2DCMPATH}"/../dicom3tools_*/bin/*)
 
 ## Set dcmulti's arguments
 DCMULTI="dcmulti -v -makestack -sortby AcquisitionNumber -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
-DCMULTI_DTI="dcmulti -v -makestack -sortby DiffusionBValue -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
+#DCMULTI_DTI="dcmulti -v -makestack -sortby DiffusionBValue -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
 # Check dcmtk applications on MASSIVE or Agilent console
 if test ${MASSIVEUSERNAME+defined}; then
@@ -60,10 +60,10 @@ else
     DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
     export PATH=${PATH}:${DCMTK}
 fi
-if [ ! -d ${DCM3TOOLS} ]; then
+if [ ! -d "${DCM3TOOLS}" ]; then
     echo "${DCM3TOOLS} path not found"
     exit 1
-elif [ ! -x ${DCM3TOOLS}/dcmulti ]; then
+elif [ ! -x "${DCM3TOOLS}/dcmulti" ]; then
     echo "Unable to find Dicom3Tool's executable dcmulti"
     exit 1
 fi 
@@ -81,9 +81,9 @@ E_BADARGS=65
 #source ${FDF2DCMPATH}/yesno.sh
 function yesno(){
     read -r -p "$@" response
-    response=$(echo $response | awk '{print tolower($0)}')
+    response=$(echo "$response" | awk '{print tolower($0)}')
 # response=${response,,} # tolower Bash 4.0
-    if [[ $response =~ ^(yes|y| ) ]]; then
+    if [[ "$response" =~ ^(yes|y| ) ]]; then
 	return 0
     fi
     return 1
@@ -115,7 +115,7 @@ print_usage(){
 
 ## Check for number of args
 if [ $# -eq 0 ]; then
-	echo "fdfdcm.sh must have one argument: -i, --input [directory of FDF images]"
+	echo "fdf2dcm.sh must have one argument: -i, --input [directory of FDF images]"
 	print_usage
 	exit $E_BADARGS
 fi
@@ -134,7 +134,7 @@ while getopts ":i:o:s:hmpdxv" opt; do
 	    ;;
 	h)
 	    print_usage
-	    ${FDF2DCMPATH}/agilent2dicom.py -h
+	    "${FDF2DCMPATH}"/agilent2dicom.py -h
 	    exit 0
 	    ;;
 	m)
@@ -161,7 +161,7 @@ while getopts ":i:o:s:hmpdxv" opt; do
 	    ;;
 	x)
 	    set -x  ## print all commands
-	    exec 2> $(dirname $0)/error.log
+	    exec 2> "$(dirname "$0")/error.log"
 	    ;;
 	\?)
 	    echo "Invalid option: -$OPTARG" >&2
@@ -176,7 +176,6 @@ while getopts ":i:o:s:hmpdxv" opt; do
     esac
 done
 
-
 # Clean up input args
 if [ ! -d "$input_dir" ]; then
     echo "fdfdcm.sh must have a valid input directory of FDF images."
@@ -185,20 +184,20 @@ fi
 ## Set output_dir if not in args, default is INPUT/.dcm
 if [ -z "$output_dir" ]
 then #test for empty string
-    output_dir="$(dirname ${input_dir})/$(basename ${input_dir} .img).dcm"
-    echo "Output dir set to:  ${output_dir}"
+    output_dir=$(dirname "${input_dir}")/$(basename "${input_dir}" .img).dcm
+    echo "Output dir set to: ${output_dir}"
 fi
 
 ## Check for MAG/PHASE component directories
-if [ -d  "${input_dir}/magnitude.img" ] || [ -d "${input_dir}/phase.img"]
+if [ -d  "${input_dir}/magnitude.img" ] || [ -d "${input_dir}/phase.img" ]
 then
     echo "Input directory has 'magnitude.img' and 'phase.img' "
     verb=''; if (( verbosity > 0 )); then verb=' -v '; fi 
-    $0 $verb -m -i "${input_dir}"/magnitude.img/ -o "${output_dir}"/magnitude.dcm/
+    "$0" "$verb" -m -i "${input_dir}/magnitude.img/" -o "${output_dir}/magnitude.dcm/"
     if (( verbosity > 0 )) && ! yesno "Magnitude complete. Continue converting phase?"; then
 	echo "fdf2dcm completed without phase." && exit 0
     fi	
-    $0 $verb -p -i "${input_dir}/phase.img/" -o "${output_dir}/phase.dcm/"
+    "$0" "$verb" -p -i "${input_dir}/phase.img/" -o "${output_dir}/phase.dcm/"
     exit 0
 fi
 
@@ -259,7 +258,6 @@ then
     #if[ $? -ne 0 ]
     test -e "${output_dir}"/0001.dcm && error_exit "$LINENO: Output directory of agilent2dicom has no DICOM images."
     
-
     echo "Moving dicom images"
     mkdir "${output_dir}"/tmp
     mv "${output_dir}"/*.dcm "${output_dir}"/tmp/
@@ -269,9 +267,9 @@ fi ## JumpToDCMulti
 echo "Convert dicom images to single enhanced MR dicom format image"
 if [ -f "${output_dir}/MULTIECHO" ]
 then
-    echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; echo '\n'
+    echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; printf '\n'
     nechos=$(cat "${output_dir}/MULTIECHO")
-    nechos=$(printf "%1.0f" $nechos)
+    nechos=$(printf "%1.0f" "$nechos")
     echo "Multi echo sequence, $nechos echos"
     for ((iecho=1;iecho<=nechos;++iecho)); do
      	echoext=$(printf '%03d' $iecho)
@@ -296,18 +294,16 @@ then
     
 elif  [ -f "${output_dir}/DIFFUSION" ]; then
 
-    echo "Contents of DIFFUSION"; cat "${output_dir}/DIFFUSION"; echo '\n'
+    echo "Contents of DIFFUSION"; cat "${output_dir}/DIFFUSION"; printf '\n'
 
     # nbdirs=$(cat ${output_dir}/DIFFUSION)
     # ((++nbdirs)) # increment by one for B0
-    nbdirs=$(ls -1 "${output_dir}"/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
+    nbdirs=$(ls -1 "${output_dir}/tmp/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
 
     echo "Diffusion sequence, $nbdirs B-directions"
     for ((ibdir=1;ibdir<=nbdirs;ibdir++)); do
      	bdirext=$(printf '%03d' $ibdir)
-
      	echo "Converting bdir ${ibdir} using dcmulti"
-
 	## Input files are sorted by image number and slice number. 
      	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 "${output_dir}/tmp/*image${bdirext}*.dcm" | \
 	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
@@ -318,18 +314,16 @@ elif  [ -f "${output_dir}/DIFFUSION" ]; then
 
 elif  [ -f "${output_dir}/ASL" ]; then
 
-    echo "Contents of ASL"; cat "${output_dir}/ASL"; echo '\n'
+    echo "Contents of ASL"; cat "${output_dir}/ASL"; printf '\n'
 
     # nbdirs=$(cat ${output_dir}/ASL)
     # ((++nbdirs)) # increment by one for B0
-    asltags=$(ls -1 ${output_dir}/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
+    #asltags=$(ls -1 ${output_dir}/tmp/slice* | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
 
     echo "ASL sequence"
     for ((iasl=1;iasl<=2;iasl++)); do
      	aslext=$(printf '%03d' $iasl)
-
      	echo "Converting ASL tag ${iasl} using dcmulti"
-
 	## Input files are sorted by image number and slice number. 
      	${DCMULTI} "${output_dir}/0${aslext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${aslext}.dcm" | \
 	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
@@ -337,8 +331,6 @@ elif  [ -f "${output_dir}/ASL" ]; then
 
     done
     echo "ASL files converted."
-
-
 else
 
     ## Dcmulti config is dependent on order of files.  The 2D standard
@@ -358,7 +350,7 @@ echo "DCMULTI complete. Fixing inconsistencies."
 if (( do_modify == 1 ))
 then
 
-    ${FDF2DCMPATH}/fix-dicoms.sh "${output_dir}"
+    "${FDF2DCMPATH}"/fix-dicoms.sh "${output_dir}"
     echo "Fixing dicoms complete."
 
     ## Additional corrections to diffusion files
@@ -382,7 +374,7 @@ if (( verbosity > 0 )); then
     if [ -f "${output_dir}/0001.dcm" ]; then
 	set +e
 	## Send dciodvfy stderr and stdout to log file
-	dciodvfy "${output_dir}/0001.dcm" &> $(dirname "${output_dir}")/$(basename "${output_dir}" .dcm).log
+	dciodvfy "${output_dir}/0001.dcm" &> "$(dirname "${output_dir}")/$(basename "${output_dir}" .dcm).log"
 	set -e  
     else
 	error_exit "$LINENO: could not find ${output_dir}/0001.dcm for verification"
