@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-# pylint: disable=wildcard-import, method-hidden,no-member
-# pylint: enable=too-many-lines
+# Agilent2DicomAppQt GUI for Agilent 9.4T MR FDF/FID image processing
+#
 # $Header$
 # $Id$
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
-
+# Version 1.6.0: Tabs for epanechnikov, fourier gauss, fourier epanechnikov
 #
 # Copyright 2014 Michael Eager
 #
@@ -185,8 +185,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         '''
         success = 1
         try:
-            newdir = str(QFileDialog.getExistingDirectory(self, '''Select FDF
-                                                          Directory'''))
+            newdir = str(QFileDialog.getExistingDirectory(self, '''Select FDF Directory'''))
             print newdir
             self.ui.lineEdit_fdfpath.setText(newdir)
             files = os.listdir(newdir)
