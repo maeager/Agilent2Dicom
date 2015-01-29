@@ -138,6 +138,8 @@ print_usage(){
 	                IM components. Sigma variable argument, default size/1/srqt(2). \n" \
 	"-n <wsize>     Median filter smoothing of reconstructed RE and IM components. 
                         Size variable argument, default 5.\n" \
+	"-s <wsize>     Local Std deviation filter of reconstructed RE and IM components. 
+                        Size variable argument, default 5.\n" \
 	"-w <wsize>     Wiener filter smoothing of reconstructed RE and IM components. 
                         Size variable argument, default 5.\n" \
 	"-z <noise>     Wiener filter noise variable. 
@@ -168,7 +170,7 @@ fi
 
 
 ## Parse arguments
-while getopts ":i:o:g:l:j:e:n:w:y:z:G:E:Y:DhmprkdNCxv" opt; do
+while getopts ":i:o:g:l:j:e:n:s:w:y:z:G:E:Y:DhmprkdNCxv" opt; do
     case $opt in
 	i)
 	    echo "Input dir:  $OPTARG" >&2
@@ -226,6 +228,16 @@ while getopts ":i:o:g:l:j:e:n:w:y:z:G:E:Y:DhmprkdNCxv" opt; do
 	    python_args="$python_args --median_filter --window_size $median_window_size"
 	    do_filter=3
 	    ;;
+	s)
+	    echo "Standard deviation filter [mode/size]: $OPTARG" >&2
+	    stdev_mode="${OPTARG:0:1}"
+	    stdev_window_size="${OPTARG:2}"
+	    [ "$stdev_mode" == "0" ] && python_args="$python_args --standard_deviation_filter"
+	    [ "$stdev_mode" == "1" ] && python_args="$python_args --standard_deviation_magn"
+	    [ "$stdev_mode" == "2" ] && python_args="$python_args --standard_deviation_phase"
+	    python_args="$python_args --window_size $stdev_window_size"
+	    do_filter=6
+	    ;;	
 	w)
 	    echo "Wiener filter size: $OPTARG" >&2
 	    wiener_window_size="$OPTARG"

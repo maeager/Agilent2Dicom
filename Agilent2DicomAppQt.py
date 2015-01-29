@@ -39,7 +39,7 @@ import re
 import numpy as np
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog, QFileDialog, QApplication
-from Agilent2DicomQt import Ui_MainWindow
+from Agilent2DicomQt2 import Ui_MainWindow
 import ReadProcpar
 from agilent2dicom_globalvars import *
 DEBUGGING = 1
@@ -135,6 +135,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.checkBox_kspepa.setChecked(False)
         self.ui.checkBox_kspepashift.setChecked(False)
         self.ui.checkBox_kspepa_super.setChecked(False)
+        self.ui.checkBox_stdev_cplx.setChecked(False)
+        self.ui.checkBox_stdev_phase.setChecked(False)
+        self.ui.checkBox_stdev_magn.setChecked(False)
         # # Connect up the buttons.
         # self.connect(self.ui.buttonBox, Qt.SIGNAL("accepted()"),self.accept)
         # self.connect(self.ui.buttonBox , Qt.SIGNAL("rejected()"),self.reject)
@@ -553,6 +556,17 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             if self.ui.lineEdit_wiener_noise.text():
                 argstr += ' -z %s ' % (
                     str(self.ui.lineEdit_wiener_noise.text()))
+
+        # Complex Stdev
+        if self.ui.checkBox_stdev_cplx.isChecked():
+            argstr += ' -s 0/%s ' % (str(self.ui.lineEdit_stdev_size.text()))
+        # Magn Stdev
+        if self.ui.checkBox_stdev_magn.isChecked():
+            argstr += ' -s 1/%s ' % (str(self.ui.lineEdit_stdev_size.text()))
+        # Phase Stdev
+        if self.ui.checkBox_stdev_phase.isChecked():
+            argstr += ' -s 2/%s ' % (str(self.ui.lineEdit_stdev_size.text()))
+
 
         # Epanechnikov
         if self.ui.checkBox_epanechnikov2D.isChecked():

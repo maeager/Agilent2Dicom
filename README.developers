@@ -2,18 +2,26 @@
 
 ** Global constants
 
-agilent2dicom_globalvars.py is readable by shell and python.  Make
+=agilent2dicom_globalvars.py= is readable by shell and python.  Make
 sure that there are no spaces between variable name, =, or the string
 label.
 
-VersionNumber="1.3.1"
-Agilent2DicomAppVersion="1.2.5"
+#+BEGIN_SRC sh
+
+AGILENT2DICOM_VERSION="1.6.4"
+AGILENT2DICOM_APP_VERSION="1.8"
 FDF2DCMVERSION="1.2"
-FID2DCMVERSION="1.2"
-DVCSstamp="$Id: agilent2dicom_globalvars.py,v 79afbe5477ec 2014/10/30 05:37:29 michael $"
+FID2DCMVERSION="1.4"
+#+END_SRC
 
 
+** GUI update
 
+After changing the QT gui in =designer= use the following line to update the python version:
+#+BEGIN_SRC sh
+
+pyuic4 --output Agilent2DicomQt.py Agilent2DicomQt.ui
+#+END_SRC
 
 ** Mercurial keywords
 

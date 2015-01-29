@@ -278,8 +278,10 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         from scipy.fftpack import ifftn, fftshift, ifftshift
         image_data = fftshift(ifftn(ifftshift(ksp)))
 
-    FID.Save3dFIDtoDicom(ds, procpar, np.absolute(
-        image_data), hdr, ImageTransformationMatrix, args, outdir)
+    FID.Save3dFIDtoDicom(ds, procpar, np.abs(image_data), hdr,
+                         ImageTransformationMatrix, args, outdir)
+        if args.nifti:
+            save_as_nifti(np.abs(image_filtered), outdir)
 
     if args.gaussian_filter:
         sigma = np.array(ksp.shape)
@@ -315,8 +317,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-gaussian.dcm', outdir))
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm', '-gaussian',
-                                                 outdir))
+            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-gaussian', outdir))
 
     if args.gaussian_laplace:
         if not args.sigma:
@@ -336,8 +337,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-laplacegaussian.dcm', outdir))
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm',
-                                                 '-laplacegauss', outdir))
+            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-laplacegauss', outdir))
 
     if args.median_filter:
         if not args.window_size:
@@ -355,8 +355,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-median.dcm', outdir))
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm', '-median',
-                                                 outdir))
+            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-median', outdir))
 
     if args.wiener_filter:
         if not args.window_size:
@@ -379,8 +378,8 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-wiener.dcm', outdir))
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm', '-wiener',
-                                                 outdir))
+            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-wiener', outdir))
+
     if args.standard_deviation_filter:
         if not args.window_size:
             args.window_size = 5
@@ -398,8 +397,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-stdev.dcm', outdir))
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm', '-stdev',
-                                                 outdir))
+            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-stdev', outdir))
     if args.standard_deviation_magn:
         if not args.window_size:
             args.window_size = 5
@@ -415,7 +413,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-stdevmag.dcm', outdir))
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm', '-stdevmag',
+            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-stdevmag',
                                                  outdir))
     if args.standard_deviation_phase:
         if not args.window_size:
@@ -432,7 +430,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-stdevpha.dcm', outdir))
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm', '-stdevpha',
+            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-stdevpha',
                                                  outdir))
 
     if args.epanechnikov_filter:
@@ -453,7 +451,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-epanechnikov.dcm', outdir))
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm',
+            save_as_nifti(np.abs(image_filtered), re.sub('.dcm',
                                                  '-epanechnikov', outdir))
 
     if args.FT_gaussian_filter:
@@ -462,8 +460,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             sigma = sigma * np.sqrt(0.5)
         else:
             try:
-                sigma[0], sigma[1], sigma[2] = map(
-                    float, args.sigma.split(', '))
+                sigma[0], sigma[1], sigma[2] = map(float, args.sigma.split(', '))
                 sigma = np.array(ksp.shape) * sigma
             except ValueError:
                 sigma = sigma * float(args.sigma)
@@ -488,7 +485,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            re.sub('.dcm', '-kspgaussian.dcm', outdir))
 
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm',
+            save_as_nifti(np.abs(image_filtered), re.sub('.dcm',
                                                  '-kspgaussian', outdir))
         if args.double_resolution:
             KSP.super_resolution(
@@ -501,8 +498,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             epabw = epabw * np.sqrt(3.5)
         else:
             try:
-                epabw[0], epabw[1], epabw[2] = map(
-                    float, args.sigma.split(', '))
+                epabw[0], epabw[1], epabw[2] = map(float, args.sigma.split(', '))
                 epabw = np.array(ksp.shape) * epabw
             except ValueError:
                 epabw = np.array(ksp.shape) * float(args.sigma)
@@ -524,7 +520,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-kspepa.dcm', outdir))
         if args.nifti:
-            save_as_nifti(image_filtered,
+            save_as_nifti(np.abs(image_filtered),
                           re.sub('.dcm', '-kspepa', outdir))
         if args.double_resolution:
             KSP.super_resolution(

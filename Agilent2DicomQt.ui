@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>829</width>
+    <width>936</width>
     <height>611</height>
    </rect>
   </property>
@@ -173,7 +173,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>586</width>
+               <width>693</width>
                <height>174</height>
               </rect>
              </property>
@@ -818,6 +818,19 @@ Use the order of the sizes in the information box above to set the sigma values 
                     </item>
                    </layout>
                   </item>
+                  <item row="5" column="0">
+                   <spacer name="verticalSpacer_7">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </item>
                </layout>
@@ -920,7 +933,7 @@ scipy.signal.wiener(im, mysize=None, noise=None)
                        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;noise: Estimation of noise, Set to 0 for local variance to be used.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                       </property>
                       <property name="text">
-                       <string>Noise (Est. variance)</string>
+                       <string>Noise (Est. variance, 0 uses localised variance) </string>
                       </property>
                       <property name="buddy">
                        <cstring>lineEdit_wiener_noise</cstring>
@@ -963,6 +976,19 @@ scipy.signal.wiener(im, mysize=None, noise=None)
                      </widget>
                     </item>
                    </layout>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer_2">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                  </layout>
                 </item>
@@ -1060,6 +1086,19 @@ footprint : array, optional
                      </widget>
                     </item>
                    </layout>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                  </layout>
                 </item>
@@ -1318,6 +1357,19 @@ The mode parameter determines how the array borders are handled, where cval is t
                     </item>
                    </layout>
                   </item>
+                  <item row="5" column="0">
+                   <spacer name="verticalSpacer_3">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </item>
                </layout>
@@ -1363,7 +1415,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                        <string>Disable centre-shifting in k-space</string>
                       </property>
                       <property name="text">
-                       <string>No Shift</string>
+                       <string>Disable centre shift </string>
                       </property>
                      </widget>
                     </item>
@@ -1493,6 +1545,19 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                     </item>
                    </layout>
                   </item>
+                  <item row="3" column="0">
+                   <spacer name="verticalSpacer_4">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
                  </layout>
                 </item>
                </layout>
@@ -1610,6 +1675,13 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
                      </widget>
                     </item>
                     <item>
+                     <widget class="QLabel" name="label_4">
+                      <property name="text">
+                       <string>TextLabel</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
                      <spacer name="horizontalSpacer_5">
                       <property name="orientation">
                        <enum>Qt::Horizontal</enum>
@@ -1623,6 +1695,99 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
                      </spacer>
                     </item>
                    </layout>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer_5">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
+              </widget>
+              <widget class="QWidget" name="tab_6">
+               <attribute name="title">
+                <string>Stdev</string>
+               </attribute>
+               <layout class="QVBoxLayout" name="verticalLayout_11">
+                <item>
+                 <layout class="QGridLayout" name="gridLayout">
+                  <item row="0" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_10">
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_stdev_cplx">
+                      <property name="text">
+                       <string>Use CPLX Std dev filter</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_stdev_magn">
+                      <property name="text">
+                       <string>Use Magnitude</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="checkBox_stdev_phase">
+                      <property name="text">
+                       <string>Use Phase</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="1" column="0">
+                   <layout class="QHBoxLayout" name="horizontalLayout_11">
+                    <item>
+                     <widget class="QLabel" name="stdev_window_size">
+                      <property name="text">
+                       <string>Window size (default 5)  </string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_6">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QLineEdit" name="lineEdit_2">
+                      <property name="text">
+                       <string>5</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item row="2" column="0">
+                   <spacer name="verticalSpacer_6">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                  </layout>
                 </item>
@@ -1642,7 +1807,7 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>592</width>
+               <width>699</width>
                <height>138</height>
               </rect>
              </property>
@@ -1710,7 +1875,7 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>829</width>
+     <width>936</width>
      <height>25</height>
     </rect>
    </property>

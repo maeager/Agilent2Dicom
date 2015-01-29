@@ -720,10 +720,8 @@ def cplxstdev_filter(real_img,imag_img,window_size=5):
     else:
         for echo in xrange(0, real_input.shape[4]):
             for acq in xrange(0, real_input.shape[3]):
-                real_img[:, :, :, acq, echo] = window_stdev(
-                    real_input[:, :, :, acq, echo], radius)
-                imag_img[:, :, :, acq, echo] = window_stdev(
-                    imag_input[:, :, :, acq, echo], radius)
+                real_img[:, :, :, acq, echo] = window_stdev(real_input[:, :, :, acq, echo], radius)
+                imag_img[:, :, :, acq, echo] = window_stdev(imag_input[:, :, :, acq, echo], radius)
 
     filtered_image = np.empty_like(real_input, dtype=np.complex64)
     filtered_image.real = real_img
