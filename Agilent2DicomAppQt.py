@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-# pylint: disable=wildcard-import, method-hidden,no-member
-# pylint: enable=too-many-lines
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 8288a33a3f05 2015/01/29 00:53:33 michael $
-# $Id: Agilent2DicomAppQt.py,v 8288a33a3f05 2015/01/29 00:53:33 michael $
+# Agilent2DicomAppQt GUI for Agilent 9.4T MR FDF/FID image processing
+#
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 998c56f348e9 2015/01/29 00:57:30 michael $
+# $Id: Agilent2DicomAppQt.py,v 998c56f348e9 2015/01/29 00:57:30 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
-
+# Version 1.6.0: Tabs for epanechnikov, fourier gauss, fourier epanechnikov
 #
 # Copyright 2014 Michael Eager
 #
@@ -48,12 +48,12 @@ import logging
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
-__date__ = "$Date: 2015/01/29 00:53:33 $"
+__date__ = "$Date: 2015/01/29 00:57:30 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 8288a33a3f05 2015/01/29 00:53:33 michael $")
+    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 998c56f348e9 2015/01/29 00:57:30 michael $")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -185,8 +185,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         '''
         success = 1
         try:
-            newdir = str(QFileDialog.getExistingDirectory(self, '''Select FDF
-                                                          Directory'''))
+            newdir = str(QFileDialog.getExistingDirectory(self, '''Select FDF Directory'''))
             print newdir
             self.ui.lineEdit_fdfpath.setText(newdir)
             files = os.listdir(newdir)
