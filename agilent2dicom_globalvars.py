@@ -19,10 +19,10 @@
 
 
 ### Ensure no spaces in variable declaration so that shell and python comply ###
-AGILENT2DICOM_VERSION="1.6.4"
-AGILENT2DICOM_APP_VERSION="1.8"
+AGILENT2DICOM_VERSION="1.6.5"
+AGILENT2DICOM_APP_VERSION="1.8.1"
 FDF2DCMVERSION="1.2"
-FID2DCMVERSION="1.4"
+FID2DCMVERSION="1.6"
 DVCS_STAMP="$Id$"
 
 UID_ROOT="1.3.6.1.4.1" # Agilent Root UID 1.3.6.1.4.1, default "2.25"
