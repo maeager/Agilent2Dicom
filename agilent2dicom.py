@@ -32,7 +32,7 @@ Depreciated: use agilentFDF2dicom for FDFs or fid2dicom for FIDs
 """
 
 agilent2dicomVersionNumber = "0.7"
-DVCS_STAMP = "$Id: agilent2dicom.py,v 209f27f0480a 2015/01/28 23:58:20 michael $"
+DVCS_STAMP = "$Id: agilent2dicom.py,v 8288a33a3f05 2015/01/29 00:53:33 michael $"
 from agilent2dicom_globalvars import *
 # import pdb
 # import ast
@@ -2049,7 +2049,8 @@ Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '''
     ds.BitsAllocated = 16
     ds.BitsStored = 16  # (0028,0101) Bits Stored
     ds.HighBit = 15  # (0028,0102) High Bit
-    # FIDs are stored as either 16- or 32-bit integer binary data files, depending on whether the
+    # FIDs are stored as either 16- or 32-bit integer binary data files,
+    # depending on whether the
     # data acquisition was performed with dp='n' or dp='y', respectively.
 
     # Pixel Representation (0028,0103) is either unsigned (0) or
@@ -2065,13 +2066,14 @@ Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '''
 
     # Slice Thickness
     # 0018,0050 Slice Thickness (optional)
+    SliceThickness = None
     if MRAcquisitionType == '3D':
         if 'fn2' in procpar.keys() and procpar['fn2'] > 0:
             pe2 = procpar['fn2'] / 2.0
         else:
             pe2 = procpar['nv2']
         if pe2 == 0:
-            print '3D Acquisition slice thickness (error pe2=0): ', SliceThickness
+            print '3D Acquisition slice thickness (error pe2=0): ', procpar['thk']
             SliceThickness = procpar['thk']
         else:
             SliceThickness = procpar['lpe2'] * 10.0 / pe2
@@ -2088,7 +2090,8 @@ Enhanced MR DICOM converter from MBI.  agilent2dicom.py version '''
     if MRAcquisitionType == '3D':
         ds.SpacingBetweenSlices = ds.SliceThickness
 
-    # ds.ImageOrientationPatient = fdfpar['orientation']                                                         # 0020,0037 Image Orientation (Patient) (mandatory)
+    # ds.ImageOrientationPatient = fdfpar['orientation']
+    # 0020,0037 Image Orientation (Patient) (mandatory)
     # ds.ImagePositionPatient  = fdfpar['location']
     # # 0020,0032 Image Position (Patient) (mandatory)
 

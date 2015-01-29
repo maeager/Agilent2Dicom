@@ -9,7 +9,7 @@ try:
     import dateutil
     import dateutil.tz
     import re
-    
+
     import dicom
     import uuid
     import math
@@ -32,5 +32,5 @@ try:
 
 except ImportError:
     raise ImportError("Import failed.")
-    
+
 print "Python imports successful."

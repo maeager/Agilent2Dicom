@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # pylint: disable=wildcard-import, method-hidden,no-member
 # pylint: enable=too-many-lines
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v c7d5ccdeed12 2015/01/28 06:33:47 michael $
-# $Id: Agilent2DicomAppQt.py,v c7d5ccdeed12 2015/01/28 06:33:47 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 8288a33a3f05 2015/01/29 00:53:33 michael $
+# $Id: Agilent2DicomAppQt.py,v 8288a33a3f05 2015/01/29 00:53:33 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -48,12 +48,12 @@ import logging
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
-__date__ = "$Date: 2015/01/28 06:33:47 $"
+__date__ = "$Date: 2015/01/29 00:53:33 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v c7d5ccdeed12 2015/01/28 06:33:47 michael $")
+    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 8288a33a3f05 2015/01/29 00:53:33 michael $")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -82,10 +82,12 @@ fi; $GL mrview '
 
 
 class Agilent2DicomWindow(QtGui.QMainWindow):
+
     """Agilent2DicomWindow GUI for FDF and FID converter
     """
     niftiflag = 0  # save to nifti flag
     sigmafactor = 1
+
     def __init__(self):
         super(Agilent2DicomWindow, self).__init__()
         self.ui = Ui_MainWindow()
@@ -194,7 +196,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             fdffiles = [f for f in files if f.endswith('.fdf')]
             if len(fdffiles) == 0:
                 print 'Error: FDF folder does not contain any fdf files'
-                logging.info('ChangeFDFpath folder does not contain any fdf files')
+                logging.info(
+                    'ChangeFDFpath folder does not contain any fdf files')
                 success = 0
             if success:
                 if re.search('img', newdir):
@@ -319,7 +322,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             thispath = str(
                 os.path.dirname(os.path.realpath(os.path.abspath(__file__))))
             print 'fdf2dcm path: %s' % thispath
-            cmd1 = str(os.path.join(thispath, 'fdf2dcm.sh')) + ' -i ' + str(input_dir) + ' -o ' + str(output_dir)
+            cmd1 = str(os.path.join(thispath, 'fdf2dcm.sh')) + \
+                ' -i ' + str(input_dir) + ' -o ' + str(output_dir)
             if self.ui.checkBox_nodcmulti.isChecked():
                 cmd1 += ' -d '
             if self.ui.checkBox_debugging.isChecked():
@@ -391,7 +395,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             cmd = os.path.join(thispath, 'dpush') + ' -c ' +\
-                  str(daris_ID) + ' -s mf-erc ' + str(dicom_dir)
+                str(daris_ID) + ' -s mf-erc ' + str(dicom_dir)
             send_msg = '''Are you sure you want to send to DaRIS the dicom
             directory\n''' + str(dicom_dir) + "\n using the ID: " +\
                 str(daris_ID) + "?"
@@ -400,7 +404,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                                QtGui.QMessageBox.Yes,
                                                QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
-                logging.info('Send2Daris '+cmd)
+                logging.info('Send2Daris ' + cmd)
                 print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                                        executable="/bin/bash").stdout.read()
             else:
@@ -420,11 +424,11 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd1 = 'mrinfo ' + output_dir
             print(cmd1)
             cmd = cmd_header + cmd1 + ')'
-            logging.info('CheckFDF '+cmd)
+            logging.info('CheckFDF ' + cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                                    executable="/bin/bash").stdout.read()
             cmd1 = os.path.join(thispath, 'dcheck.sh') + ' -o ' + output_dir
-            logging.info('CheckFDF '+cmd)
+            logging.info('CheckFDF ' + cmd)
             print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True,
                                    executable="/bin/bash").stdout.read()
             self.UpdateGUI()
@@ -441,32 +445,32 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 os.path.realpath(os.path.abspath(__file__)))
             cmd1 = mrview_header + output_dir
             # print(cmd1)
-            logging.info('ViewFDF '+cmd1)
+            logging.info('ViewFDF ' + cmd1)
             print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True,
                                    executable="/bin/bash").stdout.read()
         except ValueError:
             logging.info('ViewFDF error ')
             pass
 
-
-    def SigmaString(self,sigmatext,combotext,source):
+    def SigmaString(self, sigmatext, combotext, source):
         """Calculate sigma
         combotext: contents of the combobox scaling
         source: must be a valid FDF or FID path with procpar file
         """
-        self.sigmafactor = np.array((1))
+        self.sigmafactor = np.array((1, 1, 1))
         try:
             if combotext != "unit voxel":
-                logging.info('SigmaString '+combotext)
+                logging.info('SigmaString ' + combotext)
                 from ReadProcpar import ReadProcpar, ProcparInfo
-                procpar, procpartext = ReadProcpar(os.path.join(source,'procpar'))
+                procpar, procpartext = ReadProcpar(
+                    os.path.join(source, 'procpar'))
                 p = ProcparInfo(procpar)
                 if combotext == "in mm":
                     self.sigmafactor = np.array(p['Voxel_Res_mm'])
                 else:
                     self.sigmafactor = np.array(p['Voxel_Res_mm']) * 1000
-            
-            logging.info('SigmaString '+str(self.sigmafactor))
+
+            logging.info('SigmaString ' + str(self.sigmafactor))
         except ValueError:
             logging.info('SigmaString combobox error')
             pass
@@ -479,12 +483,12 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             # if s.find(', '):
             x, y, z = map(float, sigmatext.split(', '))
             argstr = ' %f,%f,%f' % (x / self.sigmafactor[0],
-                                       y / self.sigmafactor[1],
-                                       z / self.sigmafactor[2])
+                                    y / self.sigmafactor[1],
+                                    z / self.sigmafactor[2])
         except ValueError:
             argstr = ' %f,%f,%f' % (float(sigmatext) / self.sigmafactor[0],
-                                       float(sigmatext) / self.sigmafactor[1],
-                                       float(sigmatext) / self.sigmafactor[2])
+                                    float(sigmatext) / self.sigmafactor[1],
+                                    float(sigmatext) / self.sigmafactor[2])
             pass
         return argstr
 
@@ -513,7 +517,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         if self.ui.checkBox_gaussian3D.isChecked() or \
            self.ui.checkBox_gaussian2D.isChecked():
             sigma = self.SigmaString(str(self.ui.lineEdit_gsigma.text()),
-                                     str(self.ui.comboBox_gauss_sigmascale),
+                                     str(self.ui.comboBox_gauss_sigmascale.text(
+                                     )),
                                      str(self.ui.lineEdit_fidpath.text()))
             argstr += ' -g %s' % sigma
             argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
@@ -522,7 +527,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             elif self.ui.reflect.isChecked():
                 argstr += ' -e reflect'
             elif self.ui.mirror.isChecked:
-                argstr += ' -e mirror'    
+                argstr += ' -e mirror'
             elif self.ui.wrap.isChecked:
                 argstr += ' -e wrap'
             else:
@@ -531,7 +536,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         # Fourier Gaussian
         if self.ui.checkBox_kspgaussian.isChecked():
             sigma = self.SigmaString(str(self.ui.lineEdit_gfsigma.text()),
-                                     str(self.ui.comboBox_kspgauss_sigunit),
+                                     str(self.ui.comboBox_kspgauss_sigunit.text(
+                                     )),
                                      str(self.ui.lineEdit_fidpath.text()))
             argstr += ' -G %s ' % sigma
             if self.ui.checkBox_kspgauss_super.isChecked():
@@ -546,7 +552,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         if self.ui.checkBox_wiener.isChecked():
             argstr += ' -w %s ' % (str(self.ui.lineEdit_wiener_size.text()))
             if self.ui.lineEdit_wiener_noise.text():
-                argstr += ' -z %s ' % (str(self.ui.lineEdit_wiener_noise.text()))
+                argstr += ' -z %s ' % (
+                    str(self.ui.lineEdit_wiener_noise.text()))
 
         # Epanechnikov
         if self.ui.checkBox_epanechnikov2D.isChecked():
@@ -554,7 +561,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         if self.ui.checkBox_epanechnikov3D.isChecked() or \
            self.ui.checkBox_epanechnikov2D.isChecked():
             sigma = self.SigmaString(str(self.ui.lineEdit_epaband.text()),
-                                     str(self.ui.comboBox_epabandwidth),
+                                     str(self.ui.comboBox_epabandwidth.text()),
                                      str(self.ui.lineEdit_fidpath.text()))
             argstr += ' -y %s' % sigma
             # argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
@@ -572,7 +579,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         # Fourier Epanechnikov
         if self.ui.checkBox_kspepa.isChecked():
             sigma = self.SigmaString(str(self.ui.lineEdit_kspepa_band.text()),
-                                     str(self.ui.comboBox_kspepa_scaleunit),
+                                     str(self.ui.comboBox_kspepa_scaleunit.text(
+                                     )),
                                      str(self.ui.lineEdit_fidpath.text()))
             argstr += ' -Y %s' % sigma
             # argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
@@ -601,7 +609,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             print(cmd1)
             cmd = cmd_header + cmd1 + ')'
             # print(cmd)
-            logging.info('ConvertFID '+cmd)
+            logging.info('ConvertFID ' + cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    shell=True,
                                    executable="/bin/bash").stdout.read()
@@ -717,7 +725,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                     ''' + dicom_dir + " is empty")
                 else:
                     cmd = os.path.join(thispath, 'dpush') + ' -c ' +\
-                          str(daris_ID) + ' -s mf-erc ' + str(dcmpath)
+                        str(daris_ID) + ' -s mf-erc ' + str(dcmpath)
                     send_msg = '''Are you sure you want to send
                     toDaRIS the dicom directory\n
 
@@ -728,7 +736,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                                        QtGui.QMessageBox.Yes,
                                                        QtGui.QMessageBox.No)
                     if reply == QtGui.QMessageBox.Yes:
-                        logging.info('Send2Daris '+cmd)
+                        logging.info('Send2Daris ' + cmd)
                         print subprocess.Popen(cmd,
                                                stdout=subprocess.PIPE,
                                                shell=True,

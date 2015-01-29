@@ -15,7 +15,7 @@ Version 0.6: Major rewrite, external recon  (Michael Eager)
 Version 1.0: Pythonised modules (Michael Eager)
 Version 1.2: Argument updates and linting
 
-  $Id: agilentFDF2dicom.py,v 7d1e66e74ba3 2015/01/28 05:29:37 michael $
+  $Id: agilentFDF2dicom.py,v 8288a33a3f05 2015/01/29 00:53:33 michael $
 
  - Michael Eager  (michael.eager@monash.edu)
 """
@@ -74,7 +74,8 @@ if __name__ == "__main__":
         help='Sequence type (one of Multiecho, Diffusion, ASL.')
     #    parser.add_argument('-d', '--disable-dcmodify', help='Dcmodify flag.',
     # action="store_true")
-    parser.add_argument('-v', '--verbose', help='Verbose.', action="store_true")
+    parser.add_argument(
+        '-v', '--verbose', help='Verbose.', action="store_true")
 
     # parser.add_argument("imgdir", help="Agilent .img directory containing
     # procpar and fdf files")
@@ -184,7 +185,8 @@ if __name__ == "__main__":
                 ds.FrameContentSequence[0].StackID[0]
             print type(ds.FrameContentSequence[0].StackID), \
                 type(ds.FrameContentSequence[0].StackID[0])
-            ds.FrameContentSequence[0].StackID = str(int(ds.FrameContentSequence[0].StackID[0]) + 1)
+            ds.FrameContentSequence[0].StackID = str(
+                int(ds.FrameContentSequence[0].StackID[0]) + 1)
             if args.verbose:
                 print "Incrementing volume StackID ", \
                     ds.FrameContentSequence[0].StackID
