@@ -8,7 +8,7 @@
                fid headers and rearrangement of image data
   Version 1.4: New args for epanechnikov and k-space filtering
 
-  $Id: fid2dicom.py,v 0ff9be8e1cdf 2015/01/28 23:49:23 michael $
+  $Id: fid2dicom.py,v 9aac261b6341 2015/01/29 01:35:27 michael $
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
@@ -90,7 +90,7 @@ if __name__ == "__main__":
 fid2dicom is an Agilent FID to Enhanced MR DICOM converter from MBI.\n
 
 Complex filtering is available for  gaussian (-g), laplacian (-l),
-median (-n), epanechnikov (-y), stdev (-s)  or wiener (-w) filters.\n
+median (-d), epanechnikov (-y), stdev (-sd)  or wiener (-w) filters.\n
 
 Fourier domain filtering is available for Gaussian (-G), Epanechnikov
                                      (-Y) and Laplacian (-L).\n
@@ -176,6 +176,9 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         '-wn', '--wiener_noise', help='''Wiener filter
         noise. Estimated variance of image. If none or zero, local
         variance is calculated. Default 0=None.''', default=0)
+    parser.add_argument(
+        '-sd', '--standard_deviation_filter', help='''Standard deviation filter
+        of reconstructed RE and IM components.''', action="store_true")
     parser.add_argument('-C', '--no_centre_shift',
                         help='Disable centering maximum in k-space data.',
                         action="store_true")
@@ -369,6 +372,25 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-wiener.dcm', outdir))
+        if args.nifti:
+            save_as_nifti(image_filtered, re.sub('.dcm', '-wiener',
+                                                 outdir))
+    if args.standard_deviation_filter:
+        if not args.window_size:
+            args.window_size = 3
+        if args.verbose:
+            print "Computing Localised standard deviation filtered image from Original image"
+        image_filtered = CPLX.cplxstdev_filter(image_data.real,
+                                                image_data.imag,
+                                                args.window_size)
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
+        %s\nScipy version: %s\nComplex Std dev filter: window
+        size=%d.''' % (Derivation_Description,
+                                 AGILENT2DICOM_VERSION, DVCS_STAMP,
+                                 scipy.__version__, args.window_size)
+        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
+                           ImageTransformationMatrix, args,
+                           re.sub('.dcm', '-stdev.dcm', outdir))
         if args.nifti:
             save_as_nifti(image_filtered, re.sub('.dcm', '-wiener',
                                                  outdir))
