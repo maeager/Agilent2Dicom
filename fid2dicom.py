@@ -99,7 +99,7 @@ Super-resolution (-D) is generated from zero-padding filtered kspace.
 !!!WARNING!!! This produces images 8 times larger than the original
 and are stored as NIFTI.\n
 
-Save diffent components of reconstruction or complex filtering including
+Save different components of reconstruction or complex filtering including
 magnitude (-m), phase (-p), or real and imaginary (-r). K-space data can
 also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
 
@@ -179,9 +179,15 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
     parser.add_argument(
         '-sd', '--standard_deviation_filter', help='''Standard deviation filter
         of reconstructed RE and IM components.''', action="store_true")
+    parser.add_argument(
+        '-sp', '--standard_deviation_phase', help='''Standard deviation filter
+        of reconstructed phase.''', action="store_true")
     parser.add_argument('-C', '--no_centre_shift',
                         help='Disable centering maximum in k-space data.',
                         action="store_true")
+    parser.add_argument(
+        '-sm', '--standard_deviation_magn', help='''Standard deviation filter
+        of reconstructed magnitude.''', action="store_true")
     parser.add_argument(
         '-v', '--verbose', help='Verbose.', action="store_true")
 
@@ -377,12 +383,12 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                                                  outdir))
     if args.standard_deviation_filter:
         if not args.window_size:
-            args.window_size = 3
+            args.window_size = 5
         if args.verbose:
             print "Computing Localised standard deviation filtered image from Original image"
         image_filtered = CPLX.cplxstdev_filter(image_data.real,
                                                 image_data.imag,
-                                                args.window_size)
+                                                float(args.window_size))
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
         %s\nScipy version: %s\nComplex Std dev filter: window
         size=%d.''' % (Derivation_Description,
@@ -392,7 +398,41 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            ImageTransformationMatrix, args,
                            re.sub('.dcm', '-stdev.dcm', outdir))
         if args.nifti:
-            save_as_nifti(image_filtered, re.sub('.dcm', '-wiener',
+            save_as_nifti(image_filtered, re.sub('.dcm', '-stdev',
+                                                 outdir))
+    if args.standard_deviation_magn:
+        if not args.window_size:
+            args.window_size = 5
+        if args.verbose:
+            print "Computing Localised standard deviation filtered image from Original image"
+        image_filtered = CPLX.window_stdev(np.abs(image_data),int(args.window_size))
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
+        %s\nScipy version: %s\nLocal Std dev filter of magnitude image: window
+        size=%d.''' % (Derivation_Description,
+                                 AGILENT2DICOM_VERSION, DVCS_STAMP,
+                                 scipy.__version__, args.window_size)
+        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
+                           ImageTransformationMatrix, args,
+                           re.sub('.dcm', '-stdevmag.dcm', outdir))
+        if args.nifti:
+            save_as_nifti(image_filtered, re.sub('.dcm', '-stdevmag',
+                                                 outdir))
+    if args.standard_deviation_phase:
+        if not args.window_size:
+            args.window_size = 3
+        if args.verbose:
+            print "Computing Localised standard deviation filtered image from Original image"
+        image_filtered = CPLX.phase_std_filter(np.angle(image_data),int(args.window_size))
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
+        %s\nScipy version: %s\nStd dev filter of phase: window
+        size=%d.''' % (Derivation_Description,
+                                 AGILENT2DICOM_VERSION, DVCS_STAMP,
+                                 scipy.__version__, args.window_size)
+        FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
+                           ImageTransformationMatrix, args,
+                           re.sub('.dcm', '-stdevpha.dcm', outdir))
+        if args.nifti:
+            save_as_nifti(image_filtered, re.sub('.dcm', '-stdevpha',
                                                  outdir))
 
     if args.epanechnikov_filter:
