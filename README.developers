@@ -1,4 +1,15 @@
-* Extra stuff not in the standard README for modifying source
+* Notes for modifying source
+
+** GUI development
+
+1. Use Qt4.8 designer. Label linedits and checkboxes correctly - give tooltip when appropriate
+2. Convert ui to py: pyuic4 --output Agilent2DicomQt.py Agilent2DicomQt.ui
+3. Modify Agilent2DicomAppQt.py
+
+New filters/methods 
+1. Create new method in cplxfilter/kspace_filter.py
+2. Create new argument in fid2dicom.py
+3. Create new arguments in fid2dcm.sh
 
 ** Global constants
 
