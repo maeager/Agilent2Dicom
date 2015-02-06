@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fid2dcm.sh,v 0585ad6e4a0a 2015/01/29 04:24:14 michael $"
+#  "$Id: fid2dcm.sh,v d86ec4a3fd9f 2015/02/06 05:25:02 michael $"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
 #
@@ -253,13 +253,13 @@ while getopts ":i:o:g:l:j:e:n:s:w:y:z:G:E:Y:DhmprkdNCxv" opt; do
 	y)
 	    echo "Epanechnikov  filter size: $OPTARG" >&2
 	    epan_bandwidth="$OPTARG"
-	    python_args="$python_args --epanechnikov_filter --window_size $epan_bandwidth"
+	    python_args="$python_args --epanechnikov_filter --epanechnikov_bandwidth $epan_bandwidth"
 	    do_filter=5
 	    ;;
 	Y)
 	    echo "Fourier Epanechnikov  filter size: $OPTARG" >&2
 	    epan_bandwidth="$OPTARG"
-	    python_args="$python_args --FT_epanechnikov_filter --window_size $epan_bandwidth"
+	    python_args="$python_args --FT_epanechnikov_filter --epanechnikov_bandwidth $epan_bandwidth"
 	    do_filter=5
 	    ;;
 	D)
@@ -395,7 +395,7 @@ then
 
 ## Crux of script - conversion of FID images to standard DICOM images
     echo  "Calling fid2dicom"
-    echo " Arguments: ", "${python_args} --inputdir ${input_dir} --outputdir ${output_dir}"
+    echo " Arguments: ${python_args} --inputdir ${input_dir} --outputdir ${output_dir}"
     "${FID2DCMPATH}/${FID2DICOM}" ${python_args} --inputdir "${input_dir}" --outputdir "${output_dir}"
 
     [ $? -ne 0 ] && error_exit "$LINENO: fid2dicom failed"
