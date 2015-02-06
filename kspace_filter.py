@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# pylint: disable=wildcard-import, method-hidden,no-member
-# pylint: enable=too-many-lines
 """
    kspacegaussian_filter, kspacegaussian_laplace, kspacelaplacian_filter
 
@@ -445,11 +443,15 @@ def sobel_image(image):
 
 
 def normalise(data):
-    max = ndimage.maximum(data)
-    min = ndimage.minimum(data)
-    print "Normalise max %f  min %f" % (max, min)
+    """Normalise ndimage
+    (must not be complex)
+    """
+    _max = ndimage.maximum(data)
+    _min = ndimage.minimum(data)
+    print "Normalise max %f  min %f" % (_max, _min)
     # return as float32
-    return data.astype(numpy.float32)  # (data - min) * (max - min)
+    data = ((data - _min) * (_max - _min))
+    return data.astype(numpy.float32)
 
 
 def save_nifti(image, basename):
@@ -549,8 +551,9 @@ def test_double_resolution_depth(ksp, basename):
 
 
 def super_resolution(ksp, basename):
+    """super_resolution creates double resolution image from k-space data
+    """
     print "Double res and " + basename + " filter"
-    tic()
     # two 32-bit float
     ksplarge = np.zeros(np.array(ksp.shape) * 2, dtype=numpy.complex64)
     szmin = np.array(ksp.shape) / 2 - 1
@@ -558,7 +561,7 @@ def super_resolution(ksp, basename):
     ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp
     print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
     image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
-    print 'Double res recon ' + basename + ': ' + toc()
+    print 'Double res recon ' + basename
     del ksplarge
 
     print "Saving Double res image: " + basename + " filtered"
@@ -676,13 +679,11 @@ if __name__ == "__main__":
     # print "Computing Laplacian enhanced image"
     laplacian = fftshift(
         ifftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
-    alpha = ndimage.mean(np.abs(image_filtered)) / \
-        ndimage.mean(np.abs(laplacian))
+    alpha = ndimage.mean(np.abs(image_filtered)) / ndimage.mean(np.abs(laplacian))
     kspgauss = kspacegaussian_filter2(ksp, 256 / 0.707)
     image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
     image_filtered = (np.abs(image_filtered))
-    image_filtered = (image_filtered - ndimage.minimum(image_filtered)) / \
-        (ndimage.maximum(image_filtered) - ndimage.minimum(image_filtered))
+    image_filtered = normalise(image_filtered)
     image_lfiltered = image_filtered - 0.5 * alpha * laplacian
     print '''Saving enhanced image g(x, y, z) = f(x, y, z) -
     Laplacian[f(x, y, z)]'''
@@ -700,8 +701,7 @@ if __name__ == "__main__":
     laplacian = fftshift(ifftn(
         ifftshift(kspgauss * Flaplace *
                   (Fsmooth / ndimage.maximum(Fsmooth)))))
-    laplacian = (laplacian - ndimage.minimum(laplacian)) / \
-                (ndimage.maximum(laplacian) - ndimage.minimum(laplacian))
+    laplacian = normalise(laplacian)
     print "Saving Smoothed Gauss Laplacian"
     save_nifti(np.abs(laplacian), 'kspLog_smoothed')
 
@@ -711,8 +711,7 @@ if __name__ == "__main__":
     ksplog = kspacelaplacegaussian_filter(ksp, 512.0 / 0.9)
     image_Log = fftshift(ifftn(ifftshift(ksplog)))
     image_Log = (np.abs(image_Log))
-    image_Log = (image_Log - ndimage.minimum(image_Log)) / \
-        (ndimage.maximum(image_Log) - ndimage.minimum(image_Log))
+    image_Log = normalise(image_Log)
     save_nifti(np.abs(image_Log), 'kspLog_image')
     # out_img = ndimage.fourier.fourier_gaussian(image_filtered, 2)
     # save_nifti(np.abs(out_img), 'kspLog_smooth')
