@@ -86,7 +86,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
     """Agilent2DicomWindow GUI for FDF and FID converter
     """
     niftiflag = 0  # save to nifti flag
-    sigmafactor = 1
 
     def __init__(self):
         super(Agilent2DicomWindow, self).__init__()
@@ -179,6 +178,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.close()
 
     def toggleNifti(self):
+        """Toggle the nifti flag
+        """
         self.niftiflag = (self.niftiflag + 1) % 2
         logging.info('Nifti toggled')
 
@@ -330,7 +331,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 cmd1 += ' -d '
             if self.ui.checkBox_debugging.isChecked():
                 cmd1 += ' -v '
-            print(cmd1)
+            print cmd1
             cmd = cmd_header + cmd1 + ')'
             logging.info('Convert FDF :' + cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
@@ -365,7 +366,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 
             dcmfiles = [f for f in files if f.endswith('.dcm')]
             if len(dcmfiles) == 0:
-                print 'Error: DICOM folder does not contain any dcm files'
+                print 'Agilent2DicomAppQt Error: DICOM folder does not contain any dcm files'
                 return False
             else:
                 return True
@@ -424,7 +425,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             cmd1 = 'mrinfo ' + output_dir
-            print(cmd1)
+            print cmd1
             cmd = cmd_header + cmd1 + ')'
             logging.info('CheckFDF ' + cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
@@ -446,7 +447,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             cmd1 = mrview_header + output_dir
-            # print(cmd1)
+            # print cmd1
             logging.info('ViewFDF ' + cmd1)
             print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True,
                                    executable="/bin/bash").stdout.read()
@@ -458,52 +459,55 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         """Calculate sigma
         combotext: contents of the combobox scaling
         source: must be a valid FDF or FID path with procpar file
+
+        output: comma-separtated string without spaces
         """
-        self.sigmafactor = np.array((1, 1, 1))
+        sigmafactor = np.array((1, 1, 1))
+        print 'SigmaString:  %s %s' % (sigmatext, combotext)
         try:
             if combotext != "unit voxel":
                 logging.info('SigmaString ' + combotext)
                 from ReadProcpar import ReadProcpar, ProcparInfo
-                procpar, procpartext = ReadProcpar(
-                    os.path.join(source, 'procpar'))
-                p = ProcparInfo(procpar)
+                procpar, procpartext = ReadProcpar(os.path.join(source, 'procpar'))
+                pinfo = ProcparInfo(procpar)
                 if combotext == "in mm":
-                    self.sigmafactor = np.array(p['Voxel_Res_mm'])
+                    sigmafactor = np.array(pinfo['Voxel_Res_mm'])
+                elif combotext == "in um":
+                    sigmafactor = np.array(pinfo['Voxel_Res_mm']) * 1000
                 else:
-                    self.sigmafactor = np.array(p['Voxel_Res_mm']) * 1000
-
-            logging.info('SigmaString ' + str(self.sigmafactor))
+                    print "SigmaString combobox not of 'unit voxel', 'in mm', or 'in um'"
+                    logging.info("SigmaString combobox not of 'unit voxel', 'in mm', or 'in um'")
+            logging.info('SigmaString ' + str(sigmafactor))
         except ValueError:
             logging.info('SigmaString combobox error')
             pass
-        if len(self.sigmafactor) != 3:
+        if len(sigmafactor) != 3:
             print "Sigma units needs to be three elements"
             logging.info('SigmaString units needs to be three elements')
-            self.sigmafactor[1] = self.sigmafactor[0]
-            self.sigmafactor[2] = self.sigmafactor[0]
+            sigmafactor[1] = sigmafactor[0]
+            sigmafactor[2] = sigmafactor[0]
         try:
             # if s.find(', '):
             x, y, z = map(float, sigmatext.split(', '))
-            argstr = ' %f,%f,%f' % (x / self.sigmafactor[0],
-                                    y / self.sigmafactor[1],
-                                    z / self.sigmafactor[2])
+            argstr = ' %f,%f,%f' % (x / sigmafactor[0],
+                                    y / sigmafactor[1],
+                                    z / sigmafactor[2])
         except ValueError:
-            argstr = ' %f,%f,%f' % (float(sigmatext) / self.sigmafactor[0],
-                                    float(sigmatext) / self.sigmafactor[1],
-                                    float(sigmatext) / self.sigmafactor[2])
+            argstr = ' %f,%f,%f' % (float(sigmatext) / sigmafactor[0],
+                                    float(sigmatext) / sigmafactor[1],
+                                    float(sigmatext) / sigmafactor[2])
             pass
+        print 'SigmaString: factor %f,%f,%f : args %s' % (sigmafactor[0],
+                                                          sigmafactor[1],
+                                                          sigmafactor[2],
+                                                          argstr)
         return argstr
 
     def getCommandArgs(self):
         """getCommandArgs
         """
         argstr = ''
-        if not (self.ui.checkBox_magn.isChecked() and
-                self.ui.checkBox_pha.isChecked() and
-                self.ui.checkBox_ksp.isChecked() and
-                self.ui.checkBox_reimag.isChecked()):
-            print "Forcing magn export since no export checkboxes enabled."
-            argstr = ' -m'
+
         if self.ui.checkBox_magn.isChecked():
             argstr = ' -m'
         if self.ui.checkBox_pha.isChecked():
@@ -512,15 +516,20 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             argstr += ' -k'
         if self.ui.checkBox_reimag.isChecked():
             argstr += ' -r'
-
+        if not (self.ui.checkBox_magn.isChecked() and
+                self.ui.checkBox_pha.isChecked() and
+                self.ui.checkBox_ksp.isChecked() and
+                self.ui.checkBox_reimag.isChecked()):
+            print "Forcing magn export since no export checkboxes enabled."
+            argstr = ' -m'
         # Complex Gaussian 3D
         if self.ui.checkBox_gaussian2D.isChecked():
             argstr += ' -2'
         if self.ui.checkBox_gaussian3D.isChecked() or \
            self.ui.checkBox_gaussian2D.isChecked():
+            curUnits = str(self.ui.comboBox_gauss_sigmascale.currentText())
             sigma = self.SigmaString(str(self.ui.lineEdit_gsigma.text()),
-                                     str(self.ui.comboBox_gauss_sigmascale.text(
-                                     )),
+                                     curUnits,
                                      str(self.ui.lineEdit_fidpath.text()))
             argstr += ' -g %s' % sigma
             argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
@@ -537,9 +546,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 
         # Fourier Gaussian
         if self.ui.checkBox_kspgaussian.isChecked():
+            curUnits = str(self.ui.comboBox_kspgauss_sigunit.currentText())
             sigma = self.SigmaString(str(self.ui.lineEdit_gfsigma.text()),
-                                     str(self.ui.comboBox_kspgauss_sigunit.text(
-                                     )),
+                                     curUnits,
                                      str(self.ui.lineEdit_fidpath.text()))
             argstr += ' -G %s ' % sigma
             if self.ui.checkBox_kspgauss_super.isChecked():
@@ -567,14 +576,14 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         if self.ui.checkBox_stdev_phase.isChecked():
             argstr += ' -s 2/%s ' % (str(self.ui.lineEdit_stdev_size.text()))
 
-
         # Epanechnikov
         if self.ui.checkBox_epanechnikov2D.isChecked():
             argstr += ' -2'
         if self.ui.checkBox_epanechnikov3D.isChecked() or \
            self.ui.checkBox_epanechnikov2D.isChecked():
+            curUnits = str(self.ui.comboBox_epabandwidth.currentText())
             sigma = self.SigmaString(str(self.ui.lineEdit_epaband.text()),
-                                     str(self.ui.comboBox_epabandwidth.text()),
+                                     curUnits,
                                      str(self.ui.lineEdit_fidpath.text()))
             argstr += ' -y %s' % sigma
             # argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
@@ -591,9 +600,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 
         # Fourier Epanechnikov
         if self.ui.checkBox_kspepa.isChecked():
+            curUnits = str(self.ui.comboBox_kspepa_scaleunit.currentText())
             sigma = self.SigmaString(str(self.ui.lineEdit_kspepa_band.text()),
-                                     str(self.ui.comboBox_kspepa_scaleunit.text(
-                                     )),
+                                     curUnits,
                                      str(self.ui.lineEdit_fidpath.text()))
             argstr += ' -Y %s' % sigma
             # argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
@@ -619,9 +628,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd1 = os.path.join(thispath, 'fid2dcm.sh')
             cmd1 = cmd1 + ' -v ' + self.getCommandArgs()
             cmd1 = cmd1 + ' -i ' + str(input_dir) + ' -o ' + str(output_dir)
-            print(cmd1)
+            print cmd1
             cmd = cmd_header + cmd1 + ')'
-            # print(cmd)
+            # print cmd
             logging.info('ConvertFID ' + cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    shell=True,
@@ -656,9 +665,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath)) <= 2:
                     cmd1 = os.path.join(
                         thispath, 'dcheck.sh') + ' -o ' + str(dcmpath)
-                    # print(cmd1)
+                    # print cmd1 
                     # cmd = cmd_header + cmd1 +')'
-                    # print(cmd)
+                    # print cmd 
                     print subprocess.Popen(cmd1,
                                            stdout=subprocess.PIPE, shell=True,
                                            executable="/bin/bash").stdout.read()
@@ -669,7 +678,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def ViewFID(self):
-        """ViewFID
+        """ViewFID show dicom outputs with mrview
         """
         try:
             thispath = os.path.dirname(
@@ -688,8 +697,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 dcmpath = os.path.join(dicom_dir_root, dicom_dir)
                 if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath)) <= 2:
                     cmd1 = mrview_header + dcmpath + ' & '
-
-                    print(cmd1)
+                    print cmd1 
                     print subprocess.Popen(cmd1,
                                            stdout=subprocess.PIPE, shell=True,
                                            executable="/bin/bash").stdout.read()
@@ -762,7 +770,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             pass
 
     def UpdateGUI(self):
-        """Update the GUI 
+        """Update the GUI
         """
         self.ui.pushButton_check.setEnabled(False)
         self.ui.pushButton_view.setEnabled(False)
