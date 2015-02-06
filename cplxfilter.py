@@ -35,7 +35,40 @@ else:
     from scipy import ndimage
     from scipy import signal
 
-"""scipy.ndimage.filters.gaussian_filter
+
+def cplxgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
+                        mode_='nearest', cval_=0.0):
+    """CPLXFILTER gaussian filter of complex 3D image
+       ndimage.filters.gaussian_filter is used to smooth real and imag
+       components filtered_magnitude = cplxfilter(realimg, imagimg)
+
+    :param RE, IM: real and imag NDimage
+    :param sigma: [optional] optimal sigma = 1/sqrt(2).
+    Standard deviation for Gaussian kernel. The standard deviations of
+    the Gaussian filter are given for each axis as a sequence, or as a
+    single number, in which case it is equal for all axes.
+
+    :param order: [optional] ]{0, 1, 2, 3} or sequence from same set, optional.
+    The order of the filter along each axis is given as a sequence of
+    integers, or as a single number. An order of 0 corresponds to
+    convolution with a Gaussian kernel. An order of 1, 2, or 3
+    corresponds to convolution with the first, second or third
+    derivatives of a Gaussian. Higher order derivatives are not
+    implemented
+
+    :param mode: [optional] ]{'reflect', 'constant', 'nearest',
+    'mirror', 'wrap'}, optional. Default is 'reflect'
+    The mode parameter determines how the array borders are handled,
+    where cval is the value when mode is equal to 'constant'.
+
+    :param cval: [optional]
+    Value to fill past edges of input if mode is 'constant'. Default
+    is 0.0
+
+    :return filtered_image:  complex 3D array of gaussian filtered image,
+
+
+    scipy.ndimage.filters.gaussian_filter
 
 scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None,
 mode='reflect', cval=0.0, truncate=4.0)[source] Multidimensional Gaussian
@@ -74,40 +107,6 @@ convolution filters. The intermediate arrays are stored in the same data type
 as the output. Therefore, for output types with a limited precision, the
 results may be imprecise because intermediate results may be stored with
 insufficient precision.
-
-"""
-
-
-def cplxgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
-                        mode_='nearest', cval_=0.0):
-    """CPLXFILTER gaussian filter of complex 3D image
-       ndimage.filters.gaussian_filter is used to smooth real and imag
-       components filtered_magnitude = cplxfilter(realimg, imagimg)
-
-    :param RE, IM: real and imag NDimage
-    :param sigma: [optional] optimal sigma = 1/sqrt(2).
-    Standard deviation for Gaussian kernel. The standard deviations of
-    the Gaussian filter are given for each axis as a sequence, or as a
-    single number, in which case it is equal for all axes.
-
-    :param order: [optional] ]{0, 1, 2, 3} or sequence from same set, optional.
-    The order of the filter along each axis is given as a sequence of
-    integers, or as a single number. An order of 0 corresponds to
-    convolution with a Gaussian kernel. An order of 1, 2, or 3
-    corresponds to convolution with the first, second or third
-    derivatives of a Gaussian. Higher order derivatives are not
-    implemented
-
-    :param mode: [optional] ]{'reflect', 'constant', 'nearest',
-    'mirror', 'wrap'}, optional. Default is 'reflect'
-    The mode parameter determines how the array borders are handled,
-    where cval is the value when mode is equal to 'constant'.
-
-    :param cval: [optional]
-    Value to fill past edges of input if mode is 'constant'. Default
-    is 0.0
-
-    :return filtered_image:  complex 3D array of gaussian filtered image,
 
     """
     # imgmag = load_untouch_nii(file1)
@@ -154,12 +153,12 @@ def cplx2dgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
        filtered_magnitude = cplxfilter(realimg, imagimg)
 
     :param RE, IM: real and imag NDimage
-    
+
     :param sigma: [optional] optimal sigma = 1/sqrt(2).  Standard deviation for
     Gaussian kernel. The standard deviations of the Gaussian filter
     are given for each axis as a sequence, or as a single number, in
     which case it is equal for all axes.
-    
+
     :param order: [optional] ]{0, 1, 2, 3} or sequence from same set, optional.
     The order of the filter along each axis is given as a sequence of
     integers, or as a single number. An order of 0 corresponds to
@@ -167,13 +166,13 @@ def cplx2dgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
     corresponds to convolution with the first, second or third
     derivatives of a Gaussian. Higher order derivatives are not
     implemented
-    
+
     :param mode: [optional] ]{'reflect', 'constant', 'nearest', 'mirror',
     'wrap'},
     optional. The mode parameter determines how the array borders are
     handled, where cval is the value when mode is equal to
     'constant'. Default is 'reflect'
-    
+
     :param cval: [optional] Value to fill past edges of input if mode is
     'constant'. Default is 0.0
 
@@ -346,39 +345,13 @@ def cplxlaplacian_filter(real_input, imag_input, mode_='reflect', cval_=0.0):
 # end cplxlaplace
 
 
-"""scipy.ndimage.fourier.fourier_gaussian
+def cplxmedian_filter(real_input, imag_input, size_=5, mode_='reflect'):
+    """
+    scipy.ndimage.filters.median_filter(input, size=None, footprint=None,
+     output=None, mode='reflect', cval=0.0, origin=0) not used footprint_=[5,
+     5, 5], output_=None, mode_='reflect', cval_=0.0, origin_=0
 
-scipy.ndimage.fourier.fourier_gaussian(input, sigma, n=-1, axis=-1,
-output=None)[source]
-
-Multi-dimensional Gaussian fourier filter.
-
-The array is multiplied with the fourier transform of a Gaussian kernel.
-
-Parameters:
-input : array_like The input array.
-sigma : float or sequence The
-sigma of the Gaussian kernel. If a float, sigma is the same for all axes. If a
-sequence, sigma has to contain one value for each axis.
-
-n : int, optional If n is negative (default), then the input is assumed to be
-the result of a complex fft. If n is larger than or equal to zero, the input is
-assumed to be the result of a real fft, and n gives the length of the array
-before transformation along the real transform direction.
-
-axis : int, optional
-The axis of the real transform.
-
-output : ndarray, optional If given, the result of filtering the input is
-placed in this array. None is returned in this case.
-
-Returns:
-fourier_gaussian : ndarray or None
-The filtered input. If output is given as a parameter, None is returned.
-
-"""
-
-"""scipy.ndimage.filters.median_filter(input, size=None, footprint=None,
+    scipy.ndimage.filters.median_filter(input, size=None, footprint=None,
 output=None, mode='reflect', cval=0.0, origin=0)[source]
 
 Calculates a multidimensional median filter.
@@ -417,15 +390,6 @@ Returns:
 median_filter : ndarray
 Return of same shape as input.
 
-"""
-
-
-def cplxmedian_filter(real_input, imag_input, size_=5, mode_='reflect'):
-    """
-    scipy.ndimage.filters.median_filter(input, size=None, footprint=None,
-     output=None, mode='reflect', cval=0.0, origin=0) not used footprint_=[5,
-     5, 5], output_=None, mode_='reflect', cval_=0.0, origin_=0
-
     """
     filtered_image = np.empty(real_input.shape, dtype=np.complex64)
     print "Complex Median filter window size(s)", size_
@@ -459,7 +423,10 @@ def cplxmedian_filter(real_input, imag_input, size_=5, mode_='reflect'):
 # end cplxmedian_filter
 
 
-"""scipy.signal.wiener(im, mysize=None, noise=None)[source]
+def cplxwiener_filter(real_input, imag_input, mysize_=5, noise_=None):
+    """cplxwiener_filter Implementation of Wiener filter on complex image
+
+    scipy.signal.wiener(im, mysize=None, noise=None)[source]
 Perform a Wiener filter on an N-dimensional array.
 
 The Wiener filter is a simple deblurring filter for denoising images. This is
@@ -476,11 +443,6 @@ optional The noise-power to use. If None, then noise is estimated as the
 average of the local variance of the input.  Returns: out : ndarray Wiener
 filtered result with the same shape as im.
 
-"""
-
-
-def cplxwiener_filter(real_input, imag_input, mysize_=5, noise_=None):
-    """cplxwiener_filter Implementation of Wiener filter on complex image
     """
     # scipy.signal.wiener(im, mysize=None, noise=None)
     # ,(size_, size_, size_)
@@ -499,16 +461,10 @@ def cplxwiener_filter(real_input, imag_input, mysize_=5, noise_=None):
         imag_img = np.empty_like(real_input)
         for echo in xrange(0, real_input.shape[4]):
             for acq in xrange(0, real_input.shape[3]):
-                real_img[:, :, :, acq, echo] = signal.wiener(real_input[:, :,
-                                                                        :,
-                                                                        acq,
-                                                                        echo],
+                real_img[:, :, :, acq, echo] = signal.wiener(real_input[:, :, :, acq, echo],
                                                              mysize=filter_size,
                                                              noise=noise_)
-                imag_img[:, :, :, acq, echo] = signal.wiener(imag_input[:, :,
-                                                                        :,
-                                                                        acq,
-                                                                        echo],
+                imag_img[:, :, :, acq, echo] = signal.wiener(imag_input[:, :, :, acq, echo],
                                                              mysize=filter_size,
                                                              noise=noise_)
 
@@ -609,11 +565,12 @@ Nonparametric Econometrics: Theory and Practice
                 (np.abs(vv) ** 2) / sigma[1] ** 2 + (np.abs(ww) ** 2) / sigma[2] ** 2)
     epan = (0.75) * (1 - zsquared)
     if order == 4:
-        # Fourth order Epanechnikov
+        print "Fourth order Epanechnikov"
         epan = (15.0 / 8.0 - (7.0 / 8.0) * zsquared) * epan
         # epan= (0.75)*(1.5 - 2.5((np.abs(uu)**2)/sigma[0]**2 +
         # (np.abs(vv)**2)/sigma[1]**2 + (np.abs(ww)**2)/sigma[2]**2))
     if order == 6:
+        print "Sixth order Epanechnikov"
         epan = (175.0 / 64.0) * (1 - 6 * zsquared +
                                  (33.0 / 5.0) * zsquared * zsquared) * epan
     # else:
@@ -664,18 +621,10 @@ def cplxepanechnikov_filter(real_input, imag_input, sigma_=1.87,
     else:
         for echo in xrange(0, real_input.shape[4]):
             for acq in xrange(0, real_input.shape[3]):
-                real_img[:, :, :, acq, echo] = ndimage.convolve(real_input[:,
-                                                                           :,
-                                                                           :,
-                                                                           acq,
-                                                                           echo],
+                real_img[:, :, :, acq, echo] = ndimage.convolve(real_input[:, :, :, acq, echo],
                                                                 epfilter,
                                                                 mode=mode_)
-                imag_img[:, :, :, acq, echo] = ndimage.convolve(imag_input[:,
-                                                                           :,
-                                                                           :,
-                                                                           acq,
-                                                                           echo],
+                imag_img[:, :, :, acq, echo] = ndimage.convolve(imag_input[:, :, :, acq, echo],
                                                                 epfilter,
                                                                 mode=mode_)
 
@@ -698,13 +647,14 @@ def window_stdev(image, radius=2.5):
     return ((c2 - c1 * c1) ** .5)[:-radius * 2 + 1, :-radius * 2 + 1]
 
 
-def phase_std_filter(phase_image,wsize=5):
+def phase_std_filter(phase_image, wsize=5):
     """Implementation of local stdev filter for phase images
     """
-    return np.fmin(window_stdev(phase_image, float(wsize/2.0)),
-                   window_stdev(phase_image + np.pi), float(wsize/2.0))
+    return np.fmin(window_stdev(phase_image, float(wsize)/2.0),
+                   window_stdev(phase_image + np.pi), float(wsize)/2.0)
 
-def cplxstdev_filter(real_img,imag_img,window_size=5):
+
+def cplxstdev_filter(real_input, imag_input, window_size=5):
     """cplxstdev_filter
     """
     real_img = np.empty_like(real_input)
@@ -728,7 +678,7 @@ def cplxstdev_filter(real_img,imag_img,window_size=5):
     filtered_image.imag = imag_img
     return filtered_image
 # end cplxstdev_filter
-    
+
 # def unwrap():
 # ##NOT WORKING YET
 #     p2q2 = (p**2 + q**2)
@@ -764,6 +714,24 @@ def swi2(cmplx_input_image, order=2):
     else:
         print 'Error swi2: input image not complex'
         return cmplx_input_image
+
+
+def basicswi(cmplx_input_image, mask, order=2):
+    """ Suseptibility-like weighted image -
+    modified to use normalised local phase as the weighting
+    """
+    if np.iscomplexobj(cmplx_input_image):
+        magn = np.abs(cmplx_input_image)
+        phase = np.angle(cmplx_input_image)
+        from scipy.ndimage.filters import uniform_filter
+        normphase = uniform_filter(phase, 5.0, mode='constant', origin=-2.5)
+        normphase = (normphase - ndimage.minimum(normphase)) / (ndimage.maximum(normphase) - ndimage.minimum(normphase))
+        weight = (normphase + 1.0)
+        weight = weight.clip(min=0.0, max=1.0)
+        return magn * (weight**order) * mask
+    else:
+        print 'Error basicswi2: input image not complex'
+        return np.abs(cmplx_input_image)
 
 
 def normalise(data):
