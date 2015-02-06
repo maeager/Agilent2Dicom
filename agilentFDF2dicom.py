@@ -15,7 +15,7 @@ Version 0.6: Major rewrite, external recon  (Michael Eager)
 Version 1.0: Pythonised modules (Michael Eager)
 Version 1.2: Argument updates and linting
 
-  $Id: agilentFDF2dicom.py,v 8288a33a3f05 2015/01/29 00:53:33 michael $
+  $Id: agilentFDF2dicom.py,v aea86933beb6 2015/02/06 05:30:03 michael $
 
  - Michael Eager  (michael.eager@monash.edu)
 """
@@ -39,8 +39,6 @@ Version 1.2: Argument updates and linting
 import os
 import sys
 import re
-import dicom
-import numpy
 import argparse
 
 from agilent2dicom_globalvars import *

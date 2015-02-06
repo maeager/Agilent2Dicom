@@ -22,7 +22,6 @@
 """
 
 import os
-import sys
 import datetime
 import dateutil
 import dateutil.tz
@@ -81,7 +80,7 @@ def getColumns(inFile, delim="\t", header=True):
 
 
 def CreateUID(uid_type, procpar=[], study_id=[], verbose=0):
-    """CREATEUID - Create and return Unique Identification (UID) 
+    """CREATEUID - Create and return Unique Identification (UID)
 
     :param uid_type: UID type instance
     :param procpar:  dictionary of procpar label/values
@@ -320,7 +319,7 @@ def ProcparToDicomMap(procpar, args):
     # FIRST
 
     # 0008,0008 ImageType (mandatory)
-    # Image Type: MPR, T2 MAP, PHASE MAP, PHASE SUBTRACT, PROJECTION IMAGE, DIFFUSION MAP
+    # Image Type: MPR, T2 MP, PHASE MAP, PHASE SUBTRACT, PROJECTION IMAGE, DIFFUSION MAP
     #    VELOCITY MAP, MODULUS SUBTRACT, T1 MAP, DENSITY MAP, IMAGE ADDITION, OTHER
     # defult image type
 

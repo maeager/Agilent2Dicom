@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomApp.py,v 7b65b76b53c7 2015/01/27 22:27:24 michael $
-# $Id: Agilent2DicomApp.py,v 7b65b76b53c7 2015/01/27 22:27:24 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomApp.py,v aea86933beb6 2015/02/06 05:30:03 michael $
+# $Id: Agilent2DicomApp.py,v aea86933beb6 2015/02/06 05:30:03 michael $
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -38,12 +38,12 @@ DEBUGGING = 0
 
 
 __author__ = "Michael Eager, Monash Biomedical Imaging"
-__version__ = str(AGILENT2DICOM_APP_VERSION) + "-$Revision: 7b65b76b53c7 $"
-__date__ = "$Date: 2015/01/27 22:27:24 $"
+__version__ = str(AGILENT2DICOM_APP_VERSION) + "-$Revision: aea86933beb6 $"
+__date__ = "$Date: 2015/02/06 05:30:03 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
-Agilent2DicomAppStamp = "$Id: Agilent2DicomApp.py,v 7b65b76b53c7 2015/01/27 22:27:24 michael $"
+Agilent2DicomAppStamp = "$Id: Agilent2DicomApp.py,v aea86933beb6 2015/02/06 05:30:03 michael $"
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -96,8 +96,8 @@ class Agilent2DicomWindow(QtGui.QWidget):
             self.ui.checkBox_nodcmulti.setChecked(False)
 
         # Connect up the buttons.
-        #self.connect(self.ui.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
-        #self.connect(self.ui.buttonBox , Qt.SIGNAL("rejected()"), self.reject)
+        # self.connect(self.ui.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
+        # self.connect(self.ui.buttonBox , Qt.SIGNAL("rejected()"), self.reject)
         # self.ui.buttonBox.Ok.clicked.connect(self.accept)
         # self.ui.buttonBox.cancelButton.clicked.connect(self.reject)
         self.ui.pushButton_changefdf.clicked.connect(self.ChangeFDFpath)
