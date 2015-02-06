@@ -21,8 +21,8 @@
 
 """
 import os
-import sys
-import re
+# import sys
+# import re
 import argparse
 
 
@@ -70,7 +70,7 @@ if basictype=1,
   Second line: numvalues value1 [value2] [value3] ...
 
 if basictype=2,
-  Second line: numvalues value1 
+  Second line: numvalues value1
   [Third line: value2]
   [Fourth line: value3]
   ...
@@ -133,26 +133,25 @@ def ProcparInfo(procpar):
     header['Mode'] = '%dD' % procpar['nD']
     if procpar['nD'] == 2:
         header['FOV_cm'] = [procpar['lro'], procpar['lpe']]
-        header['Dimensions'] = [procpar['nf'] / procpar['ns'], procpar['np'] / 2,
+        header['Dimensions'] = [procpar['nf'] / procpar['ns'],
+                                procpar['np'] / 2,
                                 procpar['ns']]
         # if len(procpar['thk']) > 1:
         #    print "procpar thk size greater than 1"
         header['Voxel_Res_mm'] = [procpar['lro'] * 10 / header['Dimensions'][0],
-                                  procpar['lpe'] * 10 /
-                                  header['Dimensions'][1],
+                                  procpar['lpe'] * 10 / header['Dimensions'][1],
                                   procpar['thk'] * 10]
     elif procpar['nD'] == 3:
         header['FOV_cm'] = [procpar['lro'],
                             procpar['lpe'],
                             procpar['lpe2'],
                             procpar['lpe3']]
-        header['Dimensions'] = [procpar['nf'],
-                                procpar['np'] / 2,
+        header['Dimensions'] = [procpar['np'] / 2,
+                                procpar['nf'] / procpar['ne'],
                                 procpar['nv2']]
-        header['Voxel_Res_mm'] = [
-            procpar['lro'] * 10 / header['Dimensions'][0],
-            procpar['lpe'] * 10 / header['Dimensions'][1],
-            procpar['lpe2'] * 10 / header['Dimensions'][2]]
+        header['Voxel_Res_mm'] = [procpar['lro'] * 10 / header['Dimensions'][0],
+                                  procpar['lpe'] * 10 / header['Dimensions'][1],
+                                  procpar['lpe2'] * 10 / header['Dimensions'][2]]
     header['Volumes'] = procpar['volumes']
     header['NumberOfEchoes'] = procpar['ne']
     header['FOV_ORIENTATION'] = [procpar['orient'], procpar['psi'],
@@ -191,9 +190,11 @@ def ProcparInfo(procpar):
     dims[3] = header['NumberOfChannels']
     dims[4] = header['NumberOfEchoes']
     header['Dims2'] = dims
-    header['DimXYZ'] = [procpar[procpar['dimX']], procpar[procpar['dimY']],
+    header['DimXYZ'] = [procpar[procpar['dimX']],
+                        procpar[procpar['dimY']],
                         procpar[procpar['dimZ']]]
-    header['PosXYZ'] = [procpar[procpar['posX']], procpar[procpar['posY']],
+    header['PosXYZ'] = [procpar[procpar['posX']],
+                        procpar[procpar['posY']],
                         procpar[procpar['posZ']]]
     header['VoxelSize'] = [procpar['vox1'], procpar['vox2'], procpar['vox3']]
     header['TR'] = str(procpar['tr'] * 1000.0)

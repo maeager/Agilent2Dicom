@@ -39,8 +39,6 @@ Version 1.2: Argument updates and linting
 import os
 import sys
 import re
-import dicom
-import numpy
 import argparse
 
 from agilent2dicom_globalvars import *

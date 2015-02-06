@@ -35,7 +35,7 @@ def ReadFDF(fdffilename):
     Infomation on header parameters can be found in the "Agilent VNMRJ 3.2 User Programming User Guide"
     :param fdffilename: Name string of FDF file
     :return fdf_properties: Label/value dictionary of FDF header properties
-    :return image data: 1D float array of pixel data 
+    :return image data: 1D float array of pixel data
     """
     f = open(fdffilename, 'r')
     # print fdffilename

@@ -96,8 +96,8 @@ class Agilent2DicomWindow(QtGui.QWidget):
             self.ui.checkBox_nodcmulti.setChecked(False)
 
         # Connect up the buttons.
-        #self.connect(self.ui.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
-        #self.connect(self.ui.buttonBox , Qt.SIGNAL("rejected()"), self.reject)
+        # self.connect(self.ui.buttonBox, Qt.SIGNAL("accepted()"), self.accept)
+        # self.connect(self.ui.buttonBox , Qt.SIGNAL("rejected()"), self.reject)
         # self.ui.buttonBox.Ok.clicked.connect(self.accept)
         # self.ui.buttonBox.cancelButton.clicked.connect(self.reject)
         self.ui.pushButton_changefdf.clicked.connect(self.ChangeFDFpath)
