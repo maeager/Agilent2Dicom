@@ -274,13 +274,22 @@ Advanced FID2DCM usage from the commandline is as follows:
 
 
 usage:
-    fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m]
+   fid2dicom.py -i "Input FID directory" [-o "Output directory"] [-m]
 [-p] [-r] [-k] [-N] [-v] [[-g -s 1.0 [-go 0 -gm wrap]] [-l -s 1.0] [-d
--n 5] [-w -n 5] [-y -s 1.0 -n 3]] [[-D] [-G -s 1.0] [-L -s 1.0][-Y -s
+-n 5] [-w -n 5] [-y -b 1.0 -n 3]] [[-D] [-G -s 1.0] [-L -s 1.0][-Y -b
 1.0 -n 3]]
 
-fid2dicomis an FID to Enhanced MR DICOM converter from MBI. Complex filtering
-enabled with -g, -l, -n or -w arguments. FID2DICOM Version 1.6.4
+fid2dicom is an Agilent FID to Enhanced MR DICOM converter from MBI. Complex
+filtering is available for gaussian (-g), laplacian (-l), median (-d),
+epanechnikov (-y), stdev (-sd) or wiener (-w) filters. Fourier domain
+filtering is available for Gaussian (-G), Epanechnikov (-Y) and Laplacian
+(-L). Super-resolution (-D) is generated from zero-padding filtered kspace.
+!!!WARNING!!! This produces images 8 times larger than the original and are
+stored as NIFTI. Save different components of reconstruction or complex
+filtering including magnitude (-m), phase (-p), or real and imaginary (-r).
+K-space data can also be saved as a MATLAB mat file (-k). Save images as NIFTI
+using -N. FID2DICOM Version 1.6.5
+
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -326,23 +335,33 @@ optional arguments:
   -y, --epanechnikov_filter
                         Epanechnikov filter smoothing of reconstructed RE and
                         IM components.
+  -b EPANECHNIKOV_BANDWIDTH, --epanechnikov_bandwidth EPANECHNIKOV_BANDWIDTH
+                        Epanechnikov bandwidth variable default sqrt(7/2).
   -n WINDOW_SIZE, --window_size WINDOW_SIZE
                         Window size of Wiener and Median filters. Default 5.
   -wn WIENER_NOISE, --wiener_noise WIENER_NOISE
                         Wiener filter noise. Estimated variance of image. If
                         none or zero, local variance is calculated. Default
                         0=None.
-  -C, --no_centre_shift
+  -sd, --standard_deviation_filter
+                        Standard deviation filter of reconstructed RE and IM
+                        components.
+  -sp, --standard_deviation_phase
+                        Standard deviation filter of reconstructed phase.
+  -sm, --standard_deviation_magn
+                        Standard deviation filter of reconstructed magnitude.
+    -C, --no_centre_shift
                         Disable centering maximum in k-space data.
   -v, --verbose         Verbose.
 
 ```
 
-The sigma variable can be a single scalar value or a three-element
-tuple. The preferred method for ansitropic images is to calculate the
-full width half maximum in millimeters in each dimension, then divide
-by the voxel resolution.  The kidney example below is isotropic.  The
-T2 coronal example has a resolution of 0.02 mm x 0.02 mm x 0.4 mm. In
+The Gaussian sigma, window size, and Epanechnikov bandwidth variables
+can be declared a single scalar value or a three-element tuple. The
+preferred method for ansitropic images is to calculate the full width
+half maximum in millimeters in each dimension, then divide by the
+voxel resolution.  The kidney example below is isotropic.  The T2
+coronal example has a resolution of 0.02 mm x 0.02 mm x 0.4 mm. In
 this case we want to reduce the smoothing in the third dimension by a
 factor of 20.
 
