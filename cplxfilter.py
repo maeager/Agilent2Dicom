@@ -554,9 +554,15 @@ Nonparametric Econometrics: Theory and Practice
         yy = np.array(range(-int(sz[1]), int(sz[1])))
         zz = np.array(range(-int(sz[2]), int(sz[2])))
     mult_fact = np.ones((len(yy), len(xx), len(zz)))
-    uu = xx[np.newaxis, :, np.newaxis] * mult_fact
-    vv = yy[:, np.newaxis, np.newaxis] * mult_fact
+
+    uu = xx[:, np.newaxis, np.newaxis] * mult_fact
+    vv = yy[np.newaxis, :, np.newaxis] * mult_fact
     ww = zz[np.newaxis, np.newaxis, :] * mult_fact
+    if np.prod(filtersiz) != np.prod(sz * 2):
+        uu = uu[:siz[0], :siz[1], :siz[2]]
+        vv = vv[:siz[0], :siz[1], :siz[2]]
+        ww = ww[:siz[0], :siz[1], :siz[2]]
+
     # if not hasattr(sigma, "__len__"):
     # if type(sigma) is float or type(sigma) is np.float64:
     #    epan = (0.75)*(1- (np.abs(uu**2 + vv**2 + ww**2))/(sigma**2))
@@ -650,8 +656,8 @@ def window_stdev(image, radius=2.5):
 def phase_std_filter(phase_image, wsize=5):
     """Implementation of local stdev filter for phase images
     """
-    return np.fmin(window_stdev(phase_image, float(wsize)/2.0),
-                   window_stdev(phase_image + np.pi), float(wsize)/2.0)
+    return np.fmin(window_stdev(phase_image, float(wsize) / 2.0),
+                   window_stdev(phase_image + np.pi), float(wsize) / 2.0)
 
 
 def cplxstdev_filter(real_input, imag_input, window_size=5):
@@ -660,7 +666,7 @@ def cplxstdev_filter(real_input, imag_input, window_size=5):
     real_img = np.empty_like(real_input)
     imag_img = np.empty_like(real_input)
     if window_size:
-        radius = float(window_size/2)
+        radius = float(window_size / 2)
     else:
         radius = 2.5
 
@@ -670,8 +676,10 @@ def cplxstdev_filter(real_input, imag_input, window_size=5):
     else:
         for echo in xrange(0, real_input.shape[4]):
             for acq in xrange(0, real_input.shape[3]):
-                real_img[:, :, :, acq, echo] = window_stdev(real_input[:, :, :, acq, echo], radius)
-                imag_img[:, :, :, acq, echo] = window_stdev(imag_input[:, :, :, acq, echo], radius)
+                real_img[:, :, :, acq, echo] = window_stdev(
+                    real_input[:, :, :, acq, echo], radius)
+                imag_img[:, :, :, acq, echo] = window_stdev(
+                    imag_input[:, :, :, acq, echo], radius)
 
     filtered_image = np.empty_like(real_input, dtype=np.complex64)
     filtered_image.real = real_img
@@ -725,10 +733,11 @@ def basicswi(cmplx_input_image, mask, order=2):
         phase = np.angle(cmplx_input_image)
         from scipy.ndimage.filters import uniform_filter
         normphase = uniform_filter(phase, 5.0, mode='constant', origin=-2.5)
-        normphase = (normphase - ndimage.minimum(normphase)) / (ndimage.maximum(normphase) - ndimage.minimum(normphase))
+        normphase = (normphase - ndimage.minimum(normphase)) / \
+            (ndimage.maximum(normphase) - ndimage.minimum(normphase))
         weight = (normphase + 1.0)
         weight = weight.clip(min=0.0, max=1.0)
-        return magn * (weight**order) * mask
+        return magn * (weight ** order) * mask
     else:
         print 'Error basicswi2: input image not complex'
         return np.abs(cmplx_input_image)
@@ -810,8 +819,8 @@ if __name__ == "__main__":
     # for filename in fidfiles:
     print "Reading FID"
     filename = fidfiles[len(fidfiles) - 1]
-    pp, hdr, dims, image_data_real, image_data_imag = readfid(args.inputdir,
-                                                              procpar, args)
+    pp, hdr, dims, data_real, data_imag = readfid(args.inputdir,
+                                                  procpar, args)
     print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
     affine = np.eye(4)
     # # affine[:3, :3]= np.arange(9).reshape((3, 3))
@@ -827,8 +836,8 @@ if __name__ == "__main__":
         nii = nib.load('raw_image_02.nii.gz')
         image[:, :, :, 0, 2] = nii.get_data()
     else:
-        image, ksp = recon(pp, dims, hdr, image_data_real,
-                           image_data_imag, args)
+        image, ksp = recon(pp, dims, hdr, data_real,
+                           data_imag, args)
 
         if args.axis_order:
             image = RearrangeImage(image, args.axis_order, args)
