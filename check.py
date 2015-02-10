@@ -13,13 +13,13 @@ try:
     import dicom
     import uuid
     import math
-    import numpy
+    import numpy  # ; numpy.test()
     import argparse
 
     from dicom.sequence import Sequence
     from dicom.dataset import Dataset
 
-    import scipy
+    import scipy  #  ; scipy.test()
     if scipy.__version__[2] == 7:
         scipy.pkgload('signal')
         scipy.pkgload('ndimage')
