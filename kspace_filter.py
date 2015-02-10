@@ -102,16 +102,20 @@ def fourierlaplace(ksp_shape):
       D^2 g(x,y,z) => -(4pi^2) (u^2 + v^2 + w^2) G(u,v,w)
     """
     siz = ksp_shape[:3]
-    sz = (np.array(siz)) / 2
+    sz = np.ceil((np.array(siz)) / 2.0)
     x = np.array(range(-sz[0], sz[0]))
     y = np.array(range(-sz[1], sz[1]))
     z = np.array(range(-sz[2], sz[2]))
     mult_fact = np.ones((len(y), len(x), len(z)))
-    (u, v, w) = (x[np.newaxis, :, np.newaxis] * mult_fact,
-                 y[:, np.newaxis, np.newaxis] * mult_fact,
-                 z[np.newaxis, np.newaxis, :] * mult_fact)
-    return -(4 * np.pi * np.pi) * (u * u + v * v + w * w) / (siz[0] * siz[1] *
-                                                             siz[2])
+    (uu, vv, ww) = (x[:, np.newaxis, np.newaxis] * mult_fact,
+                    y[np.newaxis, :, np.newaxis] * mult_fact,
+                    z[np.newaxis, np.newaxis, :] * mult_fact)
+    if np.prod(siz) != np.prod(sz * 2):
+        uu = uu[:siz[0], :siz[1], :siz[2]]
+        vv = vv[:siz[0], :siz[1], :siz[2]]
+        ww = ww[:siz[0], :siz[1], :siz[2]]
+
+    return -(4 * np.pi * np.pi) * (uu * uu + vv * vv + ww * ww) / (siz[0] * siz[1] * siz[2])
 
 
 def fourierlaplaceinhom(ksp_shape, sigma):
@@ -187,14 +191,20 @@ def fouriergauss(siz, sigma):
       g(x,y,z)=(1/sqrt(2*pi).sigma).exp(-(x^2+y^2+z^2)/2sigma^2)
           => A.(exp(-2*pi*pi*(u^2 + v^2 + w^2)*(sigma^2))
     """
-    sz = (np.array(siz)) / 2
+
+    sz = np.ceil((np.array(siz)) / 2.0)
     xx = np.array(range(-int(sz[0]), int(sz[0])))
     yy = np.array(range(-int(sz[1]), int(sz[1])))
     zz = np.array(range(-int(sz[2]), int(sz[2])))
-    mult_fact = np.ones((len(yy), len(xx), len(zz)))
-    uu = xx[np.newaxis, :, np.newaxis] * mult_fact
-    vv = yy[:, np.newaxis, np.newaxis] * mult_fact
+    mult_fact = np.ones((len(xx), len(yy), len(zz)))
+    uu = xx[:, np.newaxis, np.newaxis] * mult_fact
+    vv = yy[np.newaxis, :, np.newaxis] * mult_fact
     ww = zz[np.newaxis, np.newaxis, :] * mult_fact
+
+    if np.prod(siz) != np.prod(sz * 2):
+        uu = uu[:siz[0], :siz[1], :siz[2]]
+        vv = vv[:siz[0], :siz[1], :siz[2]]
+        ww = ww[:siz[0], :siz[1], :siz[2]]
     if not hasattr(sigma, "__len__"):
         # if type(sigma) is float or type(sigma) is numpy.float64:
         return np.exp(-2 * np.pi * np.pi * (uu ** 2 + vv ** 2 + ww ** 2) *
@@ -221,7 +231,7 @@ def GaussianKernel(uu, vv, ww, sigma):
 def fouriergausssubband15(siz, sigma):
     """ Subband15 Gaussian filter
     """
-    sz = (np.array(siz)) / 2
+    sz = np.ceil((np.array(siz)) / 2.0)
     xx = np.array(range(-int(sz[0]), int(sz[0])))
     yy = np.array(range(-int(sz[1]), int(sz[1])))
     zz = np.array(range(-int(sz[2]), int(sz[2])))
@@ -230,6 +240,11 @@ def fouriergausssubband15(siz, sigma):
     vv = yy[:, np.newaxis, np.newaxis] * mult_fact
     ww = zz[np.newaxis, np.newaxis, :] * mult_fact
     del mult_fact, xx, yy, zz
+
+    if np.prod(siz) != np.prod(sz * 2):
+        uu = uu[:siz[0], :siz[1], :siz[2]]
+        vv = vv[:siz[0], :siz[1], :siz[2]]
+        ww = ww[:siz[0], :siz[1], :siz[2]]
     # Original Gaussian kernel
     gfilter = GaussianKernel(uu, vv, ww, sigma)
     # Subband_1.5 frequency oversampling component.
@@ -268,7 +283,7 @@ def inhomogeneouscorrection(ksp, siz, sigma):
     Use large sigma for smoothing the MR image
     """
 
-    sz = (np.array(siz)) / 2
+    sz = np.ceil((np.array(siz)) / 2.0)
     xx = np.array(range(-int(sz[0]), int(sz[0])))
     yy = np.array(range(-int(sz[1]), int(sz[1])))
     zz = np.array(range(-int(sz[2]), int(sz[2])))
@@ -277,6 +292,10 @@ def inhomogeneouscorrection(ksp, siz, sigma):
     vv = yy[:, np.newaxis, np.newaxis] * mult_fact
     ww = zz[np.newaxis, np.newaxis, :] * mult_fact
     del xx, yy, zz, mult_fact
+    if np.prod(siz) != np.prod(sz * 2):
+        uu = uu[:siz[0], :siz[1], :siz[2]]
+        vv = vv[:siz[0], :siz[1], :siz[2]]
+        ww = ww[:siz[0], :siz[1], :siz[2]]
 
 #    arg   = -(xx.*xx + yy.*yy)/(2*sigma*sigma)
     # arg = -(uu*uu + vv*vv + ww*ww)/(2*sigma*sigma)
@@ -390,18 +409,22 @@ def kspaceshift(ksp):
         sub = (siz / 2.).astype(int) - kmax
         print "Shifting kspace ", sub
         for x in xrange(0, 3):
-            ksp = np.roll(ksp, sub[x], axis=x)
+            if sub[x] != 0:
+                ksp = np.roll(ksp, sub[x], axis=x)
             print ""
     else:
-        for echo in xrange(0, int(fid_header['nEchoes'])):
-            for n in xrange(0, int(fid_header['nChannels'])):
-                kmax = np.array(ndimage.maximum_position(np.squeeze(ksp[:,:,:,n,echo])))
+        for echo in xrange(0, ksp.shape[4]):
+            for nchannel in xrange(0, ksp.shape[3]):
+                kmax = np.array(
+                    ndimage.maximum_position(np.squeeze(ksp[:, :, :, nchannel, echo])))
                 siz = np.array(ksp.shape[0:3])
                 sub = (siz / 2.).astype(int) - kmax
                 print "Shifting kspace ", sub
                 for x in xrange(0, 3):
-                    ksp[:,:,:,n,echo] = np.roll(ksp[:,:,:,n,echo], sub[x], axis=x)
-                    print "" 
+                    if sub[x] != 0:
+                        ksp[:, :, :, nchannel, echo] = np.roll(
+                            ksp[:, :, :, nchannel, echo], sub[x], axis=x)
+                    # print ""
     return ksp
 # end kspaceshift
 
@@ -692,7 +715,8 @@ if __name__ == "__main__":
     # print "Computing Laplacian enhanced image"
     laplacian = fftshift(
         ifftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
-    alpha = ndimage.mean(np.abs(image_filtered)) / ndimage.mean(np.abs(laplacian))
+    alpha = ndimage.mean(np.abs(image_filtered)) / \
+        ndimage.mean(np.abs(laplacian))
     kspgauss = kspacegaussian_filter2(ksp, 256 / 0.707)
     image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
     image_filtered = (np.abs(image_filtered))
