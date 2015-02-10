@@ -384,13 +384,24 @@ def kspaceshift(ksp):
     Shift k-space data to centre maximum
     """
     print "K-space shift ", ksp.shape
-    kmax = np.array(ndimage.maximum_position(ksp))
-    siz = np.array(ksp.shape[0:3])
-    sub = (siz / 2.).astype(int) - kmax
-    print "Shifting kspace ", sub
-    for x in xrange(0, 3):
-        ksp = np.roll(ksp, sub[x], axis=x)
-    print ""
+    if len(ksp.shape) == 3:
+        kmax = np.array(ndimage.maximum_position(ksp))
+        siz = np.array(ksp.shape[0:3])
+        sub = (siz / 2.).astype(int) - kmax
+        print "Shifting kspace ", sub
+        for x in xrange(0, 3):
+            ksp = np.roll(ksp, sub[x], axis=x)
+            print ""
+    else:
+        for echo in xrange(0, int(fid_header['nEchoes'])):
+            for n in xrange(0, int(fid_header['nChannels'])):
+                kmax = np.array(ndimage.maximum_position(np.squeeze(ksp[:,:,:,n,echo])))
+                siz = np.array(ksp.shape[0:3])
+                sub = (siz / 2.).astype(int) - kmax
+                print "Shifting kspace ", sub
+                for x in xrange(0, 3):
+                    ksp[:,:,:,n,echo] = np.roll(ksp[:,:,:,n,echo], sub[x], axis=x)
+                    print "" 
     return ksp
 # end kspaceshift
 
@@ -618,8 +629,8 @@ if __name__ == "__main__":
     # for filename in fidfiles:
     print "Reading FID"
     filename = fidfiles[len(fidfiles) - 1]
-    pp, hdr, dims, image_data_real, image_data_imag = readfid(
-        args.inputdir, procpar, args)
+    pp, hdr, dims, data_real, data_imag = readfid(args.inputdir,
+                                                  procpar, args)
     print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
     affine = np.eye(4)
     # # affine[:3, :3]= np.arange(9).reshape((3, 3))
@@ -627,8 +638,10 @@ if __name__ == "__main__":
     # nib.save(raw_data, 'raw_data.nii.gz')
 
     print "Computing Original image (reconstruction)"
-    image, ksp = recon(pp, dims, hdr, image_data_real, image_data_imag, args)
-    del image_data_real, image_data_imag
+    image, ksp = recon(pp, dims, hdr,
+                       data_real,
+                       data_imag, args)
+    del data_real, data_imag
     print "Shift kspace centre to max point"
     ksp = kspaceshift(ksp)
 
