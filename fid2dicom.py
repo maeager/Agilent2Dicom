@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-
-"""fid2dicom is used to convert Agilent FID files to DICOM format.
+"""fid2dicom is an image processing and converter script for Agilent FID files
+  into primarily DICOM format.
 
   Version 1.1: Original code based on agilent2dicom FDF converter (Michael Eager)
   Version 1.2: Cplx filters upgraded and arguments improved for extra variables
@@ -257,8 +257,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         os.makedirs(outdir)
 
     # Read in data procpar
-    procpar, procpartext = ReadProcpar.ReadProcpar(
-        os.path.join(args.inputdir, 'procpar'))
+    procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir, 'procpar'))
     # if args.verbose:
     #     print procpar
 
@@ -266,15 +265,14 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
     ds, MRAcquisitionType = ProcparToDicomMap.ProcparToDicomMap(procpar, args)
 
     filename = fidfiles[len(fidfiles) - 1]
-    procpar, hdr, dims, image_data_real, image_data_imag = FID.readfid(
-        args.inputdir, procpar, args)
+    procpar, hdr, dims, data_real, data_imag = FID.readfid(args.inputdir,
+                                                           procpar, args)
 
     # Change dicom for specific FID header info
-    ds, matsize, ImageTransformationMatrix = FID.ParseFID(
-        ds, hdr, procpar, args)
+    ds, matsize, tmatrix = FID.ParseFID(ds, hdr, procpar, args)
 
-    image_data, ksp = FID.recon(
-        procpar, dims, hdr, image_data_real, image_data_imag, args)
+    image_data, ksp = FID.recon(procpar, dims, hdr, data_real,
+                                data_imag, args)
 
     if args.verbose:
         print 'Image_data shape:', str(image_data.shape)
@@ -289,7 +287,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         image_data = fftshift(ifftn(ifftshift(ksp)))
 
     FID.Save3dFIDtoDicom(ds, procpar, np.abs(image_data), hdr,
-                         ImageTransformationMatrix, args, outdir)
+                         tmatrix, args, outdir)
     if args.nifti:
         save_as_nifti(np.abs(image_data), outdir)
 
@@ -319,12 +317,12 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         ds.DerivationDescription = '''%s\n
         Agilent2Dicom Version: %s - %s\n
         Scipy version: %s\n
-        Complex Gaussian filter: sigma=%f order=%d mode=%s.''' % (
-            Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
-            scipy.__version__, sigma, args.gaussian_order,
-            args.gaussian_mode)
+        Complex Gaussian filter: sigma=%f order=%d mode=%s.
+        ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
+               scipy.__version__, sigma, args.gaussian_order,
+               args.gaussian_mode)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args,
+                           tmatrix, args,
                            re.sub('.dcm', '-gaussian.dcm', outdir))
         if args.nifti:
             save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-gaussian', outdir))
@@ -344,28 +342,31 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION,
                DVCS_STAMP, scipy.__version__, args.sigma)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args,
+                           tmatrix, args,
                            re.sub('.dcm', '-laplacegaussian.dcm', outdir))
         if args.nifti:
-            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-laplacegauss', outdir))
+            save_as_nifti(np.abs(image_filtered),
+                          re.sub('.dcm', '-laplacegauss', outdir))
 
     if args.median_filter:
         if not args.window_size:
             args.window_size = (3, 3, 3)
         if args.verbose:
             print "Computing Median filtered image from Original image"
-        image_filtered = CPLX.cplxmedian_filter(
-            image_data.real, image_data.imag, args.window_size)
+        image_filtered = CPLX.cplxmedian_filter(image_data.real,
+                                                image_data.imag,
+                                                args.window_size)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
         %s\nScipy version: %s\nComplex Median filter: window
         size=%d.''' % (Derivation_Description, AGILENT2DICOM_VERSION,
                        DVCS_STAMP, scipy.__version__,
                        args.window_size)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args,
+                           tmatrix, args,
                            re.sub('.dcm', '-median.dcm', outdir))
         if args.nifti:
-            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-median', outdir))
+            save_as_nifti(np.abs(image_filtered),
+                          re.sub('.dcm', '-median', outdir))
 
     if args.wiener_filter:
         if not args.window_size:
@@ -385,10 +386,11 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                                  scipy.__version__, args.window_size,
                                  args.wiener_noise)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args,
+                           tmatrix, args,
                            re.sub('.dcm', '-wiener.dcm', outdir))
         if args.nifti:
-            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-wiener', outdir))
+            save_as_nifti(np.abs(image_filtered),
+                          re.sub('.dcm', '-wiener', outdir))
 
     if args.standard_deviation_filter:
         if not args.window_size:
@@ -404,7 +406,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                        AGILENT2DICOM_VERSION, DVCS_STAMP,
                        scipy.__version__, args.window_size)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args,
+                           tmatrix, args,
                            re.sub('.dcm', '-stdev.dcm', outdir))
         if args.nifti:
             save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-stdev', outdir))
@@ -420,7 +422,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                        AGILENT2DICOM_VERSION, DVCS_STAMP,
                        scipy.__version__, args.window_size)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args,
+                           tmatrix, args,
                            re.sub('.dcm', '-stdevmag.dcm', outdir))
         if args.nifti:
             save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-stdevmag', outdir))
@@ -428,15 +430,18 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         if not args.window_size:
             args.window_size = 3
         if args.verbose:
-            print "Computing Localised standard deviation filtered image from Original image"
-        image_filtered = CPLX.phase_std_filter(np.angle(image_data), int(args.window_size))
+            print """Computing Localised standard deviation filtered image
+            from Original image"""
+            
+        image_filtered = CPLX.phase_std_filter(np.angle(image_data),
+                                               args.window_size)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
         %s\nScipy version: %s\nStd dev filter of phase: window
         size=%d.''' % (Derivation_Description,
                        AGILENT2DICOM_VERSION, DVCS_STAMP,
                        scipy.__version__, args.window_size)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args,
+                           tmatrix, args,
                            re.sub('.dcm', '-stdevpha.dcm', outdir))
         if args.nifti:
             save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-stdevpha', outdir))
@@ -448,18 +453,20 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             args.window_size = 3
         if args.verbose:
             print "Computing Epanechnikov filtered image from Original image"
-        image_filtered = CPLX.cplxepanechnikov_filter(
-            image_data.real, image_data.imag, args.sigma, (3, 3, 3))
+        image_filtered = CPLX.cplxepanechnikov_filter(image_data.real,
+                                                      image_data.imag,
+                                                      args.sigma, (3, 3, 3))
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s -
         %s\nScipy version: %s\nComplex Epanechnikov filter:
-        sigma=%f window=%d order=0 mode = reflect.''' % (
-            Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
-            scipy.__version__, args.sigma, args.window_size)
+        sigma=%f window=%d order=0 mode = reflect.
+        ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
+               scipy.__version__, args.sigma, args.window_size)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args,
+                           tmatrix, args,
                            re.sub('.dcm', '-epanechnikov.dcm', outdir))
         if args.nifti:
-            save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-epanechnikov', outdir))
+            save_as_nifti(np.abs(image_filtered),
+                          re.sub('.dcm', '-epanechnikov', outdir))
 
     if args.FT_gaussian_filter:
         sigma = np.array(ksp.shape)
@@ -481,10 +488,12 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
 
         # image_filtered = CPLX.cplxgaussian_filter(image_data.real,
         # image_data.imag, args.sigma, args.gaussian_order, args.gaussian_mode)
-        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s\nScipy version: %s\nComplex Fourier Gaussian filter: sigma=%f.
-        ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP, scipy.__version__, sigma)
+        ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s\nScipy version:
+        %s\nComplex Fourier Gaussian filter: sigma=%f.
+        ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
+               scipy.__version__, sigma)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args,
+                           tmatrix, args,
                            re.sub('.dcm', '-kspgaussian.dcm', outdir))
 
         if args.nifti:
@@ -518,7 +527,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION,
                DVCS_STAMP, scipy.__version__, epabw)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
-                           ImageTransformationMatrix, args,
+                           tmatrix, args,
                            re.sub('.dcm', '-kspepa.dcm', outdir))
         if args.nifti:
             save_as_nifti(np.abs(image_filtered), re.sub('.dcm', '-kspepa', outdir))
