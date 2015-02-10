@@ -32,6 +32,23 @@ FDF2DCM=time ./fdf2dcm.sh -v
 PATH+=:$(DCM3TOOLS)
 EXAMPLEDATAPATH=../ExampleAgilentData
 
+.PHONY: clean
+clean:
+	$(RM) *.pyc
+	for orig in *.orig; do \
+		if [ $$orig -ot $${orig//.orig/} ];then \
+			echo "Removing  $$orig"; \
+			 $(RM) $$orig; \
+		else echo "$$orig is newer than $${orig//.orig/}"; \
+		fi; \
+	done; \
+	for tilda in *~; do \
+		if [ $$tilda -ot $${tilda//\~/} ];then \
+			echo "Removing  $$tilda"; \
+			 $(RM) $$tilda; \
+		else echo "$$tilda is newer than $${tilda//\~/}"; \
+		fi; \
+	done
 
 
 .PHONY: checkdeps
@@ -44,6 +61,7 @@ checkdeps:
 	python check.py
 	if [[ $(MRVERSION) -ge 12  ]]; then echo "mrconvert version $(MRVERSION)"; \
 	else echo "mrconvert version too old ($(MRVERSION)). Install 0.2.12 or greater."; fi 
+
 
 
 .PHONY: setup
