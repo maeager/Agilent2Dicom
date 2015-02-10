@@ -59,7 +59,7 @@ def ReadFDF(fdffilename):
         tokens[1] = tokens[1].strip()
         if tokens[1][0] == '{' and tokens[1][-1] == '}':
             tokens[1] = '[' + tokens[-1].strip('{}') + ']'
-        exec('fdf_properties["' + tokens[0] + '"] = ' + tokens[1])
+        compile('fdf_properties["' + tokens[0] + '"] = ' + tokens[1], "<string>", "exec")
         line = f.readline()
     fdf_properties['filename'] = fdffilename
     fdf_properties['filetext'] = fdftext
