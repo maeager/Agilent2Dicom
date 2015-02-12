@@ -475,12 +475,16 @@ filtered result with the same shape as im.
 # end cplxwiener_filter
 
 
-def epanechnikov(filtersiz, bandwidth, order=0):
+def epanechnikov_kernel(filtersiz, bandwidth, order=0):
     """
     Epanechnikov filter  3/4 * (1-|u|^2), -1 <= u <= 1
-    u = x/sigma
+    u = x/bandwidth
 
-    Second order: k1(x) = 3/160 (2-x)^3 (x^2 + 6x + 4)
+    The kernel is a continuous, bounded and symmetric real function $K$ which integrates to one.
+    It is computationally efficient and efficient in kernel density estimation.
+    http://sfb649.wiwi.hu-berlin.de/fedc_homepage/xplore/ebooks/html/anr/anrhtmlnode11.html
+    
+    Secon d order: k1(x) = 3/160 (2-x)^3 (x^2 + 6x + 4)
        Fourth order: -15/8 x^2 + 9/8   (norm 1/sqrt(5))
        Kernel Equation R(k) 4(k) eff(k)
 Epanechnikov k4;1(u) = \frac{15}{8}(1-\frac{7}{3}u^2)* k1(u))
@@ -580,7 +584,7 @@ Nonparametric Econometrics: Theory and Practice
         epan = (175.0 / 64.0) * (1 - 6 * zsquared +
                                  (33.0 / 5.0) * zsquared * zsquared) * epan
     # else:
-    #     print "epanechnikov filter can only have order={0, 4}"
+    #     print "epanechnikov filter can only have order={0, 4, 6}"
     epan = epan * (epan > 0)
     epan = epan / ndimage.sum(epan)
     return epan.astype(np.float32)
@@ -611,7 +615,7 @@ def cplxepanechnikov_filter(real_input, imag_input, sigma_=1.87,
         filtersize = np.array(size_)
 #    if not hasattr(sigma_,"__len__"):
 #        sigma_=np.ones(3)*sigma_
-    epfilter = epanechnikov(filtersize, bandwidth=sigma_, order=order_)
+    epfilter = epanechnikov_kernel(filtersize, bandwidth=sigma_, order=order_)
 #    def epfunc(x, y, z):
 #         return max((0.75*(1 - x*x/sigma[0]**2
 #         -y*y/sigma[1]**2 - z*z/sigma[2]**2), 0))
