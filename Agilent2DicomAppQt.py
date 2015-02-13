@@ -96,7 +96,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         # self.colorDepthCombo.addItem("2 colors (1 bit per
         logging.basicConfig(format='%(levelname)s:%(asctime)s %(message)s',
                             datefmt='%m/%d/%Y %I:%M:%S %p',
-                            filename='runtime.log', level=logging.DEBUG)
+                            filename='qtapp-agilent2dicom.log', level=logging.DEBUG)
         logging.info('Starting Agilent2DicomAppQt')
         # Disable some features
         if DEBUGGING == 0:

@@ -99,6 +99,11 @@ function yesno(){
 
 function error_exit(){
     echo "${PROGNAME}: ${1:-Unknown error}" 1>&2
+    # if [ -x `which mutt` && "$USER" == "vnmr1" ]; then
+    #     logfiles=$(find ${FID2DCMPATH} ${PWD} -name *.log -print0)
+    # 	EMAIL="$USER@$HOST" 
+    # 	echo "Error occured `date`" | mutt -s "${PROGNAME}: ${1:-Unknown error}" -a $logfiles  michael.eager@monash.edu 
+    # fi
     exit 1
 }
 
