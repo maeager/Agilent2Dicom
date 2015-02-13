@@ -36,6 +36,277 @@ else:
     # from scipy import signal
 
 
+def fouriercoords(siz):
+    """fouriercoords
+    Create x,y,z mesh of Fourier domain space
+    """
+    sz = np.ceil(np.array(siz) / 2.0)
+    xx = np.array(range(-int(sz[0]), int(sz[0])))
+    yy = np.array(range(-int(sz[1]), int(sz[1])))
+    maxlen = ndimage.maximum(np.array(siz))
+    if len(siz) == 3:
+        zz = np.array(range(-int(sz[2]), int(sz[2])))
+        mult_fact = np.ones((len(xx), len(yy), len(zz)))
+        uu = xx[:, np.newaxis, np.newaxis] * mult_fact / maxlen  # * voxmm[0]
+        vv = yy[np.newaxis, :, np.newaxis] * mult_fact / maxlen  # * voxmm[0]
+        ww = zz[np.newaxis, np.newaxis, :] * mult_fact / maxlen  # * voxmm[0]
+        if np.prod(siz) != np.prod(sz * 2):
+            uu = uu[:siz[0], :siz[1], :siz[2]]
+            vv = vv[:siz[0], :siz[1], :siz[2]]
+            ww = ww[:siz[0], :siz[1], :siz[2]]
+        return (uu, vv, ww)
+    else:
+        mult_fact = np.ones((len(xx), len(yy)))
+        uu = xx[:, np.newaxis] * mult_fact / maxlen  # * voxmm[0]
+        vv = yy[np.newaxis, :] * mult_fact / maxlen  # * voxmm[0]
+        if np.prod(siz) != np.prod(sz * 2):
+            uu = uu[:siz[0], :siz[1]]
+            vv = vv[:siz[0], :siz[1]]
+        return (uu, vv, [])
+
+
+def gaussian_fourierkernel(uu, vv, ww, sigma):
+    """
+    Create Gaussian Fourier filter kernel
+    """
+    if not hasattr(sigma, "__len__"):  # type(sigma) is float:
+        gfilter = np.exp(-2 * np.pi * np.pi * (uu * uu + vv * vv + ww * ww) *
+                      (sigma * sigma))
+        midpoint = (uu[-1, 0, 0], vv[0, -1, 0], ww[0, 0, -1])
+        return gfilter / ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
+                                                 midpoint[1] - 10:midpoint[1] + 10,
+                                                 midpoint[2] - 10:midpoint[2] + 10])
+    elif len(sigma) == 2:
+        gfilter = np.exp(-2 * np.pi * np.pi * ((sigma[0] * sigma[0] * uu * uu) +
+                                            (sigma[1] * sigma[1] * vv * vv)))
+        midpoint = (uu[-1, 0, 0], vv[0, -1, 0])
+        gfilter = gfilter / ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
+                                                    midpoint[1] - 10:midpoint[1] + 10)
+    else:
+        gfilter = np.exp(-2 * np.pi * np.pi * ((sigma[0] * sigma[0] * uu * uu) +
+                                               (sigma[1] * sigma[1] * vv * vv) +
+                                               (ww * ww * sigma[2] * sigma[2])))
+        midpoint = (uu[-1, 0, 0], vv[0, -1, 0], ww[0, 0, -1])
+        gfilter = gfilter / ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
+                                                    midpoint[1] - 10:midpoint[1] + 10,
+                                                    midpoint[2] - 10:midpoint[2] + 10])
+    return gfilter
+
+
+def fouriergauss(siz, sigma):
+    """
+    Gaussian operator in Fourier domain is another Gaussian :
+      g(x,y,z)=(1/sqrt(2*pi).sigma).exp(-(x^2+y^2+z^2)/2sigma^2)
+          => A.(exp(-2*pi*pi*(u^2 + v^2 + w^2)*(sigma^2))
+
+    The sigma should be relative to the voxel spacing
+    """
+    (uu, vv, ww) = fouriercoords(siz)
+    return gaussian_fourierkernel(uu, vv, ww, sigma)
+
+
+def cplxfouriergauss(siz, sigma):
+    """
+    Complex Gaussian in Fourier domain :
+      g(x,y,z)=(1+i)(1/sqrt(2*pi).sigma).exp(-(x^2)/2sigma^2)
+      \mathcal{F_x}[f(x)](\omega)  => A*(1+i)*exp(-((w^2)*(sigma^2))/2 + i*mu*w)
+    A=1/[sqrt(2*pi/sigma^2)*sigma]
+    mu is zero, so the real and imag components are:
+      [exp(-((w^2)*(sigma^2))/2)] / [sqrt(2*pi/sigma^2)*sigma]
+
+
+    The sigma should be relative to the voxel spacing.
+    """
+    (uu, vv, ww) = fouriercoords(siz)
+    gfilter = gaussian_fourierkernel(uu, vv, ww, sigma)
+    return gfilter + 1j * gfilter
+
+
+def fourierlaplace(ksp_shape):
+    """
+    Laplacian operator in Fourier domain is very simple:
+      D^2 g(x,y,z) => -(4pi^2) (u^2 + v^2 + w^2) G(u,v,w)
+    """
+    (uu, vv, ww) = fouriercoords(siz)
+    # / (siz[0] * siz[1] * siz[2])
+    return -(4 * np.pi * np.pi) * (uu * uu + vv * vv + ww * ww)
+
+
+def fourierlaplaceinhom(siz, sigma):
+    """
+    Laplacian operator in Fourier domain is very simple:
+      D^2 g(x,y,z) => -(4pi^2) (u^2 + v^2 + w^2) G(u,v,w)
+    """
+    (uu, vv, ww) = fouriercoords(siz)
+    laplace = -(u * u / (sigma[0] * sigma[0]) + v * v /
+                (sigma[1] * sigma[1]) + w * w / (sigma[2] * sigma[2]))
+    laplace = (laplace - ndimage.minimum(laplace)) /
+               (ndimage.maximum(laplace) - ndimage.minimum(laplace))
+    return laplace
+
+
+def fourierepanechnikov(siz, sigma):
+    """
+    Epanechnikov kernel in Fourier domain is
+     A.(1-|x|^2)  => (3/2*w^3)(sin(w) - w*cos(w)/2)
+    """
+    # (uu,vv,ww) = fouriercoords(siz)
+    # uu = uu + np.spacing(1)
+    # vv = vv + np.spacing(1)
+    # ww = ww + np.spacing(1)
+
+    # if not hasattr(sigma, "__len__"):
+    # #if type(sigma) is float or type(sigma) is numpy.float64:
+    #     return ((3.0*sigma/16.0)/(np.pi*(uu + vv +
+    #     ww)/(sigma))**3)*(np.sin(2*np.pi*(uu + vv + ww)/(sigma)) - np.pi*(uu
+    #     + vv + ww)/(sigma)*np.cos(2*np.pi*(uu + vv + ww)/(sigma))/2)
+    # else:
+    # return ((3.0/16.0)/(np.pi*((uu**3)/sigma[0]**4 + (vv**3)/sigma[1]**4 +
+    # (ww**3)/sigma[2]**4)))*(np.sin(2*np.pi*(uu/sigma[0] + vv/sigma[1] +
+    # ww/sigma[2])) - np.pi*(uu/sigma[0] + vv/sigma[1] +
+    # ww/sigma[2])*np.cos(2*np.pi*(uu/sigma[0] + vv/sigma[1] + ww/sigma[2])))
+
+    from cplxfilter import epanechnikov_kernel
+    if not hasattr(sigma, "__len__"):
+        Kepa = epanechnikov_kernel(
+            (np.ceil(sigma) + 1, np.ceil(sigma) + 1, np.ceil(sigma) + 1),
+            sigma)
+    else:
+        print (np.ceil(sigma[0]) + 1,
+               np.ceil(sigma[1]) + 1, np.ceil(sigma[2]) + 1)
+        print sigma
+        Kepa = epanechnikov_kernel((np.ceil(sigma[0]) + 1, np.ceil(sigma[1]) + 1,
+                                    np.ceil(sigma[2]) + 1), sigma)
+    Kfilter = np.zeros(np.array(siz), dtype=numpy.float32)
+    szmin = np.floor(
+        np.array(siz) / 2.0 - np.floor(np.array(Kepa.shape) / 2.0) - 1)
+    szmax = np.floor(szmin + np.array(Kepa.shape))
+    print "Epa filter size ", siz, " image filter ", Kepa.shape, " szmin ",
+        szmin, " szmax ", szmax
+    Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = Kepa
+    return np.abs(fftshift(fftn(Kfilter)))
+
+
+def fouriergausssubband15(siz, sigma):
+    """ Subband15 Gaussian filter
+    """
+    sz = np.ceil((np.array(siz)) / 2.0)
+    xx = np.array(range(-int(sz[0]), int(sz[0])))
+    yy = np.array(range(-int(sz[1]), int(sz[1])))
+    zz = np.array(range(-int(sz[2]), int(sz[2])))
+    mult_fact = np.ones((len(yy), len(xx), len(zz)))
+    uu = xx[np.newaxis, :, np.newaxis] * mult_fact
+    vv = yy[:, np.newaxis, np.newaxis] * mult_fact
+    ww = zz[np.newaxis, np.newaxis, :] * mult_fact
+    del mult_fact, xx, yy, zz
+
+    if np.prod(siz) != np.prod(sz * 2):
+        uu = uu[:siz[0], :siz[1], :siz[2]]
+        vv = vv[:siz[0], :siz[1], :siz[2]]
+        ww = ww[:siz[0], :siz[1], :siz[2]]
+    # Original Gaussian kernel
+    gfilter = gaussian_fourierkernel(uu, vv, ww, sigma)
+    # Subband_1.5 frequency oversampling component.
+
+    gfilter = gfilter + gaussian_fourierkernel(uu + 1, vv, ww, sigma)
+    gfilter = gfilter + gaussian_fourierkernel(uu - 1, vv, ww, sigma)
+    gfilter = gfilter + gaussian_fourierkernel(uu, vv + 1, ww, sigma)
+    gfilter = gfilter + gaussian_fourierkernel(uu, vv - 1, ww, sigma)
+    gfilter = gfilter + gaussian_fourierkernel(uu, vv, ww + 1, sigma)
+    gfilter = gfilter + gaussian_fourierkernel(uu, vv, ww - 1, sigma)
+    # Normalization improves accuracy when sigma is small (e.g. sigma < 0.8
+    # voxel length)
+    gfilter = gfilter / ndimage.maximum(gfilter)
+
+# End of Subband_1.5 frequency oversampling component
+    return gfilter
+
+
+def fouriergauss2(siz, voxmm, sigma):
+    """
+    Complex Gaussian in Fourier domain :
+      g(x,y,z)=(1+i)(1/sqrt(2*pi).sigma).exp(-(x^2)/2sigma^2)
+      \mathcal{F_x}[f(x)](\omega)  => A*(1+i)*exp(-((w^2)*(sigma^2))/2 + i*mu*w)
+    A=1/[sqrt(2*pi/sigma^2)*sigma]
+    mu is zero, so the real and imag components are:
+      [exp(-((w^2)*(sigma^2))/2)] / [sqrt(2*pi/sigma^2)*sigma]
+
+
+    The sigma should be relative to the voxel spacing.
+    """
+    (uu, vv, ww) = fouriercoords(siz)
+    if not hasattr(sigma, "__len__"):
+        # if type(sigma) is float or type(sigma) is numpy.float64:
+        factor = 1 / (np.sqrt(2 * np.pi / sigma ** 2) * sigma)
+        component = factor * np.exp(-0.5 * (uu ** 2 + vv ** 2 + ww ** 2) *
+                                    (sigma ** 2))
+    else:
+        factor = 1 / (np.sqrt(2 * np.pi / ((sigma[0] * sigma[0]) +
+                                           (sigma[1] * sigma[1]) +
+                                           (sigma[2] * sigma[2]))) *
+                      np.prod(sigma))
+        component = factor * np.exp(-0.5 * ((sigma[0] * sigma[0] * uu * uu) +
+                                            (sigma[1] * sigma[1] * vv * vv) +
+                                            (sigma[2] * sigma[2] * ww * ww)))
+    return component
+
+
+def fwhm(sigma):
+    """
+    The full width at half maximum is therefore given by
+    FWHM=2sqrt(2ln2)sigma approx 2.3548sigma.
+    """
+    return sigma * 2 * np.sqrt(2 * np.log(2))
+
+
+def inhomogeneouscorrection(ksp, siz, sigma):
+    """
+    Gaussian operator in Fourier domain is another Gaussian :
+      g(x,y,z)=(A/sqrt(2*pi).sigma).exp(-(x^2+y^2+z^2)/2sigma^2)
+          => A.(exp(-pi*(u^2 + v^2 + w^2)*(2.sigma^2))
+
+    g(x, y, z)=exp(-(x^2 + y^2 + z^2)/2*sigma^2)
+          => sqrt(pi*2*sigma^2)(exp(-pi^2*(u^2 + v^2 + w^2)*(2.sigma^2))
+
+    Use large sigma for smoothing the MR image
+    """
+
+    sz = np.ceil((np.array(siz)) / 2.0)
+    xx = np.array(range(-int(sz[0]), int(sz[0])))
+    yy = np.array(range(-int(sz[1]), int(sz[1])))
+    zz = np.array(range(-int(sz[2]), int(sz[2])))
+    mult_fact = np.ones((len(yy), len(xx), len(zz)))
+    uu = xx[np.newaxis, :, np.newaxis] * mult_fact
+    vv = yy[:, np.newaxis, np.newaxis] * mult_fact
+    ww = zz[np.newaxis, np.newaxis, :] * mult_fact
+    del xx, yy, zz, mult_fact
+    if np.prod(siz) != np.prod(sz * 2):
+        uu = uu[:siz[0], :siz[1], :siz[2]]
+        vv = vv[:siz[0], :siz[1], :siz[2]]
+        ww = ww[:siz[0], :siz[1], :siz[2]]
+
+#    arg   = -(xx.*xx + yy.*yy)/(2*sigma*sigma)
+    # arg = -(uu*uu + vv*vv + ww*ww)/(2*sigma*sigma)
+    # hG   = np.exp(arg)
+    # #h(h < eps*max(h(:))) = 0;
+    # del arg, xx, yy, zz, uu, vv, ww
+    # sumh = sum(hG(:));
+    # if sumh != 0:
+    #     hG  = hG/sumh
+    # HG = fftn(ifftshift(hG))
+#    HGh = sqrt(pi*2*sigma*sigma)*
+    HG = np.exp(-np.pi * np.pi * (uu * uu + vv * vv + ww * ww)
+                * (2 * sigma * sigma))
+    del uu, vv, ww
+
+    kspHG = ksp * HG
+    del HG
+    fsmoothed = abs(fftshift(ifftn(ifftshift(kspHG))))
+    fsmoothed = fsmoothed / ndimage.mean(fsmoothed)
+    return fsmoothed
+# end inhomogeneouscorrection
+
+
 def kspacegaussian_filter(ksp, sigma=np.sqrt(0.5), n_=-1, axis_=-1):
     """KSPACEFILTER gaussian filter of complex 3D image
 
@@ -96,242 +367,48 @@ def kspacegaussian_filter(ksp, sigma=np.sqrt(0.5), n_=-1, axis_=-1):
 # end kspacegaussian_filter
 
 
-def fourierlaplace(ksp_shape):
-    """
-    Laplacian operator in Fourier domain is very simple:
-      D^2 g(x,y,z) => -(4pi^2) (u^2 + v^2 + w^2) G(u,v,w)
-    """
-    siz = ksp_shape[:3]
-    sz = np.ceil((np.array(siz)) / 2.0)
-    x = np.array(range(-sz[0], sz[0]))
-    y = np.array(range(-sz[1], sz[1]))
-    z = np.array(range(-sz[2], sz[2]))
-    mult_fact = np.ones((len(y), len(x), len(z)))
-    (uu, vv, ww) = (x[:, np.newaxis, np.newaxis] * mult_fact,
-                    y[np.newaxis, :, np.newaxis] * mult_fact,
-                    z[np.newaxis, np.newaxis, :] * mult_fact)
-    if np.prod(siz) != np.prod(sz * 2):
-        uu = uu[:siz[0], :siz[1], :siz[2]]
-        vv = vv[:siz[0], :siz[1], :siz[2]]
-        ww = ww[:siz[0], :siz[1], :siz[2]]
-
-    return -(4 * np.pi * np.pi) * (uu * uu + vv * vv + ww * ww) / (siz[0] * siz[1] * siz[2])
-
-
-def fourierlaplaceinhom(ksp_shape, sigma):
-    """
-    Laplacian operator in Fourier domain is very simple:
-      D^2 g(x,y,z) => -(4pi^2) (u^2 + v^2 + w^2) G(u,v,w)
-    """
-    siz = ksp_shape[:3]
-    sz = (np.array(siz)) / 2
-    x = np.array(range(-sz[0], sz[0]))
-    y = np.array(range(-sz[1], sz[1]))
-    z = np.array(range(-sz[2], sz[2]))
-    mult_fact = np.ones((len(y), len(x), len(z)))
-    (u, v, w) = (x[np.newaxis, :, np.newaxis] * mult_fact,
-                 y[:, np.newaxis, np.newaxis] * mult_fact,
-                 z[np.newaxis, np.newaxis, :] * mult_fact)
-    laplace = -(u * u / (sigma[0] * sigma[0]) + v * v /
-                (sigma[1] * sigma[1]) + w * w / (sigma[2] * sigma[2]))
-    laplace = (laplace - ndimage.minimum(laplace)) / \
-        (ndimage.maximum(laplace) - ndimage.minimum(laplace))
-    return laplace
-
-
-def fourierepanechnikov(siz, sigma):
-    """
-    Epanechnikov kernel in Fourier domain is
-     A.(1-|x|^2)  => (3/2*w^3)(sin(w) - w*cos(w)/2)
-    """
-    # sz = (np.array(siz)) / 2
-    # xx = np.array(range(-int(sz[0]), int(sz[0])))
-    # yy = np.array(range(-int(sz[1]), int(sz[1])))
-    # zz = np.array(range(-int(sz[2]), int(sz[2])))
-    # mult_fact = np.ones((len(yy), len(xx), len(zz)))
-    # uu = xx[np.newaxis, :, np.newaxis] * mult_fact + np.spacing(1)
-    # vv = yy[:, np.newaxis, np.newaxis] * mult_fact + np.spacing(1)
-    # ww = zz[np.newaxis, np.newaxis, :] * mult_fact + np.spacing(1)
-
-    from cplxfilter import epanechnikov
-    if not hasattr(sigma, "__len__"):
-        Kepa = epanechnikov(
-            (np.ceil(sigma) + 1, np.ceil(sigma) + 1, np.ceil(sigma) + 1),
-            sigma)
-    else:
-        print (np.ceil(sigma[0]) + 1,
-               np.ceil(sigma[1]) + 1, np.ceil(sigma[2]) + 1)
-        print sigma
-        Kepa = epanechnikov((np.ceil(sigma[0]) + 1, np.ceil(sigma[1]) + 1,
-                             np.ceil(sigma[2]) + 1), sigma)
-    Kfilter = np.zeros(np.array(siz), dtype=numpy.float32)
-    szmin = np.floor(
-        np.array(siz) / 2.0 - np.floor(np.array(Kepa.shape) / 2.0) - 1)
-    szmax = np.floor(szmin + np.array(Kepa.shape))
-    print "Epa filter size ", siz, " image filter ", Kepa.shape, " szmin ",\
-        szmin, " szmax ", szmax
-    Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = Kepa
-    return np.abs(fftshift(fftn(Kfilter)))
-
-    # if not hasattr(sigma, "__len__"):
-    # #if type(sigma) is float or type(sigma) is numpy.float64:
-    #     return ((3.0*sigma/16.0)/(np.pi*(uu + vv +
-    #     ww)/(sigma))**3)*(np.sin(2*np.pi*(uu + vv + ww)/(sigma)) - np.pi*(uu
-    #     + vv + ww)/(sigma)*np.cos(2*np.pi*(uu + vv + ww)/(sigma))/2)
-    # else:
-    # return ((3.0/16.0)/(np.pi*((uu**3)/sigma[0]**4 + (vv**3)/sigma[1]**4 +
-    # (ww**3)/sigma[2]**4)))*(np.sin(2*np.pi*(uu/sigma[0] + vv/sigma[1] +
-    # ww/sigma[2])) - np.pi*(uu/sigma[0] + vv/sigma[1] +
-    # ww/sigma[2])*np.cos(2*np.pi*(uu/sigma[0] + vv/sigma[1] + ww/sigma[2])))
-
-
-def fouriergauss(siz, sigma):
-    """
-    Gaussian operator in Fourier domain is another Gaussian :
-      g(x,y,z)=(1/sqrt(2*pi).sigma).exp(-(x^2+y^2+z^2)/2sigma^2)
-          => A.(exp(-2*pi*pi*(u^2 + v^2 + w^2)*(sigma^2))
-    """
-
-    sz = np.ceil((np.array(siz)) / 2.0)
-    xx = np.array(range(-int(sz[0]), int(sz[0])))
-    yy = np.array(range(-int(sz[1]), int(sz[1])))
-    zz = np.array(range(-int(sz[2]), int(sz[2])))
-    mult_fact = np.ones((len(xx), len(yy), len(zz)))
-    uu = xx[:, np.newaxis, np.newaxis] * mult_fact
-    vv = yy[np.newaxis, :, np.newaxis] * mult_fact
-    ww = zz[np.newaxis, np.newaxis, :] * mult_fact
-
-    if np.prod(siz) != np.prod(sz * 2):
-        uu = uu[:siz[0], :siz[1], :siz[2]]
-        vv = vv[:siz[0], :siz[1], :siz[2]]
-        ww = ww[:siz[0], :siz[1], :siz[2]]
-    if not hasattr(sigma, "__len__"):
-        # if type(sigma) is float or type(sigma) is numpy.float64:
-        return np.exp(-2 * np.pi * np.pi * (uu ** 2 + vv ** 2 + ww ** 2) *
-                      (sigma ** 2))
-    else:
-        return np.exp(-2 * np.pi * np.pi * ((sigma[0] * sigma[0] * uu * uu) +
-                                            (sigma[1] * sigma[1] * vv * vv) +
-                                            (ww * ww * sigma[2] * sigma[2])))
-
-
-def GaussianKernel(uu, vv, ww, sigma):
-    """
-    Create Gaussian Fourier filter
-    """
-    if not hasattr(sigma, "__len__"):  # type(sigma) is float:
-        return np.exp(-2 * np.pi * np.pi * (uu * uu + vv * vv + ww * ww) *
-                      (sigma * sigma))
-    else:
-        return np.exp(-2 * np.pi * np.pi * ((sigma[0] * sigma[0] * uu * uu) +
-                                            (sigma[1] * sigma[1] * vv * vv) +
-                                            (ww * ww * sigma[2] * sigma[2])))
-
-
-def fouriergausssubband15(siz, sigma):
-    """ Subband15 Gaussian filter
-    """
-    sz = np.ceil((np.array(siz)) / 2.0)
-    xx = np.array(range(-int(sz[0]), int(sz[0])))
-    yy = np.array(range(-int(sz[1]), int(sz[1])))
-    zz = np.array(range(-int(sz[2]), int(sz[2])))
-    mult_fact = np.ones((len(yy), len(xx), len(zz)))
-    uu = xx[np.newaxis, :, np.newaxis] * mult_fact
-    vv = yy[:, np.newaxis, np.newaxis] * mult_fact
-    ww = zz[np.newaxis, np.newaxis, :] * mult_fact
-    del mult_fact, xx, yy, zz
-
-    if np.prod(siz) != np.prod(sz * 2):
-        uu = uu[:siz[0], :siz[1], :siz[2]]
-        vv = vv[:siz[0], :siz[1], :siz[2]]
-        ww = ww[:siz[0], :siz[1], :siz[2]]
-    # Original Gaussian kernel
-    gfilter = GaussianKernel(uu, vv, ww, sigma)
-    # Subband_1.5 frequency oversampling component.
-
-    gfilter = gfilter + GaussianKernel(uu + 1, vv, ww, sigma)
-    gfilter = gfilter + GaussianKernel(uu - 1, vv, ww, sigma)
-    gfilter = gfilter + GaussianKernel(uu, vv + 1, ww, sigma)
-    gfilter = gfilter + GaussianKernel(uu, vv - 1, ww, sigma)
-    gfilter = gfilter + GaussianKernel(uu, vv, ww + 1, sigma)
-    gfilter = gfilter + GaussianKernel(uu, vv, ww - 1, sigma)
-    # Normalization improves accuracy when sigma is small (e.g. sigma < 0.8
-    # voxel length)
-    gfilter = gfilter / ndimage.maximum(gfilter)
-
-# End of Subband_1.5 frequency oversampling component
-    return gfilter
-
-
-def fwhm(sigma):
-    """
-    The full width at half maximum is therefore given by
-    FWHM=2sqrt(2ln2)sigma approx 2.3548sigma.
-    """
-    return sigma * 2 * np.sqrt(2 * np.log(2))
-
-
-def inhomogeneouscorrection(ksp, siz, sigma):
-    """
-    Gaussian operator in Fourier domain is another Gaussian :
-      g(x,y,z)=(A/sqrt(2*pi).sigma).exp(-(x^2+y^2+z^2)/2sigma^2)
-          => A.(exp(-pi*(u^2 + v^2 + w^2)*(2.sigma^2))
-
-    g(x, y, z)=exp(-(x^2 + y^2 + z^2)/2*sigma^2)
-          => sqrt(pi*2*sigma^2)(exp(-pi^2*(u^2 + v^2 + w^2)*(2.sigma^2))
-
-    Use large sigma for smoothing the MR image
-    """
-
-    sz = np.ceil((np.array(siz)) / 2.0)
-    xx = np.array(range(-int(sz[0]), int(sz[0])))
-    yy = np.array(range(-int(sz[1]), int(sz[1])))
-    zz = np.array(range(-int(sz[2]), int(sz[2])))
-    mult_fact = np.ones((len(yy), len(xx), len(zz)))
-    uu = xx[np.newaxis, :, np.newaxis] * mult_fact
-    vv = yy[:, np.newaxis, np.newaxis] * mult_fact
-    ww = zz[np.newaxis, np.newaxis, :] * mult_fact
-    del xx, yy, zz, mult_fact
-    if np.prod(siz) != np.prod(sz * 2):
-        uu = uu[:siz[0], :siz[1], :siz[2]]
-        vv = vv[:siz[0], :siz[1], :siz[2]]
-        ww = ww[:siz[0], :siz[1], :siz[2]]
-
-#    arg   = -(xx.*xx + yy.*yy)/(2*sigma*sigma)
-    # arg = -(uu*uu + vv*vv + ww*ww)/(2*sigma*sigma)
-    # hG   = np.exp(arg)
-    # #h(h < eps*max(h(:))) = 0;
-    # del arg, xx, yy, zz, uu, vv, ww
-    # sumh = sum(hG(:));
-    # if sumh != 0:
-    #     hG  = hG/sumh
-    # HG = fftn(ifftshift(hG))
-#    HGh = sqrt(pi*2*sigma*sigma)*
-    HG = np.exp(-np.pi * np.pi * (uu * uu + vv * vv + ww * ww)
-                * (2 * sigma * sigma))
-    del uu, vv, ww
-
-    kspHG = ksp * HG
-    del HG
-    fsmoothed = abs(fftshift(ifftn(ifftshift(kspHG))))
-    fsmoothed = fsmoothed / ndimage.mean(fsmoothed)
-    return fsmoothed
-# end inhomogeneouscorrection
-
-
 def kspacegaussian_filter2(ksp, sigma_=None):
     """
     Apply Gaussian filter in Fourier domain to kspace data
     """
     siz = ksp.shape[0:3]
     sigma = np.ones(3)
-    if not sigma_:
-        sigma = np.ones(3) * siz / (4 * np.sqrt(2 * np.log(2)))
-    if not hasattr(sigma_, "__len__"):
+    if not 'sigma_' in locals():
+        sigma = np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
+    elif not hasattr(sigma_, "__len__"):
         sigma = np.ones(3) * sigma_
     else:
         sigma = sigma_.copy()
     Fgauss = fouriergauss(siz, 1 / sigma)
+    out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
+    print "Complex Gaussian filter sigma ", sigma
+    if ksp.ndim == 3:
+        out_ksp.real = ksp.real * Fgauss
+        out_ksp.imag = ksp.imag * Fgauss
+    else:
+        for echo in xrange(0, ksp.shape[4]):
+            for n in xrange(0, ksp.shape[3]):
+                out_ksp[:, :, :, n, echo].real = ksp[
+                    :, :, :, n, echo].real * Fgauss
+                out_ksp[:, :, :, n, echo].imag = ksp[
+                    :, :, :, n, echo].imag * Fgauss
+    return out_ksp
+# end kspacegaussian_filter2
+
+
+def kspacecplxgaussian_filter(ksp, sigma_=None):
+    """
+    Apply Gaussian filter in Fourier domain to kspace real and imag data
+    """
+    siz = ksp.shape[0:3]
+    sigma = np.ones(3)
+    if not 'sigma_' in locals() or sigma_ == None:
+        sigma = np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
+    elif not hasattr(sigma_, "__len__"):
+        sigma = np.ones(3) * sigma_
+    else:
+        sigma = sigma_.copy()
+    Fgauss = cplxfouriergauss(siz, sigma)
     out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
     print "Complex Gaussian filter sigma ", sigma
     if ksp.ndim == 3:
@@ -341,7 +418,7 @@ def kspacegaussian_filter2(ksp, sigma_=None):
             for n in xrange(0, ksp.shape[3]):
                 out_ksp[:, :, :, n, echo] = ksp[:, :, :, n, echo] * Fgauss
     return out_ksp
-# end kspacegaussian_filter2
+# end kspacecplxgaussian_filter
 
 
 def kspacelaplacegaussian_filter(ksp, sigma_=None):
@@ -351,7 +428,7 @@ def kspacelaplacegaussian_filter(ksp, sigma_=None):
     siz = ksp.shape[0:3]
     sigma = np.ones(3)
     if not sigma_:
-        sigma = np.ones(3) * siz / (4 * np.sqrt(2 * np.log(2)))
+        sigma = np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
     if not hasattr(sigma_, "__len__"):
         sigma = np.ones(3) * sigma_
     else:
@@ -361,12 +438,15 @@ def kspacelaplacegaussian_filter(ksp, sigma_=None):
     out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
     print "Complex Laplace Gaussian filter sigma ", sigma
     if ksp.ndim == 3:
-        out_ksp = (ksp * Fgauss) * Flaplace
+        out_ksp.real = (ksp.real * Fgauss) * Flaplace
+        out_ksp.imag = (ksp.imag * Fgauss) * Flaplace
     else:
         for echo in xrange(0, ksp.shape[4]):
             for n in xrange(0, ksp.shape[3]):
-                out_ksp[:, :, :, n, echo] = ksp[
-                    :, :, :, n, echo] * Flaplace * Fgauss
+                out_ksp[:, :, :, n, echo].real = ksp[
+                    :, :, :, n, echo].real * Flaplace * Fgauss
+                out_ksp[:, :, :, n, echo].imag = ksp[
+                    :, :, :, n, echo].imag * Flaplace * Fgauss
     return out_ksp
 # end kspacelaplacegaussian_filter
 
@@ -388,12 +468,43 @@ def kspaceepanechnikov_filter(ksp, sigma_=None):
     out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
     print "Complex Epanechnikov filter bandwidth ", sigma
     if ksp.ndim == 3:
-        out_ksp = Fepanechnikov * ksp
+        out_ksp.real = Fepanechnikov * ksp.real
+        out_ksp.imag = Fepanechnikov * ksp.imag      
     else:
         for echo in xrange(0, ksp.shape[4]):
             for n in xrange(0, ksp.shape[3]):
-                out_ksp[:, :, :, n, echo] = ksp[
-                    :, :, :, n, echo] * Fepanechnikov
+                out_ksp[:, :, :, n, echo].real = ksp[:, :, :, n, echo].real * Fepanechnikov
+                out_ksp[:, :, :, n, echo].imag = ksp[:, :, :, n, echo].imag * Fepanechnikov
+
+    return out_ksp
+# end kspaceepanechnikov_filter
+
+
+def kspaceepanechnikov_filter2(ksp, sigma_=None):
+    """
+    Apply Epanechnikov filter in Fourier domain to kspace real and imag data
+    """
+
+    siz = ksp.shape[0:3]
+    if not sigma_:
+        sigma = np.sqrt(7) * np.ones(3) * siz / (4 * np.sqrt(2 * np.log(2)))
+    else:
+        if not hasattr(sigma_, "__len__"):
+            sigma = np.ones(3) * sigma_
+        else:
+            sigma = sigma_.copy()
+    Fepanechnikov = fourierepanechnikov(siz, sigma)
+    out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
+    CmplxEpan = np.empty_like(ksp, dtype=numpy.complex64)
+    CmplxEpan.real = Fepanechnikov
+    CmplxEpan.imag = Fepanechnikov
+    print "Complex Epanechnikov filter bandwidth ", sigma
+    if ksp.ndim == 3:
+        out_ksp = CmplxEpan * ksp
+    else:
+        for echo in xrange(0, ksp.shape[4]):
+            for n in xrange(0, ksp.shape[3]):
+                out_ksp[:, :, :, n, echo] = ksp[:, :, :, n, echo] * CmplxEpan
     return out_ksp
 # end kspaceepanechnikov_filter
 
@@ -689,6 +800,12 @@ if __name__ == "__main__":
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage')
 
+    print "Computing Complex Gaussian filtered image from Original image"
+    kspgauss = kspacecplxgaussian_filter(ksp, 0.707)
+    image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
+    # print "Saving Gaussian image"
+    save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage2')
+
     print "Computing Gaussian 1.0 filtered2 image from Original image"
     kspgauss1 = kspacegaussian_filter2(ksp, 512.0)
     image_filtered = fftshift(ifftn(ifftshift(kspgauss1)))
@@ -715,7 +832,7 @@ if __name__ == "__main__":
     # print "Computing Laplacian enhanced image"
     laplacian = fftshift(
         ifftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
-    alpha = ndimage.mean(np.abs(image_filtered)) / \
+    alpha= ndimage.mean(np.abs(image_filtered)) /
         ndimage.mean(np.abs(laplacian))
     kspgauss = kspacegaussian_filter2(ksp, 256 / 0.707)
     image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
