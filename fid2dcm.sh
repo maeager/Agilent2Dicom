@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fid2dcm.sh,v d86ec4a3fd9f 2015/02/06 05:25:02 michael $"
+#  "$Id: fid2dcm.sh,v aeff6be5d20c 2015/02/13 06:22:43 michael $"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
 #
@@ -99,6 +99,11 @@ function yesno(){
 
 function error_exit(){
     echo "${PROGNAME}: ${1:-Unknown error}" 1>&2
+    # if [ -x `which mutt` && "$USER" == "vnmr1" ]; then
+    #     logfiles=$(find ${FID2DCMPATH} ${PWD} -name *.log -print0)
+    # 	EMAIL="$USER@$HOST" 
+    # 	echo "Error occured `date`" | mutt -s "${PROGNAME}: ${1:-Unknown error}" -a $logfiles  michael.eager@monash.edu 
+    # fi
     exit 1
 }
 

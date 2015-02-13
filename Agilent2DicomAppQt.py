@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # Agilent2DicomAppQt GUI for Agilent 9.4T MR FDF/FID image processing
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 78d89bd44d9b 2015/02/06 05:29:38 michael $
-# $Id: Agilent2DicomAppQt.py,v 78d89bd44d9b 2015/02/06 05:29:38 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v aeff6be5d20c 2015/02/13 06:22:43 michael $
+# $Id: Agilent2DicomAppQt.py,v aeff6be5d20c 2015/02/13 06:22:43 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -48,12 +48,12 @@ import logging
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
-__date__ = "$Date: 2015/02/06 05:29:38 $"
+__date__ = "$Date: 2015/02/13 06:22:43 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 78d89bd44d9b 2015/02/06 05:29:38 michael $")
+    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v aeff6be5d20c 2015/02/13 06:22:43 michael $")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -96,7 +96,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         # self.colorDepthCombo.addItem("2 colors (1 bit per
         logging.basicConfig(format='%(levelname)s:%(asctime)s %(message)s',
                             datefmt='%m/%d/%Y %I:%M:%S %p',
-                            filename='runtime.log', level=logging.DEBUG)
+                            filename='qtapp-agilent2dicom.log', level=logging.DEBUG)
         logging.info('Starting Agilent2DicomAppQt')
         # Disable some features
         if DEBUGGING == 0:
