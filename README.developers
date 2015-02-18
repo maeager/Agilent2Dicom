@@ -172,7 +172,7 @@ ipython -i ./kspace_filter.py -- -v -i ../ExampleAntData/kidney512iso_01.fid/ -o
 
 
 
-See Examples
+* See Examples
 
 https://scipy-lectures.github.io/advanced/image_processing/
 https://scipy-lectures.github.io/packages/scikit-image/
@@ -180,3 +180,7 @@ https://scipy-lectures.github.io/packages/scikit-image/
 using PIL
 http://nbviewer.ipython.org/github/mroberts3000/GpuComputing/blob/master/
 IPython/GaussianBlur.ipynb
+
+
+http://www.lancs.ac.uk/~struijke/density/kernel.html
+http://sfb649.wiwi.hu-berlin.de/fedc_homepage/xplore/ebooks/html/anr/anrhtmlframe33.html
