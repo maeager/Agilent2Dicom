@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fid2dcm.sh,v aeff6be5d20c 2015/02/13 06:22:43 michael $"
+#  "$Id: fid2dcm.sh,v 6b0a1a399a8b 2015/02/18 00:53:41 michael $"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
 #
@@ -31,18 +31,11 @@
 ## Set config variables
 FID2DCMPATH="$(dirname "$0")"
 source "${FID2DCMPATH}/agilent2dicom_globalvars.py"
-set -o nounset  # shortform: -u
-set -o errexit  # -e
-# set -o pipefail
-# touch $(dirname $0)/error.log
-# exec 2>> $(dirname $0)/error.log
-# set -x  # show debugging output
-# variable collected global FID2DCMVERSION=0.5
+## variable collected global FID2DCMVERSION=0.5
 PROGNAME=$(basename "$0")
 FID2DICOM=fid2dicom.py
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 DCM3TOOLS="${FID2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
-
 DCM3TOOLS=$(/bin/ls -d "${FID2DCMPATH}"/../dicom3tools_*/bin/*)
 #DCM3TOOLS="${FID2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/"
 #DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
@@ -52,16 +45,8 @@ RMDIR='/bin/rm -rf'
 DCMULTI="dcmulti -v -makestack -sortby AcquisitionNumber -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 #DCMULTI_DTI="dcmulti -v -makestack -sortby DiffusionBValue -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
-# Check dcmtk applications on MASSIVE or Agilent console
 
-## Debugging variables and config
-set -o nounset  # shortform: -u
-set -o errexit  # -e
-#set -o pipefail
-# touch $(dirname $0)/error.log
-# exec 2>> $(dirname $0)/error.log
-#set -x  # show debugging output
-
+## Check dcmtk applications on MASSIVE or Agilent console
 if test ${MASSIVEUSERNAME+defined}; then
     test -x dcmodify || module load dcmtk 
 else
@@ -83,6 +68,16 @@ declare input_dir=""
 declare output_dir=""
 declare kspace_dir=""
 declare python_args=""
+
+### Debugging variables and config
+set -o nounset  # shortform: -u
+set -o errexit  # -e
+# set -o pipefail
+log_file="$(dirname $0)/error.log"
+# touch $(dirname $0)/error.log
+# exec 2>> $(dirname $0)/error.log
+exec &> >(tee -a "$log_file")
+## set -x  # show debugging output
 
 E_BADARGS=65
 
