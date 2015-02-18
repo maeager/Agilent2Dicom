@@ -33,7 +33,7 @@ from dicom.sequence import Sequence
 from dicom.dataset import Dataset
 
 
-from agilent2dicom_globalvars import *
+import agilent2dicom_globalvars as A2D
 import ProcparToDicomMap
 
 
@@ -277,7 +277,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     filename = fdf_properties['filename']
 
     # File dimensionality or Rank fields
-    # rank is a positive integer value (1, 2, 3, 4,...) giving the
+    # rank is a positive integer value `(1, 2, 3, 4,...) giving the
     # number of dimensions in the data file (e.g., int rank=2;).
     fdfrank = fdf_properties['rank']
     acqndims = procpar['acqdim']
@@ -288,8 +288,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
         'Using local FDF value ' + \
         str(fdfrank) + ' instead of procpar value ' + str(acqndims) + '.'
     if args.verbose:
-        print 'Acqdim (type): ' + ds.MRAcquisitionType + " acqndims "
-        + str(acqndims)
+        print 'Acqdim (type): ' + ds.MRAcquisitionType + " acqndims " + str(acqndims)
 
     AssertImplementation(
         acqndims != fdfrank, filename, CommentStr, AssumptionStr)
@@ -356,8 +355,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     PixelSpacing = map(lambda x, y: x * 10.0 / y, roi, fdf_size_matrix)
     if PixelSpacing[0] != ds.PixelSpacing[0] or \
        PixelSpacing[1] != ds.PixelSpacing[1]:
-        print "Pixel spacing mismatch, procpar ", ds.PixelSpacing,
-        " fdf spacing ", str(PixelSpacing[0]), ', ', str(PixelSpacing[1])
+        print "Pixel spacing mismatch, procpar ", ds.PixelSpacing, " fdf spacing ", str(PixelSpacing[0]), ', ', str(PixelSpacing[1])
     if args.verbose:
         print "Pixel Spacing : Procpar   ", ds.PixelSpacing
         print "Pixel Spacing : FDF props ", PixelSpacing
@@ -375,8 +373,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     roi[2]/matrix[2].\n
         In procpar, slice thickness defined by thk (2D) or lpe2*10/(fn2/2) or
     lpe2*10/nv2.\n
-        Using local FDF value ''' + str(fdfthk)
-    + ' instead of procpar value ' + str(ds.SliceThickness) + '.'
+        Using local FDF value ''' + str(fdfthk) + ' instead of procpar value ' + str(ds.SliceThickness) + '.'
     if args.verbose:
         print 'fdfthk : ' + str(fdfthk)
         print 'SliceThinkness: ' + str(ds.SliceThickness)
@@ -399,8 +396,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
             print " fdfthk ", fdfthk
         else:
             if PixelSpacing[2] != ds.SliceThickness:
-                print "Slice Thickness mismatch, procpar ", ds.SliceThickness,
-                " fdf spacing ", PixelSpacing[2], fdfthk
+                print "Slice Thickness mismatch, procpar ", ds.SliceThickness, " fdf spacing ", PixelSpacing[2], fdfthk
 
     # Force slice thickness to be from fdf props
     ds.SliceThickness = str(fdfthk)
@@ -409,109 +405,21 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     #-------------------------------------------------------------------------
     # GROUP 0020: Relationship
 
-    ds.ImageComments = FDF2DCM_Image_Comments + \
-        '\n' + fdf_properties['filetext']
+    ds.ImageComments = A2D.FDF2DCM_Image_Comments + '\n' + fdf_properties['filetext']
 
-    # For further information regarding the location, orientation, roi, span,
-    # etc properties in the FDF header, see the "Agilent VNMRJ 3.2 User
-    # Programming User Guide", pgs 434-436.  Also see VNMRJ Programming.pdf Ch5
-    # Data Location and Orientation Fields p 292.
 
-    # Orientation defines the user frame of reference, and is defined according
-    # to the magnet frame of reference (X,Y,Z), where
-    #	Z is along the bore, from cable end to sample end
-    #	Y is bottom to top, and
-    #	X is right to left, looking along positive Z
-    # ref: "Agilent VnmrJ 3 Imaging User Guide" pg 679
-    #
-    # Location defines the position of the centre of the acquired data volume,
-    # relative to the magnet centre, in the user frame of reference.
-    #
-    # ROI is the size of the acquired data volume in cm in the user frame of
-    # reference.
-    #
-    # Origin is the coordinates of the first point in the data set, in the user
-    # frame of reference.
-    #
-    # 'abscissa' is a set of rank strings ("hz", "s", "cm", "cm/s",
-    # "cm/s2", "deg", "ppm1", "ppm2", "ppm3") that identifies the
-    # units that apply to each dimension (e.g., char
-    # *abscissa[]={"cm","cm"};).
-    #
-    # 'span' is a set of rank floating point values for the signed
-    # length of each axis, in user units. A positive value means the
-    # value of the particular coordinate increases going away from the
-    # first point (e.g., float span[]={10.000,-15.000};).
-    #
-    # ordinate is a string ("intensity", "s", "deg") that gives the units
-    # that apply to the numbers in the binary part of the file (e.g.,char
-    # *ordinate[]={"intensity"};).
 
     orientation = numpy.matrix(fdf_properties['orientation']).reshape(3, 3)
     location = numpy.matrix(fdf_properties['location']) * 10
     span = numpy.matrix(numpy.append(fdf_properties['span'], 0) * 10.0)
 
     if args.verbose:
-        print "Span: ", span, span.shape
-        print "Location: ", location, location.shape
+        print "FDF Span: ", span, span.shape
+        print "FDF Location: ", location, location.shape
 
-    # diff = numpy.setdiff1d(span, location)
-
-    if numpy.prod(span.shape) != numpy.prod(location.shape):
-        span = numpy.resize(span, (1, 3))
-    # print span
-    origin = location - span / 2.0
-
-    FirstVoxel = orientation.transpose() * origin.transpose()
-
-    # DICOM patient coordinate system is defined such that x increases towards
-    # the patient's left, y increases towards the patient's posterior, and z
-    # increases towards the patient's head. If we imageine a (miniature) human
-    # lying supine, with their head towards the cable end of the magnet, then x
-    # in the user reference frame remains the same, while y and z are inverted.
-    # See DICOM Standard section C.7.6.2.1.1
-
-    ImagePositionPatient = FirstVoxel.flatten().tolist()[0]
-    ImagePositionPatient[1] *= -1
-    ImagePositionPatient[2] *= -1
-
-    ImageOrientationPatient = orientation.flatten().tolist()[0]
-    ImageOrientationPatient[1] *= -1
-    ImageOrientationPatient[2] *= -1
-    ImageOrientationPatient[4] *= -1
-    ImageOrientationPatient[5] *= -1
-
-    # (0020,0032) Image Patient Position
-    ds.ImagePositionPatient = [str(ImagePositionPatient[0]),
-                               str(ImagePositionPatient[1]),
-                               str(ImagePositionPatient[2])]
-
-    #(0020,0037) Image Patient Orientation
-    ds.ImageOrientationPatient = [str(ImageOrientationPatient[0]),
-                                  str(ImageOrientationPatient[1]),
-                                  str(ImageOrientationPatient[2]),
-                                  str(ImageOrientationPatient[3]),
-                                  str(ImageOrientationPatient[4]),
-                                  str(ImageOrientationPatient[5])]
-    if fdfrank == 3:
-        # Prepare to fix 3rd dimension position using transformation matrix in
-        # Save3DFDFtoDicom
-        ImageTransformationMatrix = \
-            numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0],
-                           PixelSpacing[1] * ImageOrientationPatient[1],
-                           SliceThickness * ImageOrientationPatient[2],
-                           ImagePositionPatient[0]],
-                          [PixelSpacing[0] * ImageOrientationPatient[3],
-                           PixelSpacing[1] * ImageOrientationPatient[4],
-                           SliceThickness * ImageOrientationPatient[5],
-                           ImagePositionPatient[1]],
-                          [PixelSpacing[0] * ImageOrientationPatient[6],
-                           PixelSpacing[1] * ImageOrientationPatient[7],
-                           SliceThickness * ImageOrientationPatient[8],
-                           ImagePositionPatient[2]],
-                          [0, 0, 0, 1]])
-    else:
-        ImageTransformationMatrix = []
+ 
+    ds, ImageTransformationMatrix = ProcparToDicomMap.CalcTransMatrix(
+        ds, orientation, location, span, fdfrank, PixelSpacing, SliceThickness)
 
     # Nuclear Data Fields
     # Data fields may contain data generated by
@@ -548,14 +456,14 @@ def ParseFDF(ds, fdf_properties, procpar, args):
 
         # Implementation check
     CommentStr = 'Number of rows does not match between fdf and procpar'
-    AssumptionStr = 'In FDF, number of rows is defined by matrix[1]. \n' +\
-        'In procpar, for 3D datasets number of rows is either fn1/2 or nv (' +\
-        str(procpar['fn1'] / 2.0) + ',' + str(procpar['nv']) + ').\n' +\
-        'For 2D datasets, number of rows is fn/2.0 or np (' +\
-        str(procpar['fn'] / 2.0) + ',' + str(procpar['np']) + ').\n' +\
-        'Using local FDF value ' + \
-        str(fdf_properties['matrix'][1]) + \
-        ' instead of procpar value ' + str(ds.Rows) + '.'
+    AssumptionStr = '''In FDF, number of rows is defined by
+        matrix[1]. \n In procpar, for 3D datasets number of rows is
+        either fn1/2 or nv (%s ,%s).\n For 2D datasets, number of
+        rows is fn/2.0 or np (%s , %s).\n Using local FDF value %s
+        instead of procpar value %s.
+    ''' %(str(procpar['fn1'] / 2.0), str(procpar['nv']),
+          str(procpar['fn'] / 2.0), str(procpar['np']),
+          str(fdf_properties['matrix'][1]), str(ds.Rows))
     AssertImplementation(int(float(ds.Rows)) != int(
         fdf_properties['matrix'][1]), filename, CommentStr, AssumptionStr)
     if args.verbose:
@@ -567,14 +475,14 @@ def ParseFDF(ds, fdf_properties, procpar, args):
 
     # Implementation check
     CommentStr = 'Number of columns does not match between fdf and procpar'
-    AssumptionStr = 'In FDF, number of columns is defined by matrix[0]. \n' +\
-        'In procpar, for 3D datasets number of columns is either fn/2 or np (' +\
-        str(procpar['fn'] / 2.0) + ',' + str(procpar['np']) + ').\n' +\
-        'For 2D datasets, number of rows is fn1/2.0 or nv (' + \
-        str(procpar['fn1'] / 2.0) + ',' + str(procpar['nv']) + ').\n' +\
-        'Using local FDF value ' + \
-        str(fdf_properties['matrix'][0]) + \
-        ' instead of procpar value ' + str(ds.Columns) + '.'
+    AssumptionStr = '''In FDF, number of columns is defined by
+    matrix[0]. \n In procpar, for 3D datasets number of columns is
+    either fn/2 or np (%s,%s).\n For 2D datasets, number of rows is
+    fn1/2.0 or nv (%s ,%s).\n Using local FDF value %s instead of
+    procpar value %s.
+    ''' %(str(procpar['fn'] / 2.0), str(procpar['np']),
+          str(procpar['fn1'] / 2.0), str(procpar['nv']),
+          str(fdf_properties['matrix'][0]), str(ds.Columns))
     AssertImplementation(int(float(ds.Columns)) != int(
         fdf_properties['matrix'][0]), filename, CommentStr, AssumptionStr)
     if args.verbose:
@@ -676,15 +584,15 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     # or SEQUENCE == "Diffusion":
     if len(ds.ImageType) >= 3 and ds.ImageType[2] == "MULTIECHO":
         DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(
-            UID_Type_DimensionIndex1, [], [],
+            A2D.ID_Type_DimensionIndex1, [], [],
             args.verbose), ProcparToDicomMap.CreateUID(
-                UID_Type_DimensionIndex2, [], [],
+                A2D.UID_Type_DimensionIndex2, [], [],
                 args.verbose)]
         DimOrgSeq.add_new((0x0020, 0x9164), 'UI', DimensionOrganizationUID)
         ds.DimensionOrganizationType = '3D_TEMPORAL'  # or 3D_TEMPORAL
     else:
         DimensionOrganizationUID = ProcparToDicomMap.CreateUID(
-            UID_Type_DimensionIndex1, [], [], args.verbose)
+            A2D.UID_Type_DimensionIndex1, [], [], args.verbose)
         # if args.verbose:
         #    print "DimUID", DimensionOrganizationUID
         DimOrgSeq.add_new((0x0020, 0x9164), 'UI', [DimensionOrganizationUID])
@@ -903,11 +811,11 @@ if __name__ == "__main__":
     import ReadProcpar
     import RescaleFDF
     import ReadFDF as rf
-    import ProcparToDicomMap as ptd
+    
 
     procpar, procpartext = ReadProcpar.ReadProcpar(
         os.path.join(args.inputdir, 'procpar'))
-    ds, MRAcq_type = ptd.ProcparToDicomMap(procpar, args)
+    ds, MRAcq_type = ProcparToDicomMap.ProcparToDicomMap(procpar, args)
     print "Rows: ", ds.Rows, " Columns: ", ds.Columns
 
     files = os.listdir(args.inputdir)
@@ -919,9 +827,8 @@ if __name__ == "__main__":
 
     # for filename in fdffiles:
     filename = fdffiles[len(fdffiles) - 1]
-    fdf_properties, image_data = rf.ReadFDF(
-        os.path.join(args.inputdir, filename))
-    ds, fdfrank, matsize, tmatrix = ParseFDF(ds, fdf_properties, procpar, args)
+    fdf_header, image_data = rf.ReadFDF(os.path.join(args.inputdir, filename))
+    ds, fdfrank, matsize, tmatrix = ParseFDF(ds, fdf_header, procpar, args)
     ds, image_data = RescaleFDF.RescaleImage(
         ds, image_data, rescaleintercept, rescaleslope, args)
 
