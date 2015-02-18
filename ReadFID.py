@@ -30,9 +30,11 @@ import ReadProcpar
 import ProcparToDicomMap
 from scipy.fftpack import ifftn, fftshift, ifftshift
 import scipy.io
-from agilent2dicom_globalvars import *
-from RescaleFDF import *
+import agilent2dicom_globalvars as A2D
+import RescaleFDF
 # from scipy import ndimage
+from dicom.sequence import Sequence
+from dicom.dataset import Dataset
 
 
 def get_bit(value, bit_number):
@@ -204,7 +206,7 @@ def readfid(fidfolder, procpar, args):
 
     if fid_header['np'] != procpar['np'] or \
        fid_header['ntraces'] != procpar['nf'] or \
-                                fid_header['nblocks'] != procpar['arraydim']:
+       fid_header['nblocks'] != procpar['arraydim']:
         if args.verbose:
             print 'NP ', fid_header['np'], procpar['np'], \
                 ' NF ', fid_header['ntraces'], procpar['nf'], \
@@ -213,7 +215,8 @@ def readfid(fidfolder, procpar, args):
             "Cannot resolve fid header with procpar. We're probably not interpreting the procpar correctly.")
     if fid_header['nChannels'] != int(fid_header['nblocks'] / procpar['acqcycles']):
         print "ReadFID error nChannels %d %f " % (fid_header['nChannels'], float(fid_header['nblocks'] / procpar['acqcycles']))
-        fid_header['nChannels'] = int(fid_header['nblocks'] / procpar['acqcycles'])
+        fid_header['nChannels'] = int(
+            fid_header['nblocks'] / procpar['acqcycles'])
     fid_header['nPhaseEncodes'] = fid_header['ntraces'] / fid_header['nEchoes']
     fid_header['rank'] = procpar['nD']
 
@@ -258,10 +261,7 @@ def readfid(fidfolder, procpar, args):
     fid_header['location'] = [-procpar['pro'], procpar['ppe'], procpar['pss0']]
     fid_header['span'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
     fid_header['roi'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
-    fid_header['origin'] = [-(float(procpar['pro'])) - float(procpar['lro']) / 2.0,
-                            float(procpar['ppe']) -
-                            float(procpar['lpe']) / 2.0,
-                            float(procpar['pss0']) - float(procpar['lpe2']) / 2.0]
+    fid_header['origin'] = np.array(fid_header['location']) -  np.array(fid_header['span']) / 2.0
     if procpar['orient'] == "sag":
         # TODO fid_header['orientation']= [0,0,1,1,0,0,0,1,0]
         fid_header['orientation'] = [1, 0, 0, 0, 1, 0, 0, 0, 1]
@@ -270,9 +270,9 @@ def readfid(fidfolder, procpar, args):
 
     # reset output structures
     ksp_data_real = np.empty([fid_header['np'] / 2, fid_header['ntraces'],
-                      fid_header['nblocks']], dtype=np.float32)
+                              fid_header['nblocks']], dtype=np.float32)
     ksp_data_imag = np.empty([fid_header['np'] / 2, fid_header['ntraces'],
-                      fid_header['nblocks']], dtype=np.float32)
+                              fid_header['nblocks']], dtype=np.float32)
     if args.verbose:
         print "Real shape:", ksp_data_real.shape
     # We have to read data every time in order to increment file pointer
@@ -399,7 +399,8 @@ def readfid(fidfolder, procpar, args):
         # fid_header['np'] #[::2, :] #
         ksp_data_real[:, :, iblock] = np.matrix(data[:, :fid_header['np']:2]).T
         # fid_header['np'] #[1::2, :]      #
-        ksp_data_imag[:, :, iblock] = np.matrix(data[:, 1:fid_header['np']:2]).T
+        ksp_data_imag[:, :, iblock] = np.matrix(
+            data[:, 1:fid_header['np']:2]).T
         # break
     f.close()
     # print iblock
@@ -443,14 +444,15 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
             [dims[0], dims[1], dims[2]], dtype=np.complex64)  # float32
         img = np.empty(
             [dims[0], dims[1], dims[2]], dtype=np.complex64)  # float32
-    else: # two float32
+    else:  # two float32
         ksp = np.empty([dims[0], dims[1], dims[2], fid_header['nChannels'],
-                           fid_header['nEchoes']], dtype=np.complex64)  # float32
+                        fid_header['nEchoes']], dtype=np.complex64)  # float32
         img = np.empty([dims[0], dims[1], dims[2], fid_header['nChannels'],
-                           fid_header['nEchoes']], dtype=np.complex64)  # float32
+                        fid_header['nEchoes']], dtype=np.complex64)  # float32
     # Setup pelist
     if 'pelist' in procpar.keys():
-        pelist = np.array(procpar['pelist']).astype(int) - int(min(procpar['pelist']))
+        pelist = np.array(procpar['pelist']).astype(
+            int) - int(min(procpar['pelist']))
     if procpar['nD'] == 2 and procpar['ni2'] == 1:
         print 'Reconstructing mode 1: 2D slices'
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
@@ -465,7 +467,8 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
             # [:, echo::fid_header['nEchoes'], n::fid_header['nChannels']]
             ksp[:, :, :].imag = ksp_data_imag
             for islice in xrange(0, int(dims[2])):
-                if 'pelist' in locals():  # 'pelist'' in procpar.keys() and len(procpar['pelist']) == int(dims[2]):
+                # 'pelist'' in procpar.keys() and len(procpar['pelist']) == int(dims[2]):
+                if 'pelist' in locals():
                     if args.verbose:
                         print procpar['pelist']
                     img[:, :, islice] = fftshift(ifftn(ifftshift(ksp[:,
@@ -475,7 +478,7 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
                     img[:, :, islice] = fftshift(
                         ifftn(ifftshift(ksp[:, :, islice])))
         elif fid_header['nChannels'] == 1:
-            print 'Reconstructing mode 2: 2D slices with ni2=',  procpar['ni2']
+            print 'Reconstructing mode 2: 2D slices with ni2=' + procpar['ni2']
             for echo in xrange(0, int(fid_header['nEchoes'])):
                 for n in xrange(0, int(fid_header['nChannels'])):
                     for islice in xrange(0, int(dims[2])):
@@ -485,9 +488,9 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
                         # echo:fid_header['nEchoes']:end,
                         # n:fid_header['nChannels']:end))
                         ksp[:, :, islice, n, echo].real = ksp_data_real[:, echo::fid_header['nEchoes'],
-                                                             n::fid_header['nChannels']]
+                                                                        n::fid_header['nChannels']]
                         ksp[:, :, islice, n, echo].imag = ksp_data_imag[:, echo::fid_header['nEchoes'],
-                                                             n::fid_header['nChannels']]
+                                                                        n::fid_header['nChannels']]
                         img[:, :, islice, n, echo] = fftshift(ifftn(ifftshift(
                             ksp[:, np.array(procpar['pelist']) - int(min(procpar['pelist'])), islice, n, echo])))
         elif fid_header['nEchoes'] == 1:
@@ -499,14 +502,18 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
             for n in xrange(0, int(fid_header['nChannels'])):
                 if args.verbose:
                     print "Processing  channel ", n
-                
+
                 for islice in xrange(0, int(dims[2])):
-                    ksp[:, :, islice, n, echo].real = ksp_data_real[:, islice*dims[2]+1:(islice+1)*dims[2],n]  # islice::dims[2], n]
-                    ksp[:, :, islice, n, echo].imag = ksp_data_imag[:, islice*dims[2]+1:(islice+1)*dims[2],n]  # islice::dims[2], n]
+                    ksp[:, :, islice, n, echo].real = ksp_data_real[
+                        :, islice * dims[2] + 1:(islice + 1) * dims[2], n]  # islice::dims[2], n]
+                    ksp[:, :, islice, n, echo].imag = ksp_data_imag[
+                        :, islice * dims[2] + 1:(islice + 1) * dims[2], n]  # islice::dims[2], n]
                     if 'pelist' in locals():
-                        img[:, :, islice, n, 0] = fftshift(ifftn(ifftshift(ksp[:, pelist, islice, n, 0])))
+                        img[:, :, islice, n, 0] = fftshift(
+                            ifftn(ifftshift(ksp[:, pelist, islice, n, 0])))
                     else:
-                        img[:, :, islice, n, 0] = fftshift(ifftn(ifftshift(ksp[:, :, islice, n, 0])))                
+                        img[:, :, islice, n, 0] = fftshift(
+                            ifftn(ifftshift(ksp[:, :, islice, n, 0])))
     else:  # if procpar.nD == 3
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
             print 'Reconstructing mode 3: 3D basic'
@@ -523,7 +530,7 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
             else:
                 img[:, :, :] = fftshift(ifftn(ifftshift(ksp[:, :, :])))
         elif fid_header['nChannels'] == 1:
-            print 'Reconstructing mode 4: 3D Multi echo ' 
+            print 'Reconstructing mode 4: 3D Multi echo '
             # if len(ksp_data_real.shape) > 3:
             #     if fid_header['nEchoes'] != ksp_data_real.shape(3):
             #         ksp_data_real = np.reshape(ksp_data_real,[fid_header['dims'], fid_header['nChannels'], fid_header['nEchoes']])
@@ -531,15 +538,15 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
             #     elif fid_header['nChannels'] != ksp_data_real.shape(3):
             #         ksp_data_real = np.reshape(ksp_data_real,[fid_header['dims'], fid_header['nChannels'], fid_header['nEchoes']])
             #         ksp_data_imag = np.reshape(ksp_data_imag,[fid_header['dims'], fid_header['nChannels'], fid_header['nEchoes']])
-                              
+
             for echo in xrange(0, int(fid_header['nEchoes'])):
                 for n in xrange(0, int(fid_header['nChannels'])):
                     if args.verbose:
                         print "Processing echo ", echo, " channel ", n
                     ksp[:, :, :, n, echo].real = ksp_data_real[:, echo::fid_header['nEchoes'],
-                                                    n::fid_header['nChannels']]
+                                                               n::fid_header['nChannels']]
                     ksp[:, :, :, n, echo].imag = ksp_data_imag[:, echo::fid_header['nEchoes'],
-                                                    n::fid_header['nChannels']]
+                                                               n::fid_header['nChannels']]
                     if 'pelist' in locals():
                         img[:, :, :, n, echo] = fftshift(
                             ifftn(ifftshift(ksp[:, pelist, :, n, echo])))
@@ -558,8 +565,10 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
             print 'KSP shape ', ksp.shape
             for n in xrange(0, int(fid_header['nChannels'])):
                 for islice in xrange(0, int(dims[2])):
-                    ksp[:, :, :, n, 0].real = ksp_data_real[:, n::fid_header['nChannels'], n]
-                    ksp[:, :, :, n, 0].imag = ksp_data_imag[:, n::fid_header['nChannels'], n]
+                    ksp[:, :, :, n, 0].real = ksp_data_real[
+                        :, n::fid_header['nChannels'], n]
+                    ksp[:, :, :, n, 0].imag = ksp_data_imag[
+                        :, n::fid_header['nChannels'], n]
 
                 if args.verbose:
                     print "Processing echo 0 channel ", n
@@ -595,8 +604,8 @@ def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
             [dims[0], dims[1], dims[2]], dtype=np.complex64)  # float32
     else:
         ksp = np.empty([dims[0], dims[1], dims[2],
-                           fid_header['nChannels'], fid_header['nEchoes']],
-                          dtype=np.complex64)
+                        fid_header['nChannels'], fid_header['nEchoes']],
+                       dtype=np.complex64)
         # float32
 
     if procpar['nD'] == 2 and procpar['ni2'] == 1:
@@ -659,9 +668,9 @@ def RescaleFIDImage(ds, image_data, args):
     RescaleIntercept = datamin
     # Np recast to int16 with range (-32768 or 32767)
     if ds.PixelRepresentation == 0:
-        slope_factor = UInt16MaxRange
+        slope_factor = RescaleFDF.UInt16MaxRange
     else:
-        slope_factor = Int16MaxRange
+        slope_factor = RescaleFDF.Int16MaxRange
     RescaleSlope = (datamax - datamin) / slope_factor
 
     if args.verbose:
@@ -672,9 +681,9 @@ def RescaleFIDImage(ds, image_data, args):
     image_data_int16 = image_data.astype(np.int16)
 
     # Adjusting Dicom parameters for rescaling
-    ds.RescaleIntercept = ShortenFloatString(
+    ds.RescaleIntercept = RescaleFDF.ShortenFloatString(
         RescaleIntercept, "RescaleIntercept")  # (0028,1052) Rescale Intercept
-    ds.RescaleSlope = ShortenFloatString(
+    ds.RescaleSlope = RescaleFDF.ShortenFloatString(
         RescaleSlope, "RescaleSlope")  # (0028,1053) Rescale Slope
 
     return ds, image_data_int16
@@ -705,11 +714,11 @@ def RearrangeImage(image, axis_order, args):
 
         if image.ndim == 5:
             image_treal = np.empty([dims[iaxes[0]], dims[iaxes[1]],
-                                       dims[iaxes[2]], dims[3],
-                                       dims[4]], dtype=np.float32)
+                                    dims[iaxes[2]], dims[3],
+                                    dims[4]], dtype=np.float32)
             image_timag = np.empty([dims[iaxes[0]], dims[iaxes[1]],
-                                       dims[iaxes[2]], dims[3],
-                                       dims[4]], dtype=np.float32)
+                                    dims[iaxes[2]], dims[3],
+                                    dims[4]], dtype=np.float32)
             if args.verbose:
                 print "Transposing 5D image to ", axis_order
                 print image.shape, ' -> ', image_treal.shape
@@ -748,8 +757,8 @@ def RearrangeImage(image, axis_order, args):
             image.reshape([dims[iaxes[0]], dims[iaxes[1]], dims[iaxes[2]]])
             # print image.shape
         image = np.empty([dims[iaxes[0]], dims[iaxes[1]],
-                             dims[iaxes[2]], dims[3], dims[4]],
-                            dtype=np.complex64)
+                          dims[iaxes[2]], dims[3], dims[4]],
+                         dtype=np.complex64)
         image.real = image_treal
         image.imag = image_timag
         if args.verbose:
@@ -773,8 +782,7 @@ def AssertImplementation(testval, fidfilename, comment, assumption):
         print "\nImplementation check error:\n" + FIDStr + comment + '\nAssumption:' + assumption + '\n'
         # sys.exit(1)
 
-from dicom.sequence import Sequence
-from dicom.dataset import Dataset
+
 
 def ParseDiffusionFID(ds, procpar, diffusion_idx, args):
     """ParseDiffusionFID is a variation of ParseDiffusionFDF
@@ -834,7 +842,7 @@ def ParseDiffusionFID(ds, procpar, diffusion_idx, args):
     # B0 scan does not need the MR Diffusion Gradient Direction Sequence macro and its directionality should be set to NONE
     # the remaining scans relate to particular directions hence need the
     # direction macro
-    
+
     diffusionseq = Dataset()
     if Bvalue[diffusion_idx] < 20:
         diffusionseq.DiffusionBValue = 0
@@ -1004,11 +1012,12 @@ def ParseFID(ds, fid_properties, procpar, args):
     acqndims = procpar['acqdim']
     CommentStr = '''Acquisition dimensionality (ie 2D or 3D) does not match between fid and procpar'''
     AssumptionStr = '''Procpar nv2 > 0 indicates 3D acquisition and fid rank property indicates dimensionality.\n
-        Using local FID value %d instead of procpar value %d.''' % (fidrank,acqndims)
+        Using local FID value %d instead of procpar value %d.''' % (fidrank, acqndims)
     if args.verbose:
         print 'Acqdim (type): ' + ds.MRAcquisitionType + " acqndims " + str(acqndims)
 
-    AssertImplementation(acqndims != fidrank, filename, CommentStr, AssumptionStr)
+    AssertImplementation(
+        acqndims != fidrank, filename, CommentStr, AssumptionStr)
 
     # matrix is a set of rank integers giving the number of data
     # points in each dimension (e.g., for rank=2, float
@@ -1114,44 +1123,12 @@ def ParseFID(ds, fid_properties, procpar, args):
     # -------------------------------------------------------------------------
     # GROUP 0020: Relationship
 
-    ds.ImageComments = FID2DCM_Image_Comments + '\n' +\
-                       ', '.join("%s=%r" % (key, val) for (key, val) in fid_properties.iteritems())
+    ds.ImageComments = A2D.FID2DCM_Image_Comments + '\n' +\
+        ', '.join("%s=%r" % (key, val)
+                  for (key, val) in fid_properties.iteritems())
     # str(fid_properties) #['filetext']
 
-    # For further information regarding the location, orientation, roi, span, etc
-    # properties in the FID header, see the "Agilent VNMRJ 3.2 User Programming
-    # User Guide", pgs 434-436.  Also see VNMRJ Programming.pdf Ch5 Data Location
-    # and Orientation Fields p 292.
-
-    # Orientation defines the user frame of reference, and is defined according to the
-    # magnet frame of reference (X,Y,Z), where
-    #	Z is along the bore, from cable end to sample end
-    #	Y is bottom to top, and
-    #	X is right to left, looking along positive Z
-    # ref: "Agilent VnmrJ 3 Imaging User Guide" pg 679
-    #
-    # Location defines the position of the centre of the acquired data volume,
-    # relative to the magnet centre, in the user frame of reference.
-    #
-    # ROI is the size of the acquired data volume in cm in the user frame of reference.
-    #
-    # Origin is the coordinates of the first point in the data set, in the user frame
-    # of reference.
-    #
-    # 'abscissa' is a set of rank strings ("hz", "s", "cm", "cm/s",
-    # "cm/s2", "deg", "ppm1", "ppm2", "ppm3") that identifies the
-    # units that apply to each dimension (e.g., char
-    # *abscissa[]={"cm","cm"};).
-    #
-    # 'span' is a set of rank floating point values for the signed
-    # length of each axis, in user units. A positive value means the
-    # value of the particular coordinate increases going away from the
-    # first point (e.g., float span[]={10.000,-15.000};).
-    #
-    # ordinate is a string ("intensity", "s", "deg") that gives the units
-    # that apply to the numbers in the binary part of the file (e.g.,char
-    # *ordinate[]={"intensity"};).
-
+    
     orientation = np.matrix(fid_properties['orientation']).reshape(3, 3)
     location = np.matrix(fid_properties['location']) * 10
     span = np.matrix(np.append(fid_properties['span'], 0) * 10.0)
@@ -1160,63 +1137,11 @@ def ParseFID(ds, fid_properties, procpar, args):
         print "Span: ", span, span.shape
         print "Location: ", location, location.shape
 
-    # diff = np.setdiff1d(span, location)
 
-    if np.prod(span.shape) != np.prod(location.shape):
-        span = np.resize(span, (1, 3))
-    # print span
-    o = location - span / 2.0
-
-    FirstVoxel = orientation.transpose() * o.transpose()
-
-    # DICOM patient coordinate system is defined such that x increases towards the
-    # patient's left, y increases towards the patient's posterior, and z increases
-    # towards the patient's head. If we imageine a (miniature) human lying supine,
-    # with their head towards the cable end of the magnet, then x in the user
-    # reference frame remains the same, while y and z are inverted.
-    # See DICOM Standard section C.7.6.2.1.1
-
-    ImagePositionPatient = FirstVoxel.flatten().tolist()[0]
-    ImagePositionPatient[1] *= -1
-    ImagePositionPatient[2] *= -1
-
-    ImageOrientationPatient = orientation.flatten().tolist()[0]
-    ImageOrientationPatient[1] *= -1
-    ImageOrientationPatient[2] *= -1
-    ImageOrientationPatient[4] *= -1
-    ImageOrientationPatient[5] *= -1
-
-    # (0020,0032) Image Patient Position
-    ds.ImagePositionPatient = [str(ImagePositionPatient[0]),
-                               str(ImagePositionPatient[1]),
-                               str(ImagePositionPatient[2])]
-
-    #(0020,0037) Image Patient Orientation
-    ds.ImageOrientationPatient = [str(ImageOrientationPatient[0]),
-                                  str(ImageOrientationPatient[1]),
-                                  str(ImageOrientationPatient[2]),
-                                  str(ImageOrientationPatient[3]),
-                                  str(ImageOrientationPatient[4]),
-                                  str(ImageOrientationPatient[5])]
-    if fidrank == 3:
-        # Prepare to fix 3rd dimension position using transformation matrix in
-        # Save3DFIDtoDicom
-        # Image Transformation Matrix
-        tmatrix = np.matrix([[PixelSpacing[0] * ImageOrientationPatient[0],
-                                 PixelSpacing[1] * ImageOrientationPatient[1],
-                                 SliceThickness * ImageOrientationPatient[2],
-                                 ImagePositionPatient[0]],
-                                [PixelSpacing[0] * ImageOrientationPatient[3],
-                                 PixelSpacing[1] * ImageOrientationPatient[4],
-                                 SliceThickness * ImageOrientationPatient[5],
-                                 ImagePositionPatient[1]],
-                                [PixelSpacing[0] * ImageOrientationPatient[6],
-                                 PixelSpacing[1] * ImageOrientationPatient[7],
-                                 SliceThickness * ImageOrientationPatient[8],
-                                 ImagePositionPatient[2]],
-                                [0, 0, 0, 1]])
-    else:
-        tmatrix = []
+    ds, tmatrix = ProcparToDicomMap.CalcTransMatrix(ds, orientation,
+                                                    location, span, fidrank,
+                                                    PixelSpacing,
+                                                    SliceThickness)
 
     # Nuclear Data Fields
 
@@ -1374,22 +1299,19 @@ def ParseFID(ds, fid_properties, procpar, args):
         ds = ParseDiffusionFID(ds, procpar, fid_properties, args)
 
     # Multi dimension Organisation and Index module
-    from dicom.sequence import Sequence
-    from dicom.dataset import Dataset
-
     DimOrgSeq = Dataset()
     #ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
     if ds.ImageType[2] == "MULTIECHO":  # or SEQUENCE == "Diffusion":
-        DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex1,
+        DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(A2D.UID_Type_DimensionIndex1,
                                                                 [], [], args.verbose),
-                                    ProcparToDicomMap.CreateUID(UID_Type_DimensionIndex2,
+                                    ProcparToDicomMap.CreateUID(A2D.UID_Type_DimensionIndex2,
                                                                 [], [], args.verbose)]
         DimOrgSeq.add_new((0x0020, 0x9164), 'UI', DimensionOrganizationUID)
         ds.DimensionOrganizationType = '3D_TEMPORAL'  # or 3D_TEMPORAL
     else:
         DimensionOrganizationUID = ProcparToDicomMap.CreateUID(
-            UID_Type_DimensionIndex1, [], [], args.verbose)
+            A2D.UID_Type_DimensionIndex1, [], [], args.verbose)
         # if args.verbose:
         #    print "DimUID", DimensionOrganizationUID
         DimOrgSeq.add_new((0x0020, 0x9164), 'UI', [DimensionOrganizationUID])
@@ -1510,12 +1432,12 @@ def SaveFIDtoDicom(ds, procpar, image_data, fid_properties, M, args, outdir):
 
     if args.magnitude:
         if args.verbose:
-            print "Exporting magnitude ..."
+            print "Exporting magnitude ... POP!! POP!!"
         orig_imagetype = ds.ImageType[2]
         if ds.ImageType[2] == "PHASE MAP":
             ds.ImageType[2] = "MAGNITUDE"
         ds.ComplexImageComponent = 'MAGNITUDE'
-        voldata = np.absolute(image_data)  # Magnitude
+        voldata = np.abs(image_data)  # Magnitude
         outdir1 = re.sub('.dcm', '-mag.dcm', outdir)
         if not os.path.isdir(outdir1):
             mkdir_or_cleandir(outdir1, args)
@@ -1572,7 +1494,9 @@ def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir, isPh
     :param outdir: output directory
     :return ds: Return the pydicom dataset
     """
-
+    if np.iscomplexobj(voldata):
+        print "Error: Volume data is complex prior to saving as DICOM. Forcing magnitude as output image."
+        voldata = np.abs(voldata)
     # Calculate the max and min throughout all dataset values;
     # calculate the intercept and slope for casting to UInt16
     ds, voldata = RescaleFIDImage(ds, voldata, args)
@@ -1598,8 +1522,8 @@ def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir, isPh
     #        acq.dims = [pps.nf pps.np/2 pps.nv2];
     #        acq.voxelmm = acq.FOVcm./acq.dims*10;
 
+    
     if args.verbose:
-
         print "Image data shape: ", str(voldata.shape)
         print "Vol data shape: ", voldata.shape
         print "fid properties matrix: ", fid_properties['dims']
@@ -1661,10 +1585,8 @@ def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir, isPh
                     ds.ImagePositionPatient = [
                         str(Pxyz[0, 0]), str(Pxyz[1, 0]), str(Pxyz[2, 0])]
 
-                    ds.FrameContentSequence[0].InStackPositionNumber = [
-                        int(islice)]  # THIRDdimindex
-                    ds.FrameContentSequence[
-                        0].TemporalPositionIndex = int(ds.EchoNumber)
+                    ds.FrameContentSequence[0].InStackPositionNumber = [int(islice)]  # THIRDdimindex
+                    ds.FrameContentSequence[0].TemporalPositionIndex = int(ds.EchoNumber)
 
                     # Save DICOM
                     if args.verbose:
@@ -1777,7 +1699,6 @@ if __name__ == "__main__":
 
     import math
     import nibabel as nib
-    import ReadProcpar
 
     parser = argparse.ArgumentParser(usage=' ReadFID.py -i "Input FID directory"',
                                      description='''agilent2dicom is an FID to
@@ -1803,7 +1724,8 @@ if __name__ == "__main__":
 
     # import ProcparToDicomMap as ptd
 
-    procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir, 'procpar'))
+    procpar, procpartext = ReadProcpar.ReadProcpar(
+        os.path.join(args.inputdir, 'procpar'))
     ds, MRAcq_type = ProcparToDicomMap.ProcparToDicomMap(procpar, args)
     print "Rows: ", ds.Rows, " Columns: ", ds.Columns
 
@@ -1816,7 +1738,8 @@ if __name__ == "__main__":
     if args.verbose:
         print "Reading FID"
     filename = fidfiles[len(fidfiles) - 1]
-    procpar, fid_header, dims, data_real, data_imag = readfid(args.inputdir, procpar, args)
+    procpar, fid_header, dims, data_real, data_imag = readfid(
+        args.inputdir, procpar, args)
     if args.verbose:
         print "Dims: ", dims, " Echoes: ", fid_header['nEchoes'], " Channels: ", fid_header['nChannels']
     affine = np.eye(4)
@@ -1825,7 +1748,8 @@ if __name__ == "__main__":
     # nib.save(raw_data, 'raw_data.nii.gz')
 
     # Change dicom for specific FID header info
-    ds, matsize, ImageTransformationMatrix = ParseFID(ds, fid_header, procpar, args)
+    ds, matsize, ImageTransformationMatrix = ParseFID(
+        ds, fid_header, procpar, args)
 
     if os.path.exists('raw_image_00.nii.gz'):
         if args.verbose:
@@ -1842,13 +1766,15 @@ if __name__ == "__main__":
     else:
         if args.verbose:
             print "Computing Original image (reconstruction)"
-        image, ksp = recon(procpar, dims, fid_header, data_real, data_imag,args)
+        image, ksp = recon(
+            procpar, dims, fid_header, data_real, data_imag, args)
 
         if args.verbose:
             print "Saving raw image"
         if image.ndim == 5:
             for i in xrange(0, image.shape[4]):
-                raw_image = nib.Nifti1Image(np.abs(image[:, :, :, 0, i]), affine)
+                raw_image = nib.Nifti1Image(
+                    np.abs(image[:, :, :, 0, i]), affine)
                 nib.save(raw_image, 'raw_image_0' + str(i) + '.nii.gz')
         else:
             raw_image = nib.Nifti1Image(np.abs(image), affine)
@@ -1857,6 +1783,6 @@ if __name__ == "__main__":
         #    nib.save(raw_ksp, 'raw_ksp.nii.gz')
 
     if args.axis_order:
-        timage = RearrangeImage(image, args.axis_order,args)
+        timage = RearrangeImage(image, args.axis_order, args)
         tr_image = nib.Nifti1Image(np.abs(timage[:, :, :, 0, 0]), affine)
         nib.save(tr_image, 'tr_image.nii.gz')
