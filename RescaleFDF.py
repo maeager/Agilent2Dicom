@@ -25,23 +25,23 @@ import os
 import sys
 import math
 import re
-import numpy
+import numpy as np
 import argparse
 
 # Numpy recast to int16 with range (-32768 or 32767)
 UInt16MaxRange = 65533
 Int16MaxRange = 32767
 
-from ReadProcpar import *
+# from ReadProcpar import *
 import ReadFDF
 
 
 def ShortenFloatString(val, origin):
     """Shorten float to 16 element string
     """
-    if numpy.iscomplex(val):
+    if np.iscomplex(val):
         print "Error: ShortenFloatString given complex number, Source: %s" % origin
-        val = numpy.abs(val)
+        val = np.abs(val)
     if val < 0:
         print "Negative val in shorten string"
     if len(str(val)) >= 15:
@@ -85,11 +85,11 @@ def FindScale(fdffiles, ds, procpar, args):
         for filename in fdffiles:
             fdf_properties, data = ReadFDF.ReadFDF(
                 os.path.join(args.inputdir, filename))
-            datamin = numpy.min([datamin, data.min()])
-            datamax = numpy.max([datamax, data.max()])
+            datamin = np.min([datamin, data.min()])
+            datamax = np.max([datamax, data.max()])
 
     RescaleIntercept = datamin
-    # Numpy recast to int16 with range (-32768 or 32767)
+    # Np recast to int16 with range (-32768 or 32767)
     if ds.PixelRepresentation == 0:
         slope_factor = UInt16MaxRange
     else:
@@ -108,7 +108,7 @@ def RescaleImage(ds, image_data, RescaleIntercept, RescaleSlope, args):
         print "Intercept: ", RescaleIntercept, "  Slope: ", RescaleSlope
         print "Current data min: ", image_data.min(), " max ", image_data.max()
     image_data = (image_data - RescaleIntercept) / RescaleSlope
-    image_data_int16 = image_data.astype(numpy.int16)
+    image_data_int16 = image_data.astype(np.int16)
 
     # Adjusting Dicom parameters for rescaling
     # Rescale intercept string must not be longer than 16 (0028, 1052) Rescale
