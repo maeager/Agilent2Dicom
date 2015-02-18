@@ -32,8 +32,10 @@ if scipy.__version__[2] == 7:
     # scipy.pkgload('fftpack')
 else:
     # from scipy.fftpack import fftn, ifftn, fftshift, ifftshift
+    from scipy.ndimage.filters import gaussian_filter, gaussian_laplace, median_filter, laplace
+    from scipy.signal import wiener
     from scipy import ndimage
-    from scipy import signal
+    # from scipy import signal
 
 
 def cplxgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
@@ -120,23 +122,23 @@ insufficient precision.
     print "Complex Gaussian filter sigma ", sigma, " order ", order_, \
         " mode ", mode_
     if real_input.ndim == 3:
-        real_img = ndimage.filters.gaussian_filter(real_input, sigma,
-                                                   order=order_, mode=mode_,
-                                                   cval=cval_)
+        real_img = gaussian_filter(real_input, sigma,
+                                   order=order_, mode=mode_,
+                                   cval=cval_)
         # truncate=4.0) truncate not supported in scipy 0.10
-        imag_img = ndimage.filters.gaussian_filter(imag_input, sigma,
-                                                   order=order_, mode=mode_,
-                                                   cval=cval_)
+        imag_img = gaussian_filter(imag_input, sigma,
+                                   order=order_, mode=mode_,
+                                   cval=cval_)
         # truncate=4.0)
     else:
         real_img = np.empty_like(real_input, dtype=np.float32)
         imag_img = np.empty_like(real_input, dtype=np.float32)
         for echo in xrange(0, real_input.shape[4]):
             for acq in xrange(0, real_input.shape[3]):
-                real_img[:, :, :, acq, echo] = ndimage.filters.gaussian_filter(
+                real_img[:, :, :, acq, echo] = gaussian_filter(
                     real_input[:, :, :, acq, echo],
                     sigma, order=order_, mode=mode_, cval=cval_)
-                imag_img[:, :, :, acq, echo] = ndimage.filters.gaussian_filter(
+                imag_img[:, :, :, acq, echo] = gaussian_filter(
                     imag_input[:, :, :, acq, echo],
                     sigma, order=order_, mode=mode_, cval=cval_)
     filtered_image = np.empty_like(real_input, dtype=np.complex64)
@@ -185,12 +187,12 @@ def cplx2dgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
     imag_img = np.empty_like(real_input, dtype=np.float32)
     if real_input.ndim == 3:
         for islice in xrange(0, real_input.shape[2]):
-            real_img[:, :, islice] = ndimage.filters.gaussian_filter(
+            real_img[:, :, islice] = gaussian_filter(
                 real_input[:, :, islice], sigma,
                 order=order_, mode=mode_,
                 cval=cval_)
             # truncate=4.0) truncate not supported in scipy 0.10
-            imag_img[:, :, islice] = ndimage.filters.gaussian_filter(
+            imag_img[:, :, islice] = gaussian_filter(
                 imag_input[:, :, islice], sigma,
                 order=order_, mode=mode_,
                 cval=cval_)
@@ -199,12 +201,12 @@ def cplx2dgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
         for echo in xrange(0, real_input.shape[4]):
             for acq in xrange(0, real_input.shape[3]):
                 for islice in xrange(0, real_input.shape[2]):
-                    real_img[:, :, islice, acq, echo] = ndimage.filters.gaussian_filter(
+                    real_img[:, :, islice, acq, echo] = gaussian_filter(
                         real_input[:, :, islice, acq, echo], sigma,
                         order=order_,
                         mode=mode_,
                         cval=cval_)
-                    imag_img[:, :, islice, acq, echo] = ndimage.filters.gaussian_filter(
+                    imag_img[:, :, islice, acq, echo] = gaussian_filter(
                         imag_input[:, :, islice, acq, echo], sigma,
                         order=order_,
                         mode=mode_,
@@ -268,19 +270,19 @@ keyword arguments will be passed to gaussian_filter().
 
     print "Complex Gaussian_laplace filter sigma ", sigma, " mode ", mode_
     if real_input.ndim == 3:
-        real_img = ndimage.filters.gaussian_laplace(real_input, sigma,
-                                                    mode=mode_, cval=cval_)
-        imag_img = ndimage.filters.gaussian_laplace(imag_input, sigma,
-                                                    mode=mode_, cval=cval_)
+        real_img = gaussian_laplace(real_input, sigma,
+                                    mode=mode_, cval=cval_)
+        imag_img = gaussian_laplace(imag_input, sigma,
+                                    mode=mode_, cval=cval_)
     else:
         real_img = np.empty_like(real_input, dtype=np.float32)
         imag_img = np.empty_like(real_input, dtype=np.float32)
         for echo in xrange(0, real_input.shape[4]):
             for acq in xrange(0, real_input.shape[3]):
-                real_img[:, :, :, acq, echo] = ndimage.filters.gaussian_laplace(
+                real_img[:, :, :, acq, echo] = gaussian_laplace(
                     real_input[:, :, :, acq, echo],
                     sigma, mode=mode_, cval=cval_)
-                imag_img[:, :, :, acq, echo] = ndimage.filters.gaussian_laplace(
+                imag_img[:, :, :, acq, echo] = gaussian_laplace(
                     imag_input[:, :, :, acq, echo],
                     sigma, mode=mode_, cval=cval_)
     filtered_image = np.empty_like(real_input, dtype=np.complex64)
@@ -325,17 +327,17 @@ def cplxlaplacian_filter(real_input, imag_input, mode_='reflect', cval_=0.0):
     """
     print "Complex Gaussian_laplace filter  ", " mode ", mode_
     if real_input.ndim == 3:
-        real_img = ndimage.filters.laplace(real_input, mode=mode_, cval=cval_)
-        imag_img = ndimage.filters.laplace(imag_input, mode=mode_, cval=cval_)
+        real_img = laplace(real_input, mode=mode_, cval=cval_)
+        imag_img = laplace(imag_input, mode=mode_, cval=cval_)
     else:
         real_img = np.empty_like(real_input, dtype=np.float32)
         imag_img = np.empty_like(real_input, dtype=np.float32)
         for echo in xrange(0, real_input.shape[4]):
             for acq in xrange(0, real_input.shape[3]):
-                real_img[:, :, :, acq, echo] = ndimage.filters.laplace(
+                real_img[:, :, :, acq, echo] = laplace(
                     real_input[:, :, :, acq, echo],
                     mode=mode_, cval=cval_)
-                imag_img[:, :, :, acq, echo] = ndimage.filters.laplace(
+                imag_img[:, :, :, acq, echo] = laplace(
                     imag_input[:, :, :, acq, echo],
                     mode=mode_, cval=cval_)
     filtered_image = np.empty_like(real_input, dtype=np.complex64)
@@ -399,21 +401,21 @@ Return of same shape as input.
         footprint_ = np.ones(size_[0:3])
     if real_input.ndim == 3:
         print "Complex Median filter"
-        real_img = ndimage.filters.median_filter(real_input,
-                                                 footprint=footprint_,
-                                                 mode=mode_)
-        imag_img = ndimage.filters.median_filter(imag_input,
-                                                 footprint=footprint_,
-                                                 mode=mode_)
+        real_img = median_filter(real_input,
+                                 footprint=footprint_,
+                                 mode=mode_)
+        imag_img = median_filter(imag_input,
+                                 footprint=footprint_,
+                                 mode=mode_)
     else:
         real_img = np.empty_like(real_input, dtype=np.float32)
         imag_img = np.empty_like(real_input, dtype=np.float32)
         for echo in xrange(0, real_input.shape[4]):
             for acq in xrange(0, real_input.shape[3]):
-                real_img[:, :, :, acq, echo] = ndimage.filters.median_filter(
+                real_img[:, :, :, acq, echo] = median_filter(
                     real_input[:, :, :, acq, echo],
                     footprint=footprint_, mode=mode_)
-                imag_img[:, :, :, acq, echo] = ndimage.filters.median_filter(
+                imag_img[:, :, :, acq, echo] = median_filter(
                     imag_input[:, :, :, acq, echo],
                     footprint=footprint_, mode=mode_)
     filtered_image = np.empty_like(real_input, dtype=np.complex64)
@@ -450,23 +452,23 @@ filtered result with the same shape as im.
     if not noise_:
         noise_ = ndimage.standard_deviation(real_input)
     if not hasattr(mysize_, "__len__"):
-        filter_size = np.array(mysize_)
+        filtersize = np.array(mysize_)
     else:
-        filter_size = mysize_
+        filtersize = mysize_
     if real_input.ndim == 3:
-        real_img = signal.wiener(real_input, mysize=filter_size, noise=noise_)
-        imag_img = signal.wiener(imag_input, mysize=filter_size, noise=noise_)
+        real_img = wiener(real_input, mysize=filtersize, noise=noise_)
+        imag_img = wiener(imag_input, mysize=filtersize, noise=noise_)
     else:
         real_img = np.empty_like(real_input)
         imag_img = np.empty_like(real_input)
         for echo in xrange(0, real_input.shape[4]):
             for acq in xrange(0, real_input.shape[3]):
-                real_img[:, :, :, acq, echo] = signal.wiener(real_input[:, :, :, acq, echo],
-                                                             mysize=filter_size,
-                                                             noise=noise_)
-                imag_img[:, :, :, acq, echo] = signal.wiener(imag_input[:, :, :, acq, echo],
-                                                             mysize=filter_size,
-                                                             noise=noise_)
+                real_img[:, :, :, acq, echo] = wiener(real_input[:, :, :, acq, echo],
+                                                      mysize=filtersize,
+                                                      noise=noise_)
+                imag_img[:, :, :, acq, echo] = wiener(imag_input[:, :, :, acq, echo],
+                                                      mysize=filtersize,
+                                                      noise=noise_)
 
     filtered_image = np.empty_like(real_input, dtype=np.complex64)
     filtered_image.real = real_img
@@ -476,14 +478,15 @@ filtered result with the same shape as im.
 
 
 def epanechnikov_kernel(filtersiz, bandwidth, order=0):
-    """
-    Epanechnikov filter  3/4 * (1-|u|^2), -1 <= u <= 1
+    """Epanechnikov filter  3/4 * (1-|u|^2), -1 <= u <= 1
     u = x/bandwidth
 
-    The kernel is a continuous, bounded and symmetric real function $K$ which integrates to one.
-    It is computationally efficient and efficient in kernel density estimation.
-    http://sfb649.wiwi.hu-berlin.de/fedc_homepage/xplore/ebooks/html/anr/anrhtmlnode11.html
-    
+    The kernel is a continuous, bounded and symmetric real function
+    $K$ which integrates to one.  It is computationally efficient and
+    efficient in kernel density estimation.
+    http://sfb649.wiwi.hu-berlin.de/fedc_homepage/xplore/
+    ebooks/html/anr/anrhtmlnode11.html
+
     Secon d order: k1(x) = 3/160 (2-x)^3 (x^2 + 6x + 4)
        Fourth order: -15/8 x^2 + 9/8   (norm 1/sqrt(5))
        Kernel Equation R(k) 4(k) eff(k)
@@ -528,6 +531,7 @@ Nonparametric Econometrics: Theory and Practice
     (15/8 -7/8 u^2)(1-u^2), u^2 <=5
     sizth order univariate:  k6, 1(u) = 3/(4*sqrt(5)) *
     (175/64-105/32 u^2+ 231/320 u^4)* (1-u^2) , u^2 <=5
+
     """
     print filtersiz
     filtersize = (1, 1, 1)
@@ -563,6 +567,7 @@ Nonparametric Econometrics: Theory and Practice
     vv = yy[np.newaxis, :, np.newaxis] * mult_fact
     ww = zz[np.newaxis, np.newaxis, :] * mult_fact
     if np.prod(filtersiz) != np.prod(sz * 2):
+        siz = filtersiz
         uu = uu[:siz[0], :siz[1], :siz[2]]
         vv = vv[:siz[0], :siz[1], :siz[2]]
         ww = ww[:siz[0], :siz[1], :siz[2]]
@@ -572,7 +577,8 @@ Nonparametric Econometrics: Theory and Practice
     #    epan = (0.75)*(1- (np.abs(uu**2 + vv**2 + ww**2))/(sigma**2))
     # else:
     zsquared = ((np.abs(uu) ** 2) / sigma[0] ** 2 +
-                (np.abs(vv) ** 2) / sigma[1] ** 2 + (np.abs(ww) ** 2) / sigma[2] ** 2)
+                (np.abs(vv) ** 2) / sigma[1] ** 2 +
+                (np.abs(ww) ** 2) / sigma[2] ** 2)
     epan = (0.75) * (1 - zsquared)
     if order == 4:
         print "Fourth order Epanechnikov"
@@ -786,7 +792,7 @@ if __name__ == "__main__":
     import ReadProcpar as Procpar
     import ProcparToDicomMap
     # import RescaleFDF
-    from ReadFID import *
+    import ReadFID as FID
     import nibabel as nib
 
     parser = argparse.ArgumentParser(
@@ -823,14 +829,14 @@ if __name__ == "__main__":
     # for filename in fidfiles:
     print "Reading FID"
     filename = fidfiles[len(fidfiles) - 1]
-    pp, hdr, dims, data_real, data_imag = readfid(args.inputdir,
-                                                  procpar, args)
+    pp, hdr, dims, data_real, data_imag = FID.readfid(args.inputdir,
+                                                      procpar, args)
     print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
     affine = np.eye(4)
     # # affine[:3, :3]= np.arange(9).reshape((3, 3))
     # raw_data = nib.Nifti1Image(normalise(image_data_real), affine)
     # nib.save(raw_data, 'raw_data.nii.gz')
-
+    image = []
     print "Computing Original image (reconstruction)"
     if os.path.exists('raw_image_00.nii.gz'):
         nii = nib.load('raw_image_00.nii.gz')
@@ -840,11 +846,11 @@ if __name__ == "__main__":
         nii = nib.load('raw_image_02.nii.gz')
         image[:, :, :, 0, 2] = nii.get_data()
     else:
-        image, ksp = recon(pp, dims, hdr, data_real,
-                           data_imag, args)
+        image, ksp = FID.recon(pp, dims, hdr, data_real,
+                               data_imag, args)
 
         if args.axis_order:
-            image = RearrangeImage(image, args.axis_order, args)
+            image = FID.RearrangeImage(image, args.axis_order, args)
             print "Transformed image shape: ", image.shape
             # np.delete(image)
             # image = imaget
