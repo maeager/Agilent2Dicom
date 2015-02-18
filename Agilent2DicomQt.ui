@@ -1677,7 +1677,7 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
                     <item>
                      <widget class="QLabel" name="label_4">
                       <property name="text">
-                       <string>TextLabel</string>
+                       <string> Complex Fourier domain Epanechnikov filter is generated from complex image domain kernel. </string>
                       </property>
                      </widget>
                     </item>
