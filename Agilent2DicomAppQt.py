@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # Agilent2DicomAppQt GUI for Agilent 9.4T MR FDF/FID image processing
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v aeff6be5d20c 2015/02/13 06:22:43 michael $
-# $Id: Agilent2DicomAppQt.py,v aeff6be5d20c 2015/02/13 06:22:43 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v cf38ce7d04d7 2015/02/18 02:07:08 michael $
+# $Id: Agilent2DicomAppQt.py,v cf38ce7d04d7 2015/02/18 02:07:08 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -40,20 +40,20 @@ import numpy as np
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog, QFileDialog, QApplication
 from Agilent2DicomQt import Ui_MainWindow
-import ReadProcpar
-from agilent2dicom_globalvars import *
+from ReadProcpar import ReadProcpar, ProcparInfo
+from agilent2dicom_globalvars import AGILENT2DICOM_APP_VERSION
 DEBUGGING = 1
 import logging
 
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
-__date__ = "$Date: 2015/02/13 06:22:43 $"
+__date__ = "$Date: 2015/02/18 02:07:08 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v aeff6be5d20c 2015/02/13 06:22:43 michael $")
+    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v cf38ce7d04d7 2015/02/18 02:07:08 michael $")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -189,7 +189,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         '''
         success = 1
         try:
-            newdir = str(QFileDialog.getExistingDirectory(self, '''Select FDF Directory'''))
+            newdir = str(
+                QFileDialog.getExistingDirectory(self, '''Select FDF Directory'''))
             print newdir
             self.ui.lineEdit_fdfpath.setText(newdir)
             files = os.listdir(newdir)
@@ -218,7 +219,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.info('ChangeFDFpath ' + newdir)
         except ValueError:
             logging.info('ChangeFDFpath ValueError')
-            pass
+
 
     def ChangeFDFDicomPath(self):
         """ChangeFDFDicomPath
@@ -249,7 +250,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.info('ChangeFDFDicompath ' + newdir)
         except ValueError:
             logging.info('ChangeFDFDicompath error')
-            pass
+
 
     def ChangeFIDpath(self):
         """ChangeFIDpath
@@ -283,7 +284,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.info('ChangeFIDpath ' + newdir)
         except ValueError:
             logging.info('ChangeFIDpath error')
-            pass
+
 
     def ChangeFIDDicomPath(self):
         """ChangeFIDDicomPath
@@ -314,7 +315,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.info('ChangeFIDDicompath ' + newdir)
         except ValueError:
             logging.info('ChangeFIDDicompath error')
-            pass
+
 
     def ConvertFDF(self):
         """ConvertFDF run FDF to dicom script
@@ -338,9 +339,11 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                    executable="/bin/bash").stdout.read()
             self.UpdateGUI()
             logging.info('Convert FDF : done')
+        except OSError:
+            logging.error('Send2Daris OSError')
         except ValueError:
-            logging.info('Convert FDF error')
-            pass
+            logging.info('ConvertFDF value error - invalid arguments to Popen.')
+
 
     def GetDarisID(self, inpath):
         """GetDarisID read Daris ID from procpar
@@ -348,13 +351,14 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         daris_id = ''
         try:
             print "GetDarisID %s " % inpath
-            procpar, pep = ReadProcpar.ReadProcpar(
+            procpar, ptext = ReadProcpar(
                 os.path.join(os.path.abspath(str(inpath)), 'procpar'))
             if 'name' in procpar.keys():
                 if re.search('DaRIS', procpar['name']):
                     daris_id = re.sub(r'DaRIS\^', '', procpar['name'])
         except ValueError:
-            pass
+            print "Value Error in GetDarisID"
+
         return daris_id
 
     def CheckDicomDir(self, dpath):
@@ -408,14 +412,26 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                                QtGui.QMessageBox.No)
             if reply == QtGui.QMessageBox.Yes:
                 logging.info('Send2Daris ' + cmd)
-                print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
-                                       executable="/bin/bash").stdout.read()
+                try:
+                    print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
+                                           executable="/bin/bash").stdout.read()
+                    
+                    print "dpush completed returncode"+subprocess.Popen.returncode
+                    logging.info('Send2Daris ... completed.')
+                except ValueError:
+                    logging.error('Send2Daris invalid arguments to Popen')
+                except OSError:
+                    logging.error('Send2Daris OSError')
+
+                    
             else:
                 logging.info('Send2Daris sending cancelled')
+                print 'Send2Daris sending cancelled'
             self.UpdateGUI()
         except ValueError:
             logging.info('Send2Daris value error')
-            pass
+            print 'Send2Daris value error'
+
 
     def CheckFDF(self):  # send_button):
         """ Run mrinfo and dcheck on dicoms
@@ -436,8 +452,10 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                    executable="/bin/bash").stdout.read()
             self.UpdateGUI()
         except ValueError:
-            logging.info('CheckFDF error ')
-            pass
+            logging.info('CheckFDF error. Possibly invalid arguments to Popen')
+        except OSError:
+            logging.error('CheckFDF OSError')
+
 
     def ViewFDF(self):
         """View image with mrview
@@ -453,7 +471,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                    executable="/bin/bash").stdout.read()
         except ValueError:
             logging.info('ViewFDF error ')
-            pass
+        except OSError:
+            logging.error('ViewFDF OSError')
 
     def SigmaString(self, sigmatext, combotext, source):
         """Calculate sigma
@@ -467,8 +486,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         try:
             if combotext != "unit voxel":
                 logging.info('SigmaString ' + combotext)
-                from ReadProcpar import ReadProcpar, ProcparInfo
-                procpar, procpartext = ReadProcpar(os.path.join(source, 'procpar'))
+                procpar, ptext = ReadProcpar(os.path.join(source, 'procpar'))
                 pinfo = ProcparInfo(procpar)
                 if combotext == "in mm":
                     sigmafactor = np.array(pinfo['Voxel_Res_mm'])
@@ -476,11 +494,12 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     sigmafactor = np.array(pinfo['Voxel_Res_mm']) * 1000
                 else:
                     print "SigmaString combobox not of 'unit voxel', 'in mm', or 'in um'"
-                    logging.info("SigmaString combobox not of 'unit voxel', 'in mm', or 'in um'")
+                    logging.info(
+                        "SigmaString combobox not of 'unit voxel', 'in mm', or 'in um'")
             logging.info('SigmaString ' + str(sigmafactor))
         except ValueError:
             logging.info('SigmaString combobox error')
-            pass
+
         if len(sigmafactor) != 3:
             print "Sigma units needs to be three elements"
             logging.info('SigmaString units needs to be three elements')
@@ -496,7 +515,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             argstr = ' %f,%f,%f' % (float(sigmatext) / sigmafactor[0],
                                     float(sigmatext) / sigmafactor[1],
                                     float(sigmatext) / sigmafactor[2])
-            pass
         print 'SigmaString: factor %f,%f,%f : args %s' % (sigmafactor[0],
                                                           sigmafactor[1],
                                                           sigmafactor[2],
@@ -632,14 +650,22 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd = cmd_header + cmd1 + ')'
             # print cmd
             logging.info('ConvertFID ' + cmd)
-            print subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                   shell=True,
-                                   executable="/bin/bash").stdout.read()
+            try:
+                print subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                       shell=True,
+                                       executable="/bin/bash").stdout.read()
+                logging.info('Send2Daris ... completed.')
+            except ValueError:
+                logging.error('ConvertFID invalid arguments to Popen')
+            except OSError:
+                logging.error('ConvertFID OSError')
             self.UpdateGUI()
+            print 'ConvertFID completed.'
             logging.info('ConvertFID done')
         except ValueError:
+            print 'ConvertFID error.'
             logging.info('ConvertFID error')
-            pass
+
 
     def CheckFID(self):
         """CheckFID check outputs of fid2dicom
@@ -665,17 +691,21 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath)) <= 2:
                     cmd1 = os.path.join(
                         thispath, 'dcheck.sh') + ' -o ' + str(dcmpath)
-                    # print cmd1 
+                    # print cmd1
                     # cmd = cmd_header + cmd1 +')'
-                    # print cmd 
+                    # print cmd
                     print subprocess.Popen(cmd1,
                                            stdout=subprocess.PIPE, shell=True,
                                            executable="/bin/bash").stdout.read()
             self.UpdateGUI()
+            print 'CheckFID done'
             logging.info('CheckFID done')
+        except OSError:
+            logging.error('CheckFID OSError')
         except ValueError:
+            print 'CheckFID error'
             logging.info('CheckFID error')
-            pass
+
 
     def ViewFID(self):
         """ViewFID show dicom outputs with mrview
@@ -697,16 +727,18 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 dcmpath = os.path.join(dicom_dir_root, dicom_dir)
                 if not os.path.isdir(dcmpath) or len(os.listdir(dcmpath)) <= 2:
                     cmd1 = mrview_header + dcmpath + ' & '
-                    print cmd1 
+                    print cmd1
                     print subprocess.Popen(cmd1,
                                            stdout=subprocess.PIPE, shell=True,
                                            executable="/bin/bash").stdout.read()
 
             self.UpdateGUI()
             logging.info('ViewFID done')
+        except OSError:
+            logging.error('ViewFID OSError')
         except ValueError:
             logging.info('ViewFID error')
-            pass
+
 
     def Send2DarisFID(self):
         """Send2DarisFID
@@ -714,7 +746,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         try:
             daris_ID = self.ui.lineEdit_darisid2.text()
             if str(daris_ID) == "":
-                print "No DaRIS ID"
+                print "Send2DarisFID Cannot send to DaRIS without a proper ID. "
                 QtGui.QMessageBox.warning(self, 'Warning', '''
                      Cannot send to DaRIS without a proper ID.''')
                 logging.warning('''Send2DarisFID Cannot send to
@@ -744,6 +776,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     logging.warning('''Send2Daris Cannot send to
                                 DaRIS without a proper Dicom path.
                                     ''' + dicom_dir + " is empty")
+                    print 'Send2Daris Cannot send to DaRIS without a proper Dicom path.'
                 else:
                     cmd = os.path.join(thispath, 'dpush') + ' -c ' +\
                         str(daris_ID) + ' -s mf-erc ' + str(dcmpath)
@@ -762,12 +795,17 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                                stdout=subprocess.PIPE,
                                                shell=True,
                                                executable="/bin/bash").stdout.read()
+                        logging.info('Send2DarisFID completed.')
+                        print 'Send2DarisFID completed.'
                     else:
-                        logging.info('Send2Daris cancelled')
+                        logging.info('Send2DariFIDs cancelled')
+                        print 'Send2DarisFID cancelled'
 
         except ValueError:
-            logging.info('Send2Daris error')
-            pass
+            print 'Send2DarisFID ValueError'
+            logging.info('Send2DarisFID error')
+        except OSError:
+            logging.error('Send2DarisFID OSError')
 
     def UpdateGUI(self):
         """Update the GUI
@@ -792,9 +830,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.FIDInfoUpdate()
 
     def FDFInfoUpdate(self):
+        """Update metadata info panel in FDF tab
         """
-        """
-        from ReadProcpar import ReadProcpar, ProcparInfo
         procpar, procpartext = ReadProcpar(
             os.path.join(str(self.ui.lineEdit_fdfpath.text()), 'procpar'))
         SequenceText = "FDF image:"
@@ -806,7 +843,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                                  p.iteritems()))
 
     def FIDInfoUpdate(self):
-        from ReadProcpar import ReadProcpar, ProcparInfo
+        """Update metadata info panel in FID tab
+        """
         procpar, procpartext = ReadProcpar(
             os.path.join(str(self.ui.lineEdit_fidpath.text()),
                          'procpar'))
@@ -819,7 +857,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             ftext.close()
         except ValueError:
             SequenceText = "FID image:\n-no text-"
-            pass
+
         # DisplayText=[ SequenceText + "\n", "StudyID: %s\n" %
         #  ds.StudyID, "Patient ID: %s\n" % ds.PatientID, "Protocol
         #  name: %s\n"% ds.ProtocolName, "Series Desc: %s\n" %
