@@ -23,7 +23,6 @@
 """
 
 import time
-import numpy
 import numpy as np
 import scipy
 if scipy.__version__[2] == 7:
@@ -70,26 +69,29 @@ def gaussian_fourierkernel(uu, vv, ww, sigma):
     Create Gaussian Fourier filter kernel
     """
     if not hasattr(sigma, "__len__"):  # type(sigma) is float:
-        gfilter = np.exp(-2 * np.pi * np.pi * (uu * uu + vv * vv + ww * ww) *
-                      (sigma * sigma))
+        gfilter = np.exp(-2 * (np.pi ** 2) *
+                         (uu ** 2 + vv ** 2 + ww ** 2) * (sigma ** 2))
         midpoint = (uu[-1, 0, 0], vv[0, -1, 0], ww[0, 0, -1])
-        return gfilter / ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
-                                                 midpoint[1] - 10:midpoint[1] + 10,
-                                                 midpoint[2] - 10:midpoint[2] + 10])
+        maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
+                                         midpoint[1] - 10:midpoint[1] + 10,
+                                         midpoint[2] - 10:midpoint[2] + 10])
+        return gfilter / maxval
     elif len(sigma) == 2:
-        gfilter = np.exp(-2 * np.pi * np.pi * ((sigma[0] * sigma[0] * uu * uu) +
-                                            (sigma[1] * sigma[1] * vv * vv)))
+        gfilter = np.exp(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
+                                              (sigma[1] ** 2) * vv ** 2))
         midpoint = (uu[-1, 0, 0], vv[0, -1, 0])
-        gfilter = gfilter / ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
-                                                    midpoint[1] - 10:midpoint[1] + 10)
+        maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
+                                         midpoint[1] - 10:midpoint[1] + 10])
+        gfilter = gfilter / maxval
     else:
-        gfilter = np.exp(-2 * np.pi * np.pi * ((sigma[0] * sigma[0] * uu * uu) +
-                                               (sigma[1] * sigma[1] * vv * vv) +
-                                               (ww * ww * sigma[2] * sigma[2])))
+        gfilter = np.exp(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
+                                              (sigma[1] ** 2) * vv ** 2 +
+                                              (sigma[2] ** 2) * ww ** 2))
         midpoint = (uu[-1, 0, 0], vv[0, -1, 0], ww[0, 0, -1])
-        gfilter = gfilter / ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
-                                                    midpoint[1] - 10:midpoint[1] + 10,
-                                                    midpoint[2] - 10:midpoint[2] + 10])
+        maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
+                                         midpoint[1] - 10:midpoint[1] + 10,
+                                         midpoint[2] - 10:midpoint[2] + 10])
+        gfilter = gfilter / maxval
     return gfilter
 
 
@@ -109,7 +111,8 @@ def cplxfouriergauss(siz, sigma):
     """
     Complex Gaussian in Fourier domain :
       g(x,y,z)=(1+i)(1/sqrt(2*pi).sigma).exp(-(x^2)/2sigma^2)
-      \mathcal{F_x}[f(x)](\omega)  => A*(1+i)*exp(-((w^2)*(sigma^2))/2 + i*mu*w)
+    .. math::
+    \mathcal{F_x}[f(x)](\omega)  = A*(1+i)*exp(-((w^2)*(sigma^2))/2 + i*mu*w)
     A=1/[sqrt(2*pi/sigma^2)*sigma]
     mu is zero, so the real and imag components are:
       [exp(-((w^2)*(sigma^2))/2)] / [sqrt(2*pi/sigma^2)*sigma]
@@ -122,7 +125,7 @@ def cplxfouriergauss(siz, sigma):
     return gfilter + 1j * gfilter
 
 
-def fourierlaplace(ksp_shape):
+def fourierlaplace(siz):
     """
     Laplacian operator in Fourier domain is very simple:
       D^2 g(x,y,z) => -(4pi^2) (u^2 + v^2 + w^2) G(u,v,w)
@@ -138,10 +141,10 @@ def fourierlaplaceinhom(siz, sigma):
       D^2 g(x,y,z) => -(4pi^2) (u^2 + v^2 + w^2) G(u,v,w)
     """
     (uu, vv, ww) = fouriercoords(siz)
-    laplace = -(u * u / (sigma[0] * sigma[0]) + v * v /
-                (sigma[1] * sigma[1]) + w * w / (sigma[2] * sigma[2]))
-    laplace = (laplace - ndimage.minimum(laplace)) /
-               (ndimage.maximum(laplace) - ndimage.minimum(laplace))
+    laplace = -(uu * uu / (sigma[0] * sigma[0]) + vv * vv /
+                (sigma[1] * sigma[1]) + ww * ww / (sigma[2] * sigma[2]))
+    laplace = (laplace - ndimage.minimum(laplace)) / \
+              (ndimage.maximum(laplace) - ndimage.minimum(laplace))
     return laplace
 
 
@@ -177,12 +180,11 @@ def fourierepanechnikov(siz, sigma):
         print sigma
         Kepa = epanechnikov_kernel((np.ceil(sigma[0]) + 1, np.ceil(sigma[1]) + 1,
                                     np.ceil(sigma[2]) + 1), sigma)
-    Kfilter = np.zeros(np.array(siz), dtype=numpy.float32)
+    Kfilter = np.zeros(np.array(siz), dtype=np.float32)
     szmin = np.floor(
         np.array(siz) / 2.0 - np.floor(np.array(Kepa.shape) / 2.0) - 1)
     szmax = np.floor(szmin + np.array(Kepa.shape))
-    print "Epa filter size ", siz, " image filter ", Kepa.shape, " szmin ",
-        szmin, " szmax ", szmax
+    print "Epa filter size ", siz, " image filter ", Kepa.shape, " szmin ", szmin, " szmax ", szmax
     Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = Kepa
     return np.abs(fftshift(fftn(Kfilter)))
 
@@ -236,7 +238,7 @@ def fouriergauss2(siz, voxmm, sigma):
     """
     (uu, vv, ww) = fouriercoords(siz)
     if not hasattr(sigma, "__len__"):
-        # if type(sigma) is float or type(sigma) is numpy.float64:
+        # if type(sigma) is float or type(sigma) is np.float64:
         factor = 1 / (np.sqrt(2 * np.pi / sigma ** 2) * sigma)
         component = factor * np.exp(-0.5 * (uu ** 2 + vv ** 2 + ww ** 2) *
                                     (sigma ** 2))
@@ -357,7 +359,7 @@ def kspacegaussian_filter(ksp, sigma=np.sqrt(0.5), n_=-1, axis_=-1):
         out_ksp = ndimage.fourier.fourier_gaussian(
             ksp, sigma, n=n_, axis=axis_)
     else:
-        out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
+        out_ksp = np.empty_like(ksp, dtype=np.complex64)
 
         for echo in xrange(0, ksp.shape[4]):
             for n in xrange(0, ksp.shape[3]):
@@ -373,14 +375,14 @@ def kspacegaussian_filter2(ksp, sigma_=None):
     """
     siz = ksp.shape[0:3]
     sigma = np.ones(3)
-    if not 'sigma_' in locals():
+    if 'sigma_' not in locals():
         sigma = np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
     elif not hasattr(sigma_, "__len__"):
         sigma = np.ones(3) * sigma_
     else:
         sigma = sigma_.copy()
     Fgauss = fouriergauss(siz, 1 / sigma)
-    out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
+    out_ksp = np.empty_like(ksp, dtype=np.complex64)
     print "Complex Gaussian filter sigma ", sigma
     if ksp.ndim == 3:
         out_ksp.real = ksp.real * Fgauss
@@ -402,14 +404,14 @@ def kspacecplxgaussian_filter(ksp, sigma_=None):
     """
     siz = ksp.shape[0:3]
     sigma = np.ones(3)
-    if not 'sigma_' in locals() or sigma_ == None:
+    if 'sigma_' not in locals() or sigma_ is None:
         sigma = np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
     elif not hasattr(sigma_, "__len__"):
         sigma = np.ones(3) * sigma_
     else:
         sigma = sigma_.copy()
     Fgauss = cplxfouriergauss(siz, sigma)
-    out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
+    out_ksp = np.empty_like(ksp, dtype=np.complex64)
     print "Complex Gaussian filter sigma ", sigma
     if ksp.ndim == 3:
         out_ksp = ksp * Fgauss
@@ -435,7 +437,7 @@ def kspacelaplacegaussian_filter(ksp, sigma_=None):
         sigma = sigma_.copy()
     Flaplace = fourierlaplace(siz)
     Fgauss = fouriergauss(siz, 1 / sigma)
-    out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
+    out_ksp = np.empty_like(ksp, dtype=np.complex64)
     print "Complex Laplace Gaussian filter sigma ", sigma
     if ksp.ndim == 3:
         out_ksp.real = (ksp.real * Fgauss) * Flaplace
@@ -465,16 +467,18 @@ def kspaceepanechnikov_filter(ksp, sigma_=None):
         else:
             sigma = sigma_.copy()
     Fepanechnikov = fourierepanechnikov(siz, sigma)
-    out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
+    out_ksp = np.empty_like(ksp, dtype=np.complex64)
     print "Complex Epanechnikov filter bandwidth ", sigma
     if ksp.ndim == 3:
         out_ksp.real = Fepanechnikov * ksp.real
-        out_ksp.imag = Fepanechnikov * ksp.imag      
+        out_ksp.imag = Fepanechnikov * ksp.imag
     else:
         for echo in xrange(0, ksp.shape[4]):
             for n in xrange(0, ksp.shape[3]):
-                out_ksp[:, :, :, n, echo].real = ksp[:, :, :, n, echo].real * Fepanechnikov
-                out_ksp[:, :, :, n, echo].imag = ksp[:, :, :, n, echo].imag * Fepanechnikov
+                out_ksp[:, :, :, n, echo].real = ksp[
+                    :, :, :, n, echo].real * Fepanechnikov
+                out_ksp[:, :, :, n, echo].imag = ksp[
+                    :, :, :, n, echo].imag * Fepanechnikov
 
     return out_ksp
 # end kspaceepanechnikov_filter
@@ -494,8 +498,8 @@ def kspaceepanechnikov_filter2(ksp, sigma_=None):
         else:
             sigma = sigma_.copy()
     Fepanechnikov = fourierepanechnikov(siz, sigma)
-    out_ksp = np.empty_like(ksp, dtype=numpy.complex64)
-    CmplxEpan = np.empty_like(ksp, dtype=numpy.complex64)
+    out_ksp = np.empty_like(ksp, dtype=np.complex64)
+    CmplxEpan = np.empty_like(ksp, dtype=np.complex64)
     CmplxEpan.real = Fepanechnikov
     CmplxEpan.imag = Fepanechnikov
     print "Complex Epanechnikov filter bandwidth ", sigma
@@ -563,16 +567,16 @@ def open_image(image_filtered):
     """
     c = ndimage.grey_opening(np.abs(image_filtered), size=(5, 5, 5))
     new_image = nib.Nifti1Image(normalise(c), affine)
-    new_image.set_data_dtype(numpy.float32)
+    new_image.set_data_dtype(np.float32)
     nib.save(new_image, 'image_open.nii.gz')
 
 
 def close_image(image_filtered):
     """close_image example ndimage.grey_closing
     """
-    c = ndimage.grey_closing(np.abs(image_filtered), size=(5, 5, 5))
-    new_image = nib.Nifti1Image(normalise(c), affine)
-    new_image.set_data_dtype(numpy.float32)
+    closed = ndimage.grey_closing(np.abs(image_filtered), size=(5, 5, 5))
+    new_image = nib.Nifti1Image(normalise(closed), affine)
+    new_image.set_data_dtype(np.float32)
     nib.save(new_image, 'image_fill.nii.gz')
 
 
@@ -583,7 +587,7 @@ def sobel_image(image):
     e = ndimage.filters.sobel(image, axis=1)
     f = ndimage.filters.sobel(image, axis=2)
     new_image = nib.Nifti1Image(np.abs(d) + np.abs(e) + np.abs(f), affine)
-    new_image.set_data_dtype(numpy.float32)
+    new_image.set_data_dtype(np.float32)
     nib.save(new_image, 'sobel.nii.gz')
 
 
@@ -596,7 +600,7 @@ def normalise(data):
     print "Normalise max %f  min %f" % (_max, _min)
     # return as float32
     data = ((data - _min) * (_max - _min))
-    return data.astype(numpy.float32)
+    return data.astype(np.float32)
 
 
 def save_nifti(image, basename):
@@ -610,12 +614,12 @@ def save_nifti(image, basename):
             for channel in xrange(0, image.shape[3]):
                 new_image = nib.Nifti1Image(
                     np.abs(image[:, :, :, channel, echo]), affine)
-                new_image.set_data_dtype(numpy.float32)
+                new_image.set_data_dtype(np.float32)
                 nib.save(new_image, basename + '_' + str(channel) + str(echo)
                          + '.nii.gz')
     else:
         new_image = nib.Nifti1Image(np.abs(image), affine)
-        new_image.set_data_dtype(numpy.float32)
+        new_image.set_data_dtype(np.float32)
         nib.save(new_image, basename + '.nii.gz')
 
 
@@ -630,12 +634,12 @@ def save_nifti_int(image, basename):
             for channel in xrange(0, image.shape[3]):
                 new_image = nib.Nifti1Image(
                     np.abs(image[:, :, :, channel, echo]).astype(int), affine)
-                new_image.set_data_dtype(numpy.int32)
+                new_image.set_data_dtype(np.int32)
                 nib.save(new_image, basename + '_' + str(channel) + str(echo)
                          + '.nii.gz')
     else:
         new_image = nib.Nifti1Image(np.abs(image).astype(int), affine)
-        new_image.set_data_dtype(numpy.int32)
+        new_image.set_data_dtype(np.int32)
         nib.save(new_image, basename + '.nii.gz')
 
 
@@ -644,7 +648,7 @@ def test_double_resolution(ksp, basename):
     """
     print "Double res and " + basename + " filter"
     # two 32-bit float
-    ksplarge = np.zeros(np.array(ksp.shape) * 2, dtype=numpy.complex64)
+    ksplarge = np.zeros(np.array(ksp.shape) * 2, dtype=np.complex64)
     szmin = np.array(ksp.shape) / 2 - 1
     szmax = np.array(ksp.shape) + szmin
     ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp
@@ -678,7 +682,7 @@ def test_depth_algorithm(image_filtered, basename='depth'):
     # ndimage.minimum(depth))/(ndimage.maximum(depth)-ndimage.minimum(depth))
     # save to nifti
     new_image = nib.Nifti1Image(np.abs(depth), affine)
-    new_image.set_data_dtype(numpy.float32)
+    new_image.set_data_dtype(np.float32)
     nib.save(new_image, basename + '.nii.gz')
 
 
@@ -687,7 +691,7 @@ def test_double_resolution_depth(ksp, basename):
     Test depth alg on double res images
     """
     print "Double res and gaussian filter"
-    ksplarge = np.zeros(np.array(ksp.shape) * 2, dtype=numpy.complex64)
+    ksplarge = np.zeros(np.array(ksp.shape) * 2, dtype=np.complex64)
     szmin = np.array(ksp.shape) / 2 - 1
     szmax = np.array(ksp.shape) + szmin
     ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp
@@ -700,7 +704,7 @@ def super_resolution(ksp, basename):
     """
     print "Double res and " + basename + " filter"
     # two 32-bit float
-    ksplarge = np.zeros(np.array(ksp.shape) * 2, dtype=numpy.complex64)
+    ksplarge = np.zeros(np.array(ksp.shape) * 2, dtype=np.complex64)
     szmin = np.array(ksp.shape) / 2 - 1
     szmax = np.array(ksp.shape) + szmin
     ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp
@@ -832,7 +836,7 @@ if __name__ == "__main__":
     # print "Computing Laplacian enhanced image"
     laplacian = fftshift(
         ifftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
-    alpha= ndimage.mean(np.abs(image_filtered)) /
+    alpha = ndimage.mean(np.abs(image_filtered)) / \
         ndimage.mean(np.abs(laplacian))
     kspgauss = kspacegaussian_filter2(ksp, 256 / 0.707)
     image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
