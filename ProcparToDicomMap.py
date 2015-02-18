@@ -36,8 +36,7 @@ import argparse
 from dicom.sequence import Sequence
 from dicom.dataset import Dataset
 
-from agilent2dicom_globalvars import *
-
+import agilent2dicom_globalvars as A2D
 
 def getColumns(inFile, delim="\t", header=True):
     """
@@ -91,10 +90,10 @@ def CreateUID(uid_type, procpar=[], study_id=[], verbose=0):
     dt = datetime.datetime.now()
     dt = dt.strftime("%Y%m%d%H%M%S") + str(dt.microsecond / 1000)
     InstanceCreatorId = ''.join(
-        map(str, [ord(c) for c in 'agilent2dicom'])) + '.' + AGILENT2DICOM_VERSION
-    if uid_type == UID_Type_InstanceCreator:
+        map(str, [ord(c) for c in 'agilent2dicom'])) + '.' + A2D.AGILENT2DICOM_VERSION
+    if uid_type == A2D.UID_Type_InstanceCreator:
         uidstr = InstanceCreatorId
-    elif uid_type == UID_Type_StudyInstance:
+    elif uid_type == A2D.UID_Type_StudyInstance:
         if verbose:
             # print procpar
             print study_id
@@ -105,7 +104,7 @@ def CreateUID(uid_type, procpar=[], study_id=[], verbose=0):
             raise ValueError(
                 "procpar field 'studyid_' is not in expected form (eg s_2014010101)")
         uidstr = study_id
-    elif uid_type in [UID_Type_SeriesInstance, UID_Type_FrameOfReference]:
+    elif uid_type in [A2D.UID_Type_SeriesInstance, A2D.UID_Type_FrameOfReference]:
         # if not procpar or study_id not in procpar.keys():
         #    raise ValueError("Parameter 'procpar' either not passed or invalid")
         series_id = procpar['time_complete'].replace("T", "")
@@ -117,7 +116,7 @@ def CreateUID(uid_type, procpar=[], study_id=[], verbose=0):
         # max length of uuid = 39 characters
         uidstr = dt + '.' + str(uuid.uuid4().int)
 
-    return ".".join([UID_ROOT, uid_type, uidstr]).ljust(64, '\0')
+    return ".".join([A2D.UID_ROOT, uid_type, uidstr]).ljust(64, '\0')
 
 
 def ProcparToDicomMap(procpar, args):
@@ -136,10 +135,10 @@ def ProcparToDicomMap(procpar, args):
     file_meta = Dataset()
     # file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4.1"  #
     # Enhanced MR Image SOP
-    file_meta.MediaStorageSOPClassUID = Standard_MR_SOPClassUID  # MR Image SOP
+    file_meta.MediaStorageSOPClassUID = A2D.Standard_MR_SOPClassUID  # MR Image SOP
     file_meta.MediaStorageSOPInstanceUID = CreateUID(
-        UID_Type_MediaStorageSOPInstance, [], [], args.verbose)
-    file_meta.ImplementationClassUID = Implementation_Class_UID
+        A2D.UID_Type_MediaStorageSOPInstance, [], [], args.verbose)
+    file_meta.ImplementationClassUID = A2D.Implementation_Class_UID
 
     #================================================================
     # Create dicom dataset
@@ -203,7 +202,7 @@ def ProcparToDicomMap(procpar, args):
     # Reference: DICOM Part 3: Information Object Definitions C.7.2.1
     #        0020,000D Study Instance UID (mandatory)
     ds.StudyInstanceUID = CreateUID(
-        UID_Type_StudyInstance, procpar, [], args.verbose)
+        A2D.UID_Type_StudyInstance, procpar, [], args.verbose)
     # 0008,0020 Study Date (optional)
     ds.StudyDate = procpar['studyid_'][2:10]
     # 0008,0030 Study Time (optional)
@@ -227,7 +226,7 @@ def ProcparToDicomMap(procpar, args):
     ds.Modality = "MR"             # 0008,0060 Modality (mandatory)
     # 0020,000E Series Instance UID (mandatory)
     ds.SeriesInstanceUID = CreateUID(
-        UID_Type_SeriesInstance, procpar, [], args.verbose)
+        A2D.UID_Type_SeriesInstance, procpar, [], args.verbose)
     ds.SeriesNumber = 1            # 0020,0011 Series Number (optional)
     # ds.SeriesDate                # 0008,0021 Series Date (optional)
     # ds.SeriesTime                # 0008,0031 Series Time (optional)
@@ -241,9 +240,9 @@ def ProcparToDicomMap(procpar, args):
     # include procpar in dicom header as "Series Comments"
     # This is a retired field, so probably shouldn't be used. But, oh well.
     ds.add_new((0x0018, 0x1000), 'UT',
-               ['MBI Agilent2Dicom converter (Version ' + str(AGILENT2DICOM_VERSION)
-                + ', ' + str(DVCS_STAMP) + ')'])
-#+ ', ' DVCS_STAMP +') \nProcpar text: '+ procpartext ]) # 0018,1000 Series Comments (retired)
+               ['MBI Agilent2Dicom converter (Version ' + str(A2D.AGILENT2DICOM_VERSION)
+                + ', ' + str(A2D.DVCS_STAMP) + ')'])
+    # 0018,1000 Series Comments (retired)
 
     #-------------------------------------------------------------------------
     # IE: Frame of Reference
@@ -254,7 +253,7 @@ def ProcparToDicomMap(procpar, args):
 
     # 0020,0052 Frame of Reference (mandatory)
     ds.FrameOfReferenceUID = CreateUID(
-        UID_Type_FrameOfReference, procpar, [], args.verbose)
+        A2D.UID_Type_FrameOfReference, procpar, [], args.verbose)
 
     ds.PositionReferenceIndicator = "SLIDE_CORNER"
     # Position Reference Indicator (0020,1040) 2 Part of the imaging target used as a
@@ -289,7 +288,7 @@ def ProcparToDicomMap(procpar, args):
     # ds.Manufacturer - see Equipment - Enhanced General Equipment           #
     # 0008,0070 Manufacturer (optional)
     # 0008,0080 Institution Name (optional)
-    ds.InstitutionName = DICOM_Tag_InstitutionName
+    ds.InstitutionName = A2D.DICOM_Tag_InstitutionName
     # ds.StationName                                                         # 0008,1010 Station Name (optional)
     # ds.ManufacturerModelName - see Equipment - Enhanced General Equipment  # 0008,1070 Manufacturer Model Name (optional)
     # ds.DeviceSerialNumber - see Equipment - Enhanced General Equipment     # 0018,1000 Device Serial Number (optional)
@@ -300,13 +299,13 @@ def ProcparToDicomMap(procpar, args):
     # Reference: DICOM Part 3: Information Object Definitions C.7.5.2
 
     # 0008,0070 Manufacturer (mandatory)
-    ds.Manufacturer = DICOM_Tag_Manufacturer
+    ds.Manufacturer = A2D.DICOM_Tag_Manufacturer
     # 0008,1070 Manufacturer Model Name (mandatory)
-    ds.ManufacturerModelName = DICOM_Tag_ManufacturerModelName
+    ds.ManufacturerModelName = A2D.DICOM_Tag_ManufacturerModelName
     # 0018,1000 Device Serial Number (mandatory)
-    ds.DeviceSerialNumber = DICOM_Tag_DeviceSerialNumber
+    ds.DeviceSerialNumber = A2D.DICOM_Tag_DeviceSerialNumber
     # 0018,1020 Software Versions (mandatory)
-    ds.SoftwareVersions = DICOM_Tag_SoftwareVersions
+    ds.SoftwareVersions = A2D.DICOM_Tag_SoftwareVersions
 
     # Module: Image Plane (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.6.2
@@ -395,9 +394,9 @@ def ProcparToDicomMap(procpar, args):
     GeneralAnatMandatoryMacro.CodeMeaning = 'Head'
     try:  # ipython doesn't define __file__
         thispath = os.path.dirname(__file__)
-    except:
+    except NameError:
         thispath = "."
-        pass
+        
     codes = file(os.path.join(thispath, "docs/AnatomyCodes.txt"), "r")
     cols, indToName = getColumns(codes)
     for codeidx in xrange(0, len(cols['Meaning']) - 1):
@@ -516,7 +515,7 @@ def ProcparToDicomMap(procpar, args):
     ReceiveCoilSeq = Dataset()
     ReceiveCoilSeq.ReceiveCoilName = 'NONAME'
     ReceiveCoilSeq.ReceiveCoilType = 'VOLUME'
-    ReceiveCoilSeq.ReceiveCoilManufacturerName = COIL_Manufacturer
+    ReceiveCoilSeq.ReceiveCoilManufacturerName = A2D.COIL_Manufacturer
     if 'rfcoil' in procpar.keys():
         if procpar['rfcoil'] == 'millipede':
             ReceiveCoilSeq.ReceiveCoilName = 'millipede'
@@ -549,7 +548,7 @@ def ProcparToDicomMap(procpar, args):
     #                                                                                  etc.
     #                                                                 SURFACE
     TransmitCoilSeq = Dataset()
-    TransmitCoilSeq.TransmitCoilManufacturername = COIL_Manufacturer
+    TransmitCoilSeq.TransmitCoilManufacturername = A2D.COIL_Manufacturer
     TransmitCoilSeq.TransmitCoilName = 'NONAME'
     TransmitCoilSeq.TransmitCoilType = 'VOLUME'
     if 'bodycoil' in procpar.keys() and procpar['bodycoil'] == 'y':
@@ -917,7 +916,7 @@ def ProcparToDicomMap(procpar, args):
 
     # Image Comments (0020,4000) 3
     # User-defined comments about the image.
-    ds.ImageComments = FDF2DCM_Image_Comments
+    ds.ImageComments = A2D.FDF2DCM_Image_Comments
 
     # Image Type = ["ORIGINAL","PRIMARY"] (0008,0008) 1
     # Image characteristics. See C.8.16.1 and C.8.13.1.1.1.
@@ -1081,7 +1080,7 @@ def ProcparToDicomMap(procpar, args):
 #                                                                 powered RF pulse
 #                                                Required if Image Type (0008,0008) Value
 # 3 is ASL. May be present otherwise.
-    if ('asl' in procpar.keys() and procpar['asl'] == 'y'):
+    if 'asl' in procpar.keys() and procpar['asl'] == 'y':
         # TODO: CONTINUOUS PSEUDOCONTINUOUS PULSED
         ds.ArterialSpinLabelingContrast = 'CONTINUOUS'
 
@@ -1219,7 +1218,7 @@ def ProcparToDicomMap(procpar, args):
     ds.InstanceCreationTime = t.strftime('%H%M%S.%f')
     # 0008,0014 Instance Creator UID (optional)
     ds.InstanceCreatorUID = CreateUID(
-        UID_Type_InstanceCreator, [], [], args.verbose)
+        A2D.UID_Type_InstanceCreator, [], [], args.verbose)
     # 0008,0201 Timezone Offset From UTC (optional)
     ds.TimezoneOffsetFromUTC = t.strftime('%z')
 
@@ -1229,7 +1228,7 @@ def ProcparToDicomMap(procpar, args):
 #                                       Table C.8-100b
 #                     MR ARTERIAL SPIN LABELING MACRO ATTRIBUTES
 
-    if ('asl' in procpar.keys() and procpar["asl"] == "y"):
+    if 'asl' in procpar.keys() and procpar["asl"] == "y":
         ds.ImageType = ["ORIGINAL", "PRIMARY", "ASL", "NONE"]
 
 # must have sequence to start ASL macro
@@ -1892,15 +1891,116 @@ def ProcparToDicomMap(procpar, args):
         print 'Patient Position: ', ds.PatientPosition
     ds.PatientPosition = 'HFS'
 
-    ds.DerivationDescription = Derivation_Description + '\n' + DVCS_STAMP
+    ds.DerivationDescription = A2D.Derivation_Description + '\n' + A2D.DVCS_STAMP
 
     return ds, MRAcquisitionType
+# ends ProcparToDicomMap
 
+def CalcTransMatrix(ds, orientation, location, span, rank, PixelSpacing, SliceThickness):
+    """ Calculation  of image transformation matrix
+    
+     For further information regarding the location, orientation, roi, span,
+	 etc properties in the FDF header, see the "Agilent VNMRJ 3.2 User
+	 Programming User Guide", pgs 434-436.	Also see VNMRJ Programming.pdf Ch5
+	 Data Location and Orientation Fields p 292.
+
+	 Orientation defines the user frame of reference, and is defined according
+	 to the magnet frame of reference (X,Y,Z), where
+		Z is along the bore, from cable end to sample end
+		Y is bottom to top, and
+		X is right to left, looking along positive Z
+	 ref: "Agilent VnmrJ 3 Imaging User Guide" pg 679
+	
+	 Location defines the position of the centre of the acquired data volume,
+	 relative to the magnet centre, in the user frame of reference.
+	
+	 ROI is the size of the acquired data volume in cm in the user frame of
+	 reference.
+	
+	 Origin is the coordinates of the first point in the data set, in the user
+	 frame of reference.
+	
+	 'abscissa' is a set of rank strings ("hz", "s", "cm", "cm/s",
+	 "cm/s2", "deg", "ppm1", "ppm2", "ppm3") that identifies the
+	 units that apply to each dimension (e.g., char
+	 *abscissa[]={"cm","cm"};).
+	
+	 'span' is a set of rank floating point values for the signed
+	 length of each axis, in user units. A positive value means the
+	 value of the particular coordinate increases going away from the
+	 first point (e.g., float span[]={10.000,-15.000};).
+	
+	 ordinate is a string ("intensity", "s", "deg") that gives the units
+	 that apply to the numbers in the binary part of the file (e.g.,char
+	 *ordinate[]={"intensity"};).
+    """
+    # if args.verbose:
+    #    print "Span: ", span, span.shape
+    #    print "Location: ", location, location.shape
+
+    # diff = numpy.setdiff1d(span, location)
+
+    if numpy.prod(span.shape) != numpy.prod(location.shape):
+        span = numpy.resize(span, (1, 3))
+    # print span
+    origin = location - span / 2.0
+
+    FirstVoxel = orientation.transpose() * origin.transpose()
+
+    # DICOM patient coordinate system is defined such that x increases towards
+    # the patient's left, y increases towards the patient's posterior, and z
+    # increases towards the patient's head. If we imageine a (miniature) human
+    # lying supine, with their head towards the cable end of the magnet, then x
+    # in the user reference frame remains the same, while y and z are inverted.
+    # See DICOM Standard section C.7.6.2.1.1
+
+    ImagePositionPatient = FirstVoxel.flatten().tolist()[0]
+    ImagePositionPatient[1] *= -1
+    ImagePositionPatient[2] *= -1
+
+    ImageOrientationPatient = orientation.flatten().tolist()[0]
+    ImageOrientationPatient[1] *= -1
+    ImageOrientationPatient[2] *= -1
+    ImageOrientationPatient[4] *= -1
+    ImageOrientationPatient[5] *= -1
+
+    # (0020,0032) Image Patient Position
+    ds.ImagePositionPatient = [str(ImagePositionPatient[0]),
+                               str(ImagePositionPatient[1]),
+                               str(ImagePositionPatient[2])]
+
+    #(0020,0037) Image Patient Orientation
+    ds.ImageOrientationPatient = [str(ImageOrientationPatient[0]),
+                                  str(ImageOrientationPatient[1]),
+                                  str(ImageOrientationPatient[2]),
+                                  str(ImageOrientationPatient[3]),
+                                  str(ImageOrientationPatient[4]),
+                                  str(ImageOrientationPatient[5])]
+    if rank == 3:
+        # Prepare to fix 3rd dimension position using transformation matrix in
+        # Save3DFDFtoDicom
+        ImageTransformationMatrix = \
+            numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0],
+                           PixelSpacing[1] * ImageOrientationPatient[1],
+                           SliceThickness * ImageOrientationPatient[2],
+                           ImagePositionPatient[0]],
+                          [PixelSpacing[0] * ImageOrientationPatient[3],
+                           PixelSpacing[1] * ImageOrientationPatient[4],
+                           SliceThickness * ImageOrientationPatient[5],
+                           ImagePositionPatient[1]],
+                          [PixelSpacing[0] * ImageOrientationPatient[6],
+                           PixelSpacing[1] * ImageOrientationPatient[7],
+                           SliceThickness * ImageOrientationPatient[8],
+                           ImagePositionPatient[2]],
+                          [0, 0, 0, 1]])
+    else:
+        ImageTransformationMatrix = []
+    return ds, ImageTransformationMatrix
 
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(usage=' procpartodicommapping -i "Input FDF directory"',
-                                     description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' + AGILENT2DICOM_VERSION)
+                                     description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' +  A2D.AGILENT2DICOM_VERSION)
     parser.add_argument(
         '-i', '--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files', required=True)
     parser.add_argument(
