@@ -499,6 +499,8 @@ See examples in Makefile.
 
 *Other guidelines*
 
+Use pylint, pyflakes and autopep8 to cleanup the python scripts. Use shellcheck for shell scripts.
+
 ## Who do I talk to? ##
 
 * Dr. Michael Eager (michael.eager@monash.edu) or someone in the Imaging Team at MBI
