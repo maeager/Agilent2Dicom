@@ -11,7 +11,7 @@
   Version 1.6: Standard deviation filters
   Version 1.7: Logging
 
-  $Id: fid2dicom.py,v aa81d1264988 2015/02/19 00:01:06 michael $
+  $Id: fid2dicom.py,v a1e486e6a9a3 2015/02/19 03:40:07 michael $
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
@@ -87,17 +87,17 @@ def sigmaparse(s):
     """
     try:
         print "Sigma parse ", s
-        if s.find(', '):
+        if not s.find(', ') == -1:
             print "Mapping "
             x, y, z = map(float, s.split(','))
             print x, y, z
-            return (x, y, z)
+            val= (x, y, z)
         else:
-            return (float(s), float(s), float(s))
-    except:
+            val= (float(s), float(s), float(s))
+    except ValueError:
         raise argparse.ArgumentTypeError(
             "Sigma must be single value or comma-seperated with no spaces (eg. 1.0,1.0,3.0)")
-        
+    return val
 
 
 if __name__ == "__main__":
@@ -190,6 +190,11 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                         help='''Epanechnikov filter smoothing of reconstructed RE and IM components.''', action="store_true")
     parser.add_argument('-b', '--epanechnikov_bandwidth',
                         help='''Epanechnikov bandwidth variable default sqrt(7/2).''', type=sigmaparse)
+    parser.add_argument('-Y', '--FT_epanechnikov_filter', help='''Epanechnikov
+                        filter smoothing in Fourier domain. Fourier
+                        transform of Epanechnikov filter applied to real and imag Kspace
+                        before reconstruction.''',
+                        action="store_true")
     parser.add_argument('-n', '--window_size',
                         help='''Window size of Wiener and Median filters. Default 5.''', type=wsizeparse)  # , default=(3,3,3))
     parser.add_argument('-wn', '--wiener_noise', help='''Wiener filter
@@ -258,7 +263,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
 
     logging.basicConfig(
         filename=re.sub('.dcm', '.log', outdir), level=logging.DEBUG)
-    logging.info('Starting fid2dicom ' + str(datetime.datetime.today()))q
+    logging.info('Starting fid2dicom ' + str(datetime.datetime.today()))
     logging.info('Input directory: ' + args.inputdir)
     logging.info('Output directory: ' + outdir)
     if os.path.exists(outdir):
