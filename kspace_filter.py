@@ -699,8 +699,10 @@ def test_double_resolution_depth(ksp, basename):
     test_depth_algorithm(image_filtered, basename)
 
 
-def super_resolution(ksp, basename):
-    """super_resolution creates double resolution image from k-space data
+def pseudosuper_resolution(ksp, basename):
+    """pseudosuper_resolution creates double resolution image from k-space data
+    based on super-resolution methodsfor multiple averages, this just expands the
+    kspace data and reconstructs image.  Equivalent to interpolation in image space.
     """
     print "Double res and " + basename + " filter"
     # two 32-bit float

@@ -1574,7 +1574,9 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                     <item>
                      <widget class="QCheckBox" name="checkBox_kspepa">
                       <property name="toolTip">
-                       <string>3D Epanechnikov filter in k-space (Fourier domain).   FFT of image filter used instead of calculated filter.</string>
+                       <string>3D Epanechnikov filter in k-space (Fourier domain).   FFT of image filter used instead of calculated filter.
+Pseudo-superresolution is available that can double the resolution in image space (equivalent to a complex interpolation).
+</string>
                       </property>
                       <property name="text">
                        <string>Use Kspace Epanechnikov
@@ -1585,7 +1587,7 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                     <item>
                      <widget class="QCheckBox" name="checkBox_kspepashift">
                       <property name="toolTip">
-                       <string>Disable k-space frequency shift</string>
+                       <string>Disable k-space frequency shift.  Before filtering in Fourier domain, the maximum point in the k-space data is placed in the centre of the image. Disabling this may produce unusual effects from the filtering.</string>
                       </property>
                       <property name="text">
                        <string>No Shift</string>
@@ -1597,13 +1599,13 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                       <property name="toolTip">
                        <string>Use zero padding in k-space to double image resolution. 
 
-WARNING this will increase 3D volume sizes by a factor of 8.
+!!!WARNING this will increase 3D volume sizes by a factor of 8.!!!
 
-Super-resolution uses zero-filled k-space data to double the resolution of the image. 
-The super-resolution image is saved to NIFTI while the standard is saved to dicom. </string>
+(Pseudo) Super-resolution uses zero-filled k-space data to double the resolution of the image. This is equivalent to interpolation in image space.
+The pseudo super-resolution image is saved to NIFTI while the standard is saved to DICOM. </string>
                       </property>
                       <property name="text">
-                       <string>Super-resolution
+                       <string>(Psuedo)Super-resolution
 (Saved to NIFTI only)</string>
                       </property>
                      </widget>
@@ -1615,7 +1617,7 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
                     <item>
                      <widget class="QLabel" name="label_2">
                       <property name="text">
-                       <string>Effective Filter Bandwidth
+                       <string>Effective Image Domain Bandwidth
 (Use Gaussian sigma
  times sqrt(dim+4) )</string>
                       </property>
@@ -1677,7 +1679,10 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
                     <item>
                      <widget class="QLabel" name="label_4">
                       <property name="text">
-                       <string> Complex Fourier domain Epanechnikov filter is generated from complex image domain kernel. </string>
+                       <string> Note: Complex Fourier domain Epanechnikov filter is generated from complex image domain kernel. 
+
+Pseudo super-resolution does not give additional subvoxel information to the image.  It is a complex interpolation for assisting contrast in rendering 
+</string>
                       </property>
                      </widget>
                     </item>
