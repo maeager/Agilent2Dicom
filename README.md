@@ -24,7 +24,7 @@ include enhanced DICOM conversion, full implementation for all
 sequences, FID complex filtering, and PYQT4 GUIs.
 
 FDF reconstructed images are converted to enhanced DICOM by the
-FDF2DCM suite (*fdf2dcm.sh*, *agilent2dicom.py*, *ReadFDF.py* and
+FDF2DCM suite (*fdf2dcm.sh*, *agilentFDF2dicom.py*, *ReadFDF.py* and
 *ParseFDF.py*).  fdf2dcm.sh is a wrapping bash script that cleans up
 the input arguments and calls a python script agilent2dicom to do the
 conversion of FDF files to basic 2D DICOM files. fdf2dcm.sh then calls
@@ -94,11 +94,11 @@ files.
 
 The crux of the script is performed within the agilent2dicom python
 script. For conversion to standard 2D dicoms without combination
-using DCMULTI, use agilent2dicom.py as follows:
+using DCMULTI, use *agilentFDF2dicom.py* as follows:
 ```
 #!bash
 
-[eagerm@m2101 Agilent2Dicom]$ ./agilent2dicom.py -v -i ../ExampleAgilentData/standard2d -o ../output_data/standard2d
+[eagerm@m2101 Agilent2Dicom]$ ./agilentFDF2dicom.py -v -i ../ExampleAgilentData/standard2d -o ../output_data/standard2d
 ```
 
 
@@ -137,8 +137,6 @@ More advanced usage using Fourier Epanechnikov filter, with super-resolution:
 ```
 
 
-
-
 ### Current bugs and faults ###
 
 For bugs and faults see [debugging page](https://confluence-vre.its.monash.edu.au/display/MBI/FDF2DCM+debugging).
@@ -159,7 +157,6 @@ See INSTALL.txt
  * dicom3tools  (dcmulti, dciodvfy, dcdump)
  * dcmtk  (dcmodify and dcmdump)
  * mrtrix (0.2.12 or mrtrix3)
-
 
 
 ## Advanced usage ##
@@ -186,7 +183,7 @@ agilent2dicom.py has short and long arguments:
 ```
 #!bash
 
-[eagerm@m2101 Agilent2Dicom]$ ./agilent2dicom.py -h
+[eagerm@m2101 Agilent2Dicom]$ ./agilentFDF2dicom.py -h
 usage: agilent2dicom -i "Input FDF directory" [-o "Output directory"] [-m] [-p] [-v] 
 agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI.
 optional arguments:
