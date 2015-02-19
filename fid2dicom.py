@@ -579,8 +579,8 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             save_as_nifti(
                 np.abs(image_filtered), re.sub('.dcm', '-kspgaussian', outdir))
         if args.double_resolution:
-            logging.info('Running super-resolution on kspace gaussian data')
-            KSP.super_resolution(
+            logging.info('Running pseudosuper-resolution on kspace gaussian data')
+            KSP.pseudosuper_resolution(
                 kspgauss, re.sub('.dcm', '-kspgaussian', outdir))
 
     if args.FT_epanechnikov_filter:
@@ -622,7 +622,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                 np.abs(image_filtered), re.sub('.dcm', '-kspepa', outdir))
         if args.double_resolution:
             logging.info(
-                'Running super-resolution on kspace epanechnikov data')
+                'Running pseudosuper-resolution on kspace epanechnikov data')
             KSP.super_resolution(kspepa, re.sub('.dcm', '-kspepa', outdir))
             logging.info('Super-resolution complete')
 

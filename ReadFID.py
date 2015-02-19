@@ -45,12 +45,13 @@ def get_bit(value, bit_number):
 
 
 def readfid(fidfolder, procpar, args):
-    """
-      fid_header, realpart, imagpart = readfid(fidfolder[, procpar])
+    """readfid
      read kspace data from Agilent fid and procpar files.
      output img has dimensions [freq, phase, slice, channel, echo]
      note that the image may have to be circular shifted in the phase
      direction.
+
+    >>>  fid_header, realpart, imagpart = readfid(fidfolder, procpar,args)
     """
     # error(nargchk(1, 2, nargin))
 
