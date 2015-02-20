@@ -108,14 +108,14 @@ print_usage(){
     echo -e "\n" \
 	"usage: ./fid2dcm.sh -i inputdir [-o outputdir] [-v] [-m] [-p] [-r]
 [-k] [-N] [[-g 1.0 -j 0 -e wrap] [-l 1.0] [-n 5] [ -w 5 -z 0.001][-y
-1.0 -j 0 -e wrap]]\n\n
+1.0 -j 0 -e wrap]] [[-D] [-G 1.0 ] [-L 1.0] [-Y 1.0 ]]\n\n
 
   To export recon components use magnitude (-m), phase (-p), real and
   imag (-r) or k-space (-k). Filtering is available for Gaussian filter
   (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n
   window_size), Wiener filter (-w window_size) or Epanechnikov filter
   (-y <bandwidth>). K-space Fourier filtering is avalable for Gaussian
-  (-G <sigma>) and Epanechnikov (-Y <bandwidth>) filters.\n" \
+  (-G <sigma>), Laplace of Gaussian (-L) and Epanechnikov (-Y <bandwidth>) filters.\n" \
 	"\n" \
 	"-i <inputdir>  FID source directory\n" \
 	"-o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm. \n" \
@@ -170,7 +170,7 @@ fi
 
 
 ## Parse arguments
-while getopts ":i:o:g:l:j:e:n:s:w:y:z:G:E:Y:DhmprkdNCxv" opt; do
+while getopts ":i:o:g:l:j:e:n:s:w:y:z:G:L:Y:DhmprkdNCxv" opt; do
     case $opt in
 	i)
 	    echo "Input dir:  $OPTARG" >&2
@@ -324,7 +324,7 @@ done
 
 # Clean up input args
 if [ ! -d "$input_dir" ]; then
-    echo "fiddcm.sh must have a valid input directory of FID images."
+    echo "fid2dcm.sh must have a valid input directory of FID images."
     exit $E_BADARGS
 fi
 ## Set output_dir if not in args, default is INPUT/.dcm
@@ -430,9 +430,7 @@ then
      	echoext=$(printf '%03d' $iecho)
      	echo "Converting echo ${iecho} using dcmulti"
      	for dcmdir in $dirs; do
-	    ${DCMULTI} "${dcmdir}/0${echoext}.dcm" $(ls -1 "${dcmdir}/tmp/*echo${echoext}.dcm" | \
-		sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
-		sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+	    ${DCMULTI} "${dcmdir}"/0"${echoext}".dcm $(ls -1 "${dcmdir}"/tmp/*echo"${echoext}".dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 	done
     done
 
@@ -457,9 +455,7 @@ elif  [ -f "${output_dir}/DIFFUSION" ]; then
      	echo "Converting bdir ${ibdir} using dcmulti"
 	for dcmdir in $dirs; do
 	## Input files are sorted by image number and slice number. 
-     	    ${DCMULTI} "${dcmdir}/0${bdirext}.dcm" $(ls -1 "${dcmdir}/tmp/*image${bdirext}*.dcm" | \
-		sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
-		sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	    ${DCMULTI} "${dcmdir}/0${bdirext}.dcm" $(ls -1 "${dcmdir}"/tmp/*image"${bdirext}"*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 	done
     done
     echo "Diffusion files compacted."
@@ -477,9 +473,7 @@ elif  [ -f "${output_dir}/ASL" ]; then
      	echo "Converting ASL tag ${iasl} using dcmulti"
 	for dcmdir in $dirs; do
 	## Input files are sorted by image number and slice number. 
-     	    ${DCMULTI} "${dcmdir}/0${aslext}.dcm" $(ls -1 "${dcmdir}/tmp/*echo${aslext}.dcm" | \
-		sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
-		sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	    ${DCMULTI} "${dcmdir}/0${aslext}.dcm" $(ls -1 "${dcmdir}"/tmp/*echo"${aslext}".dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 	done
     done
     echo "ASL files converted."
@@ -493,9 +487,7 @@ else
     ## based on echo time, then image number, then slice number.
     ## Only one output file is required, 0001.dcm. 
     for dcmdir in $dirs; do
-	${DCMULTI} "${dcmdir}/0001.dcm" $(ls -1 "${dcmdir}/tmp/*.dcm"  | \
-	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
-	    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+	${DCMULTI} "${dcmdir}/0001.dcm" $(ls -1 "${dcmdir}"/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 	[ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
     done
 fi
