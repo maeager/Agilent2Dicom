@@ -22,6 +22,7 @@
 
 import os
 import sys
+import math
 import re
 import struct
 import numpy as np
@@ -89,7 +90,7 @@ def readfid(fidfolder, procpar, args):
         fid_header['FOVcm'] = [procpar['lro'],
                                procpar['lpe'],
                                procpar['lpe2']]
-        fid_header['dims'] = [procpar['nf'],
+        fid_header['dims'] = [procpar['nf'] / procpar['ne'],
                               procpar['np'] / 2,
                               procpar['nv2']]
         fid_header['voxelmm'] = np.array(
@@ -636,6 +637,7 @@ def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
             # [:, echo::fid_header['nEchoes'], n::fid_header['nChannels']]
             ksp[:, :, :].imag = ksp_data_imag
         else:
+            print "Processing multi-echo or multi-channel 3D image"
             for echo in xrange(0, int(fid_header['nEchoes'])):
                 for n in xrange(0, int(fid_header['nChannels'])):
                     if args.verbose:
@@ -1439,7 +1441,7 @@ def SaveFIDtoDicom(ds, procpar, image_data, fid_properties, M, args, outdir):
             ds.ImageType[2] = "MAGNITUDE"
         ds.ComplexImageComponent = 'MAGNITUDE'
         voldata = np.abs(image_data)  # Magnitude
-        outdir1 = re.sub('.dcm', '-mag.dcm', outdir)
+        outdir1 = outdir  #  re.sub('.dcm', '-mag.dcm', outdir)
         if not os.path.isdir(outdir1):
             mkdir_or_cleandir(outdir1, args)
         Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M,
@@ -1453,6 +1455,7 @@ def SaveFIDtoDicom(ds, procpar, image_data, fid_properties, M, args, outdir):
         orig_imagetype = ds.ImageType[2]
         ds.ImageType[2] = "PHASE MAP"
         ds.ComplexImageComponent = 'PHASE'
+        voldata = np.angle(image_data)
         outdir1 = re.sub('.dcm', '-pha.dcm', outdir)
         if not os.path.isdir(outdir1):
             mkdir_or_cleandir(outdir1, args)
@@ -1482,7 +1485,7 @@ def SaveFIDtoDicom(ds, procpar, image_data, fid_properties, M, args, outdir):
 # end SaveFIDtoDicom
 
 
-def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir, isPhase=0):
+def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir):
     """
     Multi-dimension (3D) export of FID format image data and metadata to DICOM
 
@@ -1493,6 +1496,7 @@ def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir, isPh
     :param M: Image transformation matrix
     :param args: argparse struct
     :param outdir: output directory
+
     :return ds: Return the pydicom dataset
     """
     if np.iscomplexobj(voldata):
@@ -1501,7 +1505,7 @@ def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir, isPh
     # Calculate the max and min throughout all dataset values;
     # calculate the intercept and slope for casting to UInt16
     ds, voldata = RescaleFIDImage(ds, voldata, args)
-    voldata = np.squeeze(voldata)
+    
 
 #    if not os.path.isdir(outdir):
 #        if args.verbose:
@@ -1561,15 +1565,20 @@ def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir, isPh
 
     ds.FrameContentSequence[0].StackID = [str(1)]
     if voldata.ndim == 5:
+        if args.verbose:
+            print "Saving 5D image "
         for echo in xrange(0, voldata.shape[4]):
             ds.EchoNumber = str(echo + 1)
             for n in xrange(0, voldata.shape[3]):
                 # Indexing in np matrix begins at 0, fid/dicom filenames
                 # begin at 1
                 for islice in xrange(0, range_max):
-                    # Reshape volume slice to 1D array
-                    slice_data = np.reshape(
-                        np.squeeze(voldata[:, :, islice, n, echo]), (num_slicepts, 1))
+                    if args.verbose:
+                        print "Reshape volume slice to 1D array ", voldata.shape[0] * voldata.shape[1], num_slicepts
+                        
+                    slice_data = np.reshape(np.squeeze(voldata[:, :, islice,
+                                                               n, echo]),
+                                            (num_slicepts, 1))
                     # Convert Pixel data to string
                     ds.PixelData = slice_data.tostring()
                     new_filename = "slice%03dimage%03decho%03d.dcm" % (
@@ -1600,10 +1609,12 @@ def Save3dFIDtoDicom(ds, procpar, voldata, fid_properties, M, args, outdir, isPh
             ds.FrameContentSequence[0].StackID = str(
                 int(ds.FrameContentSequence[0].StackID[0]) + 1)
     else:
+        if args.verbose:
+            print "Saving 3D image "
         for islice in xrange(0, range_max):
             # Reshape volume slice to 1D array
-            slice_data = np.reshape(
-                np.squeeze(voldata[:, :, islice]), (num_slicepts, 1))
+            slice_data = np.reshape(np.squeeze(voldata[:, :, islice]),
+                                    (num_slicepts, 1))
             # Convert Pixel data to string
             ds.PixelData = slice_data.tostring()
             new_filename = "slice%03dimage001echo001.dcm" % (islice + 1)
