@@ -116,9 +116,10 @@ Complex filtering is available for  gaussian (-g), laplacian (-l),
 median (-d), epanechnikov (-y), stdev (-sd)  or wiener (-w) filters.\n
 
 Fourier domain filtering is available for Gaussian (-G), Epanechnikov
-                                     (-Y) and Laplacian (-L).\n
+(-Y) and Laplacian (-L).\n
 
-Super-resolution (-D) is generated from zero-padding filtered kspace.
+Double-resolution (-D) is generated from zero-padding filtered kspace.
+                                     
 !!!WARNING!!! This produces images 8 times larger than the original
 and are stored as NIFTI.\n
 
@@ -181,30 +182,42 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                         nearest.''', choices=['reflect', 'constant',
                                               'nearest', 'mirror', 'wrap'],
                         default='nearest')
-    parser.add_argument('-d', '--median_filter', help='''Median filter smoothing of
-        reconstructed RE and IM components. ''', action="store_true")
+    parser.add_argument('-d', '--median_filter', help='''Median filter
+                        smoothing ofreconstructed RE and IM components.
+                        ''', action="store_true")
     parser.add_argument(
         '-w', '--wiener_filter', help='''Wiener filter smoothing of
         reconstructed RE and IM components.''', action="store_true")
-    parser.add_argument('-y', '--epanechnikov_filter',
-                        help='''Epanechnikov filter smoothing of reconstructed RE and IM components.''', action="store_true")
-    parser.add_argument('-b', '--epanechnikov_bandwidth',
-                        help='''Epanechnikov bandwidth variable default sqrt(7/2).''', type=sigmaparse)
-    parser.add_argument('-Y', '--FT_epanechnikov_filter', help='''Epanechnikov
-                        filter smoothing in Fourier domain. Fourier
-                        transform of Epanechnikov filter applied to real and imag Kspace
-                        before reconstruction.''',
-                        action="store_true")
-    parser.add_argument('-n', '--window_size',
-                        help='''Window size of Wiener and Median filters. Default 5.''', type=wsizeparse)  # , default=(3,3,3))
+    parser.add_argument(
+        '-y', '--epanechnikov_filter',
+        help='''Epanechnikov filter smoothing of reconstructed RE and IM
+        components.''',
+        action="store_true")
+    parser.add_argument(
+        '-b', '--epanechnikov_bandwidth',
+        help='''Epanechnikov bandwidth variable default sqrt(7/2).''',
+        type=sigmaparse)
+    parser.add_argument(
+        '-Y', '--FT_epanechnikov_filter', help='''Epanechnikov
+        filter smoothing in Fourier domain. Fourier
+        transform of Epanechnikov filter applied to real and imag Kspace
+        before reconstruction.''',
+        action="store_true")
+    parser.add_argument(
+        '-n', '--window_size',
+        help='''Window size of Wiener and Median filters. Default 5.''',
+        type=wsizeparse)  # , default=(3,3,3))
     parser.add_argument('-wn', '--wiener_noise', help='''Wiener filter
         noise. Estimated variance of image. If none or zero, local
         variance is calculated. Default 0=None.''', default=0.0)
-    parser.add_argument('-sd', '--standard_deviation_filter', help='''Standard deviation filter
+    parser.add_argument('-sd', '--standard_deviation_filter',
+                        help='''Standard deviation filter
         of reconstructed RE and IM components.''', action="store_true")
-    parser.add_argument('-sp', '--standard_deviation_phase', help='''Standard deviation filter
+    parser.add_argument('-sp', '--standard_deviation_phase',
+                        help='''Standard deviation filter
         of reconstructed phase.''', action="store_true")
-    parser.add_argument('-sm', '--standard_deviation_magn', help='''Standard deviation filter
+    parser.add_argument('-sm', '--standard_deviation_magn',
+                        help='''Standard deviation filter
         of reconstructed magnitude.''', action="store_true")
     parser.add_argument('-C', '--no_centre_shift',
                         help='Disable centering maximum in k-space data.',
@@ -295,7 +308,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         procpar, hdr, dims, data_real, data_imag = FID.readfid(args.inputdir,
                                                                procpar, args)
     except IOError:
-        logging.error('IOError in readfid.')
+        logging.error('fid2dicom: IOError in readfid.')
         sys.exit(1)
 
     logging.info('FID file read complete.')
@@ -318,24 +331,32 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         ksp = KSP.kspaceshift(ksp)
         logging.info('Kspace shift complete')
 
+    if args.verbose:
+        print "Reconstructing raw image"
+    logging.info('Reconstructing raw image')
     image_data = fftshift(ifftn(ifftshift(ksp)))
     logging.info('IFFT recon complete')
-    FID.Save3dFIDtoDicom(ds, procpar, image_data, hdr,
-                         tmatrix, args, outdir)
+    ds.DerivationDescription = '''%s\n
+    Agilent2Dicom Version: %s \nVCS Stamp: %s\n
+    Scipy version: %s\n
+    Basic reconstruction of unfiltered k-space data.
+    ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
+               scipy.__version__)
+    FID.SaveFIDtoDicom(ds, procpar, image_data, hdr, tmatrix, args, outdir)
     logging.info('Image saved to DICOM.')
     if args.nifti:
         save_as_nifti(np.abs(image_data), outdir)
         logging.info('Image saved to NIFTI.')
 
     if args.gaussian_filter:
-        sigma = np.array(ksp.shape)
+        sigma = np.ones(3)
         if not args.sigma:
             sigma = sigma * np.sqrt(0.5)
         else:
             try:
-                sigma[0], sigma[1], sigma[2] = map(
-                    float, args.sigma.split(', '))
-                sigma = np.array(ksp.shape) * sigma
+               #  sigma[0], sigma[1], sigma[2] = (args.sigma[0],args.sigma[1],args.sigma[2])
+                
+                sigma = np.array(args.sigma) 
             except ValueError:
                 sigma = sigma * float(args.sigma)
                 
@@ -557,9 +578,9 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             sigma = sigma * np.sqrt(0.5)
         else:
             try:
-                sigma[0], sigma[1], sigma[2] = map(
-                    float, args.sigma.split(', '))
-                sigma = sigma
+                # sigma[0], sigma[1], sigma[2] = map(
+                #    float, args.sigma.split(', '))
+                sigma = np.array(args.sigma)
             except ValueError:
                 sigma = sigma * float(args.sigma)
                 
@@ -592,12 +613,13 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         # Read EPA bandwidth from sigma argument
         epabw = np.ones(3)
         if not args.sigma:
-            epabw = epabw * np.sqrt(3.5)
+            epabw = epabw * np.sqrt(7.0/2.0)
         else:
             try:
-                epabw[0], epabw[1], epabw[2] = map(
-                    float, args.epanechnikov_bandwidth.split(', '))
-                epabw = np.ones(3) * epabw
+                # epabw[0], epabw[1], epabw[2] = args.epanechnikov_bandwidth
+                
+                epabw = np.array(args.epanechnikov_bandwidth)
+                
             except ValueError:
                 epabw = epabw = np.ones(3) * float(args.epanechnikov_bandwidth)
                 
@@ -620,7 +642,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
 
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
-                           re.sub('.dcm', '-kspepa.dcm', outdir))
+                           re.sub('.dcm', '-kspepanech.dcm', outdir))
         logging.info(ds.DerivationDescription+'\nkspaceepanechnikov_filter image saved to Dicom.')
         if args.nifti:
             save_as_nifti(
