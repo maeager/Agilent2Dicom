@@ -365,8 +365,26 @@ factor of 20.
 ```
 #!bash
 
-[eagerm@m2108 Agilent2Dicom]$ ./fid2dicom.py -v -m -g -s 0.707 -i ../ExampleAgilentData//kidney512iso_01.fid 
-[eagerm@m2108 Agilent2Dicom]$ ./fid2dicom.py -v -m -g -s 0.707,0.707,0.035 -i ../example_data/s_2014072901/T2-cor_01.fid -o ../output_data/s_2014072901/T2-cor_01.dcm
+./fid2dicom.py -v -m -g -s 0.707 -i ../ExampleAgilentData//kidney512iso_01.fid 
+./fid2dicom.py -v -m -g -s 0.707,0.707,0.035 -i ../example_data/s_2014072901/T2-cor_01.fid -o ../output_data/s_2014072901/T2-cor_01.dcm
+```
+
+An isotropic example with different FOV lengths does not require a
+tuple for sigma.  The multi-echo GRE example below outputs the
+magnitude and phase components of image-space filtered, k-space
+filtered, and k-space filtered double-resolution images from Gaussian
+and Epanechnikov filters.  
+
+``` #!bash
+
+cd ~/Monash016/eagerm/Agilent2Dicom/
+./fid2dicom.py -v -N -D -g -G -s 0.707 -y -Y -b 1.8707 -m -p -i ../SheepfetusBrain/s_2014072501/mge3d-100um_01.fid/ -o ../SheepfetusBrain/s_2014072501/mge3d-100um_01.dcm/
+```
+To convert scan to enhanced MR format use the shell script:
+``` #!bash
+
+cd ~/Monash016/eagerm/Agilent2Dicom/
+./fid2dcm.sh -v -N -D -g 0.707 -G -y 1.8707 -Y 1.8707 -m -p -i ../SheepfetusBrain/s_2014072501/mge3d-100um_01.fid/ -o ../SheepfetusBrain/s_2014072501/mge3d-100um_01.dcm/
 ```
 
 
