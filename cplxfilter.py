@@ -785,9 +785,6 @@ def save_nifti(image, basename):
 if __name__ == "__main__":
 
     import os
-    # import sys
-    # import math
-    # import re
     import argparse
     import ReadProcpar as Procpar
     import ProcparToDicomMap

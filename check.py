@@ -19,7 +19,7 @@ try:
     from dicom.sequence import Sequence
     from dicom.dataset import Dataset
 
-    import scipy  #  ; scipy.test()
+    import scipy  # ; scipy.test()
     if scipy.__version__[2] == 7:
         scipy.pkgload('signal')
         scipy.pkgload('ndimage')
