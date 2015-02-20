@@ -191,21 +191,16 @@ def fourierepanechnikov(siz, sigma):
 
 def fouriergausssubband15(siz, sigma):
     """ Subband15 Gaussian filter
-    """
-    sz = np.ceil((np.array(siz)) / 2.0)
-    xx = np.array(range(-int(sz[0]), int(sz[0])))
-    yy = np.array(range(-int(sz[1]), int(sz[1])))
-    zz = np.array(range(-int(sz[2]), int(sz[2])))
-    mult_fact = np.ones((len(yy), len(xx), len(zz)))
-    uu = xx[np.newaxis, :, np.newaxis] * mult_fact
-    vv = yy[:, np.newaxis, np.newaxis] * mult_fact
-    ww = zz[np.newaxis, np.newaxis, :] * mult_fact
-    del mult_fact, xx, yy, zz
 
-    if np.prod(siz) != np.prod(sz * 2):
-        uu = uu[:siz[0], :siz[1], :siz[2]]
-        vv = vv[:siz[0], :siz[1], :siz[2]]
-        ww = ww[:siz[0], :siz[1], :siz[2]]
+    Based on 3D filtering paper:
+    Max W. K. Law and Albert C. S. Chung, "Efficient Implementation for
+    Spherical Flux Computation and Its Application to Vascular Segmentation,
+       IEEE Transactions on Image Processing, 2009, Volume 18(3), 596V612
+
+    http://www.cse.ust.hk/~maxlawwk/
+
+    """
+    (uu,vv,ww) = fouriercoords(siz)
     # Original Gaussian kernel
     gfilter = gaussian_fourierkernel(uu, vv, ww, sigma)
     # Subband_1.5 frequency oversampling component.
@@ -528,12 +523,11 @@ def kspaceshift(ksp):
                 ksp = np.roll(ksp, sub[x], axis=x)
             print ""
     else:
+        kmax = np.array(ndimage.maximum_position(np.squeeze(ksp[:, :, :, 0, 0])))
+        siz = np.array(ksp.shape[0:3])
+        sub = (siz / 2.).astype(int) - kmax
         for echo in xrange(0, ksp.shape[4]):
             for nchannel in xrange(0, ksp.shape[3]):
-                kmax = np.array(
-                    ndimage.maximum_position(np.squeeze(ksp[:, :, :, nchannel, echo])))
-                siz = np.array(ksp.shape[0:3])
-                sub = (siz / 2.).astype(int) - kmax
                 print "Shifting kspace ", sub
                 for x in xrange(0, 3):
                     if sub[x] != 0:
@@ -801,7 +795,7 @@ if __name__ == "__main__":
     # save_nifti(normalise(np.abs(image_filtered)), 'gauss_fourierimage')
 
     print "Computing Gaussian filtered2 image from Original image"
-    kspgauss = kspacegaussian_filter2(ksp, 512 / 0.707)
+    kspgauss = kspacegaussian_filter2(ksp, 0.707)
     image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage')
@@ -813,19 +807,19 @@ if __name__ == "__main__":
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage2')
 
     print "Computing Gaussian 1.0 filtered2 image from Original image"
-    kspgauss1 = kspacegaussian_filter2(ksp, 512.0)
+    kspgauss1 = kspacegaussian_filter2(ksp, 1)
     image_filtered = fftshift(ifftn(ifftshift(kspgauss1)))
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage1')
 
     print "Computing Gaussian 2.0 filtered2 image from Original image"
-    kspgauss2 = kspacegaussian_filter2(ksp, 256.0)
+    kspgauss2 = kspacegaussian_filter2(ksp, 2)
     image_filtered = fftshift(ifftn(ifftshift(kspgauss2)))
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage2')
 
     print "Computing Gaussian sub-band1.5 image from Original image"
-    Fsubband = fouriergausssubband15(ksp.shape, 0.707 / 512.0)
+    Fsubband = fouriergausssubband15(ksp.shape, 0.707)
     image_filtered = fftshift(ifftn(ifftshift(ksp * Fsubband)))
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_subband')
@@ -840,7 +834,7 @@ if __name__ == "__main__":
         ifftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
     alpha = ndimage.mean(np.abs(image_filtered)) / \
         ndimage.mean(np.abs(laplacian))
-    kspgauss = kspacegaussian_filter2(ksp, 256 / 0.707)
+    kspgauss = kspacegaussian_filter2(ksp, 1.707)
     image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
     image_filtered = (np.abs(image_filtered))
     image_filtered = normalise(image_filtered)
@@ -855,9 +849,9 @@ if __name__ == "__main__":
     #  (ndimage.maximum(Flaplace)
     #  - ndimage.minimum(Flaplace))
     Fsmooth = fouriergauss(
-        ksp.shape, (4.0 * np.sqrt(2.0 * np.log(2.0))) / 512.0)
+        ksp.shape, (4.0 * np.sqrt(2.0 * np.log(2.0))))
     # (Fgauss/ndimage.maximum(Fgauss))
-    Fgauss = fouriergauss(ksp.shape, 0.707 / 512)
+    Fgauss = fouriergauss(ksp.shape, 0.707)
     laplacian = fftshift(ifftn(
         ifftshift(kspgauss * Flaplace *
                   (Fsmooth / ndimage.maximum(Fsmooth)))))
@@ -868,7 +862,7 @@ if __name__ == "__main__":
     # # del image_filtered, image_lfiltered
 
     # #print "Computing Gaussian Laplace image from Smoothed image"
-    ksplog = kspacelaplacegaussian_filter(ksp, 512.0 / 0.9)
+    ksplog = kspacelaplacegaussian_filter(ksp, 0.9)
     image_Log = fftshift(ifftn(ifftshift(ksplog)))
     image_Log = (np.abs(image_Log))
     image_Log = normalise(image_Log)
