@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fdf2dcm.sh,v 1eff8dfa629b 2015/01/29 01:53:11 mick $"
+#  "$Id: fdf2dcm.sh,v 698dd463c447 2015/02/20 22:59:12 michael $"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #  Version 1.1: Supporting Diffusion and Multiecho
@@ -274,9 +274,7 @@ then
     for ((iecho=1;iecho<=nechos;++iecho)); do
      	echoext=$(printf '%03d' $iecho)
      	echo "Converting echo ${iecho} using dcmulti"
-     	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${echoext}.dcm" | \
-	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
-	    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${echoext}.dcm" | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     done
 
 # DCMULTI="dcmulti -v -makestack -sortby EchoTime -dimension StackID
@@ -305,9 +303,7 @@ elif  [ -f "${output_dir}/DIFFUSION" ]; then
      	bdirext=$(printf '%03d' $ibdir)
      	echo "Converting bdir ${ibdir} using dcmulti"
 	## Input files are sorted by image number and slice number. 
-     	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 "${output_dir}/tmp/*image${bdirext}*.dcm" | \
-	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
-	    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 "${output_dir}/tmp/*image${bdirext}*.dcm" | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
     done
     echo "Diffusion files compacted."
@@ -325,9 +321,7 @@ elif  [ -f "${output_dir}/ASL" ]; then
      	aslext=$(printf '%03d' $iasl)
      	echo "Converting ASL tag ${iasl} using dcmulti"
 	## Input files are sorted by image number and slice number. 
-     	${DCMULTI} "${output_dir}/0${aslext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${aslext}.dcm" | \
-	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
-	    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	${DCMULTI} "${output_dir}/0${aslext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${aslext}.dcm" | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
     done
     echo "ASL files converted."
@@ -338,9 +332,7 @@ else
     ## number. The second argument reorders the list of 2D dicom files
     ## based on echo time, then image number, then slice number.
     ## Only one output file is required, 0001.dcm. 
-    ${DCMULTI} "${output_dir}/0001.dcm" $(ls -1 "${output_dir}/tmp/*.dcm"  | \
-	sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
-	sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+    ${DCMULTI} "${output_dir}/0001.dcm" $(ls -1 "${output_dir}/tmp/*.dcm"  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     [ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
 
 fi
