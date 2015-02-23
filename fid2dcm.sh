@@ -6,7 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-#  "$Id: fid2dcm.sh,v a7f085c726f7 2015/02/20 22:55:42 michael $"
+#  "$Id: fid2dcm.sh,v 512228b3b2a3 2015/02/23 05:50:33 michael $"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
 #
@@ -73,10 +73,9 @@ declare python_args=""
 set -o nounset  # shortform: -u
 set -o errexit  # -e
 # set -o pipefail
-log_file="$(dirname $0)/error.log"
+
 # touch $(dirname $0)/error.log
 # exec 2>> $(dirname $0)/error.log
-exec &> >(tee -a "$log_file")
 ## set -x  # show debugging output
 
 E_BADARGS=65
@@ -307,7 +306,9 @@ while getopts ":i:o:g:l:j:e:n:s:w:y:z:G:L:Y:DhmprkdNCxv" opt; do
 	    ;;
 	x)
 	    set -x  ## print all commands
-	    exec 2> $(dirname $0)/error.log
+	    log_file="$(dirname $0)/error.log"
+	    exec &> >(tee -a "$log_file")
+	    # exec 2> $(dirname $0)/error.log
 	    ;;
 	\?)
 	    echo "Invalid option: -$OPTARG" >&2
