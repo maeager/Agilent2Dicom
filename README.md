@@ -57,16 +57,15 @@ conversion only. This requires python 2.6 and Tkinter.
 ```
 
 An updated GUI, *Agilent2DicomAppQt*, now uses PyQt4 and enables more
-features including FID conversion.  With the Agilent2Dicom path
-included in the PATH variable, the GUI can be loaded from the terminal
-from any folder:
-```
-#!bash
+features including FID filtering and double-resolution conversion.
+With the Agilent2Dicom path included in the PATH variable, the GUI can
+be loaded from the terminal from any folder: 
+``` #!bash
 
 [vnmr1@vnmrj1 s_2014062002]$ Agilent2DicomAppQt.py
 ```
 
-On MASSIVE, enable the scipy and pyqt4 packages using the following commands:
+On MASSIVE, import the necessary modules, scipy and pyqt4 packages, using the following commands:
 ```
 #!bash
 
@@ -112,7 +111,7 @@ requires an input directory, and an optional output directory.
 *fid2dicom* has additional arguments for complex filtering including
 Gaussian, Gaussian Laplace, Median, and Wiener filters.
 
-** Warning: filtering applicable to isotropic 3D volumes **
+** Warning: filtering applicable to isotropic 3D volumes. Non-isotropic filtering must be done with prior knowledge of dimension and voxel resolution sizes. **
 
 Basic FID2DCM usage from the commandline is as follows:
 ```
@@ -380,11 +379,13 @@ and Epanechnikov filters.
 cd ~/Monash016/eagerm/Agilent2Dicom/
 ./fid2dicom.py -v -N -D -g -G -s 0.707 -y -Y -b 1.8707 -m -p -i ../SheepfetusBrain/s_2014072501/mge3d-100um_01.fid/ -o ../SheepfetusBrain/s_2014072501/mge3d-100um_01.dcm/
 ```
-To convert scan to enhanced MR format use the shell script:
+
+To convert scan to enhanced MR format use the advanced wrapper shell
+script *fid2dcm.sh* (as used by the GUI)):
 ``` #!bash
 
 cd ~/Monash016/eagerm/Agilent2Dicom/
-./fid2dcm.sh -v -N -D -g 0.707 -G -y 1.8707 -Y 1.8707 -m -p -i ../SheepfetusBrain/s_2014072501/mge3d-100um_01.fid/ -o ../SheepfetusBrain/s_2014072501/mge3d-100um_01.dcm/
+./fid2dcm.sh -v -N -D -g 0.707 -G 0.707 -y 1.8707 -Y 1.8707 -m -p -i ../SheepfetusBrain/s_2014072501/mge3d-100um_01.fid/ -o ../SheepfetusBrain/s_2014072501/mge3d-100um_01.dcm/
 ```
 
 
