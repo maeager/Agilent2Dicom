@@ -494,7 +494,7 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
                         ksp[:, :, islice, n, echo].imag = ksp_data_imag[:, echo::fid_header['nEchoes'],
                                                                         n::fid_header['nChannels']]
                         img[:, :, islice, n, echo] = fftshift(ifftn(ifftshift(
-                            ksp[:, np.array(procpar['pelist']) - int(min(procpar['pelist'])), islice, n, echo])))
+                            ksp[:, pelist, islice, n, echo])))
         elif fid_header['nEchoes'] == 1:
             print "Reconstructing mode 3: 2D Multi channel."
 
@@ -518,7 +518,7 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
                             ifftn(ifftshift(ksp[:, :, islice, n, 0])))
     else:  # if procpar.nD == 3
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
-            print 'Reconstructing mode 3: 3D basic'
+            print 'Reconstructing mode: 3D basic'
             ksp = np.empty(
                 [dims[0], dims[1], dims[2]], dtype=np.complex64)  # float32
             img = np.empty(
@@ -585,7 +585,7 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
 
 
 def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
-    """recon Reconstruct k-space image data into N-D k-space
+    """recon Convert k-space image data into N-D k-space
     :param procpar:   procpar dictionary
     :param dims: dimension array
     :param fid_header: header info in fid
@@ -593,13 +593,13 @@ def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
     :param ksp_data_imag: imaginary component of image k-space
     """
     if args.verbose:
-        print 'Reconstructing image'
+        print 'Reconstructing k-space'
         print dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']
         print 'nchannels ', fid_header['nblocks'], 'acqcycles ', procpar['acqcycles']
         print 'Image shape ', ksp_data_real.shape
 
     if np.product(dims) != np.product(ksp_data_real.shape):
-        print "ksp not arrangd properly"
+        print "ksp not arranged properly"
 
     if fid_header['nChannels'] == 1 and fid_header['nEchoes'] == 1:
         ksp = np.empty(
@@ -609,6 +609,9 @@ def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
                         fid_header['nChannels'], fid_header['nEchoes']],
                        dtype=np.complex64)
         # float32
+    if 'pelist' in procpar.keys():
+        pelist = np.array(procpar['pelist']).astype(
+            int) - int(min(procpar['pelist']))
 
     if procpar['nD'] == 2 and procpar['ni2'] == 1:
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
@@ -619,8 +622,10 @@ def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
             ksp[:, :, :].real = ksp_data_real
             # [:, echo::fid_header['nEchoes'], n::fid_header['nChannels']]
             ksp[:, :, :].imag = ksp_data_imag
+            if 'pelist' in locals():
+                ksp[:,:,:] = ksp[:,pelist,:]
 
-        else:
+        elif fid_header['nChannels'] == 1:
             for echo in xrange(0, int(fid_header['nEchoes'])):
                 for n in xrange(0, int(fid_header['nChannels'])):
                     for islice in xrange(0, int(dims[2])):
@@ -628,15 +633,34 @@ def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
                             :, echo::fid_header['nEchoes'], n::fid_header['nChannels']]
                         ksp[:, :, islice, n, echo].imag = ksp_data_imag[
                             :, echo::fid_header['nEchoes'], n::fid_header['nChannels']]
+                        if 'pelist' in locals():
+                            ksp[:,:,islice,n,echo]=ksp[:,pelist,islice,n,echo]
+        elif fid_header['nEchoes'] == 1:
+            print "Reconstructing mode 3: 2D Multi channel."
+            for n in xrange(0, int(fid_header['nChannels'])):
+                if args.verbose:
+                    print "Processing  channel ", n
+                for islice in xrange(0, int(dims[2])):
+                    ksp[:, :, islice, n, echo].real = ksp_data_real[
+                        :, islice * dims[2] + 1:(islice + 1) * dims[2], n]  # islice::dims[2], n]
+                    ksp[:, :, islice, n, echo].imag = ksp_data_imag[
+                        :, islice * dims[2] + 1:(islice + 1) * dims[2], n]  # islice::dims[2], n]
+                    if 'pelist' in locals():
+                        ksp[:, :, islice, n, 0] = ksp[:, pelist, islice, n, 0]
+                    
     else:  # if procpar.nD == 3
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
+            print 'Reconstructing mode: 3D basic'
             ksp = np.empty(
                 [dims[0], dims[1], dims[2]], dtype=np.complex64)  # float32
             # [:, echo::fid_header['nEchoes'], n::fid_header['nChannels']]
             ksp[:, :, :].real = ksp_data_real
             # [:, echo::fid_header['nEchoes'], n::fid_header['nChannels']]
             ksp[:, :, :].imag = ksp_data_imag
-        else:
+            if 'pelist' in locals():
+                ksp[:,:,:] = ksp[:,pelist,:]
+        elif fid_header['nChannels'] == 1:
+            print 'Reconstructing mode 4: 3D Multi echo '
             print "Processing multi-echo or multi-channel 3D image"
             for echo in xrange(0, int(fid_header['nEchoes'])):
                 for n in xrange(0, int(fid_header['nChannels'])):
@@ -646,7 +670,18 @@ def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
                                                                n::fid_header['nChannels']]
                     ksp[:, :, :, n, echo].imag = ksp_data_imag[
                         :, echo::fid_header['nEchoes'], n::fid_header['nChannels']]
-
+                    if 'pelist' in locals():
+                        ksp[:,:,islice,n,echo]=ksp[:,pelist,islice,n,echo]
+        else:
+            print "Reconstructing mode: 3D Multi channel."
+            for n in xrange(0, int(fid_header['nChannels'])):
+                for islice in xrange(0, int(dims[2])):
+                    ksp[:, :, :, n, 0].real = ksp_data_real[
+                        :, n::fid_header['nChannels'], n]
+                    ksp[:, :, :, n, 0].imag = ksp_data_imag[
+                        :, n::fid_header['nChannels'], n]
+                    if 'pelist' in locals():
+                        ksp[:,:,islice,n,echo]=ksp[:,pelist,islice,n,echo]
     return ksp
 # end convksp
 
@@ -1431,7 +1466,7 @@ def SaveFIDtoDicom(ds, procpar, image_data, fid_properties, M, args, outdir):
     """
 
     if args.verbose:
-        print "FID export of complex image to DICOM"
+        print "FID export of complex image to DICOM ", outdir
 
     if args.magnitude:
         if args.verbose:
@@ -1709,7 +1744,7 @@ def SaveKspace(ksp, args):
 
 if __name__ == "__main__":
 
-    import math
+    
     import nibabel as nib
 
     parser = argparse.ArgumentParser(usage=' ReadFID.py -i "Input FID directory"',
