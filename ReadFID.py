@@ -585,7 +585,7 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
 
 
 def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
-    """recon Convert k-space image data into N-D k-space
+    """convksp Convert k-space image data into N-D k-space
     :param procpar:   procpar dictionary
     :param dims: dimension array
     :param fid_header: header info in fid
@@ -593,7 +593,7 @@ def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
     :param ksp_data_imag: imaginary component of image k-space
     """
     if args.verbose:
-        print 'Reconstructing k-space'
+        print 'Reordering k-space'
         print dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']
         print 'nchannels ', fid_header['nblocks'], 'acqcycles ', procpar['acqcycles']
         print 'Image shape ', ksp_data_real.shape
@@ -650,7 +650,7 @@ def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
                     
     else:  # if procpar.nD == 3
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
-            print 'Reconstructing mode: 3D basic'
+            print 'Reorder kspace mode: 3D basic'
             ksp = np.empty(
                 [dims[0], dims[1], dims[2]], dtype=np.complex64)  # float32
             # [:, echo::fid_header['nEchoes'], n::fid_header['nChannels']]
@@ -685,7 +685,241 @@ def convksp(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
     return ksp
 # end convksp
 
+def sliceifftn(ksp):
+    if len(ksp.shape)==3:
+            print 'Reconstructing mode: 3D basic'
+            dims=ksp.shape
+            img = np.empty([dims[0], dims[1], dims[2]], dtype=np.complex64)
+            img[:, :, :] = fftshift(ifftn(ifftshift(ksp[:, :, :])))
+    else:
+        print 'Reconstructing mode 4: 3D Multi echo '
+        for echo in xrange(0, int(fid_header['nEchoes'])):
+            for n in xrange(0, int(fid_header['nChannels'])):
+                if args.verbose:
+                    print "Processing echo ", echo, " channel ", n
+                if 'pelist' in locals():
+                    img[:, :, :, n, echo] = fftshift(
+                        ifftn(ifftshift(ksp[:, pelist, :, n, echo])))
+                else:
+                    img[:, :, :, n, echo] = fftshift(
+                        ifftn(ifftshift(ksp[:, :, :, n, echo])))
+    return img
+                    
+    
+def reconksp(procpar, dims, fid_header, ksp, args,pelistflag=0):
+    """recon Reconstruct k-space image data into N-D image
+    :param procpar:   procpar dictionary
+    :param dims: dimension array
+    :param fid_header: header info in fid
+    :param ksp: k-space
+    """
+    if args.verbose:
+        print 'Reconstructing image'
+        print dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']
+        print 'nchannels ', fid_header['nblocks'], 'acqcycles ', procpar['acqcycles']
+        print 'Image shape ', ksp.shape
 
+    if np.product(dims) != np.product(ksp_data_real.shape):
+        print "ksp not arranged properly"
+
+    if fid_header['nChannels'] == 1 and fid_header['nEchoes'] == 1:
+        img = np.empty(
+            [dims[0], dims[1], dims[2]], dtype=np.complex64)  # float32
+    else:  # two float32
+        img = np.empty([dims[0], dims[1], dims[2], fid_header['nChannels'],
+                        fid_header['nEchoes']], dtype=np.complex64)  # float32
+    # Setup pelist
+    if 'pelist' in procpar.keys() and pelistflag == 0:
+        pelist = np.array(procpar['pelist']).astype(
+            int) - int(min(procpar['pelist']))
+    if procpar['nD'] == 2 and procpar['ni2'] == 1:
+        print 'Reconstructing mode 1: 2D slices'
+        if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
+    
+            # two float32
+            img = np.empty(
+                [dims[0], dims[1], dims[2]], dtype=np.complex64)
+
+            for islice in xrange(0, int(dims[2])):
+                # 'pelist'' in procpar.keys() and len(procpar['pelist']) == int(dims[2]):
+                if 'pelist' in locals():
+                    if args.verbose:
+                        print procpar['pelist']
+                    img[:, :, islice] = fftshift(ifftn(ifftshift(ksp[:,
+                                                                     pelist,
+                                                                     islice])))
+                else:
+                    img[:, :, islice] = fftshift(
+                        ifftn(ifftshift(ksp[:, :, islice])))
+        elif fid_header['nChannels'] == 1:
+            print 'Reconstructing mode 2: 2D slices with ni2=' + procpar['ni2']
+            for echo in xrange(0, int(fid_header['nEchoes'])):
+                for n in xrange(0, int(fid_header['nChannels'])):
+                    for islice in xrange(0, int(dims[2])):
+                        if 'pelist' in locals():
+                            img[:, :, islice, n, echo] = fftshift(ifftn(ifftshift(
+                                ksp[:, pelist, islice, n, echo])))
+                        else:
+                            img[:, :, islice, n, echo] = fftshift(ifftn(ifftshift(
+                                ksp[:, :, islice, n, echo])))
+        elif fid_header['nEchoes'] == 1:
+            print "Reconstructing mode 3: 2D Multi channel."
+
+            for n in xrange(0, int(fid_header['nChannels'])):
+                if args.verbose:
+                    print "Processing  channel ", n
+                for islice in xrange(0, int(dims[2])):
+
+                    if 'pelist' in locals():
+                        img[:, :, islice, n, 0] = fftshift(
+                            ifftn(ifftshift(ksp[:, pelist, islice, n, 0])))
+                    else:
+                        img[:, :, islice, n, 0] = fftshift(
+                            ifftn(ifftshift(ksp[:, :, islice, n, 0])))
+    else:  # if procpar.nD == 3
+        if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
+            print 'Reconstructing mode: 3D basic'
+
+            img = np.empty(
+                [dims[0], dims[1], dims[2]], dtype=np.complex64)  # float32
+
+            if 'pelist' in locals():
+                img[:, :, :] = fftshift(ifftn(ifftshift(ksp[:, pelist, :])))
+            else:
+                img[:, :, :] = fftshift(ifftn(ifftshift(ksp[:, :, :])))
+        elif fid_header['nChannels'] == 1:
+            print 'Reconstructing mode 4: 3D Multi echo '
+
+            for echo in xrange(0, int(fid_header['nEchoes'])):
+                for n in xrange(0, int(fid_header['nChannels'])):
+                    if args.verbose:
+                        print "Processing echo ", echo, " channel ", n
+                    if 'pelist' in locals():
+                        img[:, :, :, n, echo] = fftshift(
+                            ifftn(ifftshift(ksp[:, pelist, :, n, echo])))
+                    else:
+                        img[:, :, :, n, echo] = fftshift(
+                            ifftn(ifftshift(ksp[:, :, :, n, echo])))
+        else:
+            print "Reconstructing mode 4: 3D Multi channel."
+
+            # ksp.real = np.reshape(ksp_data_real,
+            #                       [dims[0], dims[1], dims[2],
+            #                        fid_header['nChannels'], 1])
+            # ksp.imag = np.reshape(ksp_data_imag,
+            #                       [dims[0], dims[1], dims[2],
+            #                        fid_header['nChannels'], 1])
+            print 'KSP shape ', ksp.shape
+            for n in xrange(0, int(fid_header['nChannels'])):
+                for islice in xrange(0, int(dims[2])):
+                
+                if args.verbose:
+                    print "Processing echo 0 channel ", n
+                if 'pelist' in locals():
+                    img[:, :, :, n, 0] = fftshift(
+                        ifftn(ifftshift(ksp[:, pelist, :, n, 0])))
+                else:
+                    img[:, :, :, n, 0] = fftshift(
+                        ifftn(ifftshift(ksp[:, :, :, n, 0])))
+    return img
+# end reconksp
+
+def simpleifft(procpar, dims, fid_header, ksp, args):
+    """recon Reconstruct k-space image data into N-D image
+    :param procpar:   procpar dictionary
+    :param dims: dimension array
+    :param fid_header: header info in fid
+    :param ksp: k-space
+    """
+    if args.verbose:
+        print 'Reconstructing image'
+        print dims[0], dims[1], dims[2], fid_header['nChannels'], fid_header['nEchoes']
+        print 'nchannels ', fid_header['nblocks'], 'acqcycles ', procpar['acqcycles']
+        print 'Image shape ', ksp.shape
+
+    if np.product(dims) != np.product(ksp.shape):
+        print "ksp not arranged properly ", dims, ksp.shape
+
+    if fid_header['nChannels'] == 1 and fid_header['nEchoes'] == 1:
+        img = np.empty(
+            [dims[0], dims[1], dims[2]], dtype=np.complex64)  # float32
+    else:  # two float32
+        img = np.empty([dims[0], dims[1], dims[2], fid_header['nChannels'],
+                        fid_header['nEchoes']], dtype=np.complex64)  # float32
+
+    if procpar['nD'] == 2 and procpar['ni2'] == 1:
+        if args.verbose:
+            print 'Reconstructing mode 1: 2D slices'
+        if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
+            for islice in xrange(0, int(dims[2])):
+                img[:, :, islice] = fftshift(
+                        ifftn(ifftshift(ksp[:, :, islice])))
+        else: # if fid_header['nChannels'] == 1:
+            if args.verbose:
+                print 'Reconstructing mode 2: 2D slices with ni2=' + procpar['ni2']
+                print 'Echoes ', fid_header['nEchoes'], 'Channels ', fid_header['nChannels']
+            for echo in xrange(0, int(fid_header['nEchoes'])):
+                for n in xrange(0, int(fid_header['nChannels'])):
+                    for islice in xrange(0, int(dims[2])):
+                        img[:, :, islice, n, echo] = fftshift(ifftn(ifftshift(
+                                ksp[:, :, islice, n, echo])))
+
+    else:
+        # if len(ksp.shape) == 3:
+        if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
+            if args.verbose:
+                print 'Reconstructing mode: 3D basic'
+            img = fftshift(ifftn(ifftshift(ksp)))
+        else:
+            if args.verbose:
+                print 'Reconstructing mode 4: 3D Multi echo Multi channel '
+            for echo in xrange(0, int(fid_header['nEchoes'])):
+                for n in xrange(0, int(fid_header['nChannels'])):
+                    img[:, :, :, n, echo] = fftshift(
+                            ifftn(ifftshift(ksp[:, :, :, n, echo])))
+
+    return img
+# end simpleifft
+
+def double_resolution2(ksp, basename,procpar,hdr,args):
+    """double_resolution creates double resolution image from k-space data
+    based on super-resolution methodsfor multiple averages, this just expands the
+    kspace data and reconstructs image.  Equivalent to interpolation in image space.
+    """
+    print "Double res and " + basename + " filter"
+    # two 32-bit float
+    ksplarge = np.zeros(np.array(ksp.shape[:3]) * 2, dtype=np.complex64)
+    szmin = np.array(ksp.shape[0:3]) / 2 - 1
+    szmax = np.array(ksp.shape[0:3]) + szmin
+    if len(ksp.shape) == 3:
+        ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp
+        print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
+        
+        image_filtered = simpleifft(procpar, ksplarge.shape, hdr, ksplarge, args)
+        print 'Double res recon ' + basename
+        del ksplarge
+        print "Saving double resolution magnitude image: " + basename + " filtered"
+        save_nifti(np.abs(image_filtered), basename + '-double')
+        if args.phase:
+            print "Saving double-resolution phase image: " + basename + " filtered"
+            save_nifti(np.angle(image_filtered), basename + '-double-pha')
+    else:
+        for echo in xrange(0, int(fid_header['nEchoes'])):
+            for n in xrange(0, int(fid_header['nChannels'])):
+                ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp[:,:,:,n,echo]
+                print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
+                
+                image_filtered = simpleifft(procpar, ksplarge.shape, hdr,ksplarge,args)
+                print 'Double res recon ' + basename
+                print "Saving double resolution magnitude image: " + basename + " filtered"
+                save_nifti(np.abs(image_filtered), basename + '-double_0'+str(n)+'_0'+str(echo))
+                if args.phase:
+                    print "Saving double-resolution phase image: " + basename + " filtered"
+                    save_nifti(np.angle(image_filtered), basename + '-double-pha_0'+str(n)+'_0'+str(echo))
+
+
+
+    
 def RescaleFIDImage(ds, image_data, args):
     """ RescaleFIDImage
     """
