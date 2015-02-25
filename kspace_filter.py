@@ -71,7 +71,8 @@ def gaussian_fourierkernel(uu, vv, ww, sigma):
     if not hasattr(sigma, "__len__"):  # type(sigma) is float:
         gfilter = np.exp(-2 * (np.pi ** 2) *
                          (uu ** 2 + vv ** 2 + ww ** 2) * (sigma ** 2))
-        midpoint = (uu[-1, 0, 0], vv[0, -1, 0], ww[0, 0, -1])
+        
+        midpoint = np.ceil(np.array(uu.shape) / 2.0)
         maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
                                          midpoint[1] - 10:midpoint[1] + 10,
                                          midpoint[2] - 10:midpoint[2] + 10])
@@ -79,7 +80,7 @@ def gaussian_fourierkernel(uu, vv, ww, sigma):
     elif len(sigma) == 2:
         gfilter = np.exp(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
                                               (sigma[1] ** 2) * vv ** 2))
-        midpoint = (uu[-1, 0, 0], vv[0, -1, 0])
+        midpoint = np.ceil(np.array(uu.shape) / 2.0)
         maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
                                          midpoint[1] - 10:midpoint[1] + 10])
         gfilter = gfilter / maxval
@@ -87,7 +88,7 @@ def gaussian_fourierkernel(uu, vv, ww, sigma):
         gfilter = np.exp(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
                                               (sigma[1] ** 2) * vv ** 2 +
                                               (sigma[2] ** 2) * ww ** 2))
-        midpoint = (uu[-1, 0, 0], vv[0, -1, 0], ww[0, 0, -1])
+        midpoint = np.ceil(np.array(uu.shape) / 2.0)
         maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
                                          midpoint[1] - 10:midpoint[1] + 10,
                                          midpoint[2] - 10:midpoint[2] + 10])
@@ -153,7 +154,7 @@ def fourierepanechnikov(siz, sigma):
     Epanechnikov kernel in Fourier domain is
      A.(1-|x|^2)  => (3/2*w^3)(sin(w) - w*cos(w)/2)
     """
-    # (uu,vv,ww) = fouriercoords(siz)
+    # (uu, vv, ww) = fouriercoords(siz)
     # uu = uu + np.spacing(1)
     # vv = vv + np.spacing(1)
     # ww = ww + np.spacing(1)
@@ -200,7 +201,7 @@ def fouriergausssubband15(siz, sigma):
     http://www.cse.ust.hk/~maxlawwk/
 
     """
-    (uu,vv,ww) = fouriercoords(siz)
+    (uu, vv, ww) = fouriercoords(siz)
     # Original Gaussian kernel
     gfilter = gaussian_fourierkernel(uu, vv, ww, sigma)
     # Subband_1.5 frequency oversampling component.
@@ -370,13 +371,13 @@ def kspacegaussian_filter2(ksp, sigma_=None):
     """
     siz = ksp.shape[0:3]
     sigma = np.ones(3)
-    if 'sigma_' not in locals():
+    if 'sigma_' not in locals() :
         sigma = np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
     elif not hasattr(sigma_, "__len__"):
         sigma = np.ones(3) * sigma_
     else:
         sigma = sigma_.copy()
-    Fgauss = fouriergauss(siz, 1 / sigma)
+    Fgauss = fouriergauss(siz, sigma)
     out_ksp = np.empty_like(ksp, dtype=np.complex64)
     print "Complex Gaussian filter sigma ", sigma
     if ksp.ndim == 3:
@@ -399,7 +400,7 @@ def kspacecplxgaussian_filter(ksp, sigma_=None):
     """
     siz = ksp.shape[0:3]
     sigma = np.ones(3)
-    if 'sigma_' not in locals() or sigma_ is None:
+    if 'sigma_' not in locals():
         sigma = np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
     elif not hasattr(sigma_, "__len__"):
         sigma = np.ones(3) * sigma_
@@ -424,14 +425,14 @@ def kspacelaplacegaussian_filter(ksp, sigma_=None):
     """
     siz = ksp.shape[0:3]
     sigma = np.ones(3)
-    if not sigma_:
+    if 'sigma_' not in locals():
         sigma = np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
     if not hasattr(sigma_, "__len__"):
         sigma = np.ones(3) * sigma_
     else:
         sigma = sigma_.copy()
     Flaplace = fourierlaplace(siz)
-    Fgauss = fouriergauss(siz, 1 / sigma)
+    Fgauss = fouriergauss(siz, sigma)
     out_ksp = np.empty_like(ksp, dtype=np.complex64)
     print "Complex Laplace Gaussian filter sigma ", sigma
     if ksp.ndim == 3:
@@ -448,22 +449,22 @@ def kspacelaplacegaussian_filter(ksp, sigma_=None):
 # end kspacelaplacegaussian_filter
 
 
-def kspaceepanechnikov_filter(ksp, sigma_=None):
+def kspaceepanechnikov_filter(ksp, bdwidth_=None):
     """
     Apply Epanechnikov filter in Fourier domain to kspace data
     """
-
     siz = ksp.shape[0:3]
-    if not sigma_:
-        sigma = np.sqrt(7) * np.ones(3) * siz / (4 * np.sqrt(2 * np.log(2)))
+    bdwidth=0
+    if 'bdwidth_' not in locals():
+        bdwidth = np.sqrt(7) * np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
     else:
-        if not hasattr(sigma_, "__len__"):
-            sigma = np.ones(3) * sigma_
+        if not hasattr(bdwidth_, "__len__"):
+            bdwidth = np.ones(3) * bdwidth_
         else:
-            sigma = sigma_.copy()
-    Fepanechnikov = fourierepanechnikov(siz, sigma)
+            bdwidth = bdwidth_.copy()
+    Fepanechnikov = fourierepanechnikov(siz, bdwidth)
     out_ksp = np.empty_like(ksp, dtype=np.complex64)
-    print "Complex Epanechnikov filter bandwidth ", sigma
+    print "Complex Epanechnikov filter bandwidth ", bdwidth
     if ksp.ndim == 3:
         out_ksp.real = Fepanechnikov * ksp.real
         out_ksp.imag = Fepanechnikov * ksp.imag
@@ -479,25 +480,25 @@ def kspaceepanechnikov_filter(ksp, sigma_=None):
 # end kspaceepanechnikov_filter
 
 
-def kspaceepanechnikov_filter2(ksp, sigma_=None):
+def kspaceepanechnikov_filter2(ksp, bdwidth_=None):
     """
     Apply Epanechnikov filter in Fourier domain to kspace real and imag data
     """
 
     siz = ksp.shape[0:3]
-    if not sigma_:
-        sigma = np.sqrt(7) * np.ones(3) * siz / (4 * np.sqrt(2 * np.log(2)))
+    if 'bdwidth_' not in locals():
+        bdwidth = np.sqrt(7) * np.ones(3) * siz / (4 * np.sqrt(2 * np.log(2)))
     else:
-        if not hasattr(sigma_, "__len__"):
-            sigma = np.ones(3) * sigma_
+        if not hasattr(bdwidth_, "__len__"):
+            bdwidth = np.ones(3) * bdwidth_
         else:
-            sigma = sigma_.copy()
-    Fepanechnikov = fourierepanechnikov(siz, sigma)
+            bdwidth = bdwidth_.copy()
+    Fepanechnikov = fourierepanechnikov(siz, bdwidth)
     out_ksp = np.empty_like(ksp, dtype=np.complex64)
     CmplxEpan = np.empty_like(ksp, dtype=np.complex64)
     CmplxEpan.real = Fepanechnikov
     CmplxEpan.imag = Fepanechnikov
-    print "Complex Epanechnikov filter bandwidth ", sigma
+    print "Complex Epanechnikov filter bandwidth ", bdwidth
     if ksp.ndim == 3:
         out_ksp = CmplxEpan * ksp
     else:
@@ -693,24 +694,33 @@ def test_double_resolution_depth(ksp, basename):
     test_depth_algorithm(image_filtered, basename)
 
 
-def pseudosuper_resolution(ksp, basename):
-    """pseudosuper_resolution creates double resolution image from k-space data
+def double_resolution(ksp, basename):
+    """double_resolution creates double resolution image from k-space data
     based on super-resolution methodsfor multiple averages, this just expands the
     kspace data and reconstructs image.  Equivalent to interpolation in image space.
     """
     print "Double res and " + basename + " filter"
     # two 32-bit float
-    ksplarge = np.zeros(np.array(ksp.shape) * 2, dtype=np.complex64)
-    szmin = np.array(ksp.shape) / 2 - 1
-    szmax = np.array(ksp.shape) + szmin
-    ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp
-    print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
-    image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
-    print 'Double res recon ' + basename
-    del ksplarge
-
-    print "Saving Double res image: " + basename + " filtered"
-    save_nifti(np.abs(image_filtered), basename + '-super')
+    ksplarge = np.zeros(np.array(ksp.shape[:3]) * 2, dtype=np.complex64)
+    szmin = np.array(ksp.shape[0:3]) / 2 - 1
+    szmax = np.array(ksp.shape[0:3]) + szmin
+    if len(ksp.shape) == 3:
+        ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp
+        print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
+        image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
+        print 'Double res recon ' + basename
+        del ksplarge
+        print "Saving Double res image: " + basename + " filtered"
+        save_nifti(np.abs(image_filtered), basename + '-super')
+    else:
+        for echo in xrange(0, int(fid_header['nEchoes'])):
+            for n in xrange(0, int(fid_header['nChannels'])):
+                ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp[:,:,:,n,echo]
+                print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
+                image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
+                print 'Double res recon ' + basename
+                print "Saving Double res image: " + basename + " filtered"
+                save_nifti(np.abs(image_filtered), basename + '-double_0'+str(n)+'_0'+str(echo))
 
 
 if __name__ == "__main__":
