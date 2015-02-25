@@ -1601,8 +1601,8 @@ Pseudo-superresolution is available that can double the resolution in image spac
 
 !!!WARNING this will increase 3D volume sizes by a factor of 8.!!!
 
-(Pseudo) Super-resolution uses zero-filled k-space data to double the resolution of the image. This is equivalent to interpolation in image space.
-The pseudo super-resolution image is saved to NIFTI while the standard is saved to DICOM. </string>
+"Double-resolution uses zero-filled k-space data to double the voxel resolution of the image. This is equivalent to interpolation in image space.
+The double-resolution image is saved to NIFTI while the standard is saved to DICOM. </string>
                       </property>
                       <property name="text">
                        <string>(Psuedo)Super-resolution

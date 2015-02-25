@@ -969,7 +969,7 @@ class Ui_MainWindow(object):
 "\n"
 "WARNING this will increase 3D volume sizes by a factor of 8.\n"
 "\n"
-"Super-resolution uses zero-filled k-space data to double the resolution of the image. \n"
+"Double-resolution uses zero-filled k-space data to double the resolution of the image. \n"
 "The super-resolution image is saved to NIFTI while the standard is saved to dicom. ", None))
         self.checkBox_kspgauss_super.setText(_translate("MainWindow", "Super-resolution\n"
 "(Saved to NIFTI only)", None))
@@ -1000,9 +1000,9 @@ class Ui_MainWindow(object):
 "\n"
 "!!!WARNING this will increase 3D volume sizes by a factor of 8.!!!\n"
 "\n"
-"(Pseudo) Super-resolution uses zero-filled k-space data to double the resolution of the image. This is equivalent to interpolation in image space.\n"
-"The pseudo super-resolution image is saved to NIFTI while the standard is saved to DICOM. ", None))
-        self.checkBox_kspepa_super.setText(_translate("MainWindow", "(Psuedo)Super-resolution\n"
+"Double-resolution uses zero-filled k-space data to double the voxel resolution of the image. This is equivalent to interpolation in image space.\n"
+"The double-resolution image is saved to NIFTI while the standard is saved to DICOM. ", None))
+        self.checkBox_kspepa_super.setText(_translate("MainWindow", "Double-resolution\n"
 "(Saved to NIFTI only)", None))
         self.label_2.setText(_translate("MainWindow", "Effective Image Domain Bandwidth\n"
 "(Use Gaussian sigma\n"
