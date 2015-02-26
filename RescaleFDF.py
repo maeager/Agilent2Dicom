@@ -33,6 +33,7 @@ UInt16MaxRange = 65533
 Int16MaxRange = 32767
 
 # from ReadProcpar import *
+from agilent2dicom_globalvars import AGILENT2DICOM_VERSION
 import ReadFDF
 
 
