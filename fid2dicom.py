@@ -11,7 +11,7 @@
   Version 1.6: Standard deviation filters
   Version 1.7: Logging
 
-  $Id: fid2dicom.py,v 3d59efcdf9aa 2015/02/25 03:14:38 michael $
+  $Id: fid2dicom.py,v 5d85d302720f 2015/02/26 03:08:03 michael $
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
@@ -42,11 +42,11 @@ import nibabel as nib
 import logging
 from agilent2dicom_globalvars import *
 from ReadProcpar import ReadProcpar, ProcparInfo
-import ProcparToDicomMap
+import ProcparToDicomMap as P2DMAP
 import ReadFID as FID
 import cplxfilter as CPLX
 import kspace_filter as KSP
-from scipy.fftpack import ifftn, fftshift, ifftshift
+# from scipy.fftpack import ifftn, fftshift, ifftshift
 
 
 def save_as_nifti(image, niipath):
@@ -310,7 +310,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
     #     print procpar
 
     # Map procpar to DICOM and create pydicom struct
-    ds, MRAcquisitionType = ProcparToDicomMap.ProcparToDicomMap(procpar, args)
+    ds, MRAcquisitionType = P2DMAP.ProcparToDicomMap(procpar, args)
     logging.info('Procpar to dicom complete')
     filename = fidfiles[len(fidfiles) - 1]
     try:
