@@ -693,34 +693,27 @@ def test_double_resolution_depth(ksp, basename):
     image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
     test_depth_algorithm(image_filtered, basename)
 
-
 def double_resolution(ksp, basename):
     """double_resolution creates double resolution image from k-space data
-    based on super-resolution methodsfor multiple averages, this just expands the
+    based on super-resolution methods for multiple averages, this just expands the
     kspace data and reconstructs image.  Equivalent to interpolation in image space.
+
+    ifft process works for isotropic images only. use ReadFID.simpleifft for other images
     """
     print "Double res and " + basename + " filter"
     # two 32-bit float
-    ksplarge = np.zeros(np.array(ksp.shape[:3]) * 2, dtype=np.complex64)
-    szmin = np.array(ksp.shape[0:3]) / 2 - 1
-    szmax = np.array(ksp.shape[0:3]) + szmin
-    if len(ksp.shape) == 3:
-        ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp
-        print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
-        image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
-        print 'Double res recon ' + basename
-        del ksplarge
-        print "Saving Double res image: " + basename + " filtered"
-        save_nifti(np.abs(image_filtered), basename + '-super')
-    else:
-        for echo in xrange(0, int(fid_header['nEchoes'])):
-            for n in xrange(0, int(fid_header['nChannels'])):
-                ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp[:,:,:,n,echo]
-                print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
-                image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
-                print 'Double res recon ' + basename
-                print "Saving Double res image: " + basename + " filtered"
-                save_nifti(np.abs(image_filtered), basename + '-double_0'+str(n)+'_0'+str(echo))
+    ksplarge = np.zeros(np.array(ksp.shape) * 2, dtype=np.complex64)
+    szmin = np.array(ksp.shape[:3]) / 2 - 1
+    szmax = np.array(ksp.shape[:3]) + szmin
+    ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp[:3]
+    print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
+    image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
+    print 'Double res recon ' + basename
+    del ksplarge
+
+    print "Saving Double res image: " + basename + " filtered"
+    save_nifti(np.abs(image_filtered), basename + '-super')
+
 
 
 if __name__ == "__main__":
@@ -798,39 +791,39 @@ if __name__ == "__main__":
     # save_nifti(normalise(np.abs(image)), 'raw_image')
 
     # print "Computing Gaussian filtered image from Original image"
-    # image_filtered = fftshift(ifftn(ifftshift(kspacegaussian_filter(ksp,
-    # 0.707, 0, 'nearest'))))
+    # image_filtered = simpleifft(kspacegaussian_filter(ksp,
+    # 0.707, 0, 'nearest'))
 
     # print "Saving Gaussian image"
     # save_nifti(normalise(np.abs(image_filtered)), 'gauss_fourierimage')
 
     print "Computing Gaussian filtered2 image from Original image"
     kspgauss = kspacegaussian_filter2(ksp, 0.707)
-    image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
+    image_filtered = simpleifft(kspgauss)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage')
 
     print "Computing Complex Gaussian filtered image from Original image"
     kspgauss = kspacecplxgaussian_filter(ksp, 0.707)
-    image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
+    image_filtered = simpleifft(kspgauss)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage2')
 
     print "Computing Gaussian 1.0 filtered2 image from Original image"
     kspgauss1 = kspacegaussian_filter2(ksp, 1)
-    image_filtered = fftshift(ifftn(ifftshift(kspgauss1)))
+    image_filtered = simpleifft(kspgauss1)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage1')
 
     print "Computing Gaussian 2.0 filtered2 image from Original image"
     kspgauss2 = kspacegaussian_filter2(ksp, 2)
-    image_filtered = fftshift(ifftn(ifftshift(kspgauss2)))
+    image_filtered = simpleifft(kspgauss2)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage2')
 
     print "Computing Gaussian sub-band1.5 image from Original image"
     Fsubband = fouriergausssubband15(ksp.shape, 0.707)
-    image_filtered = fftshift(ifftn(ifftshift(ksp * Fsubband)))
+    image_filtered = simpleifft(ksp * Fsubband)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_subband')
 
@@ -840,12 +833,11 @@ if __name__ == "__main__":
     save_nifti(np.abs(image_filtered / image_corr), 'image_inhCorr3')
 
     # print "Computing Laplacian enhanced image"
-    laplacian = fftshift(
-        ifftn(ifftshift(kspgauss * fourierlaplace(ksp.shape))))
+    laplacian = simpleifft(kspgauss * fourierlaplace(ksp.shape))
     alpha = ndimage.mean(np.abs(image_filtered)) / \
         ndimage.mean(np.abs(laplacian))
     kspgauss = kspacegaussian_filter2(ksp, 1.707)
-    image_filtered = fftshift(ifftn(ifftshift(kspgauss)))
+    image_filtered = simpleifft(kspgauss)
     image_filtered = (np.abs(image_filtered))
     image_filtered = normalise(image_filtered)
     image_lfiltered = image_filtered - 0.5 * alpha * laplacian
@@ -862,9 +854,8 @@ if __name__ == "__main__":
         ksp.shape, (4.0 * np.sqrt(2.0 * np.log(2.0))))
     # (Fgauss/ndimage.maximum(Fgauss))
     Fgauss = fouriergauss(ksp.shape, 0.707)
-    laplacian = fftshift(ifftn(
-        ifftshift(kspgauss * Flaplace *
-                  (Fsmooth / ndimage.maximum(Fsmooth)))))
+    laplacian = simpleifft(kspgauss * Flaplace *
+                  (Fsmooth / ndimage.maximum(Fsmooth)))
     laplacian = normalise(laplacian)
     print "Saving Smoothed Gauss Laplacian"
     save_nifti(np.abs(laplacian), 'kspLog_smoothed')
@@ -873,7 +864,7 @@ if __name__ == "__main__":
 
     # #print "Computing Gaussian Laplace image from Smoothed image"
     ksplog = kspacelaplacegaussian_filter(ksp, 0.9)
-    image_Log = fftshift(ifftn(ifftshift(ksplog)))
+    image_Log = simpleifft(ksplog)
     image_Log = (np.abs(image_Log))
     image_Log = normalise(image_Log)
     save_nifti(np.abs(image_Log), 'kspLog_image')
@@ -882,7 +873,7 @@ if __name__ == "__main__":
 
     print "Computing Epanechnikov filtered image from Original image"
     kspepan = kspaceepanechnikov_filter(ksp, np.sqrt(7.0 / 2.0))
-    image_filtered = fftshift(ifftn(ifftshift(kspepan)))
+    image_filtered = simpleifft(kspepan)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'epan_kspimage')
 
@@ -893,6 +884,6 @@ if __name__ == "__main__":
 #    test_double_resolution(ksp*Fsubband, 'GaussSub')
 #    test_double_resolution(ksplog, 'LoG')
 
-#    test_depth_algorithm(fftshift(ifftn(ifftshift(kspgauss))),
+#    test_depth_algorithm(simpleifft(kspgauss),
 #    'gauss_kspdepth')
 #    test_double_resolution_depth(kspgauss, 'gauss_depth_large')
