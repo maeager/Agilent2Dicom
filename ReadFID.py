@@ -847,7 +847,7 @@ def simpleifft(procpar, dims, fid_header, ksp, args):
             if args.verbose:
                 print 'Reconstructing mode 4: 3D Multi echo Multi channel '
             for echo in xrange(0, int(fid_header['nEchoes'])):
-                for n in xrange(0, int(xsfid_header['nChannels'])):
+                for n in xrange(0, int(fid_header['nChannels'])):
                     img[:, :, :, n, echo] = fftshift(ifftn(ifftshift(ksp[:, :, :, n, echo])))
     return img
 # end simpleifft
@@ -897,8 +897,8 @@ def double_resolution2(ksp, basename,procpar,hdr,args):
             save_as_nifti(np.angle(image_filtered), basename + '-double-pha')
     else:
         ksplarge = np.zeros(np.array(ksp.shape[:3]) * 2, dtype=np.complex64)
-        for echo in xrange(0, int(fid_header['nEchoes'])):
-            for n in xrange(0, int(fid_header['nChannels'])):
+        for echo in xrange(0, int(hdr['nEchoes'])):
+            for n in xrange(0, int(hdr['nChannels'])):
                 ksplarge[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = ksp[:,:,:,n,echo]
                 print "Double resolution k-space created. Starting reconstruction ...(may take some time)"
                 
@@ -909,7 +909,7 @@ def double_resolution2(ksp, basename,procpar,hdr,args):
                 if args.phase:
                     print "Saving double-resolution phase image: " + basename + " filtered"
                     save_as_nifti(np.angle(image_filtered), basename + '-double-pha_0'+str(n)+'_0'+str(echo))
-
+    return image_filtered
 
 
     
