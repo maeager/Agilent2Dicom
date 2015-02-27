@@ -60,7 +60,8 @@ An updated GUI, *Agilent2DicomAppQt*, now uses PyQt4 and enables more
 features including FID filtering and double-resolution conversion.
 With the Agilent2Dicom path included in the PATH variable, the GUI can
 be loaded from the terminal from any folder: 
-``` #!bash
+```
+#!bash
 
 [vnmr1@vnmrj1 s_2014062002]$ Agilent2DicomAppQt.py
 ```
