@@ -220,7 +220,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         except ValueError:
             logging.info('ChangeFDFpath ValueError')
 
-
     def ChangeFDFDicomPath(self):
         """ChangeFDFDicomPath
         """
@@ -250,7 +249,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.info('ChangeFDFDicompath ' + newdir)
         except ValueError:
             logging.info('ChangeFDFDicompath error')
-
 
     def ChangeFIDpath(self):
         """ChangeFIDpath
@@ -285,7 +283,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         except ValueError:
             logging.info('ChangeFIDpath error')
 
-
     def ChangeFIDDicomPath(self):
         """ChangeFIDDicomPath
         """
@@ -316,7 +313,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         except ValueError:
             logging.info('ChangeFIDDicompath error')
 
-
     def ConvertFDF(self):
         """ConvertFDF run FDF to dicom script
         """
@@ -342,8 +338,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         except OSError:
             logging.error('Send2Daris OSError', exc_info=True)
         except ValueError:
-            logging.error('ConvertFDF value error - invalid arguments to Popen.', exc_info=True)
-
+            logging.error(
+                'ConvertFDF value error - invalid arguments to Popen.', exc_info=True)
 
     def GetDarisID(self, inpath):
         """GetDarisID read Daris ID from procpar
@@ -415,15 +411,15 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 try:
                     print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                                            executable="/bin/bash").stdout.read()
-                    
-                    print "dpush completed returncode"+subprocess.Popen.returncode
+
+                    print "dpush completed returncode" + subprocess.Popen.returncode
                     logging.info('Send2Daris ... completed.')
                 except ValueError:
-                    logging.error('Send2Daris invalid arguments to Popen', exc_info=True)
+                    logging.error(
+                        'Send2Daris invalid arguments to Popen', exc_info=True)
                 except OSError:
                     logging.error('Send2Daris OSError', exc_info=True)
 
-                    
             else:
                 logging.info('Send2Daris sending cancelled')
                 print 'Send2Daris sending cancelled'
@@ -431,7 +427,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         except ValueError:
             logging.error('Send2Daris value error', exc_info=True)
             print 'Send2Daris value error'
-
 
     def CheckFDF(self):  # send_button):
         """ Run mrinfo and dcheck on dicoms
@@ -452,10 +447,10 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                    executable="/bin/bash").stdout.read()
             self.UpdateGUI()
         except ValueError:
-            logging.error('CheckFDF error. Possibly invalid arguments to Popen', exc_info=True)
+            logging.error(
+                'CheckFDF error. Possibly invalid arguments to Popen', exc_info=True)
         except OSError:
             logging.error('CheckFDF OSError', exc_info=True)
-
 
     def ViewFDF(self):
         """View image with mrview
@@ -654,15 +649,20 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.info('ConvertFID ' + cmd)
         except ValueError:
             logging.error('ConvertFID error', exc_info=True)
-            pass # this is necessary to avoid the parent try from catching this exception
+            # this is necessary to avoid the parent try from catching this
+            # exception
+            pass
         try:
             print subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                    shell=True,
                                    executable="/bin/bash").stdout.read()
             logging.info('Send2Daris ... completed.')
         except ValueError:
-            logging.error('ConvertFID invalid arguments to Popen', exc_info=True)
-            pass # this is necessary to avoid the parent try from catching this exception
+            logging.error(
+                'ConvertFID invalid arguments to Popen', exc_info=True)
+            # this is necessary to avoid the parent try from catching this
+            # exception
+            pass
         except OSError:
             logging.error('ConvertFID OSError', exc_info=True)
             pass
@@ -672,7 +672,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         # except ValueError:
         #    print 'ConvertFID error.'
         #    logging.error('ConvertFID error', exc_info=True)
-
 
     def CheckFID(self):
         """CheckFID check outputs of fid2dicom
@@ -713,7 +712,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             print 'CheckFID error'
             logging.error('CheckFID error', exc_info=True)
 
-
     def ViewFID(self):
         """ViewFID show dicom outputs with mrview
         """
@@ -745,7 +743,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.error('ViewFID OSError', exc_info=True)
         except ValueError:
             logging.error('ViewFID error', exc_info=True)
-
 
     def Send2DarisFID(self):
         """Send2DarisFID

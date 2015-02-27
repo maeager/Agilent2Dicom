@@ -139,7 +139,8 @@ def ProcparInfo(procpar):
         # if len(procpar['thk']) > 1:
         #    print "procpar thk size greater than 1"
         header['Voxel_Res_mm'] = [procpar['lro'] * 10 / header['Dimensions'][0],
-                                  procpar['lpe'] * 10 / header['Dimensions'][1],
+                                  procpar['lpe'] * 10 /
+                                  header['Dimensions'][1],
                                   procpar['thk'] * 10]
     elif procpar['nD'] == 3:
         header['FOV_cm'] = [procpar['lro'],
@@ -150,7 +151,8 @@ def ProcparInfo(procpar):
                                 procpar['nf'] / procpar['ne'],
                                 procpar['nv2']]
         header['Voxel_Res_mm'] = [procpar['lro'] * 10 / header['Dimensions'][0],
-                                  procpar['lpe'] * 10 / header['Dimensions'][1],
+                                  procpar['lpe'] * 10 /
+                                  header['Dimensions'][1],
                                   procpar['lpe2'] * 10 / header['Dimensions'][2]]
     header['Volumes'] = procpar['volumes']
     header['NumberOfEchoes'] = procpar['ne']
