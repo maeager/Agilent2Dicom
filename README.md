@@ -375,7 +375,8 @@ magnitude and phase components of image-space filtered, k-space
 filtered, and k-space filtered double-resolution images from Gaussian
 and Epanechnikov filters.  
 
-``` #!bash
+``` 
+#!bash
 
 cd ~/Monash016/eagerm/Agilent2Dicom/
 ./fid2dicom.py -v -N -D -g -G -s 0.707 -y -Y -b 1.8707 -m -p -i ../SheepfetusBrain/s_2014072501/mge3d-100um_01.fid/ -o ../SheepfetusBrain/s_2014072501/mge3d-100um_01.dcm/
@@ -383,7 +384,8 @@ cd ~/Monash016/eagerm/Agilent2Dicom/
 
 To convert scan to enhanced MR format use the advanced wrapper shell
 script *fid2dcm.sh* (as used by the GUI)):
-``` #!bash
+``` 
+#!bash
 
 cd ~/Monash016/eagerm/Agilent2Dicom/
 ./fid2dcm.sh -v -N -D -g 0.707 -G 0.707 -y 1.8707 -Y 1.8707 -m -p -i ../SheepfetusBrain/s_2014072501/mge3d-100um_01.fid/ -o ../SheepfetusBrain/s_2014072501/mge3d-100um_01.dcm/
