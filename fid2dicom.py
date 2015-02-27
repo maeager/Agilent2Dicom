@@ -11,7 +11,7 @@
   Version 1.6: Standard deviation filters
   Version 1.7: Logging
 
-  $Id: fid2dicom.py,v 5d85d302720f 2015/02/26 03:08:03 michael $
+  $Id: fid2dicom.py,v 9b9d05b33aa5 2015/02/27 05:46:52 michael $
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
@@ -81,12 +81,13 @@ def wsizeparse(s):
             print "Mapping "
             x, y, z = map(int, s.split(','))
             print x, y, z
-            return (x, y, z)
+            val= (x, y, z)
         else:
-            return (int(s), int(s), int(s))
-    except:
+            val= (int(s), int(s), int(s))
+    except ValueError:
         raise argparse.ArgumentTypeError(
             "Window size must be single value or comma-seperated with no spaces (eg. 3,3,3)")
+    return val
         
 
 
@@ -95,7 +96,7 @@ def sigmaparse(s):
     """
     try:
         print "Sigma parse ", s
-        if not s.find(', ') == -1:
+        if not s.find(',') == -1:
             print "Mapping "
             x, y, z = map(float, s.split(','))
             print x, y, z
@@ -107,6 +108,22 @@ def sigmaparse(s):
             "Sigma must be single value or comma-seperated with no spaces (eg. 1.0,1.0,3.0)")
     return val
 
+
+def tic():
+    #Homemade version of matlab tic and toc functions
+    #https://stackoverflow.com/questions/5849800/tic-toc-functions-analog-in-python
+    import time
+    global startTime_for_tictoc
+    startTime_for_tictoc = time.time()
+
+def toc():
+    import time
+    if 'startTime_for_tictoc' in globals():
+        print "Elapsed time is " + str(time.time() - startTime_for_tictoc) + " seconds."
+        return str(time.time() - startTime_for_tictoc)
+    else:
+        print "Toc: start time not set"
+        return ""
 
 if __name__ == "__main__":
 
@@ -326,9 +343,10 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
     # Change dicom for specific FID header info
     ds, matsize, tmatrix = FID.ParseFID(ds, hdr, procpar, args)
     logging.info('ParseFID complete')
+    tic()
     ksp = FID.convksp(procpar, dims, hdr, data_real,
                       data_imag, args)
-    logging.info('FID.convksp complete')
+    logging.info('FID.convksp complete '+toc())
     if args.verbose:
         print 'Image shape:', str(ksp.shape)
 
@@ -342,10 +360,10 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
 
     if args.verbose:
         print "Reconstructing raw image"
-    logging.info('Reconstructing raw image')
+    logging.info('Reconstructing raw image');tic()
     image_data = FID.simpleifft(procpar, dims, hdr, ksp, args)
     # fftshift(ifftn(ifftshift(ksp)))
-    logging.info('IFFT recon complete')
+    logging.info('IFFT recon complete '+toc())
     ds.DerivationDescription = '''%s\n
     Agilent2Dicom Version: %s \nVCS Stamp: %s
     Scipy version: %s
@@ -378,11 +396,13 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             print "Computing Gaussian filtered image from Original image"
 
         try:
+            tic()
             image_filtered = CPLX.cplxgaussian_filter(image_data.real,
                                                       image_data.imag,
                                                       sigma,
                                                       args.gaussian_order,
                                                       args.gaussian_mode)
+            logging.info('Cplx gaussian complete '+toc())
         except:
             logging.error('CPLX.cplxgaussian_filter error.')
             sys.exit(1)
@@ -408,10 +428,12 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         if args.verbose:
             print "Computing Gaussian Laplace filtered image from Gaussian filtered image"
         try:
+            tic()
             image_filtered = CPLX.cplxgaussian_filter(
                 image_data.real, image_data.imag, sigma)
             image_filtered = CPLX.cplxgaussian_laplace(
                 image_filtered.real, image_filtered.imag, sigma)
+            logging.info('Cplx gaussian + gaussian_laplace complete '+toc())
         except:
             logging.error(
                 'CPLX.cplxgaussian_filter CPLX.cplxgaussian_laplace error.')
@@ -438,9 +460,11 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         if args.verbose:
             print "Computing Median filtered image from Original image"
         try:
+            tic()
             image_filtered = CPLX.cplxmedian_filter(image_data.real,
                                                     image_data.imag,
                                                     args.window_size)
+             logging.info('Cplx median complete '+toc())
         except:
             logging.error('CPLX.cplxmedian_filter error.')
             sys.exit(1)
@@ -467,10 +491,12 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         if args.verbose:
             print "Computing Wiener filtered image from Original image"
         try:
+            tic()
             image_filtered = CPLX.cplxwiener_filter(image_data.real,
                                                     image_data.imag,
                                                     args.window_size,
                                                     args.wiener_noise)
+             logging.info('Cplx wiener complete '+toc())
         except:
             logging.error('CPLX.cplxmedian_filter error.')
             sys.exit(1)
@@ -495,9 +521,11 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             args.window_size = 5
         if args.verbose:
             print "Computing Localised standard deviation filtered image from Original image"
+        tic()
         image_filtered = CPLX.cplxstdev_filter(image_data.real,
                                                image_data.imag,
                                                float(args.window_size))
+        logging.info('Cplx stdev complete '+toc())
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
         Scipy version: %s
         Complex Std dev filter: window size=%s.
@@ -517,8 +545,10 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             args.window_size = 5
         if args.verbose:
             print "Computing Localised standard deviation filtered image from Original image"
+        tic()
         image_filtered = CPLX.window_stdev(
             np.abs(image_data), int(args.window_size))
+        logging.info('Mag stdev complete '+toc())
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
         Scipy version: %s
         Local Std dev filter of magnitude image: window
@@ -539,9 +569,10 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         if args.verbose:
             print """Computing Localised standard deviation filtered image
             from Original image"""
-
+        tic()
         image_filtered = CPLX.phase_std_filter(np.angle(image_data),
                                                args.window_size)
+        logging.info('Phase stdev complete '+toc())
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
         Scipy version: %s
         Std dev filter of phase: window size=%s.
@@ -571,12 +602,14 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         if args.verbose:
             print "Computing Epanechnikov filtered image from Original image"
         try:
+            tic()
             image_filtered = CPLX.cplxepanechnikov_filter(image_data.real,
                                                           image_data.imag,
                                                           epabw,
-                                                          args.window_size) 
+                                                          args.window_size)
+            logging.info('Cplx epanechnikov complete '+toc())
         except:
-            logging.info('CPLX.cplxepanechnikov_filter error.')
+            logging.info('CPLX.cplxepanechnikov_filter error.', exc_info=True)
             sys.exit(1)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
         Scipy version: %s
@@ -607,10 +640,13 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                 
         try:
             print "Computing FT Gaussian filtered image"
-            kspgauss = KSP.kspacegaussian_filter2(ksp, sigma_=sigma)
+            logging.info("Computing FT Gaussian filtered image");tic()
+            kspgauss = KSP.kspacegaussian_filter2(ksp, sigma)
+            logging.info('Ksp gaussian complete '+toc());tic()
             image_filtered =  FID.simpleifft(procpar, dims, hdr, kspgauss, args)
+            logging.info('Ksp gaussian ifft complete '+toc())
         except:
-            logging.info('KSP.kspacegaussian_filter error.')
+            logging.error('KSP.kspacegaussian_filter error.', exc_info=True)
             sys.exit(1)
         # image_filtered = CPLX.cplxgaussian_filter(image_data.real,
         # image_data.imag, args.sigma, args.gaussian_order, args.gaussian_mode)
@@ -645,10 +681,13 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                 
         try:
             print "Computing FT Epanechnikov filtered image"
-            kspepa = KSP.kspaceepanechnikov_filter(ksp, sigma_=epabw)
+            logging.info('Computing Ksp epanechnikov filter ');tic()
+            kspepa = KSP.kspaceepanechnikov_filter(ksp, epabw)
+            logging.info('Ksp epanechnikov complete '+toc());tic()
             image_filtered = FID.simpleifft(procpar, dims, hdr, kspepa, args)
+            logging.info('Ksp epanechnikov ifft complete '+toc())
         except:
-            logging.info('KSP.kspaceepanechnikov_filter error.')
+            logging.error('KSP.kspaceepanechnikov_filter error.', exc_info=True)
             sys.exit(1)
 
         # image_filtered = CPLX.cplxgaussian_filter(image_data.real,
@@ -665,13 +704,14 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                            re.sub('.dcm', '-kspepanech.dcm', outdir))
         logging.info(ds.DerivationDescription+'\nkspaceepanechnikov_filter image saved to Dicom.')
         if args.nifti:
+            print "Saving NIFTI"
             save_as_nifti(
                 np.abs(image_filtered), re.sub('.dcm', '-kspepa.nii', outdir))
         if args.double_resolution:
             logging.info(
                 'Running double-resolution on kspace epanechnikov data')
             FID.double_resolution2(kspepa, re.sub('.dcm', '-kspepa', outdir),procpar,hdr,args)
-            logging.info('Super-resolution complete')
+            logging.info('Double-resolution complete.')
 
 
     logging.info('fid2dicom.py completed.')
