@@ -796,6 +796,35 @@ def reconksp(procpar, dims, fid_header, ksp, args,pelistflag=0):
                         ifftn(ifftshift(ksp[:, :, :, n, 0])))
     return img
 # end reconksp
+def sliceifft(procpar,  ksp, args):
+    """sliceifft Reconstruct k-space image data into 3 or 5-D image by slice in 3rd dim
+    :param procpar:   procpar dictionary
+    :param ksp: k-space
+    :return img:
+    """
+    dims=ksp.shape
+    if args.verbose:
+        print 'Reconstructing image'
+        print 'Image shape ', ksp.shape
+
+    if len(dims) == 3:
+        img = np.empty(
+            [dims[0], dims[1], dims[2]], dtype=np.complex64)  # float32
+        for islice in xrange(0, dims[2]):
+            img[:, :, islice] = fftshift(
+                ifftn(ifftshift(ksp[:, :, islice])))
+    else:  # two float32
+        img = np.empty([dims[0], dims[1], dims[2], dims[3], dims[4]], dtype=np.complex64)  # float32
+        if args.verbose:
+            print 'Reconstructing mode 2: 2D slices with ni2=' + procpar['ni2']
+            print 'Echoes ', dims[4], 'Channels ', dims[3]
+        for echo in xrange(0, dims[4]):
+                for n in xrange(0, dims[3]):
+                    for islice in xrange(0, dims[2]):
+                        img[:, :, islice, n, echo] = fftshift(ifftn(ifftshift(
+                                ksp[:, :, islice, n, echo])))
+    return img
+# end sliceifft
 
     
 def simpleifft(procpar, dims, fid_header, ksp, args):
@@ -803,7 +832,8 @@ def simpleifft(procpar, dims, fid_header, ksp, args):
     :param procpar:   procpar dictionary
     :param dims: dimension array
     :param fid_header: header info in fid
-    :param ksp: k-space
+    :param ksp: k-space data
+    :return img: reconstructed image
     """
     if args.verbose:
         print 'Reconstructing image'
