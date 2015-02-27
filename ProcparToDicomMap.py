@@ -38,6 +38,7 @@ from dicom.dataset import Dataset
 
 import agilent2dicom_globalvars as A2D
 
+
 def getColumns(inFile, delim="\t", header=True):
     """
     Get columns of data from inFile. The order of the rows is respected
@@ -135,7 +136,8 @@ def ProcparToDicomMap(procpar, args):
     file_meta = Dataset()
     # file_meta.MediaStorageSOPClassUID = "1.2.840.10008.5.1.4.1.1.4.1"  #
     # Enhanced MR Image SOP
-    file_meta.MediaStorageSOPClassUID = A2D.Standard_MR_SOPClassUID  # MR Image SOP
+    # MR Image SOP
+    file_meta.MediaStorageSOPClassUID = A2D.Standard_MR_SOPClassUID
     file_meta.MediaStorageSOPInstanceUID = CreateUID(
         A2D.UID_Type_MediaStorageSOPInstance, [], [], args.verbose)
     file_meta.ImplementationClassUID = A2D.Implementation_Class_UID
@@ -396,7 +398,7 @@ def ProcparToDicomMap(procpar, args):
         thispath = os.path.dirname(__file__)
     except NameError:
         thispath = "."
-        
+
     codes = file(os.path.join(thispath, "docs/AnatomyCodes.txt"), "r")
     cols, indToName = getColumns(codes)
     for codeidx in xrange(0, len(cols['Meaning']) - 1):
@@ -1891,48 +1893,50 @@ def ProcparToDicomMap(procpar, args):
         print 'Patient Position: ', ds.PatientPosition
     ds.PatientPosition = 'HFS'
 
-    ds.DerivationDescription = A2D.Derivation_Description + '\n' + A2D.DVCS_STAMP
+    ds.DerivationDescription = A2D.Derivation_Description + \
+        '\n' + A2D.DVCS_STAMP
 
     return ds, MRAcquisitionType
 # ends ProcparToDicomMap
 
+
 def CalcTransMatrix(ds, orientation, location, span, rank, PixelSpacing, SliceThickness):
     """ Calculation  of image transformation matrix
-    
-     For further information regarding the location, orientation, roi, span,
-	 etc properties in the FDF header, see the "Agilent VNMRJ 3.2 User
-	 Programming User Guide", pgs 434-436.	Also see VNMRJ Programming.pdf Ch5
-	 Data Location and Orientation Fields p 292.
 
-	 Orientation defines the user frame of reference, and is defined according
-	 to the magnet frame of reference (X,Y,Z), where
-		Z is along the bore, from cable end to sample end
-		Y is bottom to top, and
-		X is right to left, looking along positive Z
-	 ref: "Agilent VnmrJ 3 Imaging User Guide" pg 679
-	
-	 Location defines the position of the centre of the acquired data volume,
-	 relative to the magnet centre, in the user frame of reference.
-	
-	 ROI is the size of the acquired data volume in cm in the user frame of
-	 reference.
-	
-	 Origin is the coordinates of the first point in the data set, in the user
-	 frame of reference.
-	
-	 'abscissa' is a set of rank strings ("hz", "s", "cm", "cm/s",
-	 "cm/s2", "deg", "ppm1", "ppm2", "ppm3") that identifies the
-	 units that apply to each dimension (e.g., char
-	 *abscissa[]={"cm","cm"};).
-	
-	 'span' is a set of rank floating point values for the signed
-	 length of each axis, in user units. A positive value means the
-	 value of the particular coordinate increases going away from the
-	 first point (e.g., float span[]={10.000,-15.000};).
-	
-	 ordinate is a string ("intensity", "s", "deg") that gives the units
-	 that apply to the numbers in the binary part of the file (e.g.,char
-	 *ordinate[]={"intensity"};).
+     For further information regarding the location, orientation, roi, span,
+         etc properties in the FDF header, see the "Agilent VNMRJ 3.2 User
+         Programming User Guide", pgs 434-436.	Also see VNMRJ Programming.pdf Ch5
+         Data Location and Orientation Fields p 292.
+
+         Orientation defines the user frame of reference, and is defined according
+         to the magnet frame of reference (X,Y,Z), where
+                Z is along the bore, from cable end to sample end
+                Y is bottom to top, and
+                X is right to left, looking along positive Z
+         ref: "Agilent VnmrJ 3 Imaging User Guide" pg 679
+
+         Location defines the position of the centre of the acquired data volume,
+         relative to the magnet centre, in the user frame of reference.
+
+         ROI is the size of the acquired data volume in cm in the user frame of
+         reference.
+
+         Origin is the coordinates of the first point in the data set, in the user
+         frame of reference.
+
+         'abscissa' is a set of rank strings ("hz", "s", "cm", "cm/s",
+         "cm/s2", "deg", "ppm1", "ppm2", "ppm3") that identifies the
+         units that apply to each dimension (e.g., char
+         *abscissa[]={"cm","cm"};).
+
+         'span' is a set of rank floating point values for the signed
+         length of each axis, in user units. A positive value means the
+         value of the particular coordinate increases going away from the
+         first point (e.g., float span[]={10.000,-15.000};).
+
+         ordinate is a string ("intensity", "s", "deg") that gives the units
+         that apply to the numbers in the binary part of the file (e.g.,char
+         *ordinate[]={"intensity"};).
     """
     # if args.verbose:
     #    print "Span: ", span, span.shape
@@ -2000,7 +2004,7 @@ def CalcTransMatrix(ds, orientation, location, span, rank, PixelSpacing, SliceTh
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(usage=' procpartodicommapping -i "Input FDF directory"',
-                                     description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' +  A2D.AGILENT2DICOM_VERSION)
+                                     description='agilent2dicom is an FDF to Enhanced MR DICOM converter from MBI. Version ' + A2D.AGILENT2DICOM_VERSION)
     parser.add_argument(
         '-i', '--inputdir', help='Input directory name. Must be an Agilent FDF image directory containing procpar and *.fdf files', required=True)
     parser.add_argument(

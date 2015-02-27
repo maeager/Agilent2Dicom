@@ -71,7 +71,7 @@ def gaussian_fourierkernel(uu, vv, ww, sigma):
     if not hasattr(sigma, "__len__"):  # type(sigma) is float:
         gfilter = np.exp(-2 * (np.pi ** 2) *
                          (uu ** 2 + vv ** 2 + ww ** 2) * (sigma ** 2))
-        
+
         midpoint = np.ceil(np.array(uu.shape) / 2.0)
         maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
                                          midpoint[1] - 10:midpoint[1] + 10,
@@ -371,7 +371,7 @@ def kspacegaussian_filter2(ksp, sigma_=None):
     """
     siz = ksp.shape[0:3]
     sigma = np.ones(3)
-    if 'sigma_' not in locals() :
+    if 'sigma_' not in locals():
         sigma = np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
     elif not hasattr(sigma_, "__len__"):
         sigma = np.ones(3) * sigma_
@@ -454,7 +454,7 @@ def kspaceepanechnikov_filter(ksp, bdwidth_=None):
     Apply Epanechnikov filter in Fourier domain to kspace data
     """
     siz = ksp.shape[0:3]
-    bdwidth=0
+    bdwidth = 0
     if 'bdwidth_' not in locals():
         bdwidth = np.sqrt(7) * np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
     else:
@@ -524,7 +524,8 @@ def kspaceshift(ksp):
                 ksp = np.roll(ksp, sub[x], axis=x)
             print ""
     else:
-        kmax = np.array(ndimage.maximum_position(np.squeeze(ksp[:, :, :, 0, 0])))
+        kmax = np.array(
+            ndimage.maximum_position(np.squeeze(ksp[:, :, :, 0, 0])))
         siz = np.array(ksp.shape[0:3])
         sub = (siz / 2.).astype(int) - kmax
         for echo in xrange(0, ksp.shape[4]):
@@ -693,6 +694,7 @@ def test_double_resolution_depth(ksp, basename):
     image_filtered = fftshift(ifftn(ifftshift(ksplarge)))
     test_depth_algorithm(image_filtered, basename)
 
+
 def double_resolution(ksp, basename):
     """double_resolution creates double resolution image from k-space data
     based on super-resolution methods for multiple averages, this just expands the
@@ -713,7 +715,6 @@ def double_resolution(ksp, basename):
 
     print "Saving Double res image: " + basename + " filtered"
     save_nifti(np.abs(image_filtered), basename + '-super')
-
 
 
 if __name__ == "__main__":
@@ -855,7 +856,7 @@ if __name__ == "__main__":
     # (Fgauss/ndimage.maximum(Fgauss))
     Fgauss = fouriergauss(ksp.shape, 0.707)
     laplacian = simpleifft(kspgauss * Flaplace *
-                  (Fsmooth / ndimage.maximum(Fsmooth)))
+                           (Fsmooth / ndimage.maximum(Fsmooth)))
     laplacian = normalise(laplacian)
     print "Saving Smoothed Gauss Laplacian"
     save_nifti(np.abs(laplacian), 'kspLog_smoothed')

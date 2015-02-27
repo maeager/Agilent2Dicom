@@ -405,9 +405,8 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     #-------------------------------------------------------------------------
     # GROUP 0020: Relationship
 
-    ds.ImageComments = A2D.FDF2DCM_Image_Comments + '\n' + fdf_properties['filetext']
-
-
+    ds.ImageComments = A2D.FDF2DCM_Image_Comments + \
+        '\n' + fdf_properties['filetext']
 
     orientation = numpy.matrix(fdf_properties['orientation']).reshape(3, 3)
     location = numpy.matrix(fdf_properties['location']) * 10
@@ -417,7 +416,6 @@ def ParseFDF(ds, fdf_properties, procpar, args):
         print "FDF Span: ", span, span.shape
         print "FDF Location: ", location, location.shape
 
- 
     ds, ImageTransformationMatrix = ProcparToDicomMap.CalcTransMatrix(
         ds, orientation, location, span, fdfrank, PixelSpacing, SliceThickness)
 
@@ -461,9 +459,9 @@ def ParseFDF(ds, fdf_properties, procpar, args):
         either fn1/2 or nv (%s ,%s).\n For 2D datasets, number of
         rows is fn/2.0 or np (%s , %s).\n Using local FDF value %s
         instead of procpar value %s.
-    ''' %(str(procpar['fn1'] / 2.0), str(procpar['nv']),
-          str(procpar['fn'] / 2.0), str(procpar['np']),
-          str(fdf_properties['matrix'][1]), str(ds.Rows))
+    ''' % (str(procpar['fn1'] / 2.0), str(procpar['nv']),
+           str(procpar['fn'] / 2.0), str(procpar['np']),
+           str(fdf_properties['matrix'][1]), str(ds.Rows))
     AssertImplementation(int(float(ds.Rows)) != int(
         fdf_properties['matrix'][1]), filename, CommentStr, AssumptionStr)
     if args.verbose:
@@ -480,9 +478,9 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     either fn/2 or np (%s,%s).\n For 2D datasets, number of rows is
     fn1/2.0 or nv (%s ,%s).\n Using local FDF value %s instead of
     procpar value %s.
-    ''' %(str(procpar['fn'] / 2.0), str(procpar['np']),
-          str(procpar['fn1'] / 2.0), str(procpar['nv']),
-          str(fdf_properties['matrix'][0]), str(ds.Columns))
+    ''' % (str(procpar['fn'] / 2.0), str(procpar['np']),
+           str(procpar['fn1'] / 2.0), str(procpar['nv']),
+           str(fdf_properties['matrix'][0]), str(ds.Columns))
     AssertImplementation(int(float(ds.Columns)) != int(
         fdf_properties['matrix'][0]), filename, CommentStr, AssumptionStr)
     if args.verbose:
@@ -811,7 +809,6 @@ if __name__ == "__main__":
     import ReadProcpar
     import RescaleFDF
     import ReadFDF as rf
-    
 
     procpar, procpartext = ReadProcpar.ReadProcpar(
         os.path.join(args.inputdir, 'procpar'))
