@@ -340,9 +340,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.UpdateGUI()
             logging.info('Convert FDF : done')
         except OSError:
-            logging.error('Send2Daris OSError')
+            logging.error('Send2Daris OSError', exc_info=True)
         except ValueError:
-            logging.info('ConvertFDF value error - invalid arguments to Popen.')
+            logging.error('ConvertFDF value error - invalid arguments to Popen.', exc_info=True)
 
 
     def GetDarisID(self, inpath):
@@ -357,12 +357,12 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 if re.search('DaRIS', procpar['name']):
                     daris_id = re.sub(r'DaRIS\^', '', procpar['name'])
         except ValueError:
-            print "Value Error in GetDarisID"
+            logging.error("Value Error in GetDarisID", exc_info=True)
 
         return daris_id
 
     def CheckDicomDir(self, dpath):
-        """
+        """Check the output dicom directries
         """
         if dpath != "" and os.path.isdir(dpath):
             # Check folder contains procpar and *.fdf files
@@ -419,9 +419,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     print "dpush completed returncode"+subprocess.Popen.returncode
                     logging.info('Send2Daris ... completed.')
                 except ValueError:
-                    logging.error('Send2Daris invalid arguments to Popen')
+                    logging.error('Send2Daris invalid arguments to Popen', exc_info=True)
                 except OSError:
-                    logging.error('Send2Daris OSError')
+                    logging.error('Send2Daris OSError', exc_info=True)
 
                     
             else:
@@ -429,7 +429,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 print 'Send2Daris sending cancelled'
             self.UpdateGUI()
         except ValueError:
-            logging.info('Send2Daris value error')
+            logging.error('Send2Daris value error', exc_info=True)
             print 'Send2Daris value error'
 
 
@@ -452,9 +452,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                    executable="/bin/bash").stdout.read()
             self.UpdateGUI()
         except ValueError:
-            logging.info('CheckFDF error. Possibly invalid arguments to Popen')
+            logging.error('CheckFDF error. Possibly invalid arguments to Popen', exc_info=True)
         except OSError:
-            logging.error('CheckFDF OSError')
+            logging.error('CheckFDF OSError', exc_info=True)
 
 
     def ViewFDF(self):
@@ -470,9 +470,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             print subprocess.Popen(cmd1, stdout=subprocess.PIPE, shell=True,
                                    executable="/bin/bash").stdout.read()
         except ValueError:
-            logging.info('ViewFDF error ')
+            logging.error('ViewFDF error ', exc_info=True)
         except OSError:
-            logging.error('ViewFDF OSError')
+            logging.error('ViewFDF OSError', exc_info=True)
 
     def SigmaString(self, sigmatext, combotext, source):
         """Calculate sigma
@@ -483,6 +483,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         """
         sigmafactor = np.array((1, 1, 1))
         print 'SigmaString:  %s %s' % (sigmatext, combotext)
+        print 'Sigma string source', source
         try:
             if combotext != "unit voxel":
                 logging.info('SigmaString ' + combotext)
@@ -507,7 +508,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             sigmafactor[2] = sigmafactor[0]
         try:
             # if s.find(', '):
-            x, y, z = map(float, sigmatext.split(', '))
+            x, y, z = map(float, sigmatext.split(','))
             argstr = ' %f,%f,%f' % (x / sigmafactor[0],
                                     y / sigmafactor[1],
                                     z / sigmafactor[2])
@@ -540,6 +541,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 self.ui.checkBox_reimag.isChecked()):
             print "Forcing magn export since no export checkboxes enabled."
             argstr = ' -m'
+        print argstr
         # Complex Gaussian 3D
         if self.ui.checkBox_gaussian2D.isChecked():
             argstr += ' -2'
@@ -650,21 +652,26 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd = cmd_header + cmd1 + ')'
             # print cmd
             logging.info('ConvertFID ' + cmd)
-            try:
-                print subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                                       shell=True,
-                                       executable="/bin/bash").stdout.read()
-                logging.info('Send2Daris ... completed.')
-            except ValueError:
-                logging.error('ConvertFID invalid arguments to Popen')
-            except OSError:
-                logging.error('ConvertFID OSError')
-            self.UpdateGUI()
-            print 'ConvertFID completed.'
-            logging.info('ConvertFID done')
         except ValueError:
-            print 'ConvertFID error.'
-            logging.info('ConvertFID error')
+            logging.error('ConvertFID error', exc_info=True)
+            pass # this is necessary to avoid the parent try from catching this exception
+        try:
+            print subprocess.Popen(cmd, stdout=subprocess.PIPE,
+                                   shell=True,
+                                   executable="/bin/bash").stdout.read()
+            logging.info('Send2Daris ... completed.')
+        except ValueError:
+            logging.error('ConvertFID invalid arguments to Popen', exc_info=True)
+            pass # this is necessary to avoid the parent try from catching this exception
+        except OSError:
+            logging.error('ConvertFID OSError', exc_info=True)
+            pass
+        self.UpdateGUI()
+        print 'ConvertFID completed.'
+        logging.info('ConvertFID done')
+        # except ValueError:
+        #    print 'ConvertFID error.'
+        #    logging.error('ConvertFID error', exc_info=True)
 
 
     def CheckFID(self):
@@ -701,10 +708,10 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             print 'CheckFID done'
             logging.info('CheckFID done')
         except OSError:
-            logging.error('CheckFID OSError')
+            logging.error('CheckFID OSError', exc_info=True)
         except ValueError:
             print 'CheckFID error'
-            logging.info('CheckFID error')
+            logging.error('CheckFID error', exc_info=True)
 
 
     def ViewFID(self):
@@ -735,9 +742,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             self.UpdateGUI()
             logging.info('ViewFID done')
         except OSError:
-            logging.error('ViewFID OSError')
+            logging.error('ViewFID OSError', exc_info=True)
         except ValueError:
-            logging.info('ViewFID error')
+            logging.error('ViewFID error', exc_info=True)
 
 
     def Send2DarisFID(self):
@@ -803,9 +810,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
 
         except ValueError:
             print 'Send2DarisFID ValueError'
-            logging.info('Send2DarisFID error')
+            logging.error('Send2DarisFID error', exc_info=True)
         except OSError:
-            logging.error('Send2DarisFID OSError')
+            logging.error('Send2DarisFID OSError', exc_info=True)
 
     def UpdateGUI(self):
         """Update the GUI
@@ -857,7 +864,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             ftext.close()
         except ValueError:
             SequenceText = "FID image:\n-no text-"
-
+            pass
         # DisplayText=[ SequenceText + "\n", "StudyID: %s\n" %
         #  ds.StudyID, "Patient ID: %s\n" % ds.PatientID, "Protocol
         #  name: %s\n"% ds.ProtocolName, "Series Desc: %s\n" %
@@ -885,14 +892,18 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
     def About(self):
         """ Help dialog
         """
-        msg = '''                      Agilent2Dicom       \n\n
+        msg = '''                      Agilent2Dicom
+        
 Agilent2Dicom converts FDF and FID images from the Agilent 9.4T MR scanner at
-Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.\n\n
+Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.
+        
 Homepage:
-https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+
-converter\n\nVersion: ''' + __version__ + "\n" + "Stamp: "
-        + Agilent2DicomAppStamp
-        + "\nAuthor: " + __author__ + "\n" + __copyright__
+https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter
+Version: %s
+Stamp: %s
+Author: %s
+Copyright: %s''' % (__version_, Agilent2DicomAppStamp, __author__, __copyright__)
+
         reply = QtGui.QMessageBox.question(self, 'Message', msg,
                                            QtGui.QMessageBox.Ok)
 
