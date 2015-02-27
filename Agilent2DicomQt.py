@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomQt.ui'
 #
-# Created: Thu Feb 19 10:55:25 2015
+# Created: Fri Feb 27 12:08:37 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -619,9 +619,9 @@ class Ui_MainWindow(object):
         self.horizontalLayout_11.addWidget(self.stdev_window_size)
         spacerItem19 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_11.addItem(spacerItem19)
-        self.lineEdit_2 = QtGui.QLineEdit(self.tab_6)
-        self.lineEdit_2.setObjectName(_fromUtf8("lineEdit_2"))
-        self.horizontalLayout_11.addWidget(self.lineEdit_2)
+        self.lineEdit_stdev_size = QtGui.QLineEdit(self.tab_6)
+        self.lineEdit_stdev_size.setObjectName(_fromUtf8("lineEdit_stdev_size"))
+        self.horizontalLayout_11.addWidget(self.lineEdit_stdev_size)
         self.gridLayout.addLayout(self.horizontalLayout_11, 1, 0, 1, 1)
         spacerItem20 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout.addItem(spacerItem20, 2, 0, 1, 1)
@@ -969,7 +969,7 @@ class Ui_MainWindow(object):
 "\n"
 "WARNING this will increase 3D volume sizes by a factor of 8.\n"
 "\n"
-"Double-resolution uses zero-filled k-space data to double the resolution of the image. \n"
+"Super-resolution uses zero-filled k-space data to double the resolution of the image. \n"
 "The super-resolution image is saved to NIFTI while the standard is saved to dicom. ", None))
         self.checkBox_kspgauss_super.setText(_translate("MainWindow", "Super-resolution\n"
 "(Saved to NIFTI only)", None))
@@ -1000,9 +1000,9 @@ class Ui_MainWindow(object):
 "\n"
 "!!!WARNING this will increase 3D volume sizes by a factor of 8.!!!\n"
 "\n"
-"Double-resolution uses zero-filled k-space data to double the voxel resolution of the image. This is equivalent to interpolation in image space.\n"
+"\"Double-resolution uses zero-filled k-space data to double the voxel resolution of the image. This is equivalent to interpolation in image space.\n"
 "The double-resolution image is saved to NIFTI while the standard is saved to DICOM. ", None))
-        self.checkBox_kspepa_super.setText(_translate("MainWindow", "Double-resolution\n"
+        self.checkBox_kspepa_super.setText(_translate("MainWindow", "(Psuedo)Super-resolution\n"
 "(Saved to NIFTI only)", None))
         self.label_2.setText(_translate("MainWindow", "Effective Image Domain Bandwidth\n"
 "(Use Gaussian sigma\n"
@@ -1021,7 +1021,7 @@ class Ui_MainWindow(object):
         self.checkBox_stdev_magn.setText(_translate("MainWindow", "Use Magnitude", None))
         self.checkBox_stdev_phase.setText(_translate("MainWindow", "Use Phase", None))
         self.stdev_window_size.setText(_translate("MainWindow", "Window size (default 5)  ", None))
-        self.lineEdit_2.setText(_translate("MainWindow", "5", None))
+        self.lineEdit_stdev_size.setText(_translate("MainWindow", "5", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(self.tab_6), _translate("MainWindow", "Stdev", None))
         self.FIDprocparInfo.setText(_translate("MainWindow", "Metadata display:", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_fid_2), _translate("MainWindow", "FID converter", None))
