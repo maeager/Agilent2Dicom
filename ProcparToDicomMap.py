@@ -307,7 +307,7 @@ def ProcparToDicomMap(procpar, args):
     # 0018,1000 Device Serial Number (mandatory)
     ds.DeviceSerialNumber = A2D.DICOM_Tag_DeviceSerialNumber
     # 0018,1020 Software Versions (mandatory)
-    ds.SoftwareVersions = A2D.DICOM_Tag_SoftwareVersions
+    ds.SoftwareVersions = A2D.DICOM_Tag_SoftwareVersions + A2D.AGILENT2DICOM_VERSION
 
     # Module: Image Plane (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.6.2
