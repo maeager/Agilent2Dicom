@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomQt.ui'
 #
-# Created: Fri Feb 27 12:08:37 2015
+# Created: Thu Mar  5 09:33:44 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -29,7 +29,7 @@ class Ui_MainWindow(object):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName(_fromUtf8("MainWindow"))
-        MainWindow.resize(936, 611)
+        MainWindow.resize(1146, 611)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
@@ -87,7 +87,7 @@ class Ui_MainWindow(object):
         self.tab_generic_2 = QtGui.QWidget()
         self.tab_generic_2.setObjectName(_fromUtf8("tab_generic_2"))
         self.layoutWidget = QtGui.QWidget(self.tab_generic_2)
-        self.layoutWidget.setGeometry(QtCore.QRect(0, 0, 162, 50))
+        self.layoutWidget.setGeometry(QtCore.QRect(0, 0, 168, 52))
         self.layoutWidget.setObjectName(_fromUtf8("layoutWidget"))
         self.gridLayout_7 = QtGui.QGridLayout(self.layoutWidget)
         self.gridLayout_7.setMargin(0)
@@ -104,7 +104,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName(_fromUtf8("scrollArea"))
         self.scrollAreaWidgetContents = QtGui.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 693, 174))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 917, 187))
         self.scrollAreaWidgetContents.setObjectName(
             _fromUtf8("scrollAreaWidgetContents"))
         self.verticalLayout_15 = QtGui.QVBoxLayout(
@@ -275,6 +275,130 @@ class Ui_MainWindow(object):
         self.gridLayout_2.addWidget(self.label_38, 1, 0, 1, 1)
         self.verticalLayout_22.addLayout(self.gridLayout_2)
         self.tabWidget_3.addTab(self.tab_7, _fromUtf8(""))
+        self.tab_2 = QtGui.QWidget()
+        self.tab_2.setObjectName(_fromUtf8("tab_2"))
+        self.verticalLayout_16 = QtGui.QVBoxLayout(self.tab_2)
+        self.verticalLayout_16.setObjectName(_fromUtf8("verticalLayout_16"))
+        self.gridLayout_13 = QtGui.QGridLayout()
+        self.gridLayout_13.setObjectName(_fromUtf8("gridLayout_13"))
+        self.horizontalLayout_29 = QtGui.QHBoxLayout()
+        self.horizontalLayout_29.setSpacing(5)
+        self.horizontalLayout_29.setContentsMargins(-1, 5, -1, 5)
+        self.horizontalLayout_29.setObjectName(
+            _fromUtf8("horizontalLayout_29"))
+        self.gridLayout_13.addLayout(self.horizontalLayout_29, 2, 1, 1, 1)
+        self.horizontalLayout_4 = QtGui.QHBoxLayout()
+        self.horizontalLayout_4.setObjectName(_fromUtf8("horizontalLayout_4"))
+        self.checkBox_kspgaussian = QtGui.QCheckBox(self.tab_2)
+        self.checkBox_kspgaussian.setObjectName(
+            _fromUtf8("checkBox_kspgaussian"))
+        self.horizontalLayout_4.addWidget(self.checkBox_kspgaussian)
+        self.checkBox_kspgaussshift = QtGui.QCheckBox(self.tab_2)
+        self.checkBox_kspgaussshift.setObjectName(
+            _fromUtf8("checkBox_kspgaussshift"))
+        self.horizontalLayout_4.addWidget(self.checkBox_kspgaussshift)
+        self.checkBox_kspgauss_super = QtGui.QCheckBox(self.tab_2)
+        self.checkBox_kspgauss_super.setObjectName(
+            _fromUtf8("checkBox_kspgauss_super"))
+        self.horizontalLayout_4.addWidget(self.checkBox_kspgauss_super)
+        self.gridLayout_13.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
+        self.horizontalLayout_40 = QtGui.QHBoxLayout()
+        self.horizontalLayout_40.setSpacing(5)
+        self.horizontalLayout_40.setContentsMargins(-1, 5, -1, 5)
+        self.horizontalLayout_40.setObjectName(
+            _fromUtf8("horizontalLayout_40"))
+        self.label_39 = QtGui.QLabel(self.tab_2)
+        self.label_39.setObjectName(_fromUtf8("label_39"))
+        self.horizontalLayout_40.addWidget(self.label_39)
+        spacerItem = QtGui.QSpacerItem(
+            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_40.addItem(spacerItem)
+        self.lineEdit_gfsigma = QtGui.QLineEdit(self.tab_2)
+        self.lineEdit_gfsigma.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.lineEdit_gfsigma.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.lineEdit_gfsigma.setObjectName(_fromUtf8("lineEdit_gfsigma"))
+        self.horizontalLayout_40.addWidget(self.lineEdit_gfsigma)
+        self.comboBox_kspgauss_sigunit = QtGui.QComboBox(self.tab_2)
+        self.comboBox_kspgauss_sigunit.setObjectName(
+            _fromUtf8("comboBox_kspgauss_sigunit"))
+        self.comboBox_kspgauss_sigunit.addItem(_fromUtf8(""))
+        self.comboBox_kspgauss_sigunit.addItem(_fromUtf8(""))
+        self.comboBox_kspgauss_sigunit.addItem(_fromUtf8(""))
+        self.horizontalLayout_40.addWidget(self.comboBox_kspgauss_sigunit)
+        self.gridLayout_13.addLayout(self.horizontalLayout_40, 1, 0, 1, 1)
+        self.horizontalLayout_6 = QtGui.QHBoxLayout()
+        self.horizontalLayout_6.setObjectName(_fromUtf8("horizontalLayout_6"))
+        self.label = QtGui.QLabel(self.tab_2)
+        self.label.setObjectName(_fromUtf8("label"))
+        self.horizontalLayout_6.addWidget(self.label)
+        spacerItem1 = QtGui.QSpacerItem(
+            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_6.addItem(spacerItem1)
+        self.lineEdit = QtGui.QLineEdit(self.tab_2)
+        self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
+        self.horizontalLayout_6.addWidget(self.lineEdit)
+        self.gridLayout_13.addLayout(self.horizontalLayout_6, 2, 0, 1, 1)
+        spacerItem2 = QtGui.QSpacerItem(
+            20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.gridLayout_13.addItem(spacerItem2, 3, 0, 1, 1)
+        self.verticalLayout_16.addLayout(self.gridLayout_13)
+        self.tabWidget_3.addTab(self.tab_2, _fromUtf8(""))
+        self.tab = QtGui.QWidget()
+        self.tab.setObjectName(_fromUtf8("tab"))
+        self.verticalLayout_12 = QtGui.QVBoxLayout(self.tab)
+        self.verticalLayout_12.setObjectName(_fromUtf8("verticalLayout_12"))
+        self.verticalLayout_6 = QtGui.QVBoxLayout()
+        self.verticalLayout_6.setObjectName(_fromUtf8("verticalLayout_6"))
+        self.horizontalLayout_9 = QtGui.QHBoxLayout()
+        self.horizontalLayout_9.setObjectName(_fromUtf8("horizontalLayout_9"))
+        self.checkBox_kspepa = QtGui.QCheckBox(self.tab)
+        self.checkBox_kspepa.setObjectName(_fromUtf8("checkBox_kspepa"))
+        self.horizontalLayout_9.addWidget(self.checkBox_kspepa)
+        self.checkBox_kspepashift = QtGui.QCheckBox(self.tab)
+        self.checkBox_kspepashift.setObjectName(
+            _fromUtf8("checkBox_kspepashift"))
+        self.horizontalLayout_9.addWidget(self.checkBox_kspepashift)
+        self.checkBox_kspepa_super = QtGui.QCheckBox(self.tab)
+        self.checkBox_kspepa_super.setObjectName(
+            _fromUtf8("checkBox_kspepa_super"))
+        self.horizontalLayout_9.addWidget(self.checkBox_kspepa_super)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_9)
+        self.horizontalLayout_7 = QtGui.QHBoxLayout()
+        self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
+        self.label_2 = QtGui.QLabel(self.tab)
+        self.label_2.setObjectName(_fromUtf8("label_2"))
+        self.horizontalLayout_7.addWidget(self.label_2)
+        spacerItem3 = QtGui.QSpacerItem(
+            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_7.addItem(spacerItem3)
+        self.lineEdit_kspepa_band = QtGui.QLineEdit(self.tab)
+        self.lineEdit_kspepa_band.setObjectName(
+            _fromUtf8("lineEdit_kspepa_band"))
+        self.horizontalLayout_7.addWidget(self.lineEdit_kspepa_band)
+        self.comboBox_kspepa_scaleunit = QtGui.QComboBox(self.tab)
+        self.comboBox_kspepa_scaleunit.setObjectName(
+            _fromUtf8("comboBox_kspepa_scaleunit"))
+        self.comboBox_kspepa_scaleunit.addItem(_fromUtf8(""))
+        self.comboBox_kspepa_scaleunit.addItem(_fromUtf8(""))
+        self.comboBox_kspepa_scaleunit.addItem(_fromUtf8(""))
+        self.horizontalLayout_7.addWidget(self.comboBox_kspepa_scaleunit)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_7)
+        self.label_4 = QtGui.QLabel(self.tab)
+        self.label_4.setObjectName(_fromUtf8("label_4"))
+        self.verticalLayout_6.addWidget(self.label_4)
+        self.horizontalLayout_8 = QtGui.QHBoxLayout()
+        self.horizontalLayout_8.setObjectName(_fromUtf8("horizontalLayout_8"))
+        self.label_3 = QtGui.QLabel(self.tab)
+        self.label_3.setText(_fromUtf8(""))
+        self.label_3.setObjectName(_fromUtf8("label_3"))
+        self.horizontalLayout_8.addWidget(self.label_3)
+        self.verticalLayout_6.addLayout(self.horizontalLayout_8)
+        spacerItem4 = QtGui.QSpacerItem(
+            20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_6.addItem(spacerItem4)
+        self.verticalLayout_12.addLayout(self.verticalLayout_6)
+        self.tabWidget_3.addTab(self.tab, _fromUtf8(""))
         self.tab_3 = QtGui.QWidget()
         self.tab_3.setObjectName(_fromUtf8("tab_3"))
         self.verticalLayout_3 = QtGui.QVBoxLayout(self.tab_3)
@@ -295,9 +419,9 @@ class Ui_MainWindow(object):
         self.label_30 = QtGui.QLabel(self.tab_3)
         self.label_30.setObjectName(_fromUtf8("label_30"))
         self.horizontalLayout_32.addWidget(self.label_30)
-        spacerItem = QtGui.QSpacerItem(
+        spacerItem5 = QtGui.QSpacerItem(
             40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_32.addItem(spacerItem)
+        self.horizontalLayout_32.addItem(spacerItem5)
         self.lineEdit_gorder = QtGui.QLineEdit(self.tab_3)
         self.lineEdit_gorder.setAlignment(
             QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
@@ -312,9 +436,9 @@ class Ui_MainWindow(object):
         self.label_31 = QtGui.QLabel(self.tab_3)
         self.label_31.setObjectName(_fromUtf8("label_31"))
         self.horizontalLayout_33.addWidget(self.label_31)
-        spacerItem1 = QtGui.QSpacerItem(
+        spacerItem6 = QtGui.QSpacerItem(
             40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_33.addItem(spacerItem1)
+        self.horizontalLayout_33.addItem(spacerItem6)
         self.lineEdit_gsigma = QtGui.QLineEdit(self.tab_3)
         self.lineEdit_gsigma.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.lineEdit_gsigma.setAlignment(
@@ -351,9 +475,9 @@ class Ui_MainWindow(object):
         self.mirror = QtGui.QRadioButton(self.tab_3)
         self.mirror.setObjectName(_fromUtf8("mirror"))
         self.horizontalLayout_34.addWidget(self.mirror)
-        spacerItem2 = QtGui.QSpacerItem(
+        spacerItem7 = QtGui.QSpacerItem(
             40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_34.addItem(spacerItem2)
+        self.horizontalLayout_34.addItem(spacerItem7)
         self.gridLayout_12.addLayout(self.horizontalLayout_34, 4, 0, 1, 1)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName(_fromUtf8("horizontalLayout"))
@@ -366,11 +490,42 @@ class Ui_MainWindow(object):
             _fromUtf8("checkBox_gaussian2D"))
         self.horizontalLayout.addWidget(self.checkBox_gaussian2D)
         self.gridLayout_12.addLayout(self.horizontalLayout, 0, 0, 1, 1)
-        spacerItem3 = QtGui.QSpacerItem(
+        spacerItem8 = QtGui.QSpacerItem(
             20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_12.addItem(spacerItem3, 5, 0, 1, 1)
+        self.gridLayout_12.addItem(spacerItem8, 5, 0, 1, 1)
         self.verticalLayout_3.addLayout(self.gridLayout_12)
         self.tabWidget_3.addTab(self.tab_3, _fromUtf8(""))
+        self.tab_4 = QtGui.QWidget()
+        self.tab_4.setObjectName(_fromUtf8("tab_4"))
+        self.verticalLayout_14 = QtGui.QVBoxLayout(self.tab_4)
+        self.verticalLayout_14.setObjectName(_fromUtf8("verticalLayout_14"))
+        self.verticalLayout_9 = QtGui.QVBoxLayout()
+        self.verticalLayout_9.setObjectName(_fromUtf8("verticalLayout_9"))
+        self.checkBox_median = QtGui.QCheckBox(self.tab_4)
+        self.checkBox_median.setObjectName(_fromUtf8("checkBox_median"))
+        self.verticalLayout_9.addWidget(self.checkBox_median)
+        self.horizontalLayout_41 = QtGui.QHBoxLayout()
+        self.horizontalLayout_41.setObjectName(
+            _fromUtf8("horizontalLayout_41"))
+        self.label_33 = QtGui.QLabel(self.tab_4)
+        self.label_33.setObjectName(_fromUtf8("label_33"))
+        self.horizontalLayout_41.addWidget(self.label_33)
+        spacerItem9 = QtGui.QSpacerItem(
+            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_41.addItem(spacerItem9)
+        self.lineEdit_median_size = QtGui.QLineEdit(self.tab_4)
+        self.lineEdit_median_size.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.lineEdit_median_size.setAlignment(
+            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
+        self.lineEdit_median_size.setObjectName(
+            _fromUtf8("lineEdit_median_size"))
+        self.horizontalLayout_41.addWidget(self.lineEdit_median_size)
+        self.verticalLayout_9.addLayout(self.horizontalLayout_41)
+        spacerItem10 = QtGui.QSpacerItem(
+            20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_9.addItem(spacerItem10)
+        self.verticalLayout_14.addLayout(self.verticalLayout_9)
+        self.tabWidget_3.addTab(self.tab_4, _fromUtf8(""))
         self.tab_8 = QtGui.QWidget()
         self.tab_8.setEnabled(True)
         self.tab_8.setObjectName(_fromUtf8("tab_8"))
@@ -389,9 +544,9 @@ class Ui_MainWindow(object):
         self.label_34.setEnabled(True)
         self.label_34.setObjectName(_fromUtf8("label_34"))
         self.horizontalLayout_42.addWidget(self.label_34)
-        spacerItem4 = QtGui.QSpacerItem(
+        spacerItem11 = QtGui.QSpacerItem(
             40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_42.addItem(spacerItem4)
+        self.horizontalLayout_42.addItem(spacerItem11)
         self.lineEdit_wiener_size = QtGui.QLineEdit(self.tab_8)
         self.lineEdit_wiener_size.setEnabled(True)
         self.lineEdit_wiener_size.setLayoutDirection(QtCore.Qt.RightToLeft)
@@ -408,9 +563,9 @@ class Ui_MainWindow(object):
         self.label_35.setEnabled(True)
         self.label_35.setObjectName(_fromUtf8("label_35"))
         self.horizontalLayout_43.addWidget(self.label_35)
-        spacerItem5 = QtGui.QSpacerItem(
+        spacerItem12 = QtGui.QSpacerItem(
             40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_43.addItem(spacerItem5)
+        self.horizontalLayout_43.addItem(spacerItem12)
         self.lineEdit_wiener_noise = QtGui.QLineEdit(self.tab_8)
         self.lineEdit_wiener_noise.setEnabled(True)
         self.lineEdit_wiener_noise.setLayoutDirection(QtCore.Qt.RightToLeft)
@@ -420,42 +575,11 @@ class Ui_MainWindow(object):
             _fromUtf8("lineEdit_wiener_noise"))
         self.horizontalLayout_43.addWidget(self.lineEdit_wiener_noise)
         self.verticalLayout_10.addLayout(self.horizontalLayout_43)
-        spacerItem6 = QtGui.QSpacerItem(
+        spacerItem13 = QtGui.QSpacerItem(
             20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_10.addItem(spacerItem6)
+        self.verticalLayout_10.addItem(spacerItem13)
         self.verticalLayout_13.addLayout(self.verticalLayout_10)
         self.tabWidget_3.addTab(self.tab_8, _fromUtf8(""))
-        self.tab_4 = QtGui.QWidget()
-        self.tab_4.setObjectName(_fromUtf8("tab_4"))
-        self.verticalLayout_14 = QtGui.QVBoxLayout(self.tab_4)
-        self.verticalLayout_14.setObjectName(_fromUtf8("verticalLayout_14"))
-        self.verticalLayout_9 = QtGui.QVBoxLayout()
-        self.verticalLayout_9.setObjectName(_fromUtf8("verticalLayout_9"))
-        self.checkBox_median = QtGui.QCheckBox(self.tab_4)
-        self.checkBox_median.setObjectName(_fromUtf8("checkBox_median"))
-        self.verticalLayout_9.addWidget(self.checkBox_median)
-        self.horizontalLayout_41 = QtGui.QHBoxLayout()
-        self.horizontalLayout_41.setObjectName(
-            _fromUtf8("horizontalLayout_41"))
-        self.label_33 = QtGui.QLabel(self.tab_4)
-        self.label_33.setObjectName(_fromUtf8("label_33"))
-        self.horizontalLayout_41.addWidget(self.label_33)
-        spacerItem7 = QtGui.QSpacerItem(
-            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_41.addItem(spacerItem7)
-        self.lineEdit_median_size = QtGui.QLineEdit(self.tab_4)
-        self.lineEdit_median_size.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.lineEdit_median_size.setAlignment(
-            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.lineEdit_median_size.setObjectName(
-            _fromUtf8("lineEdit_median_size"))
-        self.horizontalLayout_41.addWidget(self.lineEdit_median_size)
-        self.verticalLayout_9.addLayout(self.horizontalLayout_41)
-        spacerItem8 = QtGui.QSpacerItem(
-            20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_9.addItem(spacerItem8)
-        self.verticalLayout_14.addLayout(self.verticalLayout_9)
-        self.tabWidget_3.addTab(self.tab_4, _fromUtf8(""))
         self.tab_5 = QtGui.QWidget()
         self.tab_5.setObjectName(_fromUtf8("tab_5"))
         self.verticalLayout_17 = QtGui.QVBoxLayout(self.tab_5)
@@ -476,9 +600,9 @@ class Ui_MainWindow(object):
         self.label_37 = QtGui.QLabel(self.tab_5)
         self.label_37.setObjectName(_fromUtf8("label_37"))
         self.horizontalLayout_39.addWidget(self.label_37)
-        spacerItem9 = QtGui.QSpacerItem(
+        spacerItem14 = QtGui.QSpacerItem(
             40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_39.addItem(spacerItem9)
+        self.horizontalLayout_39.addItem(spacerItem14)
         self.gridLayout_14.addLayout(self.horizontalLayout_39, 3, 0, 1, 1)
         self.horizontalLayout_45 = QtGui.QHBoxLayout()
         self.horizontalLayout_45.setSpacing(5)
@@ -488,9 +612,9 @@ class Ui_MainWindow(object):
         self.label_41 = QtGui.QLabel(self.tab_5)
         self.label_41.setObjectName(_fromUtf8("label_41"))
         self.horizontalLayout_45.addWidget(self.label_41)
-        spacerItem10 = QtGui.QSpacerItem(
+        spacerItem15 = QtGui.QSpacerItem(
             40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_45.addItem(spacerItem10)
+        self.horizontalLayout_45.addItem(spacerItem15)
         self.lineEdit_epaband = QtGui.QLineEdit(self.tab_5)
         self.lineEdit_epaband.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.lineEdit_epaband.setAlignment(
@@ -527,9 +651,9 @@ class Ui_MainWindow(object):
         self.mirror_epa = QtGui.QRadioButton(self.tab_5)
         self.mirror_epa.setObjectName(_fromUtf8("mirror_epa"))
         self.horizontalLayout_46.addWidget(self.mirror_epa)
-        spacerItem11 = QtGui.QSpacerItem(
+        spacerItem16 = QtGui.QSpacerItem(
             40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_46.addItem(spacerItem11)
+        self.horizontalLayout_46.addItem(spacerItem16)
         self.gridLayout_14.addLayout(self.horizontalLayout_46, 4, 0, 1, 1)
         self.horizontalLayout_5 = QtGui.QHBoxLayout()
         self.horizontalLayout_5.setObjectName(_fromUtf8("horizontalLayout_5"))
@@ -543,138 +667,11 @@ class Ui_MainWindow(object):
             _fromUtf8("checkBox_epanechnikov2D"))
         self.horizontalLayout_5.addWidget(self.checkBox_epanechnikov2D)
         self.gridLayout_14.addLayout(self.horizontalLayout_5, 0, 0, 1, 1)
-        spacerItem12 = QtGui.QSpacerItem(
+        spacerItem17 = QtGui.QSpacerItem(
             20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_14.addItem(spacerItem12, 5, 0, 1, 1)
+        self.gridLayout_14.addItem(spacerItem17, 5, 0, 1, 1)
         self.verticalLayout_17.addLayout(self.gridLayout_14)
         self.tabWidget_3.addTab(self.tab_5, _fromUtf8(""))
-        self.tab_2 = QtGui.QWidget()
-        self.tab_2.setObjectName(_fromUtf8("tab_2"))
-        self.verticalLayout_16 = QtGui.QVBoxLayout(self.tab_2)
-        self.verticalLayout_16.setObjectName(_fromUtf8("verticalLayout_16"))
-        self.gridLayout_13 = QtGui.QGridLayout()
-        self.gridLayout_13.setObjectName(_fromUtf8("gridLayout_13"))
-        self.horizontalLayout_29 = QtGui.QHBoxLayout()
-        self.horizontalLayout_29.setSpacing(5)
-        self.horizontalLayout_29.setContentsMargins(-1, 5, -1, 5)
-        self.horizontalLayout_29.setObjectName(
-            _fromUtf8("horizontalLayout_29"))
-        self.gridLayout_13.addLayout(self.horizontalLayout_29, 2, 1, 1, 1)
-        self.horizontalLayout_4 = QtGui.QHBoxLayout()
-        self.horizontalLayout_4.setObjectName(_fromUtf8("horizontalLayout_4"))
-        self.checkBox_kspgaussian = QtGui.QCheckBox(self.tab_2)
-        self.checkBox_kspgaussian.setObjectName(
-            _fromUtf8("checkBox_kspgaussian"))
-        self.horizontalLayout_4.addWidget(self.checkBox_kspgaussian)
-        self.checkBox_kspgaussshift = QtGui.QCheckBox(self.tab_2)
-        self.checkBox_kspgaussshift.setObjectName(
-            _fromUtf8("checkBox_kspgaussshift"))
-        self.horizontalLayout_4.addWidget(self.checkBox_kspgaussshift)
-        self.checkBox_kspgauss_super = QtGui.QCheckBox(self.tab_2)
-        self.checkBox_kspgauss_super.setObjectName(
-            _fromUtf8("checkBox_kspgauss_super"))
-        self.horizontalLayout_4.addWidget(self.checkBox_kspgauss_super)
-        self.gridLayout_13.addLayout(self.horizontalLayout_4, 0, 0, 1, 1)
-        self.horizontalLayout_40 = QtGui.QHBoxLayout()
-        self.horizontalLayout_40.setSpacing(5)
-        self.horizontalLayout_40.setContentsMargins(-1, 5, -1, 5)
-        self.horizontalLayout_40.setObjectName(
-            _fromUtf8("horizontalLayout_40"))
-        self.label_39 = QtGui.QLabel(self.tab_2)
-        self.label_39.setObjectName(_fromUtf8("label_39"))
-        self.horizontalLayout_40.addWidget(self.label_39)
-        spacerItem13 = QtGui.QSpacerItem(
-            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_40.addItem(spacerItem13)
-        self.lineEdit_gfsigma = QtGui.QLineEdit(self.tab_2)
-        self.lineEdit_gfsigma.setLayoutDirection(QtCore.Qt.RightToLeft)
-        self.lineEdit_gfsigma.setAlignment(
-            QtCore.Qt.AlignRight | QtCore.Qt.AlignTrailing | QtCore.Qt.AlignVCenter)
-        self.lineEdit_gfsigma.setObjectName(_fromUtf8("lineEdit_gfsigma"))
-        self.horizontalLayout_40.addWidget(self.lineEdit_gfsigma)
-        self.comboBox_kspgauss_sigunit = QtGui.QComboBox(self.tab_2)
-        self.comboBox_kspgauss_sigunit.setObjectName(
-            _fromUtf8("comboBox_kspgauss_sigunit"))
-        self.comboBox_kspgauss_sigunit.addItem(_fromUtf8(""))
-        self.comboBox_kspgauss_sigunit.addItem(_fromUtf8(""))
-        self.comboBox_kspgauss_sigunit.addItem(_fromUtf8(""))
-        self.horizontalLayout_40.addWidget(self.comboBox_kspgauss_sigunit)
-        self.gridLayout_13.addLayout(self.horizontalLayout_40, 1, 0, 1, 1)
-        self.horizontalLayout_6 = QtGui.QHBoxLayout()
-        self.horizontalLayout_6.setObjectName(_fromUtf8("horizontalLayout_6"))
-        self.label = QtGui.QLabel(self.tab_2)
-        self.label.setObjectName(_fromUtf8("label"))
-        self.horizontalLayout_6.addWidget(self.label)
-        spacerItem14 = QtGui.QSpacerItem(
-            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_6.addItem(spacerItem14)
-        self.lineEdit = QtGui.QLineEdit(self.tab_2)
-        self.lineEdit.setObjectName(_fromUtf8("lineEdit"))
-        self.horizontalLayout_6.addWidget(self.lineEdit)
-        self.gridLayout_13.addLayout(self.horizontalLayout_6, 2, 0, 1, 1)
-        spacerItem15 = QtGui.QSpacerItem(
-            20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_13.addItem(spacerItem15, 3, 0, 1, 1)
-        self.verticalLayout_16.addLayout(self.gridLayout_13)
-        self.tabWidget_3.addTab(self.tab_2, _fromUtf8(""))
-        self.tab = QtGui.QWidget()
-        self.tab.setObjectName(_fromUtf8("tab"))
-        self.verticalLayout_12 = QtGui.QVBoxLayout(self.tab)
-        self.verticalLayout_12.setObjectName(_fromUtf8("verticalLayout_12"))
-        self.verticalLayout_6 = QtGui.QVBoxLayout()
-        self.verticalLayout_6.setObjectName(_fromUtf8("verticalLayout_6"))
-        self.horizontalLayout_9 = QtGui.QHBoxLayout()
-        self.horizontalLayout_9.setObjectName(_fromUtf8("horizontalLayout_9"))
-        self.checkBox_kspepa = QtGui.QCheckBox(self.tab)
-        self.checkBox_kspepa.setObjectName(_fromUtf8("checkBox_kspepa"))
-        self.horizontalLayout_9.addWidget(self.checkBox_kspepa)
-        self.checkBox_kspepashift = QtGui.QCheckBox(self.tab)
-        self.checkBox_kspepashift.setObjectName(
-            _fromUtf8("checkBox_kspepashift"))
-        self.horizontalLayout_9.addWidget(self.checkBox_kspepashift)
-        self.checkBox_kspepa_super = QtGui.QCheckBox(self.tab)
-        self.checkBox_kspepa_super.setObjectName(
-            _fromUtf8("checkBox_kspepa_super"))
-        self.horizontalLayout_9.addWidget(self.checkBox_kspepa_super)
-        self.verticalLayout_6.addLayout(self.horizontalLayout_9)
-        self.horizontalLayout_7 = QtGui.QHBoxLayout()
-        self.horizontalLayout_7.setObjectName(_fromUtf8("horizontalLayout_7"))
-        self.label_2 = QtGui.QLabel(self.tab)
-        self.label_2.setObjectName(_fromUtf8("label_2"))
-        self.horizontalLayout_7.addWidget(self.label_2)
-        spacerItem16 = QtGui.QSpacerItem(
-            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_7.addItem(spacerItem16)
-        self.lineEdit_kspepa_band = QtGui.QLineEdit(self.tab)
-        self.lineEdit_kspepa_band.setObjectName(
-            _fromUtf8("lineEdit_kspepa_band"))
-        self.horizontalLayout_7.addWidget(self.lineEdit_kspepa_band)
-        self.comboBox_kspepa_scaleunit = QtGui.QComboBox(self.tab)
-        self.comboBox_kspepa_scaleunit.setObjectName(
-            _fromUtf8("comboBox_kspepa_scaleunit"))
-        self.comboBox_kspepa_scaleunit.addItem(_fromUtf8(""))
-        self.comboBox_kspepa_scaleunit.addItem(_fromUtf8(""))
-        self.comboBox_kspepa_scaleunit.addItem(_fromUtf8(""))
-        self.horizontalLayout_7.addWidget(self.comboBox_kspepa_scaleunit)
-        self.verticalLayout_6.addLayout(self.horizontalLayout_7)
-        self.horizontalLayout_8 = QtGui.QHBoxLayout()
-        self.horizontalLayout_8.setObjectName(_fromUtf8("horizontalLayout_8"))
-        self.label_3 = QtGui.QLabel(self.tab)
-        self.label_3.setText(_fromUtf8(""))
-        self.label_3.setObjectName(_fromUtf8("label_3"))
-        self.horizontalLayout_8.addWidget(self.label_3)
-        self.label_4 = QtGui.QLabel(self.tab)
-        self.label_4.setObjectName(_fromUtf8("label_4"))
-        self.horizontalLayout_8.addWidget(self.label_4)
-        spacerItem17 = QtGui.QSpacerItem(
-            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_8.addItem(spacerItem17)
-        self.verticalLayout_6.addLayout(self.horizontalLayout_8)
-        spacerItem18 = QtGui.QSpacerItem(
-            20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.verticalLayout_6.addItem(spacerItem18)
-        self.verticalLayout_12.addLayout(self.verticalLayout_6)
-        self.tabWidget_3.addTab(self.tab, _fromUtf8(""))
         self.tab_6 = QtGui.QWidget()
         self.tab_6.setObjectName(_fromUtf8("tab_6"))
         self.verticalLayout_11 = QtGui.QVBoxLayout(self.tab_6)
@@ -700,20 +697,20 @@ class Ui_MainWindow(object):
         self.horizontalLayout_11 = QtGui.QHBoxLayout()
         self.horizontalLayout_11.setObjectName(
             _fromUtf8("horizontalLayout_11"))
-        self.stdev_window_size = QtGui.QLabel(self.tab_6)
+        self.stdev_window_size_label = QtGui.QLabel(self.tab_6)
+        self.stdev_window_size_label.setObjectName(
+            _fromUtf8("stdev_window_size_label"))
+        self.horizontalLayout_11.addWidget(self.stdev_window_size_label)
+        spacerItem18 = QtGui.QSpacerItem(
+            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout_11.addItem(spacerItem18)
+        self.stdev_window_size = QtGui.QLineEdit(self.tab_6)
         self.stdev_window_size.setObjectName(_fromUtf8("stdev_window_size"))
         self.horizontalLayout_11.addWidget(self.stdev_window_size)
-        spacerItem19 = QtGui.QSpacerItem(
-            40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
-        self.horizontalLayout_11.addItem(spacerItem19)
-        self.lineEdit_stdev_size = QtGui.QLineEdit(self.tab_6)
-        self.lineEdit_stdev_size.setObjectName(
-            _fromUtf8("lineEdit_stdev_size"))
-        self.horizontalLayout_11.addWidget(self.lineEdit_stdev_size)
         self.gridLayout.addLayout(self.horizontalLayout_11, 1, 0, 1, 1)
-        spacerItem20 = QtGui.QSpacerItem(
+        spacerItem19 = QtGui.QSpacerItem(
             20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout.addItem(spacerItem20, 2, 0, 1, 1)
+        self.gridLayout.addItem(spacerItem19, 2, 0, 1, 1)
         self.verticalLayout_11.addLayout(self.gridLayout)
         self.tabWidget_3.addTab(self.tab_6, _fromUtf8(""))
         self.verticalLayout_8.addWidget(self.tabWidget_3)
@@ -723,7 +720,7 @@ class Ui_MainWindow(object):
         self.scrollArea_4.setObjectName(_fromUtf8("scrollArea_4"))
         self.scrollAreaWidgetContents_4 = QtGui.QWidget()
         self.scrollAreaWidgetContents_4.setGeometry(
-            QtCore.QRect(0, 0, 699, 138))
+            QtCore.QRect(0, 0, 917, 112))
         self.scrollAreaWidgetContents_4.setObjectName(
             _fromUtf8("scrollAreaWidgetContents_4"))
         self.verticalLayout_21 = QtGui.QVBoxLayout(
@@ -736,6 +733,16 @@ class Ui_MainWindow(object):
         self.verticalLayout_21.addWidget(self.FIDprocparInfo)
         self.scrollArea_4.setWidget(self.scrollAreaWidgetContents_4)
         self.gridLayout_11.addWidget(self.scrollArea_4, 3, 2, 1, 1)
+        self.verticalLayout_18 = QtGui.QVBoxLayout()
+        self.verticalLayout_18.setObjectName(_fromUtf8("verticalLayout_18"))
+        spacerItem20 = QtGui.QSpacerItem(
+            20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.verticalLayout_18.addItem(spacerItem20)
+        self.pushButton_CleanUpDicoms = QtGui.QPushButton(self.tab_fid_2)
+        self.pushButton_CleanUpDicoms.setObjectName(
+            _fromUtf8("pushButton_CleanUpDicoms"))
+        self.verticalLayout_18.addWidget(self.pushButton_CleanUpDicoms)
+        self.gridLayout_11.addLayout(self.verticalLayout_18, 3, 3, 1, 1)
         self.verticalLayout_2.addLayout(self.gridLayout_11)
         self.tabWidget.addTab(self.tab_fid_2, _fromUtf8(""))
         self.verticalLayout.addWidget(self.tabWidget)
@@ -757,7 +764,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addLayout(self.horizontalLayout_3)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 936, 25))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1146, 20))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -830,19 +837,19 @@ class Ui_MainWindow(object):
         self.label_22.setBuddy(self.lineEdit_darisid2)
         self.label_24.setBuddy(self.lineEdit_fidpath)
         self.label_27.setBuddy(self.lineEdit_dicompath2)
+        self.label_39.setBuddy(self.lineEdit_gsigma)
         self.label_30.setBuddy(self.lineEdit_gorder)
         self.label_31.setBuddy(self.lineEdit_gsigma)
+        self.label_33.setBuddy(self.lineEdit_median_size)
         self.label_34.setBuddy(self.lineEdit_wiener_size)
         self.label_35.setBuddy(self.lineEdit_wiener_noise)
-        self.label_33.setBuddy(self.lineEdit_median_size)
         self.label_37.setBuddy(self.lineEdit_gorder)
         self.label_41.setBuddy(self.lineEdit_gsigma)
-        self.label_39.setBuddy(self.lineEdit_gsigma)
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(1)
         self.Multiecho_2.setCurrentIndex(0)
-        self.tabWidget_3.setCurrentIndex(0)
+        self.tabWidget_3.setCurrentIndex(3)
         QtCore.QObject.connect(self.actionOpen_FDF_Directory, QtCore.SIGNAL(
             _fromUtf8("triggered()")), self.pushButton_changefdf.click)
         QtCore.QObject.connect(
@@ -930,8 +937,8 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Send DICOMs to DaRIS", None))
         self.pushButton_send2daris2.setText(
             _translate("MainWindow", "Send to DaRIS", None))
-        self.tabWidget_3.setToolTip(_translate("MainWindow", "Multidimensional median, Gaussian or Wiener  filters.  \n"
-                                               "Warning: use on isotropic images only.", None))
+        self.tabWidget_3.setToolTip(_translate("MainWindow", "Multidimensional Gaussian, Epanechnikov, Median, StDev or Wiener filters.  \n"
+                                               "Warning: use identical sigma values on isotropic images only. Non-isotropic values should be based on image size in comma-serarated list", None))
         self.checkBox_magn.setText(
             _translate("MainWindow", "Save Magnitude", None))
         self.checkBox_pha.setText(_translate("MainWindow", "Save Phase", None))
@@ -959,6 +966,79 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Outputs of original reconstructed image:", None))
         self.tabWidget_3.setTabText(
             self.tabWidget_3.indexOf(self.tab_7), _translate("MainWindow", "Options", None))
+        self.checkBox_kspgaussian.setToolTip(_translate(
+            "MainWindow", "<html><head/><body><p> KSPACEFILTER gaussian filter of complex 3D image</p><p><br/></p><p>    filtered_magnitude = kspacefilter(realimg, imagimg)</p><p><br/></p><p><br/></p><p>    scipy.ndimage.fourier.fourier_gaussian</p><p><br/></p><p>    scipy.ndimage.fourier.fourier_gaussian(input, sigma, n=-1, axis=-1,</p><p>    output=None)[source]</p><p><br/></p><p>    Multi-dimensional Gaussian fourier filter.</p><p><br/></p><p>    The array is multiplied with the fourier transform of a Gaussian kernel.</p><p><br/></p><p>    Parameters:</p><p>    input : array_like</p><p>    The input array.</p><p>    sigma : float or sequence</p><p><br/></p><p>    The sigma of the Gaussian kernel. If a float, sigma is the same</p><p>    for all axes. If a sequence, sigma has to contain one value for</p><p>    each axis.</p><p><br/></p><p>    n : int, optional</p><p><br/></p><p>    If n is negative (default), then the input is assumed to be the</p><p>    result of a complex fft. If n is larger than or equal to zero, the</p><p>    input is assumed to be the result of a real fft, and n gives the</p><p>    length of the array before transformation along the real transform</p><p>    direction.</p><p><br/></p><p>    axis : int, optional</p><p>    The axis of the real transform.</p><p>    output : ndarray, optional</p><p><br/></p><p>    If given, the result of filtering the input is placed in this array. None</p><p>    is returned in this case.</p><p><br/></p><p>    Returns:</p><p>    fourier_gaussian : ndarray or None</p><p>    The filtered input. If output is given as a parameter, None is returned.</p><p><br/></p></body></html>", None))
+        self.checkBox_kspgaussian.setText(_translate("MainWindow", "Use K-space Gaussian filter\n"
+                                                     "(Fourier domain)", None))
+        self.checkBox_kspgaussshift.setToolTip(
+            _translate("MainWindow", "Disable centre-shifting in k-space", None))
+        self.checkBox_kspgaussshift.setText(
+            _translate("MainWindow", "Disable centre shift ", None))
+        self.checkBox_kspgauss_super.setToolTip(_translate("MainWindow", "Use zero padding in k-space to double image resolution. \n"
+                                                           "\n"
+                                                           "WARNING this will increase 3D volume sizes by a factor of 8.\n"
+                                                           "\n"
+                                                           "Super-resolution uses zero-filled k-space data to double the resolution of the image. \n"
+                                                           "The super-resolution image is saved to NIFTI while the standard is saved to dicom. ", None))
+        self.checkBox_kspgauss_super.setText(_translate("MainWindow", "Super-resolution\n"
+                                                        "(Saved to NIFTI only)", None))
+        self.label_39.setToolTip(_translate("MainWindow", "scalar or sequence of scalars\n"
+                                            "\n"
+                                            "    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.\n"
+                                            "\n"
+                                            "Effective Fourier domain sigma is calculated as the image size divided by image domain sigma. sigma.", None))
+        self.label_39.setText(
+            _translate("MainWindow", "Effective Image Domain Sigma", None))
+        self.lineEdit_gfsigma.setToolTip(_translate("MainWindow", "scalar or sequence of scalars\n"
+                                                    "\n"
+                                                    "    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.  Default value for isotropic GRE scans is 1/sqrt(2)=0.707.", None))
+        self.lineEdit_gfsigma.setText(
+            _translate("MainWindow", "0.707,0.707,0.707", None))
+        self.comboBox_kspgauss_sigunit.setItemText(
+            0, _translate("MainWindow", "unit voxel", None))
+        self.comboBox_kspgauss_sigunit.setItemText(
+            1, _translate("MainWindow", "in mm", None))
+        self.comboBox_kspgauss_sigunit.setItemText(
+            2, _translate("MainWindow", "in um", None))
+        self.label.setText(_translate("MainWindow", "Actual FT Gaussian sigma\n"
+                                      "(matrix size/sigma)", None))
+        self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(
+            self.tab_2), _translate("MainWindow", "K-space Gaussian", None))
+        self.checkBox_kspepa.setToolTip(_translate(
+            "MainWindow", "3D Epanechnikov filter in k-space (Fourier domain).   FFT of image filter used instead of calculated filter.", None))
+        self.checkBox_kspepa.setText(_translate("MainWindow", "Use Kspace Epanechnikov filter\n"
+                                                "(Fourier domain)", None))
+        self.checkBox_kspepashift.setToolTip(
+            _translate("MainWindow", "Disable k-space frequency shift", None))
+        self.checkBox_kspepashift.setText(
+            _translate("MainWindow", "No Shift", None))
+        self.checkBox_kspepa_super.setToolTip(_translate("MainWindow", "Use zero padding in k-space to double image resolution. \n"
+                                                         "\n"
+                                                         "WARNING this will increase 3D volume sizes by a factor of 8.\n"
+                                                         "\n"
+                                                         "Super-resolution uses zero-filled k-space data to double the resolution of the image. \n"
+                                                         "The super-resolution image is saved to NIFTI while the standard is saved to dicom. ", None))
+        self.checkBox_kspepa_super.setText(_translate("MainWindow", "Super-resolution\n"
+                                                      "(Saved to NIFTI only)", None))
+        self.label_2.setText(_translate("MainWindow", "Effective Filter Bandwidth\n"
+                                        "(Use Gaussian sigma\n"
+                                        " times sqrt(dim+4) )", None))
+        self.lineEdit_kspepa_band.setToolTip(_translate(
+            "MainWindow", "Bandwidth equivalent in image space.  Comma separated values (no spaces) accepted for non-isotropic slices.", None))
+        self.lineEdit_kspepa_band.setText(
+            _translate("MainWindow", "1.8708,1.8708,1.8708", None))
+        self.comboBox_kspepa_scaleunit.setItemText(
+            0, _translate("MainWindow", "unit voxel", None))
+        self.comboBox_kspepa_scaleunit.setItemText(
+            1, _translate("MainWindow", "mm", None))
+        self.comboBox_kspepa_scaleunit.setItemText(
+            2, _translate("MainWindow", "um", None))
+        self.label_4.setText(_translate("MainWindow", " Note: Complex Fourier domain Epanechnikov filter is generated from complex image domain kernel. \n"
+                                        "\n"
+                                        "Pseudo super-resolution does not give additional subvoxel information to the image.  It is a complex interpolation for assisting contrast in rendering \n"
+                                        "", None))
+        self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(
+            self.tab), _translate("MainWindow", "K-space Epanechnikov", None))
         self.label_30.setToolTip(_translate("MainWindow", "order : {0, 1, 2, 3} or sequence from same set, optional\n"
                                             "\n"
                                             "    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented\n"
@@ -1014,37 +1094,6 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Use 2D Gaussian filter", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(
             self.tab_3), _translate("MainWindow", "Gaussian", None))
-        self.checkBox_wiener.setToolTip(_translate("MainWindow", "NOT ENABLED - Speak to MBI Imaging Team\n"
-                                                   "\n"
-                                                   "scipy.signal.wiener(im, mysize=None, noise=None)\n"
-                                                   "\n"
-                                                   "    Perform a Wiener filter on an N-dimensional array.\n"
-                                                   "\n"
-                                                   "    Apply a Wiener filter to the N-dimensional array im.", None))
-        self.checkBox_wiener.setText(
-            _translate("MainWindow", "Use Wiener Filter", None))
-        self.label_34.setToolTip(_translate("MainWindow", "mysize : int or arraylike, optional\n"
-                                            "\n"
-                                            "    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
-                                            "", None))
-        self.label_34.setText(
-            _translate("MainWindow", " Window Size(s)", None))
-        self.lineEdit_wiener_size.setToolTip(_translate("MainWindow", "mysize : int or arraylike, optional\n"
-                                                        "\n"
-                                                        "    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
-                                                        "", None))
-        self.lineEdit_wiener_size.setText(_translate("MainWindow", "5", None))
-        self.label_35.setToolTip(_translate(
-            "MainWindow", "<html><head/><body><p>noise: Estimation of noise, Set to 0 for local variance to be used.</p></body></html>", None))
-        self.label_35.setText(_translate(
-            "MainWindow", "Noise (Est. variance, 0 uses localised variance) ", None))
-        self.lineEdit_wiener_noise.setToolTip(_translate("MainWindow", "mysize : int or arraylike, optional\n"
-                                                         "\n"
-                                                         "    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
-                                                         "", None))
-        self.lineEdit_wiener_noise.setText(_translate("MainWindow", "0", None))
-        self.tabWidget_3.setTabText(
-            self.tabWidget_3.indexOf(self.tab_8), _translate("MainWindow", "Wiener", None))
         self.checkBox_median.setToolTip(_translate("MainWindow", "scipy.ndimage.filters.median_filter¶\n"
                                                    "\n"
                                                    "scipy.ndimage.filters.median_filter(input, size=None, footprint=None, output=None, mode=\'reflect\', cval=0.0, origin=0)[source]\n"
@@ -1081,9 +1130,42 @@ class Ui_MainWindow(object):
                                                         " We adjust size to the number of dimensions of the input array, so that, if the input array is shape (10,10,10),\n"
                                                         " and size is 2, then the actual size used is (2,2,2).\n"
                                                         "", None))
-        self.lineEdit_median_size.setText(_translate("MainWindow", "5", None))
+        self.lineEdit_median_size.setText(
+            _translate("MainWindow", "5,5,5", None))
         self.tabWidget_3.setTabText(
             self.tabWidget_3.indexOf(self.tab_4), _translate("MainWindow", "Median", None))
+        self.checkBox_wiener.setToolTip(_translate("MainWindow", "NOT ENABLED - Speak to MBI Imaging Team\n"
+                                                   "\n"
+                                                   "scipy.signal.wiener(im, mysize=None, noise=None)\n"
+                                                   "\n"
+                                                   "    Perform a Wiener filter on an N-dimensional array.\n"
+                                                   "\n"
+                                                   "    Apply a Wiener filter to the N-dimensional array im.", None))
+        self.checkBox_wiener.setText(
+            _translate("MainWindow", "Use Wiener Filter", None))
+        self.label_34.setToolTip(_translate("MainWindow", "mysize : int or arraylike, optional\n"
+                                            "\n"
+                                            "    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
+                                            "", None))
+        self.label_34.setText(
+            _translate("MainWindow", " Window Size(s)", None))
+        self.lineEdit_wiener_size.setToolTip(_translate("MainWindow", "mysize : int or arraylike, optional\n"
+                                                        "\n"
+                                                        "    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
+                                                        "", None))
+        self.lineEdit_wiener_size.setText(
+            _translate("MainWindow", "5,5,5", None))
+        self.label_35.setToolTip(_translate(
+            "MainWindow", "<html><head/><body><p>noise: Estimation of noise, Set to 0 for local variance to be used.</p></body></html>", None))
+        self.label_35.setText(_translate(
+            "MainWindow", "Noise (Est. variance, 0 uses localised variance) ", None))
+        self.lineEdit_wiener_noise.setToolTip(_translate("MainWindow", "mysize : int or arraylike, optional\n"
+                                                         "\n"
+                                                         "    A scalar or an N-length list giving the size of the Wiener filter window in each dimension. Elements of mysize should be odd. If mysize is a scalar, then this scalar is used as the size in each dimension.\n"
+                                                         "", None))
+        self.lineEdit_wiener_noise.setText(_translate("MainWindow", "0", None))
+        self.tabWidget_3.setTabText(
+            self.tabWidget_3.indexOf(self.tab_8), _translate("MainWindow", "Wiener", None))
         self.label_37.setToolTip(_translate("MainWindow", "order : {0, 1, 2, 3} or sequence from same set, optional\n"
                                             "\n"
                                             "    The order of the filter along each axis is given as a sequence of integers, or as a single number. An order of 0 corresponds to convolution with a Gaussian kernel. An order of 1, 2, or 3 corresponds to convolution with the first, second or third derivatives of a Gaussian. Higher order derivatives are not implemented\n"
@@ -1129,97 +1211,29 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "Use 2D Epanechnikov filter", None))
         self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(
             self.tab_5), _translate("MainWindow", "Epanechnikov", None))
-        self.checkBox_kspgaussian.setToolTip(_translate("MainWindow", " scipy.ndimage.filters.gaussian_filter(input, sigma, order=0, output=None, mode=\'reflect\', cval=0.0, truncate=4.0)[source]\n"
-                                                        "\n"
-                                                        "    Multidimensional Gaussian filter.", None))
-        self.checkBox_kspgaussian.setText(_translate("MainWindow", "Use K-space Gaussian filter\n"
-                                                     "(Fourier domain)", None))
-        self.checkBox_kspgaussshift.setToolTip(
-            _translate("MainWindow", "Disable centre-shifting in k-space", None))
-        self.checkBox_kspgaussshift.setText(
-            _translate("MainWindow", "Disable centre shift ", None))
-        self.checkBox_kspgauss_super.setToolTip(_translate("MainWindow", "Use zero padding in k-space to double image resolution. \n"
-                                                           "\n"
-                                                           "WARNING this will increase 3D volume sizes by a factor of 8.\n"
-                                                           "\n"
-                                                           "Super-resolution uses zero-filled k-space data to double the resolution of the image. \n"
-                                                           "The super-resolution image is saved to NIFTI while the standard is saved to dicom. ", None))
-        self.checkBox_kspgauss_super.setText(_translate("MainWindow", "Super-resolution\n"
-                                                        "(Saved to NIFTI only)", None))
-        self.label_39.setToolTip(_translate("MainWindow", "scalar or sequence of scalars\n"
-                                            "\n"
-                                            "    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.\n"
-                                            "\n"
-                                            "Effective Fourier domain sigma is calculated as the image size divided by image domain sigma. sigma.", None))
-        self.label_39.setText(
-            _translate("MainWindow", "Effective Image Domain Sigma", None))
-        self.lineEdit_gfsigma.setToolTip(_translate("MainWindow", "scalar or sequence of scalars\n"
-                                                    "\n"
-                                                    "    Standard deviation for Gaussian kernel. The standard deviations of the Gaussian filter are given for each axis as a sequence, or as a single number, in which case it is equal for all axes.  Default value for isotropic GRE scans is 1/sqrt(2)=0.707.", None))
-        self.lineEdit_gfsigma.setText(_translate("MainWindow", "0.707", None))
-        self.comboBox_kspgauss_sigunit.setItemText(
-            0, _translate("MainWindow", "unit voxel", None))
-        self.comboBox_kspgauss_sigunit.setItemText(
-            1, _translate("MainWindow", "in mm", None))
-        self.comboBox_kspgauss_sigunit.setItemText(
-            2, _translate("MainWindow", "in um", None))
-        self.label.setText(_translate("MainWindow", "Actual FT Gaussian sigma\n"
-                                      "(matrix size/sigma)", None))
-        self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(
-            self.tab_2), _translate("MainWindow", "K-space Gaussian", None))
-        self.checkBox_kspepa.setToolTip(_translate("MainWindow", "3D Epanechnikov filter in k-space (Fourier domain).   FFT of image filter used instead of calculated filter.\n"
-                                                   "Pseudo-superresolution is available that can double the resolution in image space (equivalent to a complex interpolation).\n"
-                                                   "", None))
-        self.checkBox_kspepa.setText(_translate("MainWindow", "Use Kspace Epanechnikov\n"
-                                                " filter(Fourier domain)", None))
-        self.checkBox_kspepashift.setToolTip(_translate(
-            "MainWindow", "Disable k-space frequency shift.  Before filtering in Fourier domain, the maximum point in the k-space data is placed in the centre of the image. Disabling this may produce unusual effects from the filtering.", None))
-        self.checkBox_kspepashift.setText(
-            _translate("MainWindow", "No Shift", None))
-        self.checkBox_kspepa_super.setToolTip(_translate("MainWindow", "Use zero padding in k-space to double image resolution. \n"
-                                                         "\n"
-                                                         "!!!WARNING this will increase 3D volume sizes by a factor of 8.!!!\n"
-                                                         "\n"
-                                                         "\"Double-resolution uses zero-filled k-space data to double the voxel resolution of the image. This is equivalent to interpolation in image space.\n"
-                                                         "The double-resolution image is saved to NIFTI while the standard is saved to DICOM. ", None))
-        self.checkBox_kspepa_super.setText(_translate("MainWindow", "(Psuedo)Super-resolution\n"
-                                                      "(Saved to NIFTI only)", None))
-        self.label_2.setText(_translate("MainWindow", "Effective Image Domain Bandwidth\n"
-                                        "(Use Gaussian sigma\n"
-                                        " times sqrt(dim+4) )", None))
-        self.lineEdit_kspepa_band.setToolTip(_translate(
-            "MainWindow", "Bandwidth equivalent in image space.  Comma separated values (no spaces) accepted for non-isotropic slices.", None))
-        self.lineEdit_kspepa_band.setText(
-            _translate("MainWindow", "1.8708", None))
-        self.comboBox_kspepa_scaleunit.setItemText(
-            0, _translate("MainWindow", "unit voxel", None))
-        self.comboBox_kspepa_scaleunit.setItemText(
-            1, _translate("MainWindow", "mm", None))
-        self.comboBox_kspepa_scaleunit.setItemText(
-            2, _translate("MainWindow", "um", None))
-        self.label_4.setText(_translate("MainWindow", " Note: Complex Fourier domain Epanechnikov filter is generated from complex image domain kernel. \n"
-                                        "\n"
-                                        "Pseudo super-resolution does not give additional subvoxel information to the image.  It is a complex interpolation for assisting contrast in rendering \n"
-                                        "", None))
-        self.tabWidget_3.setTabText(self.tabWidget_3.indexOf(
-            self.tab), _translate("MainWindow", "K-space Epanechnikov", None))
+        self.checkBox_stdev_cplx.setToolTip(_translate(
+            "MainWindow", "<html><head/><body><p>Don\'t use this - use the phase</p></body></html>", None))
         self.checkBox_stdev_cplx.setText(
             _translate("MainWindow", "Use CPLX Std dev filter", None))
         self.checkBox_stdev_magn.setText(
             _translate("MainWindow", "Use Magnitude", None))
+        self.checkBox_stdev_phase.setToolTip(_translate(
+            "MainWindow", "<html><head/><body><p>Localised standard deviation of the image phase</p><p><br/></p></body></html>", None))
         self.checkBox_stdev_phase.setText(
             _translate("MainWindow", "Use Phase", None))
-        self.stdev_window_size.setText(
+        self.stdev_window_size_label.setText(
             _translate("MainWindow", "Window size (default 5)  ", None))
-        self.lineEdit_stdev_size.setText(_translate("MainWindow", "5", None))
+        self.stdev_window_size.setText(_translate("MainWindow", "5", None))
         self.tabWidget_3.setTabText(
             self.tabWidget_3.indexOf(self.tab_6), _translate("MainWindow", "Stdev", None))
         self.FIDprocparInfo.setText(
             _translate("MainWindow", "Metadata display:", None))
+        self.pushButton_CleanUpDicoms.setText(
+            _translate("MainWindow", "Clean up", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(
             self.tab_fid_2), _translate("MainWindow", "FID converter", None))
         self.Version_tag.setText(
-            _translate("MainWindow", "Agilent2Dicom v1.6.0", None))
+            _translate("MainWindow", "Agilent2Dicom v1.6.5", None))
         self.bottom_tag.setText(_translate("MainWindow", "--o--", None))
         self.menuFile.setTitle(_translate("MainWindow", "File", None))
         self.menuSettings.setTitle(_translate("MainWindow", "Settings", None))

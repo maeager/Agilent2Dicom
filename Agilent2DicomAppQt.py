@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # Agilent2DicomAppQt GUI for Agilent 9.4T MR FDF/FID image processing
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 9d2beb295bfe 2015/03/04 22:20:47 michael $
-# $Id: Agilent2DicomAppQt.py,v 9d2beb295bfe 2015/03/04 22:20:47 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v e23e76e24d0c 2015/03/04 22:38:58 michael $
+# $Id: Agilent2DicomAppQt.py,v e23e76e24d0c 2015/03/04 22:38:58 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -48,12 +48,12 @@ import logging
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
-__date__ = "$Date: 2015/03/04 22:20:47 $"
+__date__ = "$Date: 2015/03/04 22:38:58 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 9d2beb295bfe 2015/03/04 22:20:47 michael $")
+    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v e23e76e24d0c 2015/03/04 22:38:58 michael $")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -80,15 +80,20 @@ GL = vglrun\n\
 else GL= \n\
 fi; $GL mrview '
 
-inputdir=[]
+inputdir = []
 from dcmcleanup import Ui_CleanUpDialog
-class CleanUpDialog(QtGui.QDialog,Ui_CleanUpDialog):
-    def __init__(self,parent=None,inputdir=None):
-        QtGui.QDialog.__init__(self,parent)
+
+
+class CleanUpDialog(QtGui.QDialog, Ui_CleanUpDialog):
+
+    def __init__(self, parent=None, inputdir=None):
+        QtGui.QDialog.__init__(self, parent)
         #self.ui = Ui_CleanUpDialog
-        self.setupUi(self,inputdir)
+        self.setupUi(self, inputdir)
+
 
 class Agilent2DicomWindow(QtGui.QMainWindow):
+
     """Agilent2DicomWindow GUI for FDF and FID converter
     """
     niftiflag = 0  # save to nifti flag
@@ -818,15 +823,15 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.error('Send2DarisFID OSError', exc_info=True)
 
     def CleanUpDicoms(self):
-        parentdir=os.path.dirname(str(self.ui.lineEdit_dicompath2.text()))
+        parentdir = os.path.dirname(str(self.ui.lineEdit_dicompath2.text()))
         dialog = CleanUpDialog(self, inputdir=parentdir)
         if dialog.exec_():
             results = dialog.getValues()
-            for i in xrange(0,len(results)):
+            for i in xrange(0, len(results)):
                 print "Deleting ", results[i]
                 import shutil
-                shutil.rmtree(os.path.join(parentdir,results[i]))
-        
+                shutil.rmtree(os.path.join(parentdir, results[i]))
+
     def UpdateGUI(self):
         """Update the GUI
         """
