@@ -80,15 +80,20 @@ GL = vglrun\n\
 else GL= \n\
 fi; $GL mrview '
 
-inputdir=[]
+inputdir = []
 from dcmcleanup import Ui_CleanUpDialog
-class CleanUpDialog(QtGui.QDialog,Ui_CleanUpDialog):
-    def __init__(self,parent=None,inputdir=None):
-        QtGui.QDialog.__init__(self,parent)
+
+
+class CleanUpDialog(QtGui.QDialog, Ui_CleanUpDialog):
+
+    def __init__(self, parent=None, inputdir=None):
+        QtGui.QDialog.__init__(self, parent)
         #self.ui = Ui_CleanUpDialog
-        self.setupUi(self,inputdir)
+        self.setupUi(self, inputdir)
+
 
 class Agilent2DicomWindow(QtGui.QMainWindow):
+
     """Agilent2DicomWindow GUI for FDF and FID converter
     """
     niftiflag = 0  # save to nifti flag
@@ -818,15 +823,15 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             logging.error('Send2DarisFID OSError', exc_info=True)
 
     def CleanUpDicoms(self):
-        parentdir=os.path.dirname(str(self.ui.lineEdit_dicompath2.text()))
+        parentdir = os.path.dirname(str(self.ui.lineEdit_dicompath2.text()))
         dialog = CleanUpDialog(self, inputdir=parentdir)
         if dialog.exec_():
             results = dialog.getValues()
-            for i in xrange(0,len(results)):
+            for i in xrange(0, len(results)):
                 print "Deleting ", results[i]
                 import shutil
-                shutil.rmtree(os.path.join(parentdir,results[i]))
-        
+                shutil.rmtree(os.path.join(parentdir, results[i]))
+
     def UpdateGUI(self):
         """Update the GUI
         """
