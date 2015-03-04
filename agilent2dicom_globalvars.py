@@ -19,8 +19,8 @@
 
 
 ### Ensure no spaces in variable declaration so that shell and python comply ###
-AGILENT2DICOM_VERSION="1.6.5"
-AGILENT2DICOM_APP_VERSION="1.8.1"
+AGILENT2DICOM_VERSION="1.7.0"
+AGILENT2DICOM_APP_VERSION="1.8.2"
 FDF2DCMVERSION="1.2"
 FID2DCMVERSION="1.6"
 DVCS_STAMP="$Id$"
@@ -39,7 +39,7 @@ DICOM_Tag_Manufacturer="Agilent Technologies"
 DICOM_Tag_InstitutionName="Monash Biomedical Imaging"
 DICOM_Tag_ManufacturerModelName="vnmrs"
 DICOM_Tag_DeviceSerialNumber="unknown"
-DICOM_Tag_SoftwareVersions="VnmrJ 3.2, Agilent2Dicom 1.1"
+DICOM_Tag_SoftwareVersions="VnmrJ 3.2, MBI's Agilent2Dicom "
 
 Standard_MR_SOPClassUID="1.2.840.10008.5.1.4.1.1.4" # MR Image SOP
 Implementation_Class_UID="1.3.6.1.4.1.25371.1.1.2"
