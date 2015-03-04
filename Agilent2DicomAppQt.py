@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 # Agilent2DicomAppQt GUI for Agilent 9.4T MR FDF/FID image processing
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v e23e76e24d0c 2015/03/04 22:38:58 michael $
-# $Id: Agilent2DicomAppQt.py,v e23e76e24d0c 2015/03/04 22:38:58 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 9df3dd063333 2015/03/04 23:33:09 michael $
+# $Id: Agilent2DicomAppQt.py,v 9df3dd063333 2015/03/04 23:33:09 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
 # Version 1.6.0: Tabs for epanechnikov, fourier gauss, fourier epanechnikov
+# Version 1.7.0: 
+# Version 1.8.0: Fourier domain, double resolution
+# Version 1.8.1: 
+# Version 1.8.2: CleanUpDicom dialog
 #
 # Copyright 2014 Michael Eager
 #
@@ -41,19 +45,19 @@ from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog, QFileDialog, QApplication
 from Agilent2DicomQt import Ui_MainWindow
 from ReadProcpar import ReadProcpar, ProcparInfo
-from agilent2dicom_globalvars import AGILENT2DICOM_APP_VERSION
+from agilent2dicom_globalvars import AGILENT2DICOM_APP_VERSION, AGILENT2DICOM_VERSION
 DEBUGGING = 1
 import logging
 
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
-__date__ = "$Date: 2015/03/04 22:38:58 $"
+__date__ = "$Date: 2015/03/04 23:33:09 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v e23e76e24d0c 2015/03/04 22:38:58 michael $")
+    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 9df3dd063333 2015/03/04 23:33:09 michael $")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -76,7 +80,7 @@ module purge \n\
 module load massive virtualgl\n\
 module load mrtrix \n\
 module list \n\
-GL = vglrun\n\
+GL = vglrun\n\g
 else GL= \n\
 fi; $GL mrview '
 
@@ -105,6 +109,9 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.setupUi(self)
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per
+        self.Version_tag.setText(
+            _translate("MainWindow", "Agilent2Dicom v"+AGILENT2DICOM_APP_VERSION, None))
+        
         logging.basicConfig(format='%(levelname)s:%(asctime)s %(message)s',
                             datefmt='%m/%d/%Y %I:%M:%S %p',
                             filename='qtapp-agilent2dicom.log', level=logging.DEBUG)
@@ -917,10 +924,11 @@ Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.
         
 Homepage:
 https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter
-Version: %s
+App Version: %s
 %s
+Source Version: %s
 Author: %s
-Copyright: %s''' % (__version__, Agilent2DicomAppStamp, __author__, __copyright__)
+Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, __author__, __copyright__)
 
         reply = QtGui.QMessageBox.question(self, 'Message', msg,
                                            QtGui.QMessageBox.Ok)
