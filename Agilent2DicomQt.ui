@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (1.6.0)</string>
+   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (1.8.2)</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -1859,7 +1859,7 @@ The mode parameter determines how the array borders are handled, where cval is t
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string>Agilent2Dicom v1.6.5</string>
+         <string>Agilent2Dicom v1.8.2</string>
         </property>
        </widget>
       </item>

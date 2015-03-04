@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomQt.ui'
 #
-# Created: Thu Mar  5 09:40:02 2015
+# Created: Thu Mar  5 09:59:11 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -868,7 +868,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(_translate(
-            "MainWindow", "Agilent2Dicom: MBI\'s Agilent 9.4T MR Image Analysis and Dicom Converter Application (1.6.0)", None))
+            "MainWindow", "Agilent2Dicom: MBI\'s Agilent 9.4T MR Image Analysis and Dicom Converter Application (1.8.2)", None))
         self.pushButton_changefdf.setToolTip(
             _translate("MainWindow", "Change the FDF input directory", None))
         self.pushButton_changefdf.setText(
@@ -1234,7 +1234,7 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(
             self.tab_fid_2), _translate("MainWindow", "FID converter", None))
         self.Version_tag.setText(
-            _translate("MainWindow", "Agilent2Dicom v1.6.5", None))
+            _translate("MainWindow", "Agilent2Dicom v1.8.2", None))
         self.bottom_tag.setText(_translate("MainWindow", "--o--", None))
         self.menuFile.setTitle(_translate("MainWindow", "File", None))
         self.menuSettings.setTitle(_translate("MainWindow", "Settings", None))
