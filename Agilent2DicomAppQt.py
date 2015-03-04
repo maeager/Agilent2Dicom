@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # Agilent2DicomAppQt GUI for Agilent 9.4T MR FDF/FID image processing
 #
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 4d1ff6f128f1 2015/02/27 06:03:34 michael $
-# $Id: Agilent2DicomAppQt.py,v 4d1ff6f128f1 2015/02/27 06:03:34 michael $
+# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 9d2beb295bfe 2015/03/04 22:20:47 michael $
+# $Id: Agilent2DicomAppQt.py,v 9d2beb295bfe 2015/03/04 22:20:47 michael $
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
@@ -48,12 +48,12 @@ import logging
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
-__date__ = "$Date: 2015/02/27 06:03:34 $"
+__date__ = "$Date: 2015/03/04 22:20:47 $"
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 4d1ff6f128f1 2015/02/27 06:03:34 michael $")
+    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 9d2beb295bfe 2015/03/04 22:20:47 michael $")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -80,9 +80,15 @@ GL = vglrun\n\
 else GL= \n\
 fi; $GL mrview '
 
+inputdir=[]
+from dcmcleanup import Ui_CleanUpDialog
+class CleanUpDialog(QtGui.QDialog,Ui_CleanUpDialog):
+    def __init__(self,parent=None,inputdir=None):
+        QtGui.QDialog.__init__(self,parent)
+        #self.ui = Ui_CleanUpDialog
+        self.setupUi(self,inputdir)
 
 class Agilent2DicomWindow(QtGui.QMainWindow):
-
     """Agilent2DicomWindow GUI for FDF and FID converter
     """
     niftiflag = 0  # save to nifti flag
@@ -149,6 +155,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_check.clicked.connect(self.CheckFDF)
         self.ui.pushButton_view.clicked.connect(self.ViewFDF)
         self.ui.pushButton_send2daris.clicked.connect(self.Send2Daris)
+        self.ui.pushButton_CleanUpDicoms.clicked.connect(self.CleanUpDicoms)
         self.ui.pushButton_convertfid.clicked.connect(self.ConvertFID)
         self.ui.pushButton_check2.clicked.connect(self.CheckFID)
         self.ui.pushButton_view2.clicked.connect(self.ViewFID)
@@ -237,7 +244,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 reply = QtGui.QMessageBox.question(self, 'Message', quit_msg,
                                                    QtGui.QMessageBox.Yes,
                                                    QtGui.QMessageBox.No)
-
                 if reply == QtGui.QMessageBox.Yes:
                     #                    event.accept()
                     self.ui.lineEdit_dicompath.setText(newdir)
@@ -811,6 +817,16 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         except OSError:
             logging.error('Send2DarisFID OSError', exc_info=True)
 
+    def CleanUpDicoms(self):
+        parentdir=os.path.dirname(str(self.ui.lineEdit_dicompath2.text()))
+        dialog = CleanUpDialog(self, inputdir=parentdir)
+        if dialog.exec_():
+            results = dialog.getValues()
+            for i in xrange(0,len(results)):
+                print "Deleting ", results[i]
+                import shutil
+                shutil.rmtree(os.path.join(parentdir,results[i]))
+        
     def UpdateGUI(self):
         """Update the GUI
         """
@@ -897,9 +913,9 @@ Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.
 Homepage:
 https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter
 Version: %s
-Stamp: %s
+%s
 Author: %s
-Copyright: %s''' % (__version_, Agilent2DicomAppStamp, __author__, __copyright__)
+Copyright: %s''' % (__version__, Agilent2DicomAppStamp, __author__, __copyright__)
 
         reply = QtGui.QMessageBox.question(self, 'Message', msg,
                                            QtGui.QMessageBox.Ok)
