@@ -110,14 +110,17 @@ def sigmaparse(s):
 
 
 def tic():
-    # Homemade version of matlab tic and toc functions
-    # https://stackoverflow.com/questions/5849800/tic-toc-functions-analog-in-python
+    """ Homemade version of matlab tic and toc functions
+    https://stackoverflow.com/questions/5849800/tic-toc-functions-analog-in-python
+    """
     import time
     global startTime_for_tictoc
     startTime_for_tictoc = time.time()
 
 
 def toc():
+    """Print time since last tic()
+    """
     import time
     if 'startTime_for_tictoc' in globals():
         print "Elapsed time is " + str(time.time() - startTime_for_tictoc) + " seconds."
@@ -258,7 +261,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
     if args.verbose:
         # .accumulate(args.integers)
         print "Agilent2Dicom python converter FID to basic MR DICOM: ", args
-    if not (args.magnitude or agrs.phase or args.realimag):
+    if not (args.magnitude or args.phase or args.realimag):
         args.magnitude = True
     # Check input folder exists
     if not os.path.exists(args.inputdir):
@@ -467,7 +470,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             image_filtered = CPLX.cplxmedian_filter(image_data.real,
                                                     image_data.imag,
                                                     args.window_size)
-                logging.info('Cplx median complete ' + toc())
+            logging.info('Cplx median complete ' + toc())
         except:
             logging.error('CPLX.cplxmedian_filter error.')
             sys.exit(1)
@@ -499,7 +502,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                                                     image_data.imag,
                                                     args.window_size,
                                                     args.wiener_noise)
-                logging.info('Cplx wiener complete ' + toc())
+            logging.info('Cplx wiener complete ' + toc())
         except:
             logging.error('CPLX.cplxmedian_filter error.')
             sys.exit(1)
