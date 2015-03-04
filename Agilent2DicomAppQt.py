@@ -80,9 +80,15 @@ GL = vglrun\n\
 else GL= \n\
 fi; $GL mrview '
 
+inputdir=[]
+from dcmcleanup import Ui_CleanUpDialog
+class CleanUpDialog(QtGui.QDialog,Ui_CleanUpDialog):
+    def __init__(self,parent=None,inputdir=None):
+        QtGui.QDialog.__init__(self,parent)
+        #self.ui = Ui_CleanUpDialog
+        self.setupUi(self,inputdir)
 
 class Agilent2DicomWindow(QtGui.QMainWindow):
-
     """Agilent2DicomWindow GUI for FDF and FID converter
     """
     niftiflag = 0  # save to nifti flag
@@ -149,6 +155,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_check.clicked.connect(self.CheckFDF)
         self.ui.pushButton_view.clicked.connect(self.ViewFDF)
         self.ui.pushButton_send2daris.clicked.connect(self.Send2Daris)
+        self.ui.pushButton_CleanUpDicoms.clicked.connect(self.CleanUpDicoms)
         self.ui.pushButton_convertfid.clicked.connect(self.ConvertFID)
         self.ui.pushButton_check2.clicked.connect(self.CheckFID)
         self.ui.pushButton_view2.clicked.connect(self.ViewFID)
@@ -237,7 +244,6 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 reply = QtGui.QMessageBox.question(self, 'Message', quit_msg,
                                                    QtGui.QMessageBox.Yes,
                                                    QtGui.QMessageBox.No)
-
                 if reply == QtGui.QMessageBox.Yes:
                     #                    event.accept()
                     self.ui.lineEdit_dicompath.setText(newdir)
@@ -811,6 +817,16 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         except OSError:
             logging.error('Send2DarisFID OSError', exc_info=True)
 
+    def CleanUpDicoms(self):
+        parentdir=os.path.dirname(str(self.ui.lineEdit_dicompath2.text()))
+        dialog = CleanUpDialog(self, inputdir=parentdir)
+        if dialog.exec_():
+            results = dialog.getValues()
+            for i in xrange(0,len(results)):
+                print "Deleting ", results[i]
+                import shutil
+                shutil.rmtree(os.path.join(parentdir,results[i]))
+        
     def UpdateGUI(self):
         """Update the GUI
         """
@@ -897,9 +913,9 @@ Monash Biomedical Imaging (MBI) into enhanced MR DICOM images.
 Homepage:
 https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter
 Version: %s
-Stamp: %s
+%s
 Author: %s
-Copyright: %s''' % (__version_, Agilent2DicomAppStamp, __author__, __copyright__)
+Copyright: %s''' % (__version__, Agilent2DicomAppStamp, __author__, __copyright__)
 
         reply = QtGui.QMessageBox.question(self, 'Message', msg,
                                            QtGui.QMessageBox.Ok)
