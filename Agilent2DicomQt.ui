@@ -594,11 +594,11 @@ Warning: use identical sigma values on isotropic images only. Non-isotropic valu
 
 WARNING this will increase 3D volume sizes by a factor of 8.
 
-Super-resolution uses zero-filled k-space data to double the resolution of the image. 
+Double-resolution uses zero-filled k-space data to double the resolution of the image. 
 The super-resolution image is saved to NIFTI while the standard is saved to dicom. </string>
                       </property>
                       <property name="text">
-                       <string>Super-resolution
+                       <string>Double-resolution
 (Saved to NIFTI only)</string>
                       </property>
                      </widget>
@@ -765,13 +765,13 @@ Effective Fourier domain sigma is calculated as the image size divided by image 
                       <property name="toolTip">
                        <string>Use zero padding in k-space to double image resolution. 
 
-WARNING this will increase 3D volume sizes by a factor of 8.
+!!!WARNING this will increase 3D volume sizes by a factor of 8.!!!
 
-Super-resolution uses zero-filled k-space data to double the resolution of the image. 
+Double-resolution uses zero-filled k-space data to double the resolution of the image. 
 The super-resolution image is saved to NIFTI while the standard is saved to dicom. </string>
                       </property>
                       <property name="text">
-                       <string>Super-resolution
+                       <string>Double-resolution
 (Saved to NIFTI only)</string>
                       </property>
                      </widget>
@@ -785,7 +785,8 @@ The super-resolution image is saved to NIFTI while the standard is saved to dico
                       <property name="text">
                        <string>Effective Filter Bandwidth
 (Use Gaussian sigma
- times sqrt(dim+4) )</string>
+ times sqrt(dimension + 4), 
+eg. sqrt(7)*sqrt(0.5)=1.8707 )</string>
                       </property>
                      </widget>
                     </item>

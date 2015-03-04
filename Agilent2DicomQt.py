@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomQt.ui'
 #
-# Created: Thu Mar  5 09:33:44 2015
+# Created: Thu Mar  5 09:40:02 2015
 #      by: PyQt4 UI code generator 4.11
 #
 # WARNING! All changes made in this file will be lost!
@@ -978,9 +978,9 @@ class Ui_MainWindow(object):
                                                            "\n"
                                                            "WARNING this will increase 3D volume sizes by a factor of 8.\n"
                                                            "\n"
-                                                           "Super-resolution uses zero-filled k-space data to double the resolution of the image. \n"
+                                                           "Double-resolution uses zero-filled k-space data to double the resolution of the image. \n"
                                                            "The super-resolution image is saved to NIFTI while the standard is saved to dicom. ", None))
-        self.checkBox_kspgauss_super.setText(_translate("MainWindow", "Super-resolution\n"
+        self.checkBox_kspgauss_super.setText(_translate("MainWindow", "Double-resolution\n"
                                                         "(Saved to NIFTI only)", None))
         self.label_39.setToolTip(_translate("MainWindow", "scalar or sequence of scalars\n"
                                             "\n"
@@ -1014,15 +1014,16 @@ class Ui_MainWindow(object):
             _translate("MainWindow", "No Shift", None))
         self.checkBox_kspepa_super.setToolTip(_translate("MainWindow", "Use zero padding in k-space to double image resolution. \n"
                                                          "\n"
-                                                         "WARNING this will increase 3D volume sizes by a factor of 8.\n"
+                                                         "!!!WARNING this will increase 3D volume sizes by a factor of 8.!!!\n"
                                                          "\n"
-                                                         "Super-resolution uses zero-filled k-space data to double the resolution of the image. \n"
+                                                         "Double-resolution uses zero-filled k-space data to double the resolution of the image. \n"
                                                          "The super-resolution image is saved to NIFTI while the standard is saved to dicom. ", None))
-        self.checkBox_kspepa_super.setText(_translate("MainWindow", "Super-resolution\n"
+        self.checkBox_kspepa_super.setText(_translate("MainWindow", "Double-resolution\n"
                                                       "(Saved to NIFTI only)", None))
         self.label_2.setText(_translate("MainWindow", "Effective Filter Bandwidth\n"
                                         "(Use Gaussian sigma\n"
-                                        " times sqrt(dim+4) )", None))
+                                        " times sqrt(dimension + 4), \n"
+                                        "eg. sqrt(7)*sqrt(0.5)=1.8707 )", None))
         self.lineEdit_kspepa_band.setToolTip(_translate(
             "MainWindow", "Bandwidth equivalent in image space.  Comma separated values (no spaces) accepted for non-isotropic slices.", None))
         self.lineEdit_kspepa_band.setText(
