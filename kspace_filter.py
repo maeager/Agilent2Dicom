@@ -113,8 +113,8 @@ def cplxfouriergauss(siz, sigma):
     Complex Gaussian in Fourier domain :
       g(x,y,z)=(1+i)(1/sqrt(2*pi).sigma).exp(-(x^2)/2sigma^2)
     .. math::
-    \mathcal{F_x}[f(x)](\omega)  = A*(1+i)*exp(-((w^2)*(sigma^2))/2 + i*mu*w)
-    A=1/[sqrt(2*pi/sigma^2)*sigma]
+    $\mathcal{F_x}[f(x)](\omega)  = A*(1+i)*exp(-((w^2)*(sigma^2))/2 + i*mu*w)$
+    $A=1/[sqrt(2*pi/sigma^2)*sigma]$
     mu is zero, so the real and imag components are:
       [exp(-((w^2)*(sigma^2))/2)] / [sqrt(2*pi/sigma^2)*sigma]
 
@@ -224,8 +224,9 @@ def fouriergauss2(siz, voxmm, sigma):
     """
     Complex Gaussian in Fourier domain :
       g(x,y,z)=(1+i)(1/sqrt(2*pi).sigma).exp(-(x^2)/2sigma^2)
-      \mathcal{F_x}[f(x)](\omega)  => A*(1+i)*exp(-((w^2)*(sigma^2))/2 + i*mu*w)
-    A=1/[sqrt(2*pi/sigma^2)*sigma]
+    .. math::
+    $\mathcal{F_x}[f(x)](\omega)  => A*(1+i)*exp(-((w^2)*(sigma^2))/2 + i*mu*w)$
+    $A=1/[sqrt(2*pi/sigma^2)*sigma]$
     mu is zero, so the real and imag components are:
       [exp(-((w^2)*(sigma^2))/2)] / [sqrt(2*pi/sigma^2)*sigma]
 
@@ -834,9 +835,9 @@ if __name__ == "__main__":
     save_nifti(np.abs(image_filtered / image_corr), 'image_inhCorr3')
 
     # print "Computing Laplacian enhanced image"
-    laplacian = simpleifft(procpar, dims, hdr,(kspgauss * fourierlaplace(ksp.shape)), args)
-    alpha = ndimage.mean(np.abs(image_filtered)) / \
-        ndimage.mean(np.abs(laplacian))
+    laplacian = simpleifft(
+        procpar, dims, hdr, (kspgauss * fourierlaplace(ksp.shape)), args)
+    alpha = ndimage.mean(np.abs(image_filtered)) / ndimage.mean(np.abs(laplacian))
     image_filtered = simpleifft(procpar, dims, hdr, kspgauss, args)
     image_filtered = (np.abs(image_filtered))
     image_filtered = normalise(image_filtered)
@@ -854,8 +855,9 @@ if __name__ == "__main__":
         ksp.shape, (4.0 * np.sqrt(2.0 * np.log(2.0))))
     # (Fgauss/ndimage.maximum(Fgauss))
     Fgauss = fouriergauss(ksp.shape, 0.707)
-    laplacian = simpleifft(procpar, dims, hdr,(kspgauss * Flaplace *
-                           (Fsmooth / ndimage.maximum(Fsmooth))), args)
+    laplacian = simpleifft(
+        procpar, dims, hdr, (kspgauss * Flaplace *
+                             (Fsmooth / ndimage.maximum(Fsmooth))), args)
     laplacian = normalise(laplacian)
     print "Saving Smoothed Gauss Laplacian"
     save_nifti(np.abs(laplacian), 'kspLog_smoothed')
@@ -864,7 +866,7 @@ if __name__ == "__main__":
 
     # #print "Computing Gaussian Laplace image from Smoothed image"
     ksplog = kspacelaplacegaussian_filter(ksp, 0.9)
-    image_Log = simpleifft(procpar, dims, hdr,(ksplog), args)
+    image_Log = simpleifft(procpar, dims, hdr, (ksplog), args)
     image_Log = (np.abs(image_Log))
     image_Log = normalise(image_Log)
     save_nifti(np.abs(image_Log), 'kspLog_image')
