@@ -43,7 +43,7 @@ import re
 import numpy as np
 from PyQt4 import Qt, QtGui, QtCore
 from PyQt4.QtGui import QDialog, QFileDialog, QApplication
-from Agilent2DicomQt import Ui_MainWindow
+from Agilent2DicomQt import Ui_MainWindow, _translate
 from ReadProcpar import ReadProcpar, ProcparInfo
 from agilent2dicom_globalvars import AGILENT2DICOM_APP_VERSION, AGILENT2DICOM_VERSION
 DEBUGGING = 1
@@ -80,7 +80,7 @@ module purge \n\
 module load massive virtualgl\n\
 module load mrtrix \n\
 module list \n\
-GL = vglrun\n\g
+GL = vglrun\n\
 else GL= \n\
 fi; $GL mrview '
 
@@ -109,7 +109,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.setupUi(self)
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per
-        self.Version_tag.setText(
+        self.ui.Version_tag.setText(
             _translate("MainWindow", "Agilent2Dicom v"+AGILENT2DICOM_APP_VERSION, None))
         
         logging.basicConfig(format='%(levelname)s:%(asctime)s %(message)s',
@@ -620,16 +620,16 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                                      str(self.ui.lineEdit_fidpath.text()))
             argstr += ' -y %s' % sigma
             # argstr += ' -j %s' % str(self.ui.lineEdit_gorder.text())
-            if self.ui.nearest_epa.isChecked():
-                argstr += ' -e nearest'
-            elif self.ui.mirror_epa.isChecked():
-                argstr += ' -e mirror'
-            elif self.ui.reflect_epa.isChecked():
-                argstr += ' -e reflect'
-            elif self.ui.wrap_epa.isChecked:
-                argstr += ' -e wrap'
-            else:
-                argstr += ' -e reflect'
+            # if self.ui.nearest_epa.isChecked():
+            #     argstr += ' -e nearest'
+            # elif self.ui.mirror_epa.isChecked():
+            #     argstr += ' -e mirror'
+            # elif self.ui.reflect_epa.isChecked():
+            #     argstr += ' -e reflect'
+            # elif self.ui.wrap_epa.isChecked:
+            #     argstr += ' -e wrap'
+            # else:
+            #     argstr += ' -e reflect'
 
         # Fourier Epanechnikov
         if self.ui.checkBox_kspepa.isChecked():
