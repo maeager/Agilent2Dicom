@@ -991,8 +991,10 @@ def RescaleFIDImage(ds, image_data, args):
     image_data_int16 = image_data.astype(np.int16)
 
     # Adjusting Dicom parameters for rescaling
-    ds.RescaleIntercept = RescaleFDF.ShortenFloatString(RescaleIntercept, "RescaleIntercept")  # (0028,1052) Rescale Intercept
-    ds.RescaleSlope = RescaleFDF.ShortenFloatString(RescaleSlope, "RescaleSlope")  # (0028,1053) Rescale Slope
+    ds.RescaleIntercept = RescaleFDF.ShortenFloatString(
+        RescaleIntercept, "RescaleIntercept")  # (0028,1052) Rescale Intercept
+    ds.RescaleSlope = RescaleFDF.ShortenFloatString(
+        RescaleSlope, "RescaleSlope")  # (0028,1053) Rescale Slope
 
     return ds, image_data_int16
 # end RescaleFIDImage

@@ -837,7 +837,8 @@ if __name__ == "__main__":
     # print "Computing Laplacian enhanced image"
     laplacian = simpleifft(
         procpar, dims, hdr, (kspgauss * fourierlaplace(ksp.shape)), args)
-    alpha = ndimage.mean(np.abs(image_filtered)) / ndimage.mean(np.abs(laplacian))
+    alpha = ndimage.mean(np.abs(image_filtered)) / \
+        ndimage.mean(np.abs(laplacian))
     image_filtered = simpleifft(procpar, dims, hdr, kspgauss, args)
     image_filtered = (np.abs(image_filtered))
     image_filtered = normalise(image_filtered)
