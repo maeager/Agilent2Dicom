@@ -56,10 +56,10 @@ elif [ ! -x "${DCM3TOOLS}/dcmulti" ]; then
 fi 
 export PATH=${PATH}:${DCM3TOOLS}
 declare -i verbosity=0
-declare input_dir=""
+declare stddcmdir=""
 declare output_dir=""
 declare -i echoes=1
-
+declare -i bdirs=0
 
 ### Debugging variables and config
 set -o nounset  # shortform: -u
@@ -97,11 +97,14 @@ function error_exit(){
 # Print usage information and exit
 print_usage(){
     echo -e "\n" \
-	"usage: ./enh_mr.sh -o outputdir [-v] \n
+	"usage: ./enh_mr.sh -i inputdir -o <outputdir> [-v] \n
 
   Convert standard MR files to enhanced MR format.\n" \
 	"\n" \
-	"-o <outputdir> DICOM directory. Default is input_dir/.dcm. \n" \
+        "-i <inputdir>  Standard DICOM directory. \n" \
+	"-o <outputdir> Directory for output enhanced Dicom files. \n" \
+        "-e <echos>     Number of echoes. \n" \
+        "-d <bdirs>     Diffusion directions. \n" \
 	"-x             Debug mode. \n" \
 	"-v             Verbose output. \n" \
 	"-h             this help\n" \
@@ -113,18 +116,18 @@ print_usage(){
 
 ## Check for number of args
 if [ $# -eq 0 ]; then
-	echo "fid2dcm.sh must have one argument: -i, --input [directory of FID images]"
+	echo "enh_mr.sh must have one argument: -i, --input [directory of standard DICOM images]"
 	print_usage
 	exit $E_BADARGS
 fi
 
 
 ## Parse arguments
-while getopts ":i:o:e:hxv" opt; do
+while getopts ":i:o:e:d:hxv" opt; do
     case $opt in
 	i)
-	    echo "Input dir:  $OPTARG" >&2
-	    input_dir="$OPTARG"
+	    echo "Input dir of standard DICOMs:  $OPTARG" >&2
+	    stddcmdir="$OPTARG"
 	    ;;
 	o)
 	    echo "Output dir: $OPTARG" >&2
@@ -134,7 +137,11 @@ while getopts ":i:o:e:hxv" opt; do
 	    echo "Multi echo: $OPTARG" >&2
 	    echoes="$OPTARG"
 	    ;;
-       	v)
+	d)
+	    echo "Diffusion: $OPTARG" >&2
+	    bdirs="$OPTARG"
+	    ;;       	
+	v)
 	    ((++verbosity))
 	    echo "Setting verbose to $verbosity."
 	    ((verbosity==1)) && python_args="$python_args -v"
@@ -159,18 +166,18 @@ while getopts ":i:o:e:hxv" opt; do
 done
 
 # Clean up input args
-if [ ! -d "$input_dir" ]; then
-    echo "enh_mr.sh must have a valid input directory of DICOM images."
+if [ ! -d "$stddcmdir" ]; then
+    echo "enh_mr.sh must have a valid input directory of standard DICOM images."
     exit $E_BADARGS
 fi
-## Set output_dir if not in args, default is parent or input_dir
+## Set output_dir if not in args, default is parent or stddcmdir
 if [ -z "$output_dir" ]
 then #test for empty string
     echo "Moving dicom images"
-    mkdir "${input_dir}/tmp"
-    mv "${input_dir}"/*.dcm "${input_dir}"/tmp/
-    output_dir = "${input_dir}"
-    input_dir="${output_dir}"/tmp
+    mkdir "${stddcmdir}/tmp"
+    mv "${stddcmdir}"/*.dcm "${stddcmdir}"/tmp/
+    output_dir = "${stddcmdir}"
+    stddcmdir="${output_dir}"/tmp
     echo "Output dir set to: ${output_dir}"
 fi
 
@@ -185,7 +192,7 @@ done
 
     shopt -s nullglob  
     found=0
-    for i in "${input_dir}"/*.dcm; do
+    for i in "${stddcmdir}"/*.dcm; do
 	if [ -e "$i" ];then 
 	    (( ++found ))
 	else
@@ -193,10 +200,10 @@ done
 	fi
     done
     shopt -u nullglob
-    if [ $found -eq 0 ]; then  #-o "$fidfiles" == "" 
+    if [ $found -eq 0 ]; then  
 	error_exit "$LINENO: Input directory has no Dicom images"
     else
-	echo $found, " FID files were found"
+	echo $found, " Dicom files were found"
     fi
 
 ##############################
@@ -214,12 +221,12 @@ done
 
 
 echo "Convert dicom images to single enhanced MR dicom format image"
-if [ -f "${input_dir}/MULTIECHO" -o echoes > 1 ]
+if [ -f "${stddcmdir}/MULTIECHO" -o echoes > 1 ]
 then
-    if [ -f "${input_dir}/MULTIECHO" ]
+    if [ -f "${stddcmdir}/MULTIECHO" ]
     then 
-	echo "Contents of MULTIECHO"; cat "${input_dir}/MULTIECHO"; printf '\n'
-	nechos=$(cat "${input_dir}/MULTIECHO")
+	echo "Contents of MULTIECHO"; cat "${stddcmdir}/MULTIECHO"; printf '\n'
+	nechos=$(cat "${stddcmdir}/MULTIECHO")
 	nechos=$(printf "%1.0f" "$nechos")
     else 
 	nechos=$echoes
@@ -228,30 +235,34 @@ then
     for ((iecho=1;iecho<=nechos;++iecho)); do
      	echoext=$(printf '%03d' $iecho)
      	echo "Converting echo ${iecho} using dcmulti"
-     	${DCMULTI} "${output_dir}"/0"${echoext}".dcm $(ls -1 "${input_dir}"/*echo"${echoext}".dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-	
+     	${DCMULTI} "${output_dir}"/0"${echoext}".dcm $(ls -1 "${stddcmdir}"/*echo"${echoext}".dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+	[ $? -ne 0 ] && error_exit "$LINENO: dcmulti MULTI ECHO failed"
     done
 
 
 #    ${RM} "${output_dir}/MULTIECHO"
     echo "Multi echo sequence completed."
     
-elif  [ -f "${input_dir}/DIFFUSION" ]; then
-
-    echo "Contents of DIFFUSION"; cat "${input_dir}/DIFFUSION"; printf '\n'
+elif  [ -f "${stddcmdir}/DIFFUSION" -o bdirs > 0 ]; then
+    #if  [ -f "${stddcmdir}/DIFFUSION" ]; then
+#	echo "Contents of DIFFUSION"; cat "${stddcmdir}/DIFFUSION"; printf '\n'
 
     # nbdirs=$(cat ${output_dir}/DIFFUSION)
     # ((++nbdirs)) # increment by one for B0
-    nbdirs=$(ls -1 "${input_dir}/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
-
+    # Get b directions from maximum image number
+	nbdirs=$(ls -1 "${stddcmdir}/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
+ #   else
+#	nbdirs=$bdirs
+#    fi
     echo "Diffusion sequence, $nbdirs B-directions"
     for ((ibdir=1;ibdir<=nbdirs;ibdir++)); do
      	bdirext=$(printf '%03d' $ibdir)
      	echo "Converting bdir ${ibdir} using dcmulti"
 	#for dcmdir in $dirs; do
 	## Input files are sorted by image number and slice number. 
-     	    ${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 "${input_dir}"/*image"${bdirext}"*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	    ${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 "${stddcmdir}"/*image"${bdirext}"*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 	#done
+	    [ $? -ne 0 ] && error_exit "$LINENO: dcmulti DIFFUSION failed"
     done
     echo "Diffusion files compacted."
 
@@ -266,10 +277,11 @@ elif  [ -f "${output_dir}/ASL" ]; then
     for ((iasl=1;iasl<=2;iasl++)); do
      	aslext=$(printf '%03d' $iasl)
      	echo "Converting ASL tag ${iasl} using dcmulti"
-	#for dcmdir in $dirs; do
+	
 	## Input files are sorted by image number and slice number. 
-     	    ${DCMULTI} "${output_dir}/0${aslext}.dcm" $(ls -1 "${input_dir}"/*echo"${aslext}".dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-	#done
+     	${DCMULTI} "${output_dir}/0${aslext}.dcm" $(ls -1 "${stddcmdir}"/*echo"${aslext}".dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+	
+	[ $? -ne 0 ] && error_exit "$LINENO: dcmulti ASL failed"
     done
     echo "ASL files converted."
 
@@ -281,10 +293,10 @@ else
     ## number. The second argument reorders the list of 2D dicom files
     ## based on echo time, then image number, then slice number.
     ## Only one output file is required, 0001.dcm. 
-    #for dcmdir in $dirs; do
-	${DCMULTI} "${output_dir}/0001.dcm" $(ls -1 "${input_dir}"/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-	[ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
-    #done
+    
+    ${DCMULTI} "${output_dir}/0001.dcm" $(ls -1 "${stddcmdir}"/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+    [ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
+    
 fi
 echo "DCMULTI complete. Fixing inconsistencies."
 
@@ -295,7 +307,7 @@ echo "DCMULTI complete. Fixing inconsistencies."
 	echo "Fixing dicom dir ${output_dir}"
 
     ## Additional corrections to diffusion files
-	if [ -f "${output_dir}/DIFFUSION" ];then
+	if [ -f "${output_dir}/DIFFUSION" -o bdirs > 1 ];then
 	    "${FID2DCMPATH}"/fix-diffusion.sh "${output_dir}"
 	    echo "Fixed diffusion module parameters."
 	fi
@@ -306,8 +318,6 @@ echo "DCMULTI complete. Fixing inconsistencies."
 	fi
 #    done
 
-[ -f "${output_dir}/DIFFUSION" ] && ${RM} "${output_dir}/DIFFUSION"
-[ -f "${output_dir}/ASL" ] && ${RM} "${output_dir}/ASL"
 
 if (( verbosity > 0 )); then
     echo "Verifying dicom compliance using dciodvfy."
