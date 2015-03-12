@@ -69,8 +69,8 @@ def gaussian_fourierkernel(uu, vv, ww, sigma):
     Create Gaussian Fourier filter kernel
     """
     if not hasattr(sigma, "__len__"):  # type(sigma) is float:
-        gfilter = np.exp(-2 * (np.pi ** 2) *
-                         (uu ** 2 + vv ** 2 + ww ** 2) * (sigma ** 2))
+        gfilter = np.expm1(-2 * (np.pi ** 2) *
+                         (uu ** 2 + vv ** 2 + ww ** 2) * (sigma ** 2))+1
 
         midpoint = np.ceil(np.array(uu.shape) / 2.0)
         maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
@@ -78,16 +78,16 @@ def gaussian_fourierkernel(uu, vv, ww, sigma):
                                          midpoint[2] - 10:midpoint[2] + 10])
         return gfilter / maxval
     elif len(sigma) == 2:
-        gfilter = np.exp(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
-                                              (sigma[1] ** 2) * vv ** 2))
+        gfilter = np.expm1(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
+                                                (sigma[1] ** 2) * vv ** 2)) + 1
         midpoint = np.ceil(np.array(uu.shape) / 2.0)
         maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
                                          midpoint[1] - 10:midpoint[1] + 10])
         gfilter = gfilter / maxval
     else:
-        gfilter = np.exp(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
-                                              (sigma[1] ** 2) * vv ** 2 +
-                                              (sigma[2] ** 2) * ww ** 2))
+        gfilter = np.expm1(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
+                                                (sigma[1] ** 2) * vv ** 2 +
+                                                (sigma[2] ** 2) * ww ** 2)) + 1
         midpoint = np.ceil(np.array(uu.shape) / 2.0)
         maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
                                          midpoint[1] - 10:midpoint[1] + 10,
@@ -237,16 +237,16 @@ def fouriergauss2(siz, voxmm, sigma):
     if not hasattr(sigma, "__len__"):
         # if type(sigma) is float or type(sigma) is np.float64:
         factor = 1 / (np.sqrt(2 * np.pi / sigma ** 2) * sigma)
-        component = factor * np.exp(-0.5 * (uu ** 2 + vv ** 2 + ww ** 2) *
-                                    (sigma ** 2))
+        component = factor * (np.expm1(-0.5 * (uu ** 2 + vv ** 2 + ww ** 2) *
+                                    (sigma ** 2))+1)
     else:
         factor = 1 / (np.sqrt(2 * np.pi / ((sigma[0] * sigma[0]) +
                                            (sigma[1] * sigma[1]) +
                                            (sigma[2] * sigma[2]))) *
                       np.prod(sigma))
-        component = factor * np.exp(-0.5 * ((sigma[0] * sigma[0] * uu * uu) +
+        component = factor * (np.expm1(-0.5 * ((sigma[0] * sigma[0] * uu * uu) +
                                             (sigma[1] * sigma[1] * vv * vv) +
-                                            (sigma[2] * sigma[2] * ww * ww)))
+                                            (sigma[2] * sigma[2] * ww * ww)))+1)
     return component
 
 
@@ -294,8 +294,8 @@ def inhomogeneouscorrection(ksp, siz, sigma):
     #     hG  = hG/sumh
     # HG = fftn(ifftshift(hG))
 #    HGh = sqrt(pi*2*sigma*sigma)*
-    HG = np.exp(-np.pi * np.pi * (uu * uu + vv * vv + ww * ww)
-                * (2 * sigma * sigma))
+    HG = np.expm1(-np.pi * np.pi * (uu * uu + vv * vv + ww * ww)
+                * (2 * sigma * sigma))+1
     del uu, vv, ww
 
     kspHG = ksp * HG
