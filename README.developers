@@ -1,3 +1,4 @@
+# -*- mode:org -*-
 * Notes for modifying source
 
 ** GUI development
@@ -85,7 +86,7 @@ diff -y <(./sortpp <../ExampleAgilentData/kidney512iso_01.fid/procpar) <(./sortp
 
 Use ipython for interactive sessions with kspace_filter: 
 #+begin_src sh
-ipython -i ./kspace_filter.py -- -v -i ../ExampleAntData/kidney512iso_01.fid/ -o ../ExampleAgilentData/kidney512iso_01.dcm/ 
+ipython -i ./kspace_filter.py -- -v -i ../ExampleAgilentData/kidney512iso_01.fid/ -o ../ExampleAgilentData/kidney512iso_01.dcm/ 
 #+end_src
 
 
@@ -184,3 +185,93 @@ IPython/GaussianBlur.ipynb
 
 http://www.lancs.ac.uk/~struijke/density/kernel.html
 http://sfb649.wiwi.hu-berlin.de/fedc_homepage/xplore/ebooks/html/anr/anrhtmlframe33.html
+
+
+* CYTHON 
+
+** kspace filter 
+
+*kspace_filter.py* has many bespoke ndarray operations that would be suitable for optimisation using cython
+
+
+1. kspace_filter.py was copied to filterkspace.pyx
+2. define data types in all the functions as per http://docs.cython.org/src/userguide/numpy_tutorial.html#numpy-tutorial
+
+#+BEGIN_SRC python
+from __future__ import division
+import numpy as np
+cimport numpy as np
+...
+DTYPE = np.int
+NP_FLOAT = np.float32
+NP_CMPLX = np.complex64
+...
+ctypedef np.int_t DTYPE_t
+ctypedef np.float32_t NP_FLOAT_t
+ctypedef np.complex64_t NP_CMPLX_t
+
+...
+def fouriercoords(np.ndarray siz):
+...
+    cdef np.ndarray sz = np.ceil(np.array(siz) / 2.0)
+    cdef np.ndarray xx = np.array(range(-int(sz[0]), int(sz[0])))
+    cdef np.ndarray yy = np.array(range(-int(sz[1]), int(sz[1])))
+    cdef np.ndarray zz
+    cdef DTYPE_t maxlen = ndimage.maximum(np.array(siz))
+    cdef np.ndarray mult_fact, uu, vv, ww
+
+#+END_SRC
+ 
+
+3. Include type and size checks in each function
+
+#+BEGIN_SRC python
+    if siz.ndim != 1 and (siz.size != 3 or siz.size != 2):
+        raise ValueError("Only 2D or 3D dimensions on filter supported")
+    assert siz.dtype == DTYPE
+
+#+END_SRC
+4. Create a setup script (setup.py)
+5. Include numpy headers for MASSIVE in filterkspace header
+   _numpyconfig.h not found, even with *numpy.get_headers()* in setup.  Numpy build path put at top of filterkspace.pyx:
+#+BEGIN_EXAMPLE
+# distutils: include_dirs = /usr/local/src/PYTHON/NUMPY/numpy-1.7.0/numpy/core/include/ /usr/local/src/PYTHON/NUMPY/numpy-1.7.0/build/src.linux-x86_64-2.7/numpy/core/include/numpy/
+#+END_EXAMPLE
+6. Compile: 
+#+BEGIN_SRC sh
+python setup.py build_ext --inplace
+#+END_SRC
+Note: for MASSIVE users the default gcc produces errors. Use =module load gcc/4.7.2 mpfr/3.1.2  gmp/5.1.1=
+
+
+** Profiling
+At the top of filterkspace.pyx. place this:
+#+BEGIN_EXAMPLE
+# cython: profile=True
+#+END_EXAMPLE
+
+
+speed up type definitions in function arguments
+#+BEGIN_SRC python
+...
+def fouriergauss(np.ndarray[DTYPE_t, ndim=1] siz, np.ndarray[NP_FLOAT_t, ndim=1] sigma):
+...
+    cdef np.ndarray[DTYPE_t, ndim=1] sz = np.ceil(np.array(siz) / 2.0)
+    cdef np.ndarray[DTYPE_t, ndim=1] xx = np.array(range(-int(sz[0]), int(sz[0])))
+    cdef np.ndarray[DTYPE_t, ndim=1] yy = np.array(range(-int(sz[1]), int(sz[1])))
+    cdef np.ndarray[DTYPE_t, ndim=1] zz
+    cdef DTYPE_t maxlen = ndimage.maximum(np.array(siz))
+    cdef np.ndarray[NP_FLOAT_t, ndim=3] mult_fact, uu, vv, ww
+#+END_SRC
+
+Disable numpy specific bounds checking
+
+http://docs.cython.org/src/tutorial/numpy.html
+#+BEGIN_SRC python
+cimport cython
+@cython.boundscheck(False) # turn of bounds-checking for entire function
+def fouriercoords(np.ndarray[DTYPE_t, ndim=1] siz):
+...
+@cython.boundscheck(False) # turn of bounds-checking for entire function
+def fouriergauss(np.ndarray[DTYPE_t, ndim=1] siz, np.ndarray[NP_FLOAT_t, ndim=1] sigma):
+#+END_SRC
