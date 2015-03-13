@@ -518,7 +518,7 @@ See examples in Makefile.
 
 *Other guidelines*
 
-Use pylint, pyflakes and autopep8 to cleanup the python scripts. Use shellcheck for shell scripts.
+Use pylint, pyflakes and autopep8 to cleanup the python scripts. Use [shellcheck](https://github.com/koalaman/shellcheck) for shell scripts.
 
 ## Who do I talk to? ##
 

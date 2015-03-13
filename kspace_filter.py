@@ -515,7 +515,7 @@ def kspaceshift(ksp):
     """
     print "K-space shift ", ksp.shape
     if len(ksp.shape) == 3:
-        kmax = np.array(ndimage.maximum_position(ksp))
+        kmax = np.array(ndimage.maximum_position(np.abs(ksp)))
         siz = np.array(ksp.shape[0:3])
         sub = (siz / 2.).astype(int) - kmax
         print "Shifting kspace ", sub
@@ -525,7 +525,7 @@ def kspaceshift(ksp):
             print ""
     else:
         kmax = np.array(
-            ndimage.maximum_position(np.squeeze(ksp[:, :, :, 0, 0])))
+            ndimage.maximum_position(np.squeeze(np.abs(ksp[:, :, :, 0, 0]))))
         siz = np.array(ksp.shape[0:3])
         sub = (siz / 2.).astype(int) - kmax
         for echo in xrange(0, ksp.shape[4]):
@@ -800,31 +800,31 @@ if __name__ == "__main__":
 
     print "Computing Gaussian filtered2 image from Original image"
     kspgauss = kspacegaussian_filter2(ksp, 0.707)
-    image_filtered = simpleifft(kspgauss)
+    image_filtered = simpleifft(procpar, dims, hdr, kspgauss, args)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage')
 
     print "Computing Complex Gaussian filtered image from Original image"
-    kspgauss = kspacecplxgaussian_filter(ksp, 0.707)
-    image_filtered = simpleifft(kspgauss)
+    kspcgauss = kspacecplxgaussian_filter(ksp, 0.707)
+    image_filtered = simpleifft(procpar, dims, hdr, kspcgauss, args)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage2')
 
     print "Computing Gaussian 1.0 filtered2 image from Original image"
     kspgauss1 = kspacegaussian_filter2(ksp, 1)
-    image_filtered = simpleifft(kspgauss1)
+    image_filtered = simpleifft(procpar, dims, hdr, kspgauss1, args)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage1')
 
     print "Computing Gaussian 2.0 filtered2 image from Original image"
     kspgauss2 = kspacegaussian_filter2(ksp, 2)
-    image_filtered = simpleifft(kspgauss2)
+    image_filtered = simpleifft(procpar, dims, hdr, kspgauss2, args)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage2')
 
     print "Computing Gaussian sub-band1.5 image from Original image"
     Fsubband = fouriergausssubband15(ksp.shape, 0.707)
-    image_filtered = simpleifft(ksp * Fsubband)
+    image_filtered = simpleifft(procpar, dims, hdr, (ksp * Fsubband), args)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_subband')
 
@@ -834,11 +834,11 @@ if __name__ == "__main__":
     save_nifti(np.abs(image_filtered / image_corr), 'image_inhCorr3')
 
     # print "Computing Laplacian enhanced image"
-    laplacian = simpleifft(kspgauss * fourierlaplace(ksp.shape))
+    laplacian = simpleifft(procpar, dims, hdr,(kspgauss * fourierlaplace(ksp.shape)), args)
     alpha = ndimage.mean(np.abs(image_filtered)) / \
         ndimage.mean(np.abs(laplacian))
     kspgauss = kspacegaussian_filter2(ksp, 1.707)
-    image_filtered = simpleifft(kspgauss)
+    image_filtered = simpleifft(procpar, dims, hdr, kspgauss, args)
     image_filtered = (np.abs(image_filtered))
     image_filtered = normalise(image_filtered)
     image_lfiltered = image_filtered - 0.5 * alpha * laplacian
@@ -855,8 +855,8 @@ if __name__ == "__main__":
         ksp.shape, (4.0 * np.sqrt(2.0 * np.log(2.0))))
     # (Fgauss/ndimage.maximum(Fgauss))
     Fgauss = fouriergauss(ksp.shape, 0.707)
-    laplacian = simpleifft(kspgauss * Flaplace *
-                           (Fsmooth / ndimage.maximum(Fsmooth)))
+    laplacian = simpleifft(procpar, dims, hdr,(kspgauss * Flaplace *
+                           (Fsmooth / ndimage.maximum(Fsmooth))), args)
     laplacian = normalise(laplacian)
     print "Saving Smoothed Gauss Laplacian"
     save_nifti(np.abs(laplacian), 'kspLog_smoothed')
@@ -865,7 +865,7 @@ if __name__ == "__main__":
 
     # #print "Computing Gaussian Laplace image from Smoothed image"
     ksplog = kspacelaplacegaussian_filter(ksp, 0.9)
-    image_Log = simpleifft(ksplog)
+    image_Log = simpleifft(procpar, dims, hdr,(ksplog), args)
     image_Log = (np.abs(image_Log))
     image_Log = normalise(image_Log)
     save_nifti(np.abs(image_Log), 'kspLog_image')
@@ -874,7 +874,7 @@ if __name__ == "__main__":
 
     print "Computing Epanechnikov filtered image from Original image"
     kspepan = kspaceepanechnikov_filter(ksp, np.sqrt(7.0 / 2.0))
-    image_filtered = simpleifft(kspepan)
+    image_filtered = simpleifft(procpar, dims, hdr, kspepan, args)
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'epan_kspimage')
 
