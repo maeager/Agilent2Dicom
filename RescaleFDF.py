@@ -44,18 +44,19 @@ def ShortenFloatString(val, origin):
         print "Error: ShortenFloatString given complex number, Source: %s" % origin
         val = np.abs(val)
     if val < 0:
-        print "Negative val in shorten string"
+        print "Negative value in shorten string"
     if len(str(val)) >= 15:
         stringval = str(val)
         if re.search('e', stringval):  # scientific notation
             pos = stringval.index('e')
-            stripped_val = stringval[
-                :pos - (len(stringval) - 15)] + stringval[pos:]
+            stripped_val = stringval[:pos - (len(stringval) - 14)] + stringval[pos:]
         else:  # normal float
             stripped_val = stringval[:15]
         print "Cropping float string from ", str(val), " to ", stripped_val
-        return stripped_val[:15]
+
+        return stripped_val # [:15]
     else:
+        print "ShortenFloatString string ok: ", str(val)
         return str(val)
 
 
