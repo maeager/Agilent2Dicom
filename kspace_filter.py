@@ -516,7 +516,7 @@ def kspaceshift(ksp):
     """
     print "K-space shift ", ksp.shape
     if len(ksp.shape) == 3:
-        kmax = np.array(ndimage.maximum_position(ksp))
+        kmax = np.array(ndimage.maximum_position(np.abs(ksp)))
         siz = np.array(ksp.shape[0:3])
         sub = (siz / 2.).astype(int) - kmax
         print "Shifting kspace ", sub
@@ -526,7 +526,7 @@ def kspaceshift(ksp):
             print ""
     else:
         kmax = np.array(
-            ndimage.maximum_position(np.squeeze(ksp[:, :, :, 0, 0])))
+            ndimage.maximum_position(np.squeeze(np.abs(ksp[:, :, :, 0, 0]))))
         siz = np.array(ksp.shape[0:3])
         sub = (siz / 2.).astype(int) - kmax
         for echo in xrange(0, ksp.shape[4]):
@@ -839,6 +839,7 @@ if __name__ == "__main__":
         procpar, dims, hdr, (kspgauss * fourierlaplace(ksp.shape)), args)
     alpha = ndimage.mean(np.abs(image_filtered)) / \
         ndimage.mean(np.abs(laplacian))
+    kspgauss = kspacegaussian_filter2(ksp, 1.707)
     image_filtered = simpleifft(procpar, dims, hdr, kspgauss, args)
     image_filtered = (np.abs(image_filtered))
     image_filtered = normalise(image_filtered)
