@@ -16,13 +16,44 @@ sudo apt-get install python-setuptools python-dicom python-numpy python-tk dcmtk
 or Redhat/CentOS/Fedora:
 #+begin_src bash
 sudo yum install python-setuptools numpy scipy python-tk dcmtk
-sudo pip install pydicom
+sudo pip install pydicom argparse
 #+end_src
 
-The Agilent workstation is a RHEL.  Use yum groupinstall
-"Developmental Tools" to enable more features if you want more recent
+The Agilent workstation is a RHEL.  Use `yum groupinstall
+"Developmental Tools"` to enable more features if you want more recent
 packages (e.g. atlas-devel, lapack-devel) required to install numpy
 and scipy from source.
+
+*** RHELW 6
+RedHat Enterprise Linux Workstation 6 - Agilent console
+#+begin_src bash
+sudo yum install --upgrade python
+cd ~/src
+export LAPACK_SRC=/home/vnmr1/src/lapack-3.3.0/SRC/
+   wget http://www.netlib.org/lapack/lapack-3.5.0.tgz 
+   tar zxvf lapack-3.5.0.tgz && cd lapack-3.5.0
+   cp make.inc.example make.inc 
+   sed -i -e 's/^OPTS\(.*\)/OPTS \1 -m64 -fPIC/' -e 's/^NOOPT\(.*\)/NOOPT \1 -m64 -fPIC/' make.inc
+
+   make 
+   make -C BLAS/SRC
+   
+#   ln -s blas_LINUX.a libblas.a
+#   ln -s lapack_LINUX.a liblapack.a
+#   ln -s tmglib_LINUX.a libtmglib.a
+
+export BLAS_SRC=/home/vnmr1/src/lapack-3.5.0/BLAS/SRC
+export ATLAS=/home/vnmr1/src/ATLAS_3.11.30/ATLAS
+export LD_LIBRARY_PATH=$HOME/src/lapack-3.5.0:$LD_LIBRARY_PATH
+export PYTHONPATH=~/.local/lib/python2.6/site-packages:/usr/lib64/python2.6/site-packages:/usr/lib/python2.6/site-packages
+
+pip install --user --force-reinstall --upgrade numpy
+pip install --user --force-reinstall --upgrade scipy
+python -c 'import numpy;numpy.test()
+python -c 'import scipy;scipy.test()'
+
+#+end_src
+
 
 ** Get the code
 Pull the stable version from the MBI bitbucket repository, using:
@@ -55,8 +86,6 @@ check.py script:
 cd Agilent2Dicom
 ./check.py
 #+end_src
-
-
 
 
 ** Install Dicom3tools 
@@ -146,3 +175,10 @@ python2.7 ./build
 #+end_src
 
 
+Scipy install from source
+http://www.scipy.org/scipylib/building/linux.html
+
+ATLAS
+http://sourceforge.net/projects/math-atlas/files/latest/download?source=files
+Lapack
+wget http://www.netlib.org/lapack/lapack-3.5.0.tgz 
