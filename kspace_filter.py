@@ -63,6 +63,37 @@ def fouriercoords(siz):
             vv = vv[:siz[0], :siz[1]]
         return (uu, vv, [])
 
+def gaussian_fourierkernel_old(uu, vv, ww, sigma):
+    """
+    Create Gaussian Fourier filter kernel
+    Relegated: numpy.exp too slow for values close to zero.
+    """
+    if not hasattr(sigma, "__len__"):  # type(sigma) is float:
+        gfilter = np.exp(-2 * (np.pi ** 2) *
+                         (uu ** 2 + vv ** 2 + ww ** 2) * (sigma ** 2))
+
+        midpoint = np.ceil(np.array(uu.shape) / 2.0)
+        maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
+                                         midpoint[1] - 10:midpoint[1] + 10,
+                                         midpoint[2] - 10:midpoint[2] + 10])
+        return gfilter / maxval
+    elif len(sigma) == 2:
+        gfilter = np.exp(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
+                                                (sigma[1] ** 2) * vv ** 2))
+        midpoint = np.ceil(np.array(uu.shape) / 2.0)
+        maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
+                                         midpoint[1] - 10:midpoint[1] + 10])
+        gfilter = gfilter / maxval
+    else:
+        gfilter = np.exp(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
+                                                (sigma[1] ** 2) * vv ** 2 +
+                                                (sigma[2] ** 2) * ww ** 2))
+        midpoint = np.ceil(np.array(uu.shape) / 2.0)
+        maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
+                                         midpoint[1] - 10:midpoint[1] + 10,
+                                         midpoint[2] - 10:midpoint[2] + 10])
+        gfilter = gfilter / maxval
+    return gfilter
 
 def gaussian_fourierkernel(uu, vv, ww, sigma):
     """
