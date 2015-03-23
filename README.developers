@@ -275,3 +275,117 @@ def fouriercoords(np.ndarray[DTYPE_t, ndim=1] siz):
 @cython.boundscheck(False) # turn of bounds-checking for entire function
 def fouriergauss(np.ndarray[DTYPE_t, ndim=1] siz, np.ndarray[NP_FLOAT_t, ndim=1] sigma):
 #+END_SRC
+
+
+* pyCUDA
+
+Cuda 5.5 and python 2.7.8 are enabled on MASSIVE
+
+#+BEGIN_SRC sh
+module load gcc/4.7.2 mpfr/3.1.2  gmp/5.1.1 cuda/5.5
+#+END_SRC
+
+See cuda directory.
+
+ CUDADevice with properties on MASSIVE (see http://en.wikipedia.org/wiki/Nvidia_Tesla for comparative properties)
+ 
+Property
+Value
+Name:	'Tesla M2070-Q'
+ComputeCapability:	2
+SupportsDouble:	Yes
+DriverVersion:	5.5
+ToolkitVersion	5
+MaxThreadsPerBlock	1024
+MaxShmemPerBlock	49152
+MaxThreadBlockSize	[1024 1024 64]
+MaxGridSize	[65535 65535 65535]
+SIMDWidth	32
+TotalMemory	5.6366e+09
+FreeMemory	5.5217e+09
+MultiprocessorCount	4
+ClockRateKHz	1147000
+GPUOverlapsTransfers	1
+KernelExecutionTimeout	1
+CanMapHostMemory	1
+ComputeMode	Default
+ 
+
+
+
+
+** PyFFT cuda
+=pyfft3d.py=
+
+The resulting normalised error should be around 3e-7, given the nature of single-precision floating point numbers.
+512x512x512 3D images (usertime)
+ 
+       CPU (s) GPU (write+exec+get) ms
+fftn	19.9	278+107+281
+fftn	20.2	278+75+280
+ifftn	32.6	285+78+272
+total	72.7 sec	1935 ms
+97.3% speedup
+Second run (total runtime)
+ 
+       CPU (s) GPU (write+exec+get) ms
+fftn	22.7	294+130+682
+fftn	25.9	292+130+681
+ifftn	42.8	286+129+681
+total	91.4 sec	3305 ms
+96.4% speedup
+ 
+1024x1024x1024 3D images: Does not work - memory overflow errors.
+
+256x256x256 3D images:
+ 
+        CPU (s) GPU (write+exec+get) ms
+fftn	2.65	37+15.9+84.3
+fftn	2.56	37+15.5+84.8
+ifftn	4.68	38.5+15.4+205
+total	9.89 sec	533.4 ms
+94.6% speedup
+
+=pyfft2dslice.py=
+
+Cutting down large volumes using 2d slices or slabs of 3D images.
+
+Four slab 3D fft
+1024/4=256
+(1024x1024x256  )x4
+Reference matrix multilpication on CPU:  1min 59s (cold)  13.3 s (hot)
+(1024x1024x256 )x4 3D images:
+ 
+CPU (sec)
+1024x1024x1024
+GPU (write+exec+get)x4 sec
+(1024x1024x256 )x4
+fftn	3min 49s	1.78+.262+2.44+1.76+.261+2.47+1.71+.26+1.89+1.75+.26+1.87= 16.713
+fftn	3min 53s	1.75+.261+1.85+1.76+.261+1.85+1.69+.261+1.85+1.75+.26+1.84= 15.383
+ifftn	6min 13s	1.77+.261+1.9+1.79+.261+1.89+1.71+.261+1.9+1.77+.26+1.88= 15.653
+total	 	48.2
+92.7% speedup
+ 
+Run two 9:
+(1024x1024x256 )x4 3D images:
+ 
+CPU (sec)
+1024x1024x1024
+GPU (write+exec+get)x4 sec
+(1024x1024x256 )x4
+fftn	3min 37s	2.23+.263+1.83+2.22+.261+1.92+2.19+.262+1.94+2.23+.261+1.92= 17.527
+fftn	3min 39s	2.24+.261+1.83+2.24+.261+1.92+2.19+.261+1.94+2.22+.261+1.92=17.544
+ifftn	6min 20s	2.54+.261+1.83+2.08+.261+1.92+2.04+.261+1.94+2.09+.261+1.91=17.394
+total	 13min 36s (835 s)	52.465
+93.7% speedup, Norm error
+ 
+Notes: actual FT output has not been compared to standard FT output
+
+
+** Scikits.cuda
+
+#+BEGIN_SRC sh
+pip install --user scikits.cuda
+#+END_SRC
+
+Example: =cufft.py=
