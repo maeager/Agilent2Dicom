@@ -127,6 +127,40 @@ def gaussian_fourierkernel(uu, vv, ww, sigma):
     return gfilter
 
 
+
+def gaussian_fourierkernel_quarter_v2(uu,vv,ww,sigma)
+    siz = np.floor(np.array(uu.shape) / 2 + 1 ).astype(int)
+    gfilter = np.empty_like(uu)
+    alpha = np.exp(-2 * (np.pi ** 2))
+    if not hasattr(sigma, "__len__"):  # type(sigma) is float:
+        
+        for ii in xrange(0,siz[0]):
+            for jj in xrange(0,siz[1]):
+                for kk in xrange(0,siz[2]):
+                    gfilter[ii,jj,kk] = np.expm1(
+                        (sigma ** 2) * ((uu[ii,jj,kk] ** 2) +
+                                        (vv[ii,jj,kk] ** 2) +
+                                        (ww[ii,jj,kk] ** 2))) + 1
+    else:
+        for ii in xrange(0,siz[0]):
+            for jj in xrange(0,siz[1]):
+                for kk in xrange(0,siz[2]):
+                    gfilter[ii,jj,kk] = np.expm1(((sigma[0] ** 2) * uu[ii,jj,kk] ** 2) +
+                                                 ((sigma[1] ** 2) * vv[ii,jj,kk] ** 2) +
+                                                 ((sigma[2] ** 2) * ww[ii,jj,kk] ** 2)) + 1
+        
+    # Copy second quadrant
+    gfilter[siz[0]:,:siz[1],:siz[2]] = gfilter[siz[0]-2:-1:1,:,:]
+    # Copy third and fourth quadrant
+    gfilter[:,siz[1]:,:siz[2]] = gfilter[:,siz[1]-2:-1:1,:]
+    # Copy fifth to eighth quadrant
+    gfilter[:,:,siz[2]:] = gfilter[:,:,siz[2]-2:-1:1]
+    maxval = gfilter[siz[0],siz[1],siz[2]]
+    gfilter *= alpha / maxval
+    return gfilter
+
+
+
 def fouriergauss(siz, sigma):
     """
     Gaussian operator in Fourier domain is another Gaussian :
@@ -138,7 +172,21 @@ def fouriergauss(siz, sigma):
     (uu, vv, ww) = fouriercoords(siz)
     return gaussian_fourierkernel(uu, vv, ww, sigma)
 
+def fouriergauss_v2(siz, sigma):
+    """
+    Gaussian operator in Fourier domain is another Gaussian :
+      g(x,y,z)=(1/sqrt(2*pi).sigma).exp(-(x^2+y^2+z^2)/2sigma^2)
+          => A.(exp(-2*pi*pi*(u^2 + v^2 + w^2)*(sigma^2))
 
+    The sigma should be relative to the voxel spacing.
+
+    This version of fouriergauss uses a reduced method of computing the FT matrix
+    and assumes a symmetrical 2^N sized input.
+    """
+    (uu, vv, ww) = fouriercoords(siz)
+    return gaussian_fourierkernel_quarter_v2(uu, vv, ww, sigma)
+
+    
 def cplxfouriergauss(siz, sigma):
     """
     Complex Gaussian in Fourier domain :
@@ -425,7 +473,36 @@ def kspacegaussian_filter2(ksp, sigma_=None):
     return out_ksp
 # end kspacegaussian_filter2
 
+def kspacegaussian_filter3(ksp, sigma_=None):
+    """
+    Apply Gaussian filter in Fourier domain to kspace data.
+    Reduced method of calculating FT filter.
+    """
+    siz = ksp.shape[0:3]
+    sigma = np.ones(3)
+    if 'sigma_' not in locals():
+        sigma = np.array(siz) / (4 * np.sqrt(2 * np.log(2)))
+    elif not hasattr(sigma_, "__len__"):
+        sigma = np.ones(3) * sigma_
+    else:
+        sigma = sigma_.copy()
+    Fgauss = fouriergauss_v2(siz, sigma)
+    out_ksp = np.empty_like(ksp, dtype=np.complex64)
+    print "Complex Gaussian filter sigma ", sigma
+    if ksp.ndim == 3:
+        out_ksp.real = ksp.real * Fgauss
+        out_ksp.imag = ksp.imag * Fgauss
+    else:
+        for echo in xrange(0, ksp.shape[4]):
+            for n in xrange(0, ksp.shape[3]):
+                out_ksp[:, :, :, n, echo].real = ksp[
+                    :, :, :, n, echo].real * Fgauss
+                out_ksp[:, :, :, n, echo].imag = ksp[
+                    :, :, :, n, echo].imag * Fgauss
+    return out_ksp
+# end kspacegaussian_filter3
 
+    
 def kspacecplxgaussian_filter(ksp, sigma_=None):
     """
     Apply Gaussian filter in Fourier domain to kspace real and imag data
@@ -854,6 +931,13 @@ if __name__ == "__main__":
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_kspimage2')
 
+    print "Computing Gaussian filtered3 image from Original image"
+    kspgauss = kspacegaussian_filter3(ksp, 0.707)
+    image_filtered = simpleifft(procpar, dims, hdr, kspgauss, args)
+    # print "Saving Gaussian image"
+    save_nifti(normalise(np.abs(image_filtered)), 'gauss_v3_kspimage')
+
+    
     print "Computing Gaussian sub-band1.5 image from Original image"
     Fsubband = fouriergausssubband15(ksp.shape, 0.707)
     image_filtered = simpleifft(procpar, dims, hdr, (ksp * Fsubband), args)
