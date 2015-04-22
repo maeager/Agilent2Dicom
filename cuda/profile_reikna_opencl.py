@@ -80,11 +80,76 @@ from reikna import cluda
 from reikna.cluda import functions, dtypes
 from reikna.cluda import dtypes, any_api
 from reikna.fft import FFT
+from reikna.fft import FFTShift
 from reikna.core import Annotation, Type, Transformation, Parameter
 from pyopencl.tools import clear_first_arg_caches 
 sigma = np.ones(3)
 
 def kspacegaussian_filter_CL(ksp,sigma):
+    sz=np.array(ksp.shape)
+    dtype = np.complex64
+    ftype = np.float32
+    #api = cluda.ocl_api()
+    api = any_api()
+    thr = api.Thread.create()
+    data_dev = thr.to_device(ksp)
+    ifft = FFT(data_dev)
+    FACTOR=1.0
+    program = thr.compile("""
+KERNEL void gauss_kernel(
+    GLOBAL_MEM ${ctype} *dest,
+    GLOBAL_MEM ${ctype} *src)
+{
+  const ulong x = get_global_id(0);
+  const SIZE_T dim1= %d;
+  const SIZE_T dim2= %d;
+  const SIZE_T dim3= %d;                    
+  ${ftype} sigma[3];
+  sigma[0]=%f;sigma[1]=%f;sigma[2]=%f;
+  ${ftype} factor = %f;            
+  const double TWOPISQ = 19.739208802178716; //6.283185307179586;  //2*3.141592;
+  const ${ftype} SQRT2PI = 2.5066282746;
+  const double CUBEDSQRT2PI = 15.749609945722419;
+  const ulong idx = x;
+  ${ftype} i = (${ftype})((x / dim3) / dim2);
+      i = (i - (${ftype})floor((${ftype})(dim1)/2.0))/(${ftype})(dim1);
+  ${ftype} j = (${ftype})(x / dim3);
+      if((SIZE_T)j > dim2) {j=(${ftype})fmod(j, (${ftype})dim2);};
+      j = (j - (${ftype})floor((${ftype})(dim2)/2.0f))/(${ftype})(dim2);
+  //Account for large global index (stored as ulong) before performing modulus
+  double pre_k=fmod((double)(x) , (double) dim3);
+  ${ftype} k = (${ftype}) pre_k;
+      k = (k - (${ftype})floor((${ftype})(dim3)/2.0f))/(${ftype})(dim3);
+
+  ${ftype} weight = exp(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]));
+  //${ftype} weight = expm1(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]))+1;
+  //${ftype} weight= ${exp}(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]));
+  dest[idx].x = src[idx].x * weight;
+  dest[idx].y = src[idx].y * weight; 
+  
+}
+""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
+                          render_kwds=dict(ctype=dtypes.ctype(dtype),
+                                           ftype=dtypes.ctype(ftype),
+                                           exp=functions.exp(ftype)),fast_math=True)
+    gauss_kernel = program.gauss_kernel
+    #data_dev = thr.empty_like(ksp_dev)
+    gauss_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
+    # ksp_out = data_dev.get()
+    thr.synchronize()
+    ##
+    #api = any_api()
+    #thr = api.Thread.create()
+    #data_dev = thr.to_device(ksp_out)
+    ifft = FFT(data_dev)
+    cifft = ifft.compile(thr)
+    cifft(data_dev, data_dev,inverse=0)
+    result = np.fft.fftshift(data_dev.get() / sz[0]*sz[1]*sz[2])
+    result = result[::-1,::-1,::-1]
+    result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
+    return result  #,ksp_out
+
+def kspacegaussian_filter_CL2(ksp,sigma):
     sz=ksp.shape
     dtype = np.complex64
     ftype = np.float32
@@ -134,24 +199,33 @@ KERNEL void gauss_kernel(
     gauss_kernel = program.gauss_kernel
     #data_dev = thr.empty_like(ksp_dev)
     gauss_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
-    ksp_out = data_dev.get()
-    #thr.synchronize()
-    ##
-    #api = any_api()
-    #thr = api.Thread.create()
-    #data_dev = thr.to_device(ksp_out)
+    
+    thr.synchronize()
+    #data_dev = thr.to_device(ksp)
     ifft = FFT(data_dev)
     cifft = ifft.compile(thr)
+    fftshift = FFTShift(data_dev)
+    cfftshift = fftshift.compile(thr)
     cifft(data_dev, data_dev,inverse=0)
-    result = np.fft.fftshift(data_dev.get() / sz[0]*sz[1]*sz[2])
-    result = result[::-1,::-1,::-1]
-    result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
-    return result  #,ksp_out
-        
+    thr.synchronize()
+    cfftshift(data_dev,data_dev)
+    thr.synchronize()
+    result2 = data_dev.get() / np.prod(np.array(ksp.shape))
+    result2 = result2[::-1,::-1,::-1]
+    thr.release()
+    return result2
 
+
+    
 tic()
 imggauss = kspacegaussian_filter_CL(ksp,np.ones(3))
+print 'Reikna OpenCL Gaussian+recon+ numpy fftshift: first run'
 toc()
+tic()
+imggauss2 = kspacegaussian_filter_CL2(ksp,np.ones(3))
+print 'Reikna OpenCL Gaussian+recon+ Reikna FFTShift: first run'
+toc()
+
 
 tic()
 kspgauss2 = KSP.kspacegaussian_filter2(ksp, 1)
@@ -173,19 +247,43 @@ data_dev = thr.to_device(ksp)
 ifft = FFT(data_dev)
 cifft = ifft.compile(thr)
 cifft(data_dev, data_dev,inverse=0)
+thr.synchronize()
+toc()
 result = np.fft.fftshift(data_dev.get() / N**3)
 result = result[::-1,::-1,::-1]
 result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
 print "Reikna IFFT time and first three results:"
 print "%s sec, %s" % (toc(), str(np.abs(result[:3,0,0])))
+thr.release()
+
+thr = api.Thread.create()
+tic()
+data_dev = thr.to_device(ksp)
+ifft = FFT(data_dev)
+cifft = ifft.compile(thr)
+fftshift = FFTShift(data_dev)
+cfftshift = fftshift.compile(thr)
+cifft(data_dev, data_dev,inverse=0)
+thr.synchronize()
+toc()
+cfftshift(data_dev,data_dev)
+thr.synchronize()
+result2 = data_dev.get() / N**3
+result = result[::-1,::-1,::-1]
+#result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
+print "Reikna IFFT time and first three results:"
+print "%s sec, %s" % (toc(), str(np.abs(result2[:3,0,0])))
+thr.release()
+
+
 
 tic()
 reference = np.fft.fftshift(np.fft.ifftn(ksp))
 print "Numpy IFFTN time and first three results:"
 print "%s sec, %s" % (toc(), str(np.abs(reference[:3,0,0])))
 
-print np.linalg.norm(result - reference) / np.linalg.norm(reference)
-
+#print np.linalg.norm(imggauss-image_filtered) / np.linalg.norm(image_filtered)
+print np.linalg.norm((np.abs(imggauss)/512**4)-np.abs(image_filtered)) / np.linalg.norm(np.abs(image_filtered))
 
 import matplotlib
 matplotlib.use('Agg')
@@ -198,8 +296,8 @@ f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(2,3, sharex='col', sharey='
 ax1.imshow(np.abs(ksp[:,:, 250]), aspect='auto')
 ax1.set_title('Sharing x per column, y per row')
 ax2.imshow((np.abs(result[:,:, 250]/512**3)), aspect='auto')
-ax3.imshow(np.log10(np.abs(result[:,:, 250]/512**3))-np.log10(np.abs(reference[:,:, 250])), aspect='auto')
+ax3.imshow(np.log10(np.abs(imggauss2[:,:, 250]/512**4))-np.log10(np.abs(image_filtered[:,:, 250])), aspect='auto')
 ax4.imshow((np.abs(reference[:,:, 250])), aspect='auto')
-ax5.imshow(np.squeeze(np.abs(imggauss[:,:,250])), aspect='auto')
+ax5.imshow(np.squeeze(np.abs(imggauss2[:,:,250])), aspect='auto')
 ax6.imshow(np.squeeze(np.abs(image_filtered[:,:,250])), aspect='auto')
 plt.savefig('results_reiknaCL.jpg')

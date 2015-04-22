@@ -1,7 +1,6 @@
 
+
 import pstats, cProfile
-
-
 import os
 import argparse
 import ReadProcpar as Procpar
@@ -54,7 +53,7 @@ image, ksp = recon(pp, dims, hdr,
 #del data_real, data_imag
 print "Shift kspace centre to max point"
 ksp = KSP.kspaceshift(ksp)
-(uu,vv,ww) = KSP.fouriercoords(ksp.shape)
+#(uu,vv,ww) = KSP.fouriercoords(ksp.shape)
 
 def tic():
     #Homemade version of matlab tic and toc functions
@@ -86,7 +85,7 @@ N=512
 batch_size=1
 tic()
 x_gpu = gpuarray.to_gpu(ksp)
-plan_inverse = cu_fft.Plan((N, N, N), np.complex64, np.complex64,1)
+plan_inverse = cu_fft.Plan((N, N, N), np.complex64, np.complex64,batch_size)
 cu_fft.ifft(x_gpu, x_gpu, plan_inverse, True)
 result = np.fft.fftshift(x_gpu.get() )
 #result = np.fft.fftshift(data_dev.get() / N**3)

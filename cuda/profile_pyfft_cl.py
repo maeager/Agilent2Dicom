@@ -1,3 +1,25 @@
+#!/usr/bin/env python
+"""
+   Profiling OpenCL FFT methods for fourier-domain filtering
+   of 3D k-space data
+
+
+  Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""
 
 import pstats, cProfile
 
@@ -54,7 +76,7 @@ image, ksp = recon(pp, dims, hdr,
 #del data_real, data_imag
 print "Shift kspace centre to max point"
 ksp = KSP.kspaceshift(ksp)
-(uu,vv,ww) = KSP.fouriercoords(ksp.shape)
+# (uu,vv,ww) = KSP.fouriercoords(ksp.shape)
 
 def tic():
     #Homemade version of matlab tic and toc functions
@@ -82,12 +104,12 @@ import pyopencl.array as cl_array
 
 sigma= np.ones(3)
 
-def kspacegaussian_filter_CL(ksp,sigma):
+def kspacegaussian_filter_CL(ksp,sigma,ctx):
     sz=ksp.shape
     dtype = np.complex64
     ftype = np.float32
     #api = cluda.ocl_api()
-    ctx = cl.create_some_context(0)
+    #ctx = cl.create_some_context(0)
     queue = cl.CommandQueue(ctx)
     queue.flush()
     data_dev = cl_array.to_device(queue,ksp)
@@ -130,8 +152,8 @@ __kernel void gauss_kernel(__global cfloat_t *dest) //, __global cfloat_t *src)
     gauss_kernel(queue, sz, None, data_dev.data).wait() #, data_dev.data
     ksp_out = data_dev.get()
     queue.flush()
-    ctx = cl.create_some_context(interactive=False)
-    queue = cl.CommandQueue(ctx)
+    #ctx = cl.create_some_context(interactive=False)
+    #queue = cl.CommandQueue(ctx)
     w = h = k = 512
     plan = Plan((w,h,k), normalize=True, queue=queue)
     data2_dev = cl_array.to_device(queue, ksp_out)
@@ -141,8 +163,11 @@ __kernel void gauss_kernel(__global cfloat_t *dest) //, __global cfloat_t *src)
     queue.finish()
     return result  #,ksp_out
 
+plats = cl.get_platforms()
+ctx = cl.Context(properties=[(cl.context_properties.PLATFORM, plats[0])])
+
 tic()
-imggauss = kspacegaussian_filter_CL(ksp,np.ones(3))
+imggauss = kspacegaussian_filter_CL(ksp,np.ones(3),ctx)
 print 'PyFFT +OpenCL Gaussian filter:'
 toc()
 tic()
@@ -156,13 +181,14 @@ toc()
 
 
 tic()
-ctx = cl.create_some_context(interactive=False)
-queue = cl.CommandQueue(ctx)
+#ctx = cl.create_some_context(interactive=False)
+#queue = cl.CommandQueue(ctx)
 w = h = k = 512
 plan = Plan((w,h,k), normalize=True, queue=queue)
 gpu_data = cl_array.to_device(queue, ksp)
 plan.execute(gpu_data.data, inverse=True) 
 result = gpu_data.get()
+toc()
 result = np.fft.fftshift(result)
 print "PyFFT OpenCL IFFT time and first three results:"
 print "%s sec, %s" % (toc(), str(np.abs(result[:3,0,0])))
@@ -188,7 +214,7 @@ f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(2,3, sharex='col', sharey='
 ax1.imshow(np.abs(ksp[:,:, 250]), aspect='auto')
 ax1.set_title('PyFFT + PyOpenCL Complex K-space filter')
 ax2.imshow(np.log10(np.abs(result[:,:, 250]/512**3)), aspect='auto')
-ax3.imshow(np.log10(np.abs(result[:,:, 250]/512**3))-np.log10(np.abs(reference[:,:, 250])), aspect='auto')
+ax3.imshow(np.log10(np.abs(result[:,:, 250]/512**3)-np.abs(reference[:,:, 250])), aspect='auto')
 ax4.imshow(np.log10(np.abs(reference[:,:, 250])), aspect='auto')
 ax5.imshow(np.squeeze(np.abs(imggauss[:,:,250])), aspect='auto')
 ax6.imshow(np.squeeze(np.abs(image_filtered[:,:,250])), aspect='auto')

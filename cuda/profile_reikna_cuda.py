@@ -55,6 +55,21 @@ image, ksp = recon(pp, dims, hdr,
 print "Shift kspace centre to max point"
 ksp = KSP.kspaceshift(ksp)
 
+def tic():
+    #Homemade version of matlab tic and toc functions
+    #https://stackoverflow.com/questions/5849800/tic-toc-functions-analog-in-python
+    import time
+    global startTime_for_tictoc
+    startTime_for_tictoc = time.time()
+
+def toc():
+    import time
+    if 'startTime_for_tictoc' in globals():
+        print "Elapsed time is " + str(time.time() - startTime_for_tictoc) + " seconds."
+        return str(time.time() - startTime_for_tictoc)
+    else:
+        print "Toc: start time not set"
+        return ""
 
 
 import numpy as np
@@ -62,13 +77,168 @@ import numpy as np
 import pycuda.driver as drv
 import pycuda.tools
 import pycuda.autoinit
-from reikna.cluda import dtypes, any_api
+from reikna.cluda import dtypes, cuda_api, functions
 from reikna.fft import FFT
+from reikna.fft import FFTShift
 from reikna.core import Annotation, Type, Transformation, Parameter
+
+#from pyopencl.tools import clear_first_arg_caches 
+sigma = np.ones(3)
+
+def kspacegaussian_filter_CL(ksp,sigma):
+    sz=ksp.shape
+    dtype = np.complex64
+    ftype = np.float32
+    #api = cluda.ocl_api()
+    api = cuda_api()
+    thr = api.Thread.create()
+    data_dev = thr.to_device(ksp)
+    ifft = FFT(data_dev)
+    FACTOR=1.0
+    program = thr.compile("""
+KERNEL void gauss_kernel(
+    GLOBAL_MEM ${ctype} *dest,
+    GLOBAL_MEM ${ctype} *src)
+{
+  const ulong x = get_global_id(0);
+  const SIZE_T dim1= %d;
+  const SIZE_T dim2= %d;
+  const SIZE_T dim3= %d;                    
+  ${ftype} sigma[3];
+  sigma[0]=%f;sigma[1]=%f;sigma[2]=%f;
+  ${ftype} factor = %f;            
+  const double TWOPISQ = 19.739208802178716; //6.283185307179586;  //2*3.141592;
+  const ${ftype} SQRT2PI = 2.5066282746;
+  const double CUBEDSQRT2PI = 15.749609945722419;
+  const ulong idx = x;
+  ${ftype} i = (${ftype})((x / dim3) / dim2);
+      i = (i - (${ftype})floor((${ftype})(dim1)/2.0))/(${ftype})(dim1);
+  ${ftype} j = (${ftype})(x / dim3);
+      if((SIZE_T)j > dim2) {j=(${ftype})fmod(j, (${ftype})dim2);};
+      j = (j - (${ftype})floor((${ftype})(dim2)/2.0f))/(${ftype})(dim2);
+  //Account for large global index (stored as ulong) before performing modulus
+  double pre_k=fmod((double)(x) , (double) dim3);
+  ${ftype} k = (${ftype}) pre_k;
+      k = (k - (${ftype})floor((${ftype})(dim3)/2.0f))/(${ftype})(dim3);
+
+  ${ftype} weight = exp(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]));
+  //${ftype} weight = expm1(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]))+1;
+  //${ftype} weight= ${exp}(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]));
+  dest[idx].x = src[idx].x * weight;
+  dest[idx].y = src[idx].y * weight; 
+  
+}
+""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
+                          render_kwds=dict(ctype=dtypes.ctype(dtype),
+                                           ftype=dtypes.ctype(ftype),
+                                           exp=functions.exp(ftype)),fast_math=True)
+    gauss_kernel = program.gauss_kernel
+    #data_dev = thr.empty_like(ksp_dev)
+    gauss_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
+    # ksp_out = data_dev.get()
+    thr.synchronize()
+    ##
+    #api = cuda_api()
+    #thr = api.Thread.create()
+    #data_dev = thr.to_device(ksp_out)
+    ifft = FFT(data_dev)
+    cifft = ifft.compile(thr)
+    cifft(data_dev, data_dev,inverse=0)
+    result = np.fft.fftshift(data_dev.get() / sz[0]*sz[1]*sz[2])
+    result = result[::-1,::-1,::-1]
+    result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
+    return result  #,ksp_out
+
+def kspacegaussian_filter_CL2(ksp,sigma):
+    sz=ksp.shape
+    dtype = np.complex64
+    ftype = np.float32
+    #api = cluda.ocl_api()
+    api = cuda_api()
+    thr = api.Thread.create()
+    data_dev = thr.to_device(ksp)
+    ifft = FFT(data_dev)
+    FACTOR=1.0
+    program = thr.compile("""
+KERNEL void gauss_kernel(
+    GLOBAL_MEM ${ctype} *dest,
+    GLOBAL_MEM ${ctype} *src)
+{
+  const ulong x = get_global_id(0);
+  const SIZE_T dim1= %d;
+  const SIZE_T dim2= %d;
+  const SIZE_T dim3= %d;                    
+  ${ftype} sigma[3];
+  sigma[0]=%f;sigma[1]=%f;sigma[2]=%f;
+  ${ftype} factor = %f;            
+  const double TWOPISQ = 19.739208802178716; //6.283185307179586;  //2*3.141592;
+  const ${ftype} SQRT2PI = 2.5066282746;
+  const double CUBEDSQRT2PI = 15.749609945722419;
+  const ulong idx = x;
+  ${ftype} i = (${ftype})((x / dim3) / dim2);
+      i = (i - (${ftype})floor((${ftype})(dim1)/2.0))/(${ftype})(dim1);
+  ${ftype} j = (${ftype})(x / dim3);
+      if((SIZE_T)j > dim2) {j=(${ftype})fmod(j, (${ftype})dim2);};
+      j = (j - (${ftype})floor((${ftype})(dim2)/2.0f))/(${ftype})(dim2);
+  //Account for large global index (stored as ulong) before performing modulus
+  double pre_k=fmod((double)(x) , (double) dim3);
+  ${ftype} k = (${ftype}) pre_k;
+      k = (k - (${ftype})floor((${ftype})(dim3)/2.0f))/(${ftype})(dim3);
+
+  ${ftype} weight = exp(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]));
+  //${ftype} weight = expm1(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]))+1;
+  //${ftype} weight= ${exp}(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]));
+  dest[idx].x = src[idx].x * weight;
+  dest[idx].y = src[idx].y * weight; 
+  
+}
+""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
+                          render_kwds=dict(ctype=dtypes.ctype(dtype),
+                                           ftype=dtypes.ctype(ftype),
+                                           exp=functions.exp(ftype)),fast_math=True)
+    gauss_kernel = program.gauss_kernel
+    #data_dev = thr.empty_like(ksp_dev)
+    gauss_kernel(data_dev, data_dev, global_size=(sz[0],sz[1],sz[2]))
+    
+    thr.synchronize()
+    #data_dev = thr.to_device(ksp)
+    ifft = FFT(data_dev)
+    cifft = ifft.compile(thr)
+    fftshift = FFTShift(data_dev)
+    cfftshift = fftshift.compile(thr)
+    cifft(data_dev, data_dev,inverse=0)
+    thr.synchronize()
+    cfftshift(data_dev,data_dev)
+    thr.synchronize()
+    result2 = data_dev.get() / np.prod(np.array(ksp.shape))
+    result2 = result2[::-1,::-1,::-1]
+    thr.release()
+    return result2
+
+
+    
+tic()
+imggauss = kspacegaussian_filter_CL(ksp,np.ones(3))
+print 'Reikna Cuda Gaussian+recon+ numpy fftshift: first run'
+toc()
+tic()
+imggauss2 = kspacegaussian_filter_CL2(ksp,np.ones(3))
+print 'Reikna Cuda Gaussian+recon+ Reikna FFTShift: first run'
+toc()
+
+
+tic()
+kspgauss2 = KSP.kspacegaussian_filter2(ksp, 1)
+image_filtered = simpleifft(procpar, dims, hdr, kspgauss2, args)
+toc()
+
+
+
+
 # create two timers so we can speed-test each approach
 start = drv.Event()
 end = drv.Event()
-api = any_api()
+api = cuda_api()
 thr = api.Thread.create()
 N=512
 
