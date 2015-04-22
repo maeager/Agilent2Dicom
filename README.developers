@@ -277,7 +277,7 @@ def fouriergauss(np.ndarray[DTYPE_t, ndim=1] siz, np.ndarray[NP_FLOAT_t, ndim=1]
 #+END_SRC
 
 
-* pyCUDA
+* GPU processing: CUDA and OpenCL
 
 Cuda 5.5 and python 2.7.8 are enabled on MASSIVE
 
@@ -389,3 +389,209 @@ pip install --user scikits.cuda
 #+END_SRC
 
 Example: =cufft.py=
+
+Reconstruction from complex kspace
+#+BEGIN_SRC python
+
+N = 512
+batch_size = 512
+print 'Testing recon ifft (in-place)..'
+tic()
+x = np.empty((batch_size, N, N), np.complex64)
+x = np.asarray(np.random.rand(batch_size, N, N), np.complex64)
+x.imag = np.random.rand(batch_size, N, N)
+x_gpu = gpuarray.to_gpu(x)
+# xf_gpu = gpuarray.empty((batch_size, N, N), np.complex64)
+plan = cu_fft.Plan((batch_size, N, N), np.complex64, np.complex64, 1)
+toc()
+tic()
+cu_fft.ifft(x_gpu, x_gpu, plan, True)
+toc()
+tic()
+y = numpy.fft.ifftn(x)
+toc()
+print 'Success status: ', np.allclose(y, x_gpu.get(), atol=1e-6)
+
+#+END_SRC
+#+BEGIN_EXAMPLE
+In [48]: plan = cu_fft.Plan((batch_size, N, N), np.complex64, np.complex64, 1)
+
+In [49]: toc()
+Elapsed time is 14.3354101181 seconds.
+Out[49]: '14.3354740143'
+
+In [50]: tic()
+
+In [51]: cu_fft.ifft(x_gpu, x_gpu, plan, True)
+
+In [52]: toc()
+Elapsed time is 3.01940393448 seconds.
+Out[52]: '3.0195069313'
+
+In [53]: tic()
+
+In [54]: y = numpy.fft.ifftn(x)
+
+In [55]: toc()
+Elapsed time is 35.2300841808 seconds.
+Out[55]: '35.2301981449'
+
+In [56]: print 'Success status: ', np.allclose(y, x_gpu.get(), atol=1e-6)
+Success status:  True
+#+END_EXAMPLE
+
+
+
+** Speed test
+
+Speed test 2:
+exp(-(a^2 + b^2 + c^2))
+blocks=6400
+block_size = 128
+Using nbr_values == 819200
+Calculating 1000 iterations
+SourceModule time and first three results:
+0.053058s, [ 0.54412651  0.54412651  0.54412651]
+Elementwise time and first three results:
+0.204747s, [ 0.54412651  0.54412651  0.54412651]
+Elementwise Python looping time and first three results:
+0.300244s, [ 0.54412651  0.54412651  0.54412651]
+GPUArray time and first three results:
+3.665145s, [ 0.54412651  0.54412651  0.54412651]
+CPU time and first three results:
+31.908086s, [ 0.54412651  0.54412651  0.54412651]
+
+Speed test 3:
+exp(-2*pi^2(a^2 + b^2 + c^2))
+
+
+** FFT
+*** Reikna CUDA
+
+
+Reikna IFFT time and first three results:
+12.443403s, [  3.83110513e-05   6.72008329e-05   9.83252550e-05]
+Numpy IFFTN time and first three results:
+43.439137s, [  3.83110483e-05   6.72008469e-05   9.83252633e-05]
+2.22041709388e-07
+
+*** Reikna  OpenCL
+
+#+BEGIN_SRC python
+import numpy as np
+## REINKA
+import pycuda.driver as drv
+import pycuda.tools
+import pycuda.autoinit
+
+from reikna.cluda import dtypes, any_api
+from reikna.fft import FFT
+from reikna.core import Annotation, Type, Transformation, Parameter
+# create two timers so we can speed-test each approach
+start = drv.Event()
+end = drv.Event()
+api = any_api()
+thr = api.Thread.create()
+N=512
+
+start.record()
+data_dev = thr.to_device(ksp)
+cifft = ifft.compile(thr)
+cifft(data_dev, data_dev,inverse=0)
+result = numpy.fft.fftshift(data_dev.get() / N**3)
+result = result[::-1,::-1,::-1]
+result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
+end.record()
+end.synchronize()
+secs = start.time_till(end)*1e-3
+print "Reikna IFFT time and first three results:"
+print "%fs, %s" % (secs, str(np.abs(result[:3,0,0])))
+
+start.record()
+reference = numpy.fft.fftshift(numpy.fft.ifftn(ksp))
+end.record()
+end.synchronize()
+secs = start.time_till(end)*1e-3
+print "Numpy IFFTN time and first three results:"
+print "%fs, %s" % (secs, str(np.abs(reference[:3,0,0])))
+
+print "Norm difference", numpy.linalg.norm(result - reference) / numpy.linalg.norm(reference)
+#+END_SRC
+
+Reikna IFFT time and first three results:
+11.012042s, [  3.83110513e-05   6.72008329e-05   9.83252550e-05]
+Numpy IFFTN time and first three results:
+43.887570s, [  3.83110483e-05   6.72008469e-05   9.83252633e-05]
+
+Norm difference 2.22041709388e-07
+
+*** PyFFT OpenCL
+
+#+BEGIN_SRC python
+
+from pyfft.cl import Plan
+import pyopencl as cl
+import pyopencl.array as cl_array
+
+tic()
+ctx = cl.create_some_context(interactive=False)
+queue = cl.CommandQueue(ctx)
+w = h = k = 512
+plan = Plan((w,h,k), normalize=True, queue=queue)
+gpu_data = cl_array.to_device(queue, ksp)
+plan.execute(gpu_data.data, inverse=True) 
+result = gpu_data.get()
+result = np.fft.fftshift(result)
+print "PyFFT OpenCL IFFT time and first three results:"
+print "%s sec, %s" % (toc(), str(np.abs(result[:3,0,0])))
+
+tic()
+reference = np.fft.fftshift(np.fft.ifftn(ksp))
+print "Numpy IFFTN time and first three results:"
+print "%s sec, %s" % (toc(), str(np.abs(reference[:3,0,0])))
+
+
+print "Calulating L1 norm "
+print np.linalg.norm(result - reference) / np.linalg.norm(reference)
+
+
+#+END_SRC
+
+PyFFT OpenCL IFFT time and first three results:
+4.00547480583 sec, [  3.83110491e-05   6.72008246e-05   9.83252612e-05]
+
+Numpy IFFTN time and first three results:
+46.8406469822 sec, [  3.83110483e-05   6.72008469e-05   9.83252633e-05]
+
+Calulating L1 norm
+4.21388290199e-07
+
+
+*** Scikits CUDA
+
+#+BEGIN_SRC python
+
+import pycuda.autoinit
+import pycuda.gpuarray as gpuarray
+import numpy as np
+
+import scikits.cuda.fft as cu_fft
+
+N=512
+batch_size=512
+tic()
+x_gpu = gpuarray.to_gpu(ksp)
+plan_inverse = cu_fft.Plan((N, N), np.complex64, np.complex64, batch_size)
+cu_fft.ifft(x_gpu, x_gpu, plan_inverse, True)
+result = np.fft.fftshift(x_gpu.get() )
+#result = np.fft.fftshift(data_dev.get() / N**3)
+#result = result[::-1,::-1,::-1]
+#result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
+print "Scikits CUDA IFFT time and first three results:"
+print "%s sec, %s" % (toc(), str(np.abs(result[:3,0,0])))
+
+
+#+END_SRC
+
+Scikits CUDA IFFT time and first three results:
+4.06088709831 sec, [ 0.00219029  0.00188084  0.00227454]
