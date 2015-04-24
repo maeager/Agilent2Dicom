@@ -269,7 +269,7 @@ toc()
 cfftshift(data_dev,data_dev)
 thr.synchronize()
 result2 = data_dev.get() / N**3
-result = result[::-1,::-1,::-1]
+result2 = result2[::-1,::-1,::-1]
 #result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
 print "Reikna IFFT time and first three results:"
 print "%s sec, %s" % (toc(), str(np.abs(result2[:3,0,0])))
@@ -283,7 +283,7 @@ print "Numpy IFFTN time and first three results:"
 print "%s sec, %s" % (toc(), str(np.abs(reference[:3,0,0])))
 
 #print np.linalg.norm(imggauss-image_filtered) / np.linalg.norm(image_filtered)
-print np.linalg.norm((np.abs(imggauss)/512**4)-np.abs(image_filtered)) / np.linalg.norm(np.abs(image_filtered))
+print np.linalg.norm((np.abs(imggauss2))-np.abs(image_filtered)) / np.linalg.norm(np.abs(image_filtered))
 
 import matplotlib
 matplotlib.use('Agg')
@@ -296,7 +296,7 @@ f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(2,3, sharex='col', sharey='
 ax1.imshow(np.abs(ksp[:,:, 250]), aspect='auto')
 ax1.set_title('Sharing x per column, y per row')
 ax2.imshow((np.abs(result[:,:, 250]/512**3)), aspect='auto')
-ax3.imshow(np.log10(np.abs(imggauss2[:,:, 250]/512**4))-np.log10(np.abs(image_filtered[:,:, 250])), aspect='auto')
+ax3.imshow(np.log10(np.abs(imggauss2[:,:, 250]))-np.log10(np.abs(image_filtered[:,:, 250])), aspect='auto')
 ax4.imshow((np.abs(reference[:,:, 250])), aspect='auto')
 ax5.imshow(np.squeeze(np.abs(imggauss2[:,:,250])), aspect='auto')
 ax6.imshow(np.squeeze(np.abs(image_filtered[:,:,250])), aspect='auto')

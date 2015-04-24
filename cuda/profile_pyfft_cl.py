@@ -111,7 +111,7 @@ def kspacegaussian_filter_CL(ksp,sigma,ctx):
     #api = cluda.ocl_api()
     #ctx = cl.create_some_context(0)
     queue = cl.CommandQueue(ctx)
-    queue.flush()
+    #queue.flush()
     data_dev = cl_array.to_device(queue,ksp)
     w = h = k = 512
     plan = Plan((w,h,k), normalize=True, queue=queue)

@@ -100,7 +100,7 @@ KERNEL void gauss_kernel(
     GLOBAL_MEM ${ctype} *dest,
     GLOBAL_MEM ${ctype} *src)
 {
-  const ulong x = get_global_id(0);
+  const ulong x = get_global_id(0);const ulong y = get_global_id(1);const ulong z = get_global_id(2);
   const SIZE_T dim1= %d;
   const SIZE_T dim2= %d;
   const SIZE_T dim3= %d;                    
@@ -110,15 +110,15 @@ KERNEL void gauss_kernel(
   const double TWOPISQ = 19.739208802178716; //6.283185307179586;  //2*3.141592;
   const ${ftype} SQRT2PI = 2.5066282746;
   const double CUBEDSQRT2PI = 15.749609945722419;
-  const ulong idx = x;
-  ${ftype} i = (${ftype})((x / dim3) / dim2);
+  const ulong idx = dim1*dim2*z + dim1*y + x;
+  ${ftype} i = (${ftype})(x); // )((x / dim3) / dim2);
       i = (i - (${ftype})floor((${ftype})(dim1)/2.0))/(${ftype})(dim1);
-  ${ftype} j = (${ftype})(x / dim3);
+  ${ftype} j = (${ftype})(y); //(x / dim3);
       if((SIZE_T)j > dim2) {j=(${ftype})fmod(j, (${ftype})dim2);};
       j = (j - (${ftype})floor((${ftype})(dim2)/2.0f))/(${ftype})(dim2);
   //Account for large global index (stored as ulong) before performing modulus
-  double pre_k=fmod((double)(x) , (double) dim3);
-  ${ftype} k = (${ftype}) pre_k;
+  //double pre_k=fmod((double)(x) , (double) dim3);
+  ${ftype} k = (${ftype}) (z); //pre_k;
       k = (k - (${ftype})floor((${ftype})(dim3)/2.0f))/(${ftype})(dim3);
 
   ${ftype} weight = exp(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]));
@@ -134,7 +134,7 @@ KERNEL void gauss_kernel(
                                            exp=functions.exp(ftype)),fast_math=True)
     gauss_kernel = program.gauss_kernel
     #data_dev = thr.empty_like(ksp_dev)
-    gauss_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
+    gauss_kernel(data_dev, data_dev, global_size=(sz[0],sz[1],sz[2]))
     # ksp_out = data_dev.get()
     thr.synchronize()
     ##
@@ -215,17 +215,18 @@ KERNEL void gauss_kernel(
     thr.release()
     return result2
 
-
+pycuda.tools.clear_context_caches()
     
 tic()
 imggauss = kspacegaussian_filter_CL(ksp,np.ones(3))
 print 'Reikna Cuda Gaussian+recon+ numpy fftshift: first run'
 toc()
+pycuda.tools.clear_context_caches()
 tic()
 imggauss2 = kspacegaussian_filter_CL2(ksp,np.ones(3))
 print 'Reikna Cuda Gaussian+recon+ Reikna FFTShift: first run'
 toc()
-
+pycuda.tools.clear_context_caches()
 
 tic()
 kspgauss2 = KSP.kspacegaussian_filter2(ksp, 1)
@@ -236,35 +237,32 @@ toc()
 
 
 # create two timers so we can speed-test each approach
-start = drv.Event()
-end = drv.Event()
+#start = drv.Event()
+#end = drv.Event()
 api = cuda_api()
 thr = api.Thread.create()
 N=512
 
-start.record()
+tic()
 data_dev = thr.to_device(ksp)
 ifft = FFT(data_dev)
 cifft = ifft.compile(thr)
+thr.synchronize()
 cifft(data_dev, data_dev,inverse=0)
 result = np.fft.fftshift(data_dev.get() / N**3)
 result = result[::-1,::-1,::-1]
 result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
-end.record()
-end.synchronize()
-secs = start.time_till(end)*1e-3
-print "Reikna IFFT time and first three results:"
-print "%s sec, %s" % (secs, str(np.abs(result[:3,0,0])))
 
-start.record()
+print "Reikna IFFT time and first three results:"
+print "%s sec, %s" % (toc(), str(np.abs(result[:3,0,0])))
+
+tic()
 reference = np.fft.fftshift(np.fft.ifftn(ksp))
-end.record()
-end.synchronize()
-secs = start.time_till(end)*1e-3
 print "Numpy IFFTN time and first three results:"
-print "%s sec, %s" % (secs, str(np.abs(reference[:3,0,0])))
+print "%s sec, %s" % (toc(), str(np.abs(reference[:3,0,0])))
 
 print np.linalg.norm(result - reference) / np.linalg.norm(reference)
+print np.linalg.norm((np.abs(imggauss2))-np.abs(image_filtered)) / np.linalg.norm(np.abs(image_filtered))
 
 
 import matplotlib
@@ -282,4 +280,21 @@ ax3.imshow(np.log10(np.abs(result[:,:, 250]/512**3))-np.log10(np.abs(reference[:
 ax4.imshow(np.log10(np.abs(reference[:,:, 250])), aspect='auto')
 ax5.imshow(np.squeeze(np.abs(result[250,:,:])), aspect='auto')
 ax6.imshow(np.squeeze(np.abs(reference[250,:,:])), aspect='auto')
+plt.savefig('results_reiknaCUDA.jpg')
+
+
+f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(2,3, sharex='col', sharey='row')
+ax1.set_title('K-space')
+ax1.imshow(np.abs(ksp[:,:, 250]), aspect='auto')
+ax2.set_title('Reikna CUDA Complex K-space filter\n GPU Recon')
+ax2.imshow((np.abs(result[:,:, 250]/512**3)), aspect='auto')
+ax3.set_title('Diff (log10)')
+ax3.imshow(np.log10(np.abs(imggauss[:,:, 250])-np.abs(image_filtered[:,:, 250])), aspect='auto')
+ax4.set_title('Numpy Recon')
+ax4.imshow((np.abs(reference[:,:, 250])), aspect='auto')
+ax5.set_title('GPU Filtered Recon')
+ax5.imshow(np.squeeze(np.abs(imggauss[:,:,250])), aspect='auto')
+ax6.set_title('Standard Filter')
+ax6.imshow(np.squeeze(np.abs(image_filtered[:,:,250])), aspect='auto')
+
 plt.savefig('results_reiknaCUDA.jpg')
