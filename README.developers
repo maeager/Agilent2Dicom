@@ -279,6 +279,35 @@ def fouriergauss(np.ndarray[DTYPE_t, ndim=1] siz, np.ndarray[NP_FLOAT_t, ndim=1]
 
 * GPU processing: CUDA and OpenCL
 
+Notes for DrDobbs opencl with python
+Building and Deploying a Kernel
+
+To build and deploy a basic OpenCL kernel, you usually need to follow these steps in a typical OpenCL C++ host program:
+
+    Obtain an OpenCL platform.
+    Obtain a device id for at least one device (accelerator).
+    Create a context for the selected device or devices.
+    Create the accelerator program from source code.
+    Build the program.
+    Create one or more kernels from the program functions.
+    Create a command queue for the target device.
+    Allocate device memory and move input data from the host to the device memory.
+    Associate the arguments to the kernel with kernel object.
+    Deploy the kernel for device execution.
+    Move the kernel's output data to host memory.
+    Release context, program, kernels and memory.
+
+These steps represent a simplified version of the tasks that your host
+program must perform (each step is a bit more complex in real
+life). For example, the first step (obtain an OpenCL platform) usually
+requires checking the properties for the platforms, as I explained in
+the previous section. In addition, each step requires error
+checking. Because you can work with PyOpenCL from any Python console,
+you can execute the different steps with an interactive environment
+that makes it easy for you to learn both OpenCL and the way PyOpenCL
+exposes the features in the API.
+
+** MASSIVE
 Cuda 5.5 and python 2.7.8 are enabled on MASSIVE
 
 #+BEGIN_SRC sh
@@ -595,3 +624,5 @@ print "%s sec, %s" % (toc(), str(np.abs(result[:3,0,0])))
 
 Scikits CUDA IFFT time and first three results:
 4.06088709831 sec, [ 0.00219029  0.00188084  0.00227454]
+
+
