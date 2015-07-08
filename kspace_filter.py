@@ -128,7 +128,7 @@ def gaussian_fourierkernel(uu, vv, ww, sigma):
 
 
 
-def gaussian_fourierkernel_quarter_v2(uu,vv,ww,sigma)
+def gaussian_fourierkernel_quarter_v2(uu,vv,ww,sigma):
     siz = np.floor(np.array(uu.shape) / 2 + 1 ).astype(int)
     gfilter = np.empty_like(uu)
     alpha = np.exp(-2 * (np.pi ** 2))
@@ -232,6 +232,11 @@ def fourierepanechnikov(siz, sigma):
     """
     Epanechnikov kernel in Fourier domain is
      A.(1-|x|^2)  => (3/2*w^3)(sin(w) - w*cos(w)/2)
+
+     Wolfram alpha:
+     Abs[FourierTransform[(1+i)*UnitBox[x/2]*(1-x^2)*0.75]]
+    => 0.423142 abs((4 sin(omega)-4 omega cos(omega))/omega^3)
+    
     """
     # (uu, vv, ww) = fouriercoords(siz)
     # uu = uu + np.spacing(1)
@@ -260,6 +265,7 @@ def fourierepanechnikov(siz, sigma):
         print sigma
         Kepa = epanechnikov_kernel((np.ceil(sigma[0]) + 1, np.ceil(sigma[1]) + 1,
                                     np.ceil(sigma[2]) + 1), sigma)
+    Kepa = Kepa / ndimage.sum(Kepa)
     Kfilter = np.zeros(np.array(siz), dtype=np.float32)
     szmin = np.floor(
         np.array(siz) / 2.0 - np.floor(np.array(Kepa.shape) / 2.0) - 1)
@@ -666,6 +672,8 @@ def imageshift(image1, image2):
     return image2
 # end imageshift
 
+    
+
 
 def open_image(image_filtered):
     """open_image example ndimage.grey_opening
@@ -876,8 +884,7 @@ if __name__ == "__main__":
     # for filename in fidfiles:
     print "Reading FID"
     filename = fidfiles[len(fidfiles) - 1]
-    pp, hdr, dims, data_real, data_imag = readfid(args.inputdir,
-                                                  procpar, args)
+    pp, hdr, dims, data_real, data_imag = readfid(args.inputdir,  procpar, args)
     print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
     affine = np.eye(4)
     # # affine[:3, :3]= np.arange(9).reshape((3, 3))
@@ -897,8 +904,8 @@ if __name__ == "__main__":
         print "Transformed image shape: ", image.shape
         # np.delete(image)
         # image = imaget
-    # print "Saving raw image"
-    # save_nifti(normalise(np.abs(image)), 'raw_image')
+    print "Saving raw image"
+    save_nifti(normalise(np.abs(image)), 'raw_image')
 
     # print "Computing Gaussian filtered image from Original image"
     # image_filtered = simpleifft(kspacegaussian_filter(ksp,
@@ -999,7 +1006,7 @@ if __name__ == "__main__":
 
 #    test_double_resolution(ksp, 'Raw')
 #    test_double_resolution(kspgauss, 'Gauss')
-#    test_double_resolution(kspepan, 'Epan')
+    test_double_resolution(kspepan, 'Epan')
 #    test_double_resolution(ksp*Fsubband, 'GaussSub')
 #    test_double_resolution(ksplog, 'LoG')
 
