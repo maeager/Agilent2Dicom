@@ -172,8 +172,8 @@ KERNEL void gauss_kernel(
   sigma[0]=%f;sigma[1]=%f;sigma[2]=%f;
   ${ftype} factor = %f;            
   const double TWOPISQ = 19.739208802178716; //6.283185307179586;  //2*3.141592;
-  const ${ftype} SQRT2PI = 2.5066282746;
-  const double CUBEDSQRT2PI = 15.749609945722419;
+//  const ${ftype} SQRT2PI = 2.5066282746;
+//  const double CUBEDSQRT2PI = 15.749609945722419;
   const ulong idx = x;
   ${ftype} i = (${ftype})((x / dim3) / dim2);
       i = (i - (${ftype})floor((${ftype})(dim1)/2.0))/(${ftype})(dim1);
@@ -188,8 +188,8 @@ KERNEL void gauss_kernel(
   ${ftype} weight = exp(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]));
   //${ftype} weight = expm1(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]))+1;
   //${ftype} weight= ${exp}(-TWOPISQ*((i*i)*sigma[0]*sigma[0] + (j*j)*sigma[1]*sigma[1] + (k*k)*sigma[2]*sigma[2]));
-  dest[idx].x = src[idx].x * weight;
-  dest[idx].y = src[idx].y * weight; 
+  dest[idx].x = src[idx].x * weight * factor;
+  dest[idx].y = src[idx].y * weight * factor; 
   
 }
 """ % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
