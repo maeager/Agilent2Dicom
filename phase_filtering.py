@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 """
-  Phase enhanced image processing techniques
+  Phase enhanced image processing techniques:
+
+  phaserecon()  Homodyne filter
+  swi()         Susceptibility weighted filter
+  swi2()        SWI with positive and negative outputs
+  basicswi()    Initial testing of SWI
+  Vesselenh()   Vessel enhancement with inversion
 
 
   Copyright (C) 2015 Michael Eager  (michael.eager@monash.edu)
@@ -38,26 +44,24 @@ from kspace_filter import *
 
 def phaserecon(ksp,sigma,intpl=1.0,thr=0.05):
     """Homodyne filter reconstruction
-    # % -------------------------------------------
-    # % Usage: calculate phase images from complex inputs
-    # % Inputs: 
-    # %        kimg -- reconstructed kspace signals
-    # %        kimgsos -- sos of square on complex images
-    # %        a    -- gaussian filter size 0 to 20, 10 is good balance
-    # %        intpl -- interplation factor
-    # %        thr -- thresholding: 0 no thresholding
-    # %                             0.05 a good choice
-    # % Outputs
-    # %        pha -- phase images
-    # %        mag -- magnatitue images
-    # %        swi -- phase weighted magnatitue images
-    # %
-    # % Zhaolin Chen @ Howard Florey Institute
-    # % log            12-05-09 SWI part fixed 
-    # % -------------------------------------------
-    # Adapted Michael Eager @ MBI
-    # modified LP filter 27-04-2015
-    # converted to python 01-05-2015
+
+    Calculate phase images from complex inputs
+    Inputs: 
+            kimg -- reconstructed kspace signals
+            [obsolete] kimgsos -- sos of square on complex images
+            a    -- gaussian filter size 0 to 20, 10 is good balance
+            intpl -- interplation factor
+            thr -- thresholding: 0 no thresholding
+                                 0.05 a good choice
+    Outputs:
+            pha -- phase images
+            mag -- magnatitue images
+            swi -- phase weighted magnatitue images
+    
+    Original MATLAB code: Zhaolin Chen @ Howard Florey Institute
+    Adapted Python code: Michael Eager @ MBI
+     modified LP filter 27-04-2015
+     converted to python 01-05-2015
     """    
     ksize = np.array(ksp.shape[:3]) # [Nfe,Npe,Npe2] = size(kimg);
 
@@ -65,22 +69,10 @@ def phaserecon(ksp,sigma,intpl=1.0,thr=0.05):
     (uu, vv, ww) = fouriercoords(ksize)
     # Original Gaussian kernel
     gfilter = gaussian_fourierkernel(uu, vv, ww, sigma)
-    # win=fspecial3('gaussian',[Nfe,Npe,Npe2],a);
-    ## creat a rectangular LPF
-    #% win = zeros(Nfe,Npe);
-    #% L = 32;W = 32;
-    #% win(round(Nfe/2-L/2):round(Nfe/2+L/2-1),round(Npe/2-W/2):round(Npe/2+W/2-1)) = ones(L,W);
-
-
-    #% creat a Kaiser LPF
-    #%win = hann(Nfe)*hann(Npe)';
-    #%win = kaiser(Nfe,a)*kaiser(Npe,a)';
-
+ 
     #Shift kspace data to centre
     ksp = kspaceshift(ksp)
-    #[xx,yy,zz] = find(kimg == max(kimg(:)));
-    #win = circshift(win,[xx,yy,zz]-[floor(Nfe/2), floor(Npe/2), floor(Npe2/2)]);
-
+ 
     if intpl is None:
         intpl=1.0
     img = fftshift(fftn(ksp,intpl*ksize))
@@ -92,9 +84,12 @@ def phaserecon(ksp,sigma,intpl=1.0,thr=0.05):
 
     if thr is None:
         thr = 0.05
-        
+
+    #Calculate threshold
     thd = (thr/np.sqrt(np.sqrt(intpl)))*np.max(np.abs(img))
+    # Get indexes of thresholded points
     i,j,k = np.where(abs(img) > thd)
+    # Apply adjustment to values above threshold
     pha[i,j,k] = pha[i,j,k]/10
 
     return pha, mag
@@ -114,8 +109,8 @@ def swi(magn, phase,order):
 
 
 def swi2(magn, phase, order=4.0):
-    """ Suseptibility weighted image - modified
-         Negative and positive components of phase
+    """ Suseptibility weighted image - Second version
+         Return negative and positive components of phase
     """
     if order is None:
         order = 4.0
@@ -160,13 +155,44 @@ def multiecho_enhanced(img1,img2,img3):
     Recommended contrast enhancement suggested by Zhaolin Chen.
 
     This algorithm favours the later echos, which contain more information from susceptible regions and finer vessels
-    For Images without susceptibility, inverse is not needed, so let p=-3
+    For Images without susceptibility, inverse is not needed, so let p=-3.
+
+    Implementation: Michael Eager
+    Algorithm: Zhaolin Chen
+    Monash Biomedical Imaging
     """
     p = 3.0
     return ((img1**(-p) + img2**(-p) + img3**(-p))/3)**(-1.0/p)
         
+def getbiggestcc(mask):
+    """GETBIGGESTCC get the biggest connected component in binary image
+    """
+    # Find connected components
+    label_im, nb_labels = ndimage.label(mask)
+    sizes = ndimage.sum(mask, label_im, range(nb_labels + 1))
+    max_pos= ndimage.maximum_position(sizes)
+    masked_sizes = sizes > (ndimage.maximum(sizes) - 1) #==max_pos#
+    return masked_sizes[label_im]
 
+    
+def vessel_enhance(img):
+    """ Vessel enhancement algorithm
+    """
+    return (1 - normalise(img)**2)**2
 
+def vessel_mask(img,thr=0.74,reps=2):
+
+    # Apply threshiold to vessel_enhanced img
+    mask = img < thr
+    # Get biggest segment
+    for i in xrange(0,reps):
+        mask = ndimage.binary_erosion(mask, structure = np.ones((10, 10, 10)))
+        mask = getbiggestcc(mask)
+        mask = ndimage.binary_dilation(pixel, structure = np.ones((10, 10, 10)))
+        mask = ndimage.binary_fill_holes(mask, structure = np.ones((20, 20, 20)))
+    return img * mask
+
+    
 
 if __name__ == "__main__":
 
