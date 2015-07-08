@@ -655,6 +655,8 @@ def ProcparToDicomMap(procpar, args):
             ds.VolumeBasedCalculationTechnique = ["NONE"]
             ds.ComplexImageComponent = ["MAGNITUDE"]
 
+            if args.outputdir == None:
+                args.outputdir='./'
             tmp_file = open(os.path.join(args.outputdir, 'DIFFUSION'), 'w')
             tmp_file.write(str(procpar['nbdirs']))
             tmp_file.close()
@@ -1645,7 +1647,9 @@ def ProcparToDicomMap(procpar, args):
         else:
             AcqMatrix1 = 0
     elif MRAcquisitionType == '2D':
-        if 'np' in procpar.keys() and procpar['np'] > 0:
+        if 'diff' in procpar.keys() and procpar['diff'] == 'y':
+            AcqMatrix2 = procpar['fn'] / 2.0
+        elif 'np' in procpar.keys() and procpar['np'] > 0:
             AcqMatrix1 = procpar['np'] / 2.0
         elif 'fn' in procpar.keys() and procpar['fn'] > 0:
             if args.verbose:
@@ -1699,7 +1703,9 @@ def ProcparToDicomMap(procpar, args):
         else:
             AcqMatrix2 = 0
     elif MRAcquisitionType == '2D':
-        if 'nv' in procpar.keys() and procpar['nv'] > 0:
+        if 'diff' in procpar.keys() and procpar['diff'] == 'y':
+            AcqMatrix2 = procpar['fn1'] / 2.0
+        elif 'nv' in procpar.keys() and procpar['nv'] > 0:
             AcqMatrix2 = procpar['nv']
         elif 'fn1' in procpar.keys() and procpar['fn1'] > 0:
             if args.verbose:
