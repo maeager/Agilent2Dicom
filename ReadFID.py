@@ -54,13 +54,10 @@ def readfid(fidfolder, procpar, args):
 
     >>>  fid_header, realpart, imagpart = readfid(fidfolder, procpar,args)
     """
-    # error(nargchk(1, 2, nargin))
-
-    # warning off MATLAB:divideByZero
 
     #  get acqcycles and TE from procpar
     if not procpar:
-        procpar = ReadProcpar.ReadProcpar(os.path.join(fidfolder, 'procpar'))
+        procpar,procpartext = ReadProcpar.ReadProcpar(os.path.join(fidfolder, 'procpar'))
 
     # Define fid headers from procpar on first occasion
     fid_header = dict()
@@ -76,10 +73,16 @@ def readfid(fidfolder, procpar, args):
     fid_header['mode'] = '%dD' % procpar['nD']
     if procpar['nD'] == 2:
         fid_header['FOVcm'] = [procpar['lro'], procpar['lpe']]
-        fid_header['dims'] = [
-            procpar['nf'] / procpar['ns'],
-            procpar['np'] / 2,
-            procpar['ns']]
+        if 'diff' in procpar.keys() and procpar['diff']=='y':
+            fid_header['dims'] = [
+                procpar['fn']/2,
+                procpar['fn1'] / 2,
+                procpar['ns']]
+        else:
+            fid_header['dims'] = [
+                procpar['nf'] / procpar['ns'],
+                procpar['np'] / 2,
+                procpar['ns']]
         # if len(procpar['thk']) > 1:
         #    print "procpar thk size greater than 1"
         fid_header['voxelmm'] = np.array(
@@ -105,27 +108,39 @@ def readfid(fidfolder, procpar, args):
     int32size = struct.calcsize('i')
     endian = '>'  # > for big-endian < for little
     # Read datafileheader using: x, = struct.unpack(type,binary) method
-    # unpack returns a tuple and we only want the result
+    # unpack returns a tuple and we only want the result  (p.285-286)
     fid_header['nblocks'], = struct.unpack(
-        endian + 'i', f.read(int32size))  # fid,1,'int32')
+        endian + 'i', f.read(int32size))
+    #  nblocks is the number of data blocks present in the file. ('int32')
     fid_header['ntraces'], = struct.unpack(
-        endian + 'i', f.read(int32size))  # fid,1,'int32')
+        endian + 'i', f.read(int32size))
+    # ntraces is the number of traces in each block. ('int32')
     fid_header['np'], = struct.unpack(
-        endian + 'i', f.read(int32size))  # fid,1,'int32')
+        endian + 'i', f.read(int32size))
+    # np is the number of simple elements (16-bit integers, 32-bit
+    # integers, or 32-bit floating point numbers) in one trace. It is
+    # equal to twice the number of complex data points. ('int32')
     fid_header['ebytes'], = struct.unpack(
-        endian + 'i', f.read(int32size))  # fid,1,'int32')
+        endian + 'i', f.read(int32size))
+    #  ebytes is the number of bytes in one element, either 2 (for
+    #  16-bit integers in single precision FIDs) or 4 (for all
+    #  others). ('int32')
     fid_header['tbytes'], = struct.unpack(
-        endian + 'i', f.read(int32size))  # fid,1,'int32')
+        endian + 'i', f.read(int32size))
+    #tbytes is set to (np*ebytes).('int32')
     fid_header['bbytes'], = struct.unpack(
-        endian + 'i', f.read(int32size))  # fid,1,'int32')
+        endian + 'i', f.read(int32size))
+    # bbytes is set to (ntraces*tbytes + nbheaders*sizeof(struct
+    # datablockhead)). The size of the datablockhead structure is 28
+    # bytes. ('int32')
 
     fid_header['vers_id'], = struct.unpack(
-        endian + 'h', f.read(int16size))  # fid,1,'int16')
+        endian + 'h', f.read(int16size))  # vers_id is the version identification of present VNMR. ('int16')
     status = f.read(int16size)
     fid_header['status'], = struct.unpack(
-        endian + 'h', status)  # fid,1,'int16')
+        endian + 'h', status)  # see below ('int16')
     fid_header['nbheaders'], = struct.unpack(
-        endian + 'i', f.read(int32size))  # fid,1,'int32')
+        endian + 'i', f.read(int32size))  # nbheaders is the number of block headers per data block. ('int32')
     if args.verbose:
         print 'status : ', fid_header['status'], type(fid_header['status']), type(status)
 
@@ -188,10 +203,15 @@ def readfid(fidfolder, procpar, args):
     dims = [0, 0, 0]
     # validate dimensions
     if procpar['nD'] == 2:
-        dims[0] = procpar['np'] / 2        # num phase encode lines / 2
-        # num frequency lines acquired / # echoes
-        dims[1] = procpar['nf'] / procpar['ns']
-        dims[2] = procpar['ns']          # if 2D, num slices, else ni2
+        if 'diff' in procpar.keys() and procpar['diff']=='y':
+            dims[0] = procpar['fn']/2,
+            dims[1] = procpar['fn1'] / 2,
+            dims[2] = procpar['ns']
+        else:
+            dims[0] = procpar['np'] / 2        # num phase encode lines / 2
+            # num frequency lines acquired / # echoes
+            dims[1] = procpar['nf'] / procpar['ns']
+            dims[2] = procpar['ns']          # if 2D, num slices, else ni2
         # fse3d sequence has nD == 2, but is a 3d acquisition???
         if procpar['ni2'] > 1:
             dims[2] = procpar['ni2']
@@ -206,9 +226,9 @@ def readfid(fidfolder, procpar, args):
     if args.verbose:
         print 'Dimensions: ', dims, fid_header['dims']
 
-    if fid_header['np'] != procpar['np'] or \
-       fid_header['ntraces'] != procpar['nf'] or \
-       fid_header['nblocks'] != procpar['arraydim']:
+    if fid_header['np'] != int(procpar['np']) or \
+       fid_header['ntraces'] != int(procpar['nf']) or \
+       fid_header['nblocks'] != int(procpar['arraydim']):
         if args.verbose:
             print 'NP ', fid_header['np'], procpar['np'], \
                 ' NF ', fid_header['ntraces'], procpar['nf'], \
@@ -265,8 +285,11 @@ def readfid(fidfolder, procpar, args):
     fid_header['roi'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
     fid_header['origin'] = np.array(
         fid_header['location']) - np.array(fid_header['span']) / 2.0
+    # TODO orientation alignment still needs fixing - what does this tag do to the data?
     if procpar['orient'] == "sag":
         # TODO fid_header['orientation']= [0,0,1,1,0,0,0,1,0]
+        fid_header['orientation'] = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+    elif procpar['orient'] == "oblique":
         fid_header['orientation'] = [1, 0, 0, 0, 1, 0, 0, 0, 1]
     else:
         fid_header['orientation'] = [1, 0, 0, 0, 1, 0, 0, 0, 1]
@@ -277,7 +300,7 @@ def readfid(fidfolder, procpar, args):
     ksp_data_imag = np.empty([fid_header['np'] / 2, fid_header['ntraces'],
                               fid_header['nblocks']], dtype=np.float32)
     if args.verbose:
-        print "Real shape:", ksp_data_real.shape
+        print "Raw data shape:", ksp_data_real.shape
     # We have to read data every time in order to increment file pointer
     nchar = 0
     iblock = 0
@@ -288,23 +311,23 @@ def readfid(fidfolder, procpar, args):
         # Read a block header
         header = dict()
         header['scale'], = struct.unpack(
-            endian + 'h', f.read(int16size))  # fid,1,'int16')
+            endian + 'h', f.read(int16size))  #scaling factor fid,1,'int16')
         header['bstatus'], = struct.unpack(
-            endian + 'h', f.read(int16size))  # fid,1,'int16')
+            endian + 'h', f.read(int16size))  # status of data in block fid,1,'int16')
         header['index'], = struct.unpack(
-            endian + 'h', f.read(int16size))  # fid,1,'int16')
+            endian + 'h', f.read(int16size))  #block index  fid,1,'int16')
         header['mode'], = struct.unpack(
-            endian + 'h', f.read(int16size))  # fid,1,'int16')
+            endian + 'h', f.read(int16size))  # mode of data in block fid,1,'int16')
         header['ctcount'], = struct.unpack(
-            endian + 'i', f.read(int32size))  # fid,1,'int32')
+            endian + 'i', f.read(int32size))  #ct value for FID fid,1,'int32')
         header['lpval'], = struct.unpack(
-            endian + 'f', f.read(int32size))  # fid,1,'float32')
+            endian + 'f', f.read(int32size))  #f2 (2D-f1) left phase in phasefile fid,1,'float32')
         header['rpval'], = struct.unpack(
-            endian + 'f', f.read(int32size))  # fid,1,'float32')
+            endian + 'f', f.read(int32size))  # f2 (2D-f1) right phase in phasefile fid,1,'float32')
         header['lvl'], = struct.unpack(
-            endian + 'f', f.read(int32size))  # fid,1,'float32')
+            endian + 'f', f.read(int32size))  #level drift correction fid,1,'float32')
         header['tlt'], = struct.unpack(
-            endian + 'f', f.read(int32size))  # fid,1,'float32')
+            endian + 'f', f.read(int32size))  #tilt drift correction  fid,1,'float32')
 
         header['s_data'] = int(get_bit(header['bstatus'], 1))
         header['s_spec'] = int(get_bit(header['bstatus'], 2))
@@ -314,7 +337,7 @@ def readfid(fidfolder, procpar, args):
         header['s_hyper'] = int(get_bit(header['bstatus'], 6))
 
 
-# status is bits 0?6 defined the same as for file header status. Bits 7-11 are defined
+# status is bits 0 to 6 defined the same as for file header status. Bits 7-11 are defined
 # below (all other bits must be zero):
 #  7                                   0x80       0 = absent, 1 = present
 #           MORE_BLOCKS
@@ -392,19 +415,20 @@ def readfid(fidfolder, procpar, args):
 
         if args.verbose:
             print header
-        data = np.fromfile(
-            f, count=fid_header['np'] * fid_header['ntraces'], dtype=dtype_str)
+        data = np.fromfile(f, count=fid_header['np'] * fid_header['ntraces'], dtype=dtype_str)
         if args.verbose:
-            print "Dim and shape: ", data.ndim, data.shape
+            print "Raw FID data: Dim and shape: ", data.ndim, data.shape
         data = np.reshape(data, [fid_header['ntraces'], fid_header['np']])
         if args.verbose:
-            print "Dim and shape: ", data.ndim, data.shape, " max np ", fid_header['np']
+            print "Reshaped raw FID data: Dim and shape: ", data.ndim, data.shape, " max np ", fid_header['np']
         # fid_header['np'] #[::2, :] #
         ksp_data_real[:, :, iblock] = np.matrix(data[:, :fid_header['np']:2]).T
         # fid_header['np'] #[1::2, :]      #
         ksp_data_imag[:, :, iblock] = np.matrix(
             data[:, 1:fid_header['np']:2]).T
         # break
+    if f.tell() != os.fstat(f.fileno()).st_size:
+        print "ReadFID: OS Error, fid file completed without finishing to end of file." 
     f.close()
     # print iblock
     if iblock == 0:
@@ -912,7 +936,25 @@ def save_as_nifti(image, basename):
         new_image.set_data_dtype(np.float32)
         nib.save(new_image, basename + '.nii.gz')
 
+def cuda_ifft(cmplx_array):
+    from reikna.cluda import dtypes, any_api
+    from reikna.fft import FFT
+    from reikna.core import Annotation, Type, Transformation, Parameter
 
+
+    # Pick the first available GPGPU API and make a Thread on it.
+    api = any_api()
+    thr = api.Thread.create()
+    data_dev = thr.to_device(cmplx_array)
+    # Create the FFT computation and attach the transformation above to its input.
+    ifft = FFT(data_dev) # (A shortcut: using the array type saved in the transformation)
+    # fft.parameter.input.connect(trf, trf.output, new_input=trf.input)
+    cifft = ifft.compile(thr)
+    # Run the computation
+    cifft(data_dev, data_dev,inverse=0)
+    result = data_dev.get()
+    return result
+        
 def double_resolution2(ksp, basename, procpar, hdr, args):
     """double_resolution creates double resolution image from k-space data
     based on super-resolution methodsfor multiple averages, this just expands the
@@ -1102,6 +1144,56 @@ def ParseDiffusionFID(ds, procpar, diffusion_idx, args):
 
     :param args: Input arguments
     :returns: Dicom struct
+
+    VNMRJ 4.0:
+    
+SGLDiffusion Module
+    The DIFFUSION_T structure is defined to have the following structure members in
+sglCommon.h
+typedef struct
+{
+      DIFF_TYPE_T     type;                  /* type of diffusion encoding (GE, SE or STE)*/
+      GENERIC_GRADIENT_T    *grad;           /* diffusion gradient */
+      double gdiff;          /* diffusion gradient amplitude */
+      double delta;         /* diffusion delta (gradient duration) */
+      double DELTA;         /* diffusion DELTA */
+      double tadd;          /* additional diffusion encoding time */
+      double te;            /* echo time for diffusion */
+      char     minte;       /* minimum echo time flag for diffusion */
+      double tau1;          /* duration of events in first half of te for SE diffusion */
+      double tau2;          /* duration of events in second half of te for SE diffusion */
+      double tm;            /* mixing time for STE diffusion */
+      char     mintm;       /* minimum mixing time flag for STE diffusion */
+      double d1;            /* d1,d2,d3,d4 are delays around the diffusion gradients. */
+      double d2;            /* The scheme is [d1 - Gdiff - d2] - taudiff - [d3 - Gdiff - d4] */
+      double d3;
+      double d4;
+      double dm;            /* diffusion mixing time delay */
+      double *dro;          /* multiplier for diffusion gradient in readout */
+      double *dpe;          /* multiplier for diffusion gradient in phase encode */
+      double *dsl;          /* multiplier for diffusion gradient in slice */
+      int      nbval;       /* total number of bvalues*directions */
+      int      nbro;        /* number of bvalues*directions along readout */
+      int      nbpe;        /* number of bvalues*directions along phase encode */
+      int      nbsl;        /* number of bvalues*directions along slice */
+      double *bro;          /* b value along readout */
+      double *bpe;          /* b value along phase encode */
+      double *bsl;          /* b value along slice */
+      double *brp;          /* b value cross-term (readout - phase encode) */
+      double *brs;          /* b value cross-term (readout - slice) */
+      double *bsp;          /* b value cross-term (slice - phase encode) */
+      double *btrace;       /* trace */
+      double max_bval;      /* the maximum trace */
+      double Time;          /* the duration of diffusion components */
+} DIFFUSION_T;
+typedef enum {
+      DIFF_NULL = 0,
+      DIFF_GE = 1,
+      DIFF_SE = 2,
+      DIFF_STE = 3,
+} DIFF_TYPE_T;
+
+
     """
     if args.verbose:
         print 'Processing diffusion image'
