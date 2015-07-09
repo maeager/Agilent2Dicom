@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 # -*- mode:org -*-
+=======
+>>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 * Notes for modifying source
 
 ** GUI development
@@ -86,7 +89,11 @@ diff -y <(./sortpp <../ExampleAgilentData/kidney512iso_01.fid/procpar) <(./sortp
 
 Use ipython for interactive sessions with kspace_filter: 
 #+begin_src sh
+<<<<<<< HEAD
 ipython -i ./kspace_filter.py -- -v -i ../ExampleAgilentData/kidney512iso_01.fid/ -o ../ExampleAgilentData/kidney512iso_01.dcm/ 
+=======
+ipython -i ./kspace_filter.py -- -v -i ../ExampleAntData/kidney512iso_01.fid/ -o ../ExampleAgilentData/kidney512iso_01.dcm/ 
+>>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 #+end_src
 
 
@@ -185,6 +192,7 @@ IPython/GaussianBlur.ipynb
 
 http://www.lancs.ac.uk/~struijke/density/kernel.html
 http://sfb649.wiwi.hu-berlin.de/fedc_homepage/xplore/ebooks/html/anr/anrhtmlframe33.html
+<<<<<<< HEAD
 
 
 * CYTHON 
@@ -626,3 +634,5 @@ Scikits CUDA IFFT time and first three results:
 4.06088709831 sec, [ 0.00219029  0.00188084  0.00227454]
 
 
+=======
+>>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063

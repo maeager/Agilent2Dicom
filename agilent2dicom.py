@@ -32,7 +32,11 @@ Depreciated: use agilentFDF2dicom for FDFs or fid2dicom for FIDs
 """
 
 agilent2dicomVersionNumber = "0.7"
+<<<<<<< HEAD
 DVCS_STAMP = "$Id: agilent2dicom.py,v 8288a33a3f05 2015/01/29 00:53:33 michael $"
+=======
+DVCS_STAMP = "$Id$"
+>>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 from agilent2dicom_globalvars import *
 # import pdb
 # import ast

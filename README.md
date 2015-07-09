@@ -391,6 +391,7 @@ cd ~/Monash016/eagerm/Agilent2Dicom/
 ./fid2dcm.sh -v -N -D -g 0.707 -G 0.707 -y 1.8707 -Y 1.8707 -m -p -i ../SheepfetusBrain/s_2014072501/mge3d-100um_01.fid/ -o ../SheepfetusBrain/s_2014072501/mge3d-100um_01.dcm/
 ```
 
+<<<<<<< HEAD
 ## Simple Dicom to enhanced Dicom ##
 
 To exclusively run the enhanced MR conversion with *dcmulti* and
@@ -410,6 +411,8 @@ path (-o <dir>), and an optional number of echoes argument (-e):
 The enhaced MR output file is checked by dciodvfy with any errors in
 the log file "<outdir>.log".
  
+=======
+>>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 
 ## How to run tests ##
 
@@ -531,8 +534,11 @@ New example FDF image type testing procedures should have:
 
 See examples in Makefile.
 
+<<<<<<< HEAD
 Complex and K-space filters should have a test method for each new
 filter. See main sections of *cplfilter.py* and *kspace_filter.py*.
+=======
+>>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 
 *Code review*
 
