@@ -5,12 +5,7 @@
 # - Michael Eager (michael.eager@monash.edu.au)
 # - Monash Biomedical Imaging 
 #
-<<<<<<< HEAD
 #  "$Id: fid2dcm.sh,v 8c9c3b886d01 2015/03/10 05:23:17 michael $"
-=======
-#
-#  "$Id$"
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
 #
@@ -45,13 +40,6 @@ DCM3TOOLS=$(/bin/ls -d "${FID2DCMPATH}"/../dicom3tools_*/bin/*)
 #DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
 RM='/bin/rm -f'
 RMDIR='/bin/rm -rf'
-<<<<<<< HEAD
-=======
-## Set dcmulti's arguments
-DCMULTI="dcmulti -v -makestack -sortby AcquisitionNumber -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
-#DCMULTI_DTI="dcmulti -v -makestack -sortby DiffusionBValue -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
-#-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 
 ## Check dcmtk applications on MASSIVE or Agilent console
 if test ${MASSIVEUSERNAME+defined}; then
@@ -338,11 +326,7 @@ fi
 ## Set output_dir if not in args, default is INPUT/.dcm
 if [ -z "$output_dir" ]
 then #test for empty string
-<<<<<<< HEAD
     output_dir=$(dirname "${input_dir}")/$(basename "${input_dir}" .fid).dcm
-=======
-    output_dir=$(dirname "${input_dir}")/$(basename "${input_dir}" .img).dcm
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
     echo "Output dir set to: ${output_dir}"
 fi
 ## Set kspace_dir if not in args, default is INPUT.dcm
@@ -437,38 +421,22 @@ then
     echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; printf '\n'
     nechos=$(cat "${output_dir}/MULTIECHO")
     nechos=$(printf "%1.0f" "$nechos")
-<<<<<<< HEAD
     
     for dcmdir in $dirs; do
 	"${FID2DCMPATH}"/enh_mr.sh -e $nechos -i "${dcmdir}"/tmp/ -o "${dcmdir}"
     done
     
-=======
-    echo "Multi echo sequence, $nechos echos"
-    for ((iecho=1;iecho<=nechos;++iecho)); do
-     	echoext=$(printf '%03d' $iecho)
-     	echo "Converting echo ${iecho} using dcmulti"
-     	for dcmdir in $dirs; do
-	    ${DCMULTI} "${dcmdir}"/0"${echoext}".dcm $(ls -1 "${dcmdir}"/tmp/*echo"${echoext}".dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-	done
-    done
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 
 # DCMULTI="dcmulti -v -makestack -sortby EchoTime -dimension StackID FrameContentSequence -dimension InStackPositionNumber FrameContentSequence -of "
 #-makestack -sortby ImagePositionPatient  -sortby AcquisitionNumber
 #  ${DCMULTI} ${output_dir}/0001.dcm $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
-<<<<<<< HEAD
 
-=======
-    ${RM} "${output_dir}/MULTIECHO"
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
     echo "Multi echo sequence completed."
     
 elif  [ -f "${output_dir}/DIFFUSION" ]; then
 
     echo "Contents of DIFFUSION"; cat "${output_dir}/DIFFUSION"; printf '\n'
-<<<<<<< HEAD
     for dcmdir in $dirs; do
 	"${FID2DCMPATH}"/enh_mr.sh -d 1 -i "${dcmdir}"/tmp/ -o "${dcmdir}"
     done
@@ -485,91 +453,6 @@ fi
 [ -f "${output_dir}/DIFFUSION" ] && ${RM} "${output_dir}/DIFFUSION"
 [ -f "${output_dir}/ASL" ] && ${RM} "${output_dir}/ASL"
 
-=======
-
-    # nbdirs=$(cat ${output_dir}/DIFFUSION)
-    # ((++nbdirs)) # increment by one for B0
-    nbdirs=$(ls -1 "${output_dir}/tmp/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
-
-    echo "Diffusion sequence, $nbdirs B-directions"
-    for ((ibdir=1;ibdir<=nbdirs;ibdir++)); do
-     	bdirext=$(printf '%03d' $ibdir)
-     	echo "Converting bdir ${ibdir} using dcmulti"
-	for dcmdir in $dirs; do
-	## Input files are sorted by image number and slice number. 
-     	    ${DCMULTI} "${dcmdir}/0${bdirext}.dcm" $(ls -1 "${dcmdir}"/tmp/*image"${bdirext}"*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-	done
-    done
-    echo "Diffusion files compacted."
-
-elif  [ -f "${output_dir}/ASL" ]; then
-
-    echo "Contents of ASL"; cat "${output_dir}/ASL"; printf '\n'
-
-    # nbdirs=$(cat ${output_dir}/ASL)
-    # ((++nbdirs)) # increment by one for B0
-    # asltags=$(ls -1 "${output_dir}/tmp/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
-    echo "ASL sequence"
-    for ((iasl=1;iasl<=2;iasl++)); do
-     	aslext=$(printf '%03d' $iasl)
-     	echo "Converting ASL tag ${iasl} using dcmulti"
-	for dcmdir in $dirs; do
-	## Input files are sorted by image number and slice number. 
-     	    ${DCMULTI} "${dcmdir}/0${aslext}.dcm" $(ls -1 "${dcmdir}"/tmp/*echo"${aslext}".dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-	done
-    done
-    echo "ASL files converted."
-
-
-else
-
-    ## Dcmulti config is dependent on order of files.  The 2D standard
-    ## dicoms are sorted by echo time, image number then slice
-    ## number. The second argument reorders the list of 2D dicom files
-    ## based on echo time, then image number, then slice number.
-    ## Only one output file is required, 0001.dcm. 
-    for dcmdir in $dirs; do
-	${DCMULTI} "${dcmdir}/0001.dcm" $(ls -1 "${dcmdir}"/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-	[ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
-    done
-fi
-echo "DCMULTI complete. Fixing inconsistencies."
-
-## Corrections to dcmulti conversion
-if (( do_modify == 1 ))
-then
-
-    for dcmdir in $dirs; do
-	"${FID2DCMPATH}/fix-dicoms.sh" "${dcmdir}"
-	echo "Fixing dicom dir ${dcmdir}"
-
-    ## Additional corrections to diffusion files
-	if [ -f "${output_dir}/DIFFUSION" ];then
-	    "${FID2DCMPATH}"/fix-diffusion.sh "${dcmdir}"
-	    echo "Fixed diffusion module parameters."
-	fi
-    ## Additional corrections to ASL files
-	if [ -f "${output_dir}/ASL" ];then
-	    "${FID2DCMPATH}"/fix_asl.sh "${dcmdir}"
-	    echo "Fixed ASL module parameters."
-	fi
-    done
-fi
-[ -f "${output_dir}/DIFFUSION" ] && ${RM} "${output_dir}/DIFFUSION"
-[ -f "${output_dir}/ASL" ] && ${RM} "${output_dir}/ASL"
-
-if (( verbosity > 0 )); then
-    echo "Verifying dicom compliance using dciodvfy."
-    if [ -f "${output_dir}/0001.dcm" ]; then
-	set +e
-	## Send dciodvfy stderr and stdout to log file
-	dciodvfy "${output_dir}/0001.dcm" &> "$(dirname "${output_dir}")/$(basename "${output_dir}" .dcm).log"
-	set -e  
-    else
-	error_exit "$LINENO: could not find ${output_dir}/0001.dcm for verification"
-    fi
-fi
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 
 
 ## Cleaning up temporary directories

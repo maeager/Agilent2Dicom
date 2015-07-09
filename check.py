@@ -9,16 +9,22 @@ try:
     import dateutil
     import dateutil.tz
     import re
+    import math
+except ImportError:
+    raise ImportError("Import failed for standard modules.")
 
+try:    
     import dicom
     import uuid
-    import math
-    import numpy  # ; numpy.test()
     import argparse
 
     from dicom.sequence import Sequence
     from dicom.dataset import Dataset
+except ImportError:
+    raise ImportError("Import failed for Pip imports: dicom, uuid, or argparse.")
 
+try:
+    import numpy  # ; numpy.test()    
     import scipy  # ; scipy.test()
     if scipy.__version__[2] == 7:
         scipy.pkgload('signal')
@@ -31,6 +37,6 @@ try:
 
 
 except ImportError:
-    raise ImportError("Import failed.")
+    raise ImportError("Import failed for numpy or scipy.")
 
 print "Python imports successful."

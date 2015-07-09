@@ -6,11 +6,7 @@
 # - Monash Biomedical Imaging 
 #
 #
-<<<<<<< HEAD
 #  "$Id: fdf2dcm.sh,v 698dd463c447 2015/02/20 22:59:12 michael $"
-=======
-#  "$Id$"
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #  Version 1.1: Supporting Diffusion and Multiecho

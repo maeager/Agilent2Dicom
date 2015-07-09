@@ -49,21 +49,13 @@ def ShortenFloatString(val, origin):
         stringval = str(val)
         if re.search('e', stringval):  # scientific notation
             pos = stringval.index('e')
-<<<<<<< HEAD
             stripped_val = stringval[
                 :pos - (len(stringval) - 14)] + stringval[pos:]
-=======
-            stripped_val = stringval[:pos - (len(stringval) - 14)] + stringval[pos:]
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
         else:  # normal float
             stripped_val = stringval[:15]
         print "Cropping float string from ", str(val), " to ", stripped_val
 
-<<<<<<< HEAD
         return stripped_val  # [:15]
-=======
-        return stripped_val # [:15]
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
     else:
         print "ShortenFloatString string ok: ", str(val)
         return str(val)

@@ -15,11 +15,7 @@ Version 0.6: Major rewrite, external recon  (Michael Eager)
 Version 1.0: Pythonised modules (Michael Eager)
 Version 1.2: Argument updates and linting
 
-<<<<<<< HEAD
   $Id: agilentFDF2dicom.py,v aea86933beb6 2015/02/06 05:30:03 michael $
-=======
-  $Id$
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 
  - Michael Eager  (michael.eager@monash.edu)
 """

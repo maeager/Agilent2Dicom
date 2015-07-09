@@ -60,11 +60,7 @@ def ReadFDF(fdffilename):
         if tokens[1][0] == '{' and tokens[1][-1] == '}':
             tokens[1] = '[' + tokens[-1].strip('{}') + ']'
         cmdline = 'fdf_properties["' + tokens[0] + '"] = ' + tokens[1]
-<<<<<<< HEAD
         exec(cmdline)   #   compile(cmdline, "<string>", "exec")
-=======
-        compile(cmdline, "<string>", "exec")
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
         line = f.readline()
     fdf_properties['filename'] = fdffilename
     fdf_properties['filetext'] = fdftext

@@ -307,12 +307,8 @@ def ProcparToDicomMap(procpar, args):
     # 0018,1000 Device Serial Number (mandatory)
     ds.DeviceSerialNumber = A2D.DICOM_Tag_DeviceSerialNumber
     # 0018,1020 Software Versions (mandatory)
-<<<<<<< HEAD
     ds.SoftwareVersions = A2D.DICOM_Tag_SoftwareVersions + " " + \
         A2D.AGILENT2DICOM_VERSION
-=======
-    ds.SoftwareVersions = A2D.DICOM_Tag_SoftwareVersions + A2D.AGILENT2DICOM_VERSION
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 
     # Module: Image Plane (mandatory)
     # Reference: DICOM Part 3: Information Object Definitions C.7.6.2
@@ -659,11 +655,8 @@ def ProcparToDicomMap(procpar, args):
             ds.VolumeBasedCalculationTechnique = ["NONE"]
             ds.ComplexImageComponent = ["MAGNITUDE"]
 
-<<<<<<< HEAD
             if args.outputdir == None:
                 args.outputdir='./'
-=======
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
             tmp_file = open(os.path.join(args.outputdir, 'DIFFUSION'), 'w')
             tmp_file.write(str(procpar['nbdirs']))
             tmp_file.close()
@@ -1654,13 +1647,9 @@ def ProcparToDicomMap(procpar, args):
         else:
             AcqMatrix1 = 0
     elif MRAcquisitionType == '2D':
-<<<<<<< HEAD
         if 'diff' in procpar.keys() and procpar['diff'] == 'y':
             AcqMatrix2 = procpar['fn'] / 2.0
         elif 'np' in procpar.keys() and procpar['np'] > 0:
-=======
-        if 'np' in procpar.keys() and procpar['np'] > 0:
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
             AcqMatrix1 = procpar['np'] / 2.0
         elif 'fn' in procpar.keys() and procpar['fn'] > 0:
             if args.verbose:
@@ -1714,13 +1703,9 @@ def ProcparToDicomMap(procpar, args):
         else:
             AcqMatrix2 = 0
     elif MRAcquisitionType == '2D':
-<<<<<<< HEAD
         if 'diff' in procpar.keys() and procpar['diff'] == 'y':
             AcqMatrix2 = procpar['fn1'] / 2.0
         elif 'nv' in procpar.keys() and procpar['nv'] > 0:
-=======
-        if 'nv' in procpar.keys() and procpar['nv'] > 0:
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
             AcqMatrix2 = procpar['nv']
         elif 'fn1' in procpar.keys() and procpar['fn1'] > 0:
             if args.verbose:

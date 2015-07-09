@@ -1,26 +1,15 @@
 #!/usr/bin/env python
 # Agilent2DicomAppQt GUI for Agilent 9.4T MR FDF/FID image processing
 #
-<<<<<<< HEAD
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomAppQt.py,v 522ad916f481 2015/03/09 01:57:26 michael $
-# $Id: Agilent2DicomAppQt.py,v 522ad916f481 2015/03/09 01:57:26 michael $
-=======
 # $Header$
 # $Id$
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 #
 # Version 1.2.5: Working version on Redhat Workstation
 # Version 1.3.0: Info tab panels show information from Procpar
 # Version 1.6.0: Tabs for epanechnikov, fourier gauss, fourier epanechnikov
-<<<<<<< HEAD
 # Version 1.7.0:
 # Version 1.8.0: Fourier domain, double resolution
 # Version 1.8.1:
-=======
-# Version 1.7.0: 
-# Version 1.8.0: Fourier domain, double resolution
-# Version 1.8.1: 
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 # Version 1.8.2: CleanUpDicom dialog
 #
 # Copyright 2014 Michael Eager
@@ -63,20 +52,12 @@ import logging
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
-<<<<<<< HEAD
-__date__ = "$Date: 2015/03/09 01:57:26 $"
-=======
 __date__ = "$Date$"
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-<<<<<<< HEAD
-    r'\$Id(.*)\$', r'\1', "$Id: Agilent2DicomAppQt.py,v 522ad916f481 2015/03/09 01:57:26 michael $")
-=======
     r'\$Id(.*)\$', r'\1', "$Id$")
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -129,13 +110,8 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per
         self.ui.Version_tag.setText(
-<<<<<<< HEAD
             _translate("MainWindow", "Agilent2Dicom v" + AGILENT2DICOM_APP_VERSION, None))
 
-=======
-            _translate("MainWindow", "Agilent2Dicom v"+AGILENT2DICOM_APP_VERSION, None))
-        
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
         logging.basicConfig(format='%(levelname)s:%(asctime)s %(message)s',
                             datefmt='%m/%d/%Y %I:%M:%S %p',
                             filename='qtapp-agilent2dicom.log', level=logging.DEBUG)

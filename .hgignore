@@ -41,3 +41,6 @@ tramp
 # Temporary data
 .ipynb_checkpoints/
 
+# Git compatibility
+.git/
+.git

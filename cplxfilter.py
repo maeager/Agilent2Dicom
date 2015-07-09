@@ -36,11 +36,7 @@ else:
     from scipy.signal import wiener
     from scipy import ndimage
     # from scipy import signal
-<<<<<<< HEAD
     
-=======
-
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 
 def cplxgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
                         mode_='nearest', cval_=0.0):
@@ -452,10 +448,7 @@ filtered result with the same shape as im.
     """
     # scipy.signal.wiener(im, mysize=None, noise=None)
     # ,(size_, size_, size_)
-<<<<<<< HEAD
     filtersiz=(3,3,3)
-=======
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
     print "Complex Wiener filter window size ", mysize_, " noise ", noise_
     if not noise_:
         noise_ = ndimage.standard_deviation(real_input)
@@ -485,11 +478,7 @@ filtered result with the same shape as im.
 # end cplxwiener_filter
 
 
-<<<<<<< HEAD
 def epanechnikov_kernel(required_fsiz, bandwidth, order=0):
-=======
-def epanechnikov_kernel(filtersiz, bandwidth, order=0):
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
     """Epanechnikov filter  3/4 * (1-|u|^2), -1 <= u <= 1
     u = x/bandwidth
 
@@ -545,7 +534,6 @@ Nonparametric Econometrics: Theory and Practice
     (175/64-105/32 u^2+ 231/320 u^4)* (1-u^2) , u^2 <=5
 
     """
-<<<<<<< HEAD
     print 'Requested filter size', required_fsiz
     fsize = []
     if not hasattr(required_fsiz, "__len__"):
@@ -555,17 +543,6 @@ Nonparametric Econometrics: Theory and Practice
             print "epanechnikov filter: size must be 1x3"
             raise ValueError("epanechnikov filter: size must be 1x3")
         fsize = np.array(required_fsiz[0:3])
-=======
-    print filtersiz
-    filtersize = (1, 1, 1)
-    if not hasattr(filtersiz, "__len__"):
-        filtersize = np.ones(3) * filtersiz
-    else:
-        if len(filtersiz) != 3:
-            print "epanechnikov filter: size must be 1x3"
-            raise ValueError
-        filtersize = np.array(filtersiz[0:3])
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
     print bandwidth
     if not hasattr(bandwidth, "__len__"):
         sigma = np.ones(3) * bandwidth
@@ -575,7 +552,6 @@ Nonparametric Econometrics: Theory and Practice
             raise ValueError
         sigma = np.array(bandwidth[0:3])
 
-<<<<<<< HEAD
     if np.mod(np.array(fsize), 2).any():
         half_fsiz = (np.array(fsize)) / 2
         xx = np.array(range(-int(half_fsiz[0]), int(half_fsiz[0]) + 1))
@@ -586,36 +562,16 @@ Nonparametric Econometrics: Theory and Practice
         xx = np.array(range(-int(half_fsiz[0]), int(half_fsiz[0])))
         yy = np.array(range(-int(half_fsiz[1]), int(half_fsiz[1])))
         zz = np.array(range(-int(half_fsiz[2]), int(half_fsiz[2])))
-=======
-    if np.mod(np.array(filtersize), 2).any():
-        sz = (np.array(filtersize)) / 2
-        xx = np.array(range(-int(sz[0]), int(sz[0]) + 1))
-        yy = np.array(range(-int(sz[1]), int(sz[1]) + 1))
-        zz = np.array(range(-int(sz[2]), int(sz[2]) + 1))
-    else:
-        sz = (np.array(filtersize) - 1) / 2.0
-        xx = np.array(range(-int(sz[0]), int(sz[0])))
-        yy = np.array(range(-int(sz[1]), int(sz[1])))
-        zz = np.array(range(-int(sz[2]), int(sz[2])))
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
     mult_fact = np.ones((len(yy), len(xx), len(zz)))
 
     uu = xx[:, np.newaxis, np.newaxis] * mult_fact
     vv = yy[np.newaxis, :, np.newaxis] * mult_fact
     ww = zz[np.newaxis, np.newaxis, :] * mult_fact
-<<<<<<< HEAD
     if np.prod(fsize) != np.prod(half_fsiz * 2):
         
         uu = uu[:fsize[0], :fsize[1], :fsize[2]]
         vv = vv[:fsize[0], :fsize[1], :fsize[2]]
         ww = ww[:fsize[0], :fsize[1], :fsize[2]]
-=======
-    if np.prod(filtersiz) != np.prod(sz * 2):
-        siz = filtersiz
-        uu = uu[:siz[0], :siz[1], :siz[2]]
-        vv = vv[:siz[0], :siz[1], :siz[2]]
-        ww = ww[:siz[0], :siz[1], :siz[2]]
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 
     # if not hasattr(sigma, "__len__"):
     # if type(sigma) is float or type(sigma) is np.float64:
@@ -637,15 +593,9 @@ Nonparametric Econometrics: Theory and Practice
     # else:
     #     print "epanechnikov filter can only have order={0, 4, 6}"
     epan = epan * (epan > 0)
-<<<<<<< HEAD
     # epan = epan / ndimage.sum(epan)
     return epan.astype(np.float32)
 #end epanechnikov_kernel
-=======
-    epan = epan / ndimage.sum(epan)
-    return epan.astype(np.float32)
-
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 
 def cplxepanechnikov_filter(real_input, imag_input, sigma_=1.87,
                             size_=3, mode_='reflect', order_=0):
@@ -673,10 +623,7 @@ def cplxepanechnikov_filter(real_input, imag_input, sigma_=1.87,
 #    if not hasattr(sigma_,"__len__"):
 #        sigma_=np.ones(3)*sigma_
     epfilter = epanechnikov_kernel(filtersize, bandwidth=sigma_, order=order_)
-<<<<<<< HEAD
     epfilter = epfilter / ndimage.sum(epfilter)
-=======
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 #    def epfunc(x, y, z):
 #         return max((0.75*(1 - x*x/sigma[0]**2
 #         -y*y/sigma[1]**2 - z*z/sigma[2]**2), 0))
@@ -761,56 +708,6 @@ def cplxstdev_filter(real_input, imag_input, window_size=5):
 #     phij_update = phij + 2*np.pi*np.round((phidash-phij)/2*np.pi)
 
 
-<<<<<<< HEAD
-=======
-def swi(cmplx_input_image):
-    """ Suseptibility weighted image
-    """
-    if np.iscomplexobj(cmplx_input_image):
-        magn = np.abs(cmplx_input_image)
-        phase = np.angle(cmplx_input_image)
-        weight = phase / np.pi + 1.0
-        weight = weight.clip(min=0.0, max=1.0)
-        return magn * weight
-    else:
-        print 'Error swi2: input image not complex'
-        return cmplx_input_image
-
-
-def swi2(cmplx_input_image, order=2):
-    """ Suseptibility weighted image - modified
-    """
-    if np.iscomplexobj(cmplx_input_image):
-        magn = np.abs(cmplx_input_image)
-        phase = np.angle(cmplx_input_image)
-        weight = (phase / np.pi + 1.0) ** order
-        weight = weight.clip(min=0.0, max=1.0)
-        return magn * weight
-    else:
-        print 'Error swi2: input image not complex'
-        return cmplx_input_image
-
-
-def basicswi(cmplx_input_image, mask, order=2):
-    """ Suseptibility-like weighted image -
-    modified to use normalised local phase as the weighting
-    """
-    if np.iscomplexobj(cmplx_input_image):
-        magn = np.abs(cmplx_input_image)
-        phase = np.angle(cmplx_input_image)
-        from scipy.ndimage.filters import uniform_filter
-        normphase = uniform_filter(phase, 5.0, mode='constant', origin=-2.5)
-        normphase = (normphase - ndimage.minimum(normphase)) / \
-            (ndimage.maximum(normphase) - ndimage.minimum(normphase))
-        weight = (normphase + 1.0)
-        weight = weight.clip(min=0.0, max=1.0)
-        return magn * (weight ** order) * mask
-    else:
-        print 'Error basicswi2: input image not complex'
-        return np.abs(cmplx_input_image)
-
-
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 def normalise(data):
     """Normalise image
     """
