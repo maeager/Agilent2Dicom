@@ -1,0 +1,52 @@
+#! /usr/bin/env bash
+## Agilent procpar differences
+#
+# - Michael Eager (michael.eager@monash.edu.au)
+# - Monash Biomedical Imaging
+#
+# Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+A2DPATH="$(dirname "$0")"
+# Print usage information and exit
+print_usage(){
+    echo -e "\n" \
+    "usage:  procdiff [path to procpar 1] [path to procpar 2] \n"
+}
+E_BADARGS=65
+## Check for number of args
+if [ ! $# -eq 2 ]; then
+	echo "procdiff must have two arguments"
+	print_usage
+	exit $E_BADARGS
+fi
+
+if [ ! -x ${A2DPATH}/sortpp ]; then
+    echo "Cannot find sortpp"
+    print_usage
+    exit 1
+fi
+
+if [ ! -f $1 ];then
+    echo "Cannot find $1"
+    print_usage
+    exit 1
+fi
+if [ ! -f $2 ];then
+    echo "Cannot find $2"
+    print_usage
+    exit 1
+fi
+PATH=${A2DPATH}:$PATH
+diff  <( sortpp $1 ) <( sortpp $2 )
