@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 #
-<<<<<<< HEAD
-# $Header: /gpfs/M2Home/projects/Monash016/eagerm/Agilent2Dicom/Agilent2Dicom/Agilent2DicomApp.py,v 522ad916f481 2015/03/09 01:57:26 michael $
-# $Id: Agilent2DicomApp.py,v 522ad916f481 2015/03/09 01:57:26 michael $
-=======
 # $Header$
 # $Id$
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
 # Copyright 2014 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
@@ -43,21 +38,11 @@ DEBUGGING = 0
 
 
 __author__ = "Michael Eager, Monash Biomedical Imaging"
-<<<<<<< HEAD
-__version__ = str(AGILENT2DICOM_APP_VERSION) + "-$Revision: 522ad916f481 $"
-__date__ = "$Date: 2015/03/09 01:57:26 $"
-__copyright__ = "Copyright 2014 Michael Eager"
-
-
-Agilent2DicomAppStamp = "$Id: Agilent2DicomApp.py,v 522ad916f481 2015/03/09 01:57:26 michael $"
-=======
-__version__ = str(AGILENT2DICOM_APP_VERSION) + "-$Revision$"
+__version__ = str(AGILENT2DICOM_APP_VERSION) + "-$Id$"
 __date__ = "$Date$"
-__copyright__ = "Copyright 2014 Michael Eager"
-
-
+__copyright__ = "Copyright 2015 Michael Eager"
 Agilent2DicomAppStamp = "$Id$"
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
+
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -80,13 +65,9 @@ class Agilent2DicomWindow(QtGui.QWidget):
         self.ui = Ui_Form()
     # Set up the user interface from Designer.
         self.ui.setupUi(self)
-<<<<<<< HEAD
-        # self.ui.setWindowTitle(_translate(
-        #    "Form", "MBI\'s Agilent to Dicom converter application (" + __version__ + ")", None))
-=======
         self.ui.setWindowTitle(_translate(
             "Form", "MBI\'s Agilent to Dicom converter application (" + __version__ + ")", None))
->>>>>>> 78d6dd1ac83df19a3198f55a01f4fab104aeb063
+
 
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per pixel)")

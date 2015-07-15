@@ -5,8 +5,8 @@
 # - Michael Eager (michael.eager@monash.edu.au)
 # - Monash Biomedical Imaging 
 #
+#  "$Id$"
 #
-#  "$Id: fdf2dcm.sh,v 698dd463c447 2015/02/20 22:59:12 michael $"
 #  Version 0.0: Simple wrapper for agilent2dicom
 #  Version 1.0: Support for most FDF formats
 #  Version 1.1: Supporting Diffusion and Multiecho

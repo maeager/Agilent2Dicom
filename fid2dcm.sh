@@ -5,7 +5,8 @@
 # - Michael Eager (michael.eager@monash.edu.au)
 # - Monash Biomedical Imaging 
 #
-#  "$Id: fid2dcm.sh,v 8c9c3b886d01 2015/03/10 05:23:17 michael $"
+#  "$Id$"
+#  "$Date$"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
 #
