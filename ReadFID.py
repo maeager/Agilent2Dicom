@@ -449,17 +449,21 @@ def readfid(fidfolder, procpar, args):
 # end readfid
 
 def ASL_recon(fidfolder,procpar,args):
+    """ASL_recon modified from seg_recon_ms_complex.m script in UCL groups Cardiac ASL script
 
+    
+    """
     procpar, fid_header, dims, ksp_data_real, ksp_data_imag=readfid(fidfolder,procpar,args)
     FID = np.complex(ksp_data_real,ksp_data_imag)
-    frames=procpar['noframes']
-    ro=procpar['lro']*frames # or np/2 of nv
+    ns = procpar['ns']
+    frames = procpar['noframes']
+    ro = procpar['lro']*frames # or np/2 of nv
     pe = procpar['lpe']*frames 
     seg = procpar['etl'] # locetl
-    ASL=2
-    numb=ASL*frames
+    ASL = 2
+    numb = ASL*frames
            
-    pelist=[-63   -31     1    33   -62   -30     2    34   -61   -29     3    35   -60   -28     4    36   -59   -27     5    37   -58   -26     6      38   -57   -25     7    39   -56   -24   8    40   -55   -23     9    41   -54   -22    10    42   -53   -21    11    43   -52   -20  12    44   -51   -19    13    45   -50   -18    14    46   -49   -17    15    47   -48   -16   16    48   -47   -15    17    49   -46  -14    18    50   -45   -13    19    51   -44   -12    20    52   -43   -11    21    53   -42   -10    22    54   -41    -9    23    55 -40    -8   24    56   -39    -7    25    57   -38    -6    26    58   -37    -5    27    59   -36    -4    28    60   -35    -3    29 61   -34    -2    30    62   -33    -1    31    63   -32    0    32    64]
+    pelist = [-63   -31     1    33   -62   -30     2    34   -61   -29     3    35   -60   -28     4    36   -59   -27     5    37   -58   -26     6      38   -57   -25     7    39   -56   -24   8    40   -55   -23     9    41   -54   -22    10    42   -53   -21    11    43   -52   -20  12    44   -51   -19    13    45   -50   -18    14    46   -49   -17    15    47   -48   -16   16    48   -47   -15    17    49   -46  -14    18    50   -45   -13    19    51   -44   -12    20    52   -43   -11    21    53   -42   -10    22    54   -41    -9    23    55 -40    -8   24    56   -39    -7    25    57   -38    -6    26    58   -37    -5    27    59   -36    -4    28    60   -35    -3    29 61   -34    -2    30    62   -33    -1    31    63   -32    0    32    64]
         
     fidtmp = np.reshape(FID, [ro,seg,ns,pe/seg*numb])
     ksp = np.zeros(ro,pe,numb,ns)
