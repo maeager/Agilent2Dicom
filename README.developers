@@ -9,9 +9,11 @@
 3. Modify Agilent2DicomAppQt.py
 
 New filters/methods 
-1. Create new method in cplxfilter/kspace_filter.py
+1. Create new method in separate file e.g. cplxfilter.py,kspace_filter.py
 2. Create new argument in fid2dicom.py
 3. Create new arguments in fid2dcm.sh
+4. Add code to GUI backend Agilent2DicomAppQt.py
+
 
 ** Global constants
 
@@ -36,7 +38,7 @@ After changing the QT gui in =designer= use the following line to update the pyt
 pyuic4 --output Agilent2DicomQt.py Agilent2DicomQt.ui
 #+END_SRC
 
-** Mercurial keywords
+** Mercurial keywords [DEPRECIATED]
 
 Mercurial keyword expansion is used to set some handy
 variables. The hgrc file in the development .hg folder should be the
@@ -71,6 +73,11 @@ Use the kwexpand command to enable config tags to be filled correctly.
 hg kwexpand
 #+end_src
 
+** Git keywords
+
+Using git-rsc-keywords package.  
+
+
 ** Sorting Procpar files for easy diff
 
 *sortpp* alphabetises the procpar format for easier comparison using
@@ -81,7 +88,7 @@ being printed.
 diff -y <(./sortpp <../ExampleAgilentData/kidney512iso_01.fid/procpar) <(./sortpp <../example_data/s_2014072901/T2-cor_01.fid/procpar)
 #+end_src
 
-
+*procdiff* implements the above line in a shell script
 
 * K space
 

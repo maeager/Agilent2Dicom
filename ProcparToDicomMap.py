@@ -691,6 +691,14 @@ def ProcparToDicomMap(procpar, args):
         tmp_file = open(os.path.join(args.outputdir, 'ASL'), 'w')
         tmp_file.write(str(procpar['asltag']))
         tmp_file.close()
+    if re.search('ASL',procpar['pslabel']):
+        print 'Processing ASL sequence images (non-standard)...'
+        ds.ImageType = ["ORIGINAL", "PRIMARY", "ASL", "NONE"]
+
+        tmp_file = open(os.path.join(args.outputdir, 'ASL'), 'w')
+        tmp_file.write(str(A=[-63   -31     1    33   -62   -30     2    34   -61   -29     3    35   -60   -28     4    36   -59   -27     5    37   -58   -26     6	38   -57   -25     7    39   -56   -24     8    40   -55   -23     9    41   -54   -22    10    42   -53   -21    11    43   -52   -20	12    44   -51   -19    13    45   -50   -18    14    46   -49   -17    15    47   -48   -16    16    48   -47   -15    17    49   -46	-14    18    50   -45   -13    19    51   -44   -12    20    52   -43   -11    21    53   -42   -10    22    54   -41    -9    23    55	-40    -8    24    56   -39    -7    25    57   -38    -6    26    58   -37    -5    27    59   -36    -4    28    60   -35    -3    29	61   -34    -2    30    62   -33    -1    31    63   -32     0    32    64];
+))
+        tmp_file.close()
 
     # Per-frame Functional Groups Sequence (5200,9230) 1
     # Sequence that contains the Functional Group Sequence Attributes corresponding to
@@ -1088,6 +1096,7 @@ def ProcparToDicomMap(procpar, args):
     if 'asl' in procpar.keys() and procpar['asl'] == 'y':
         # TODO: CONTINUOUS PSEUDOCONTINUOUS PULSED
         ds.ArterialSpinLabelingContrast = 'CONTINUOUS'
+    if ASL in procpar['pslabel']
 
 # Steady State Pulse Sequence (0018,9017)     1C Steady State Sequence.
 #                                                Defined Terms:

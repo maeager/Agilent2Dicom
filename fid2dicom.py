@@ -11,7 +11,8 @@
   Version 1.6: Standard deviation filters
   Version 1.7: Logging
 
-  $Id: fid2dicom.py,v 164c366e038f 2015/03/04 22:21:21 michael $
+  $Id$
+  $Date$
 
   Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
