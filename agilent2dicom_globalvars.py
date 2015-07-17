@@ -19,8 +19,8 @@
 
 
 ### Ensure no spaces in variable declaration so that shell and python comply ###
-AGILENT2DICOM_VERSION="1.7.0"
-AGILENT2DICOM_APP_VERSION="2.0.0"
+AGILENT2DICOM_VERSION="2.0.0" #whole package version
+AGILENT2DICOM_APP_VERSION="2.0.0" #UI version
 FDF2DCMVERSION="1.2"
 FID2DCMVERSION="1.6"
 DVCS_STAMP="$Id$"
