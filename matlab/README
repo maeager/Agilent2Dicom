@@ -1,0 +1,10 @@
+# README for matlab scripts
+
+copy of NLmeans repo (SS-DDLS; MRIDenoising: Coupe and Manjon at Universite de Bordeaux; and vlfeat)
+   mkdir matlab/NLmeans;
+   cd matlab/NLmeans;git clone https://github.com/UB-TFG-TFM-1415/SS-DDLS.git
+   Read README file and compile vlfeat
+
+copy of NIFTI package (mathworks)
+copy of Agilent package (local derived)
+copy of Cardiac ASL package (UCL)
