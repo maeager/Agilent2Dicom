@@ -1,0 +1,173 @@
+# -*- mode: org -*-
+
+Non-local means estimation and correction in 9.4T MR images.
+
+2015 June - Michael Eager (michael.eager@monash.edu)
+
+This code implements the MRIdenoising (Coupe and Manjon, Bordeaux)
+using vlfeat's kmean clustering.
+
+The wavelet version PRINLM does not work on the versions of MATLAB on
+MASSIVE (massive.org.au).  The pipelines run the MRONLM code for
+denoising.
+
+
+Pipeline 1: standard noise estimation of a single 3D image by
+MRINoiseEstimation then denoised.
+
+Pipeline 2: two 3D images are used to calculate the noise estimation
+from their diff, then the average image is denoised using the estimate
+divided by sqrt(2).
+
+Pipeline 3: two K-space images are run through a homodyne filter, then
+the real and imaginary components are separated and follow the same
+procedure in pipeline 2, the real and imaginary denoised average
+images are then recombined.
+
+
+
+
+* Clone vlfeat 
+
+MASSIVE install:
+
+#+BEGIN_SRC sh
+module purge
+module load build gmp mpc mpfr
+module virtualgl matlab
+
+git clone https://github.com/vlfeat/vlfeat.git
+cd vlfeat
+make
+#+END_SRC
+
+
+* Clone the SS-DDLS repo
+
+This code has an old version of vlfeat and the MRIdenoisepackage.
+
+git clone https://github.com/UB-TFG-TFM-1415/SS-DDLS.git
+
+Make the fixes to the m files below.
+
+## Fixes
+
+[eagerm@m2009 SS-DDLS]$ git diff
+diff --git a/Code/Utils/MRIDenoisingPackage/MRIDenoisingPRINLM.m b/Code/Utils/MRIDenoisingPackage/MRIDenoisingPRINLM.m
+index 5d7c0e0..f457262 100644
+--- a/Code/Utils/MRIDenoisingPackage/MRIDenoisingPRINLM.m
++++ b/Code/Utils/MRIDenoisingPackage/MRIDenoisingPRINLM.m
+@@ -84,13 +84,13 @@ disp('**************************************************************************
+         
+        
+             subplot(1,3,1)
+-            imagesc(ima(:,:,floor(s(3)/2)),[mini maxi-0.25*maxi])
++            imagesc(ima(:,:,floor(s(3)/2))) %,[mini maxi-0.25*maxi])
+             axis image;
+             axis off;
+             tit = sprintf('Noisy Image');
+             title(tit)
+             subplot(1,3,2)
+-            imagesc(imaPRINLM(:,:,floor(s(3)/2)),[mini maxi-0.25*maxi])
++            imagesc(imaPRINLM(:,:,floor(s(3)/2))) %,[mini maxi-0.25*maxi])
+             axis image;
+             axis off;
+             tit = sprintf('Denoised Image');
+diff --git a/Code/Utils/MRIDenoisingPackage/NoiseEstimation/RicianSTD.m b/Code/Utils/MRIDenoisingPackage/NoiseEstimation/RicianSTD.m
+index bb06cda..947b174 100644
+--- a/Code/Utils/MRIDenoisingPackage/NoiseEstimation/RicianSTD.m
++++ b/Code/Utils/MRIDenoisingPackage/NoiseEstimation/RicianSTD.m
+@@ -21,7 +21,7 @@ function [sig maskobj SNR]=RicianSTD(ima, rician)
+ %     volume 5762, chapter 73, pages 601-608. Springer Berlin Heidelberg,
+ %     Berlin, Heidelberg, 2009.
+ 
+-addpath wavelet
++%addpath wavelet
+ 
+ double(ima);
+ s=size(ima);
+@@ -46,28 +46,34 @@ tmp = tmp(1:round((s(1)-1)/2),1:round((s(2)-1)/2),1:round((s(3)-1)/2));
+ tmp2 = tmp2(1:round((s(1)-1)/2),1:round((s(2)-1)/2),1:round((s(3)-1)/2));
+ 
+ % Detection of the object in the LLL subband
+-[mu,mask]=kmeansclassif(tmp2,3);
+-th=mean(mu(1:2));
+-th2 = mean(mu(3));
+-map = (tmp2(:,:,:)>th) & (tmp2(:,:,:)<th2);
++%tic();[mu,mask]=kmeansclassif(tmp2,3);
++%th=mean(mu(1:2));
++%th2 = mean(mu(3));toc()
++[mu, mask, e] = vl_kmeans(tmp2,3, 'initialization', 'plusplus');
++mumean=sort(mean(mu),'ascend');
++th=mean(mumean(1:2));
++th2 = mumean(3);
++map1 = (tmp2(:,:,:)>th) & (tmp2(:,:,:)<th2);
++
++
+ 
+ % Detection of the High gradient area in the LLL subband
+ [PX,PY,PZ] = gradient(tmp2);
+ GR = sqrt(PX.^2 + PY.^2 + PZ.^2);
+-m = median(GR(map));
++m = median(GR(map1));
+ map2 = (GR(:,:,:)< (m));
+ 
+ % Map containing Object without strong edges
+-map = map & map2;
++map = map1 & map2;
+ maskobj = zeros(size(tmp));
+ maskobj(map)=1;
+ maskobj = convn(maskobj,ones(3,3,3), 'same')/27;
+-map = find(maskobj>=0.5);
++map3 = find(maskobj>=0.1);  % original 0.5
+ maskobj = zeros(size(tmp));
+-maskobj(map)=1;
++maskobj(map3)=1;
+ 
+ % Estimation of the magnitude noise STD in HHH subband
+-Nsig = median(abs(tmp(map)))/0.6745;
++Nsig = median(abs(tmp(map3)))/0.6745;
+ 
+ 
+ 
+diff --git a/Code/Utils/MRIDenoisingPackage/NoiseEstimation/RicianSTDbg.m b/Code/Utils/MRIDenoisingPackage/NoiseEstimation/RicianSTDbg.m
+index cd3c8b5..83d1153 100644
+--- a/Code/Utils/MRIDenoisingPackage/NoiseEstimation/RicianSTDbg.m
++++ b/Code/Utils/MRIDenoisingPackage/NoiseEstimation/RicianSTDbg.m
+@@ -21,7 +21,7 @@ function [sig maskobj SNR]=RicianSTDbg(ima,rician)
+ %     volume 5762, chapter 73, pages 601-608. Springer Berlin Heidelberg,
+ %     Berlin, Heidelberg, 2009.
+ 
+-addpath wavelet
++%addpath wavelet
+ 
+ double(ima);
+ s=size(ima);
+@@ -46,10 +46,15 @@ tmp = tmp(1:round((s(1)-1)/2),1:round((s(2)-1)/2),1:round((s(3)-1)/2));
+ tmp2 = tmp2(1:round((s(1)-1)/2),1:round((s(2)-1)/2),1:round((s(3)-1)/2));
+ 
+ % Detection of the object in the LLL subband
+-[mu,mask]=kmeansclassif(tmp2,3);
+-th=mean(mu(1:2));
++%[mu,mask]=kmeansclassif(tmp2,3);
++%th=mean(mu(1:2));
++%map = (tmp2(:,:,:)<th) & (tmp2(:,:,:)>0);
++[mu, mask, e] = vl_kmeans(tmp2,3, 'initialization', 'plusplus');
++mumean=sort(mean(mu),'ascend');
++th=mean(mumean(1:2));
+ map = (tmp2(:,:,:)<th) & (tmp2(:,:,:)>0);
+ 
++
+ % Detection of the High gradient area in the LLL subband
+ [PX,PY,PZ] = gradient(tmp2);
+ GR = sqrt(PX.^2 + PY.^2 + PZ.^2);
+diff --git a/Code/Utils/MRIDenoisingPackage/NoiseEstimation/kmeansclassif.m b/Code/Utils/MRIDenoisingPackage/NoiseEstimation/kmeansclassif.m
+index e75593c..a2f3bb3 100644
+--- a/Code/Utils/MRIDenoisingPackage/NoiseEstimation/kmeansclassif.m
++++ b/Code/Utils/MRIDenoisingPackage/NoiseEstimation/kmeansclassif.m
+@@ -1,4 +1,4 @@
+-function [mu,mask]=kmeans(ima,k)
++function [mu,mask]=kmeansclassif(ima,k)
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ %
+ %   kmeans image segmentation
