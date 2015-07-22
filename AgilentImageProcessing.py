@@ -15,7 +15,7 @@
 #   Name change: AgilentImageProcessing replaces Agilent2DicomQt2
 # Version 2.0.0: Phase and non-local means image processing tools included in new tab
 #
-# Copyright 2014 Michael Eager
+# Copyright 2015 Michael Eager
 #
 # This file is part of the Agilent2Dicom package
 # See https://bitbucket.org/mbi-image/agilent2dicom/ for documentation.
@@ -60,7 +60,7 @@ __copyright__ = "Copyright 2014-2015 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id$")
+    r'\$Id$', r'\1', "$Id$")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\
@@ -190,17 +190,21 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_view2.clicked.connect(self.ViewFID)
         self.ui.pushButton_send2daris2.clicked.connect(self.Send2DarisFID)
 
-        self.ui.pushButton_processfolder1.clicked.connect(self.ChangeProcpath1)
-        self.ui.pushButton_processfolder2.clicked.connect(self.ChangeProcpath2)
+        self.ui.pushButton_processfolder1.clicked.connect(self.ChangeProcPath1)
+        self.ui.pushButton_processfolder2.clicked.connect(self.ChangeProcPath2)
+        self.ui.pushButton_ChangeNifti1.clicked.connect(self.ChangeProcFile1)
+        self.ui.pushButton_ChangeNifti2.clicked.connect(self.ChangeProcFile2)
+        self.ui.pushButton_ClearProc1.clicked.connect(self.ClearProcLine1)
+        self.ui.pushButton_ClearProc2.clicked.connect(self.ClearProcLine2)
         self.ui.pushButton_procout.clicked.connect(self.ChangeProcOutputPath)
 
         self.ui.pushButton_SWI.clicked.connect(self.ProcSWI)
         self.ui.pushButton_MEE.clicked.connect(self.ProcMEE)
         self.ui.pushButton_MCI.clicked.connect(self.ProcMCI)
         
-        self.ui.pushButton_NLpipeline1.clicked.connect(self.ProcNLPipeline1)
-        self.ui.pushButton_NLpipeline2.clicked.connect(self.ProcNLPipeline2)
-        self.ui.pushButton_NLpipeline3.clicked.connect(self.ProcNLPipeline3)
+        self.ui.pushButton_NLpipeline1.clicked.connect(self.ProcNLpipeline1)
+        self.ui.pushButton_NLpipeline2.clicked.connect(self.ProcNLpipeline2)
+        self.ui.pushButton_NLpipeline3.clicked.connect(self.ProcNLpipeline3)
         
 
         QtCore.QObject.connect(self.ui.actionSave_Filter_Outputs_to_Nifti,
@@ -969,7 +973,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         print "Closing Agilent2Dicom application."
         logging.info('Closing Agilent2DicomAppQt')
 
-    def ChangeProc1path(self):
+    def ChangeProcPath1(self):
         """ChangeProc1path
         """
         success = 1
@@ -1010,7 +1014,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         except ValueError:
             logging.info('ChangeProc1path error')
 
-    def ChangeProc2path(self):
+    def ChangeProcPath2(self):
         """ChangeProc2path
         """
         success = 1
@@ -1040,7 +1044,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         except ValueError:
             logging.info('ChangeProc2path error')
 
-             def ChangeProc1path(self):
+    def ChangeProcFile1(self):
         """ChangeProc1path
         """
         success = 1
@@ -1067,7 +1071,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         except ValueError:
             logging.info('ChangeProc1file error')
 
-    def ChangeProc2path(self):
+    def ChangeProcFile2(self):
         """ChangeProc2path
         """
         success = 1
@@ -1082,12 +1086,12 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         except ValueError:
             logging.info('ChangeProc2file error')
 
-     def ClearProc1path(self):
+    def ClearProcLine1(self):
         """ChangeProc1path
         """
         self.ui.lineEdit_ProcInfolder1.setText("")
 
-    def ClearProc2path(self):
+    def ClearProcLine2(self):
         """ChangeProc2path
         """
         self.ui.lineEdit_ProcInfolder2.setText("")
