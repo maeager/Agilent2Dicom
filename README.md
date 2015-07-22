@@ -3,14 +3,18 @@
 ## Quick summary ##
 
 The *Agilent2Dicom* package is a series of bash and python scripts to
-convert FDF and FID images from the Agilent 9.4T MR scanner at Monash
-Biomedical Imaging (MBI) into enhanced MR DICOM images. 
+convert FDF (Vnmrj reconstruction) and FID (raw k-sapce) images from
+the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into
+enhanced MR DICOM images. Further development has added new features
+for filtering and noise removal.
 
 Homepage: [MBI's Confluence homepage](https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter)
 
-Source code: [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom)
+Source code: 
+[https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom](https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom)
+[https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom) [DEPRECIATED]
 
-Agilent2Dicom is at version 1.6.2.
+Agilent2Dicom is at version 2.0
 
 
 ## Basic overview ##
@@ -18,7 +22,7 @@ Agilent2Dicom is at version 1.6.2.
 The Agilent2Dicom package is for converting high-field MR images to
 enhanced DICOM formats.  The idea stemmed from poor reconstruction and
 implementation of the DICOM format on the Vnmrj system used by the
-Agilent 9.4 MR scanner. Amanda Ng initiated the project with a simple
+Agilent 9.4T MR scanner. Amanda Ng initiated the project with a simple
 fdf converter. Michael Eager has since expanded the features to
 include enhanced DICOM conversion, full implementation for all
 sequences, FID complex filtering, and PYQT4 GUIs.

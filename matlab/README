@@ -1,10 +1,19 @@
 # README for matlab scripts
 
-copy of NLmeans repo (SS-DDLS; MRIDenoising: Coupe and Manjon at Universite de Bordeaux; and vlfeat)
+# copy of NLmeans repo (SS-DDLS; MRIDenoising: Coupe and Manjon at Universite de Bordeaux; and vlfeat)
    mkdir matlab/NLmeans;
    cd matlab/NLmeans;git clone https://github.com/UB-TFG-TFM-1415/SS-DDLS.git
-   Read README file and compile vlfeat
+   Read README file in NLmeans and compile vlfeat
 
-copy of NIFTI package (mathworks)
+# Copy of NIFTI package (mathworks)
+        cd matlab
+	zip_path=`curl http://www.mathworks.com.au/matlabcentral/fileexchange/8797-tools-for-nifti-and-analyze-image?download=true`
+	zip_path=` echo $zip_path | sed 's#<html><body>You are being <a href="\(.*\)">redirected</a>.</body></html>#\1#'`
+	wget $zip_path
+	mkdir NIFTI
+	cd NIFTI
+	unzip ../NIFTI*.zip
+
 copy of Agilent package (local derived)
-copy of Cardiac ASL package (UCL)
+
+

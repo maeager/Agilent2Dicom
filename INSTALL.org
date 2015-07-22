@@ -10,7 +10,8 @@ installations).
 
 On Debian/Ubuntu/LinuxMint:
 #+begin_src bash
-sudo apt-get install python-setuptools python-dicom python-numpy python-tk dcmtk
+sudo apt-get install python-setuptools python-dicom python-numpy python-tk dcmtk scipy
+pip install mahotus pyfft pycuda pyopencl 
 #+end_src
 
 or Redhat/CentOS/Fedora:
@@ -21,7 +22,7 @@ sudo pip install pydicom argparse
 
 The Agilent workstation is a RHEL.  Use `yum groupinstall
 "Developmental Tools"` to enable more features if you want more recent
-packages (e.g. atlas-devel, lapack-devel) required to install numpy
+packages (e.g. atlas-devel, lapack-devel, PyQt4-devel) required to install numpy
 and scipy from source.
 
 *** RHELW 6
@@ -175,7 +176,35 @@ python2.7 ./build
 #+end_src
 
 
-Scipy install from source
+* Setup matlab third party packages
+
+** Non-local means
+   Read README file in NLmeans and compile vlfeat
+#+BEGIN_SRC sh
+   mkdir matlab/NLmeans;
+   cd matlab/NLmeans
+   git clone https://github.com/UB-TFG-TFM-1415/SS-DDLS.git
+   patch -p1 SS-DDLS-patch.txt
+   mv SS-DDLS/Code/Utils/MRIDenoisingPackage ./
+   rm -rf SS-DDLS
+   git clone https://github.com/vlfeat/vlfeat.git
+   cd vlfeat
+   make
+#+END_SRC
+
+** Copy of NIFTI package (mathworks)
+
+#+BEGIN_SRC sh
+cd matlab
+zip_path=`curl http://www.mathworks.com.au/matlabcentral/fileexchange/8797-tools-for-nifti-and-analyze-image?download=true`
+zip_path=` echo $zip_path | sed 's#<html><body>You are being <a href="\(.*\)">redirected</a>.</body></html>#\1#'`
+wget $zip_path
+mkdir NIFTI
+cd NIFTI
+unzip ../NIFTI*.zip  
+#+END_SRC
+
+* [Optional] Scipy install from source
 http://www.scipy.org/scipylib/building/linux.html
 
 ATLAS
