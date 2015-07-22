@@ -8,10 +8,17 @@ Install the required applications and python packages your appropriate
 linux distribution package manager (or Pip for local python
 installations).
 
+MASSIVE (Centos 6):
+#+BEGIN_SRC sh
+module load build atlas cuda/7.0  mrtrix3 fsl/5.0.8 dcmtk git boost python/2.7.8-gcc octave imagemagick mercurial matlab/r2014b
+pip install --user argparse mahotus pyfft pyopencl pycuda reikna pydicom
+
+#+END_SRC
+
 On Debian/Ubuntu/LinuxMint:
 #+begin_src bash
 sudo apt-get install python-setuptools python-dicom python-numpy python-tk dcmtk scipy
-pip install mahotus pyfft pycuda pyopencl 
+sudo pip install argparse mahotus pyfft pycuda pyopencl 
 #+end_src
 
 or Redhat/CentOS/Fedora:
@@ -56,11 +63,13 @@ python -c 'import scipy;scipy.test()'
 #+end_src
 
 
-** Get the code
-Pull the stable version from the MBI bitbucket repository, using:
 
+** Get the code
+
+Pull the stable version from the MBI repository, using:
 #+begin_src sh
-hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
+# hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
+git clone ssh://carbon2.mbi.monash.edu.au:mbi-image/agilent2dicom Agilent2Dicom
 #+end_src
 
 On the Agilent 9.4T MR console, download the tar zipped bundle of the
@@ -69,11 +78,12 @@ PATH environment variable (csh is the default shell, but also add the
 path in the bash user config file).  
 
 #+begin_src sh
-
-wget https://bitbucket.org/mbi-image/agilent2dicom/get/default.tar.gz
-mkdir Agilent2Dicom
-tar zxvf default.tar.gz Agilent2Dicom/ 
-cd Agilent2Dicom
+# wget https://bitbucket.org/mbi-image/agilent2dicom/get/default.tar.gz
+#mkdir Agilent2Dicom
+#tar zxvf default.tar.gz Agilent2Dicom/ 
+wget https://carbon2.mbi.monash.edu.au/mbi-image/Agilent2Dicom/repository/archive.zip
+unzip archive.zip
+cd Agilent2Dicom.git
 echo "export PATH=`pwd`:${PATH}" >> ~/.bashrc
 echo "setenv PATH `pwd`:$PATH" >> ~/.cshrc
 #+end_src
