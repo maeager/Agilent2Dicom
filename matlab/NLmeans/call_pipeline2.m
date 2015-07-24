@@ -61,6 +61,7 @@ voxelsize=voxelsize1;
 display('Calling pipeline 2')
 tic(),MRIdenoised2=pipeline2(img1,img2);toc()
 
+
 if exist(out,'file')==2
     delete(out)
 else

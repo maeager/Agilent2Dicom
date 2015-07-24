@@ -38,7 +38,7 @@ else
     return
 end
 
-if exist(in1,'file')==2 && ~isempty(strfind(in1,'.nii')) 
+if exist(in2,'file')==2 && ~isempty(strfind(in2,'.nii')) 
     nii2_in=load_nii(in2);
     img=nii2_in.img;
     ksp2=fftn(img);
