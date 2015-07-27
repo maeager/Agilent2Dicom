@@ -1149,6 +1149,15 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             cmd1 = cmd1 + ' -i ' + str(input1_dir) + ' -o ' + str(output_dir)
             print cmd1
             cmd = cmd_header + cmd1 + ')'
+            cmd1 = "matlab -nodesktop -nosplash -r \""
+            cmd1 = cmd1 + "addpath matlab; "
+            cmd1 = cmd1 +  "call_swi('" + str(input1_dir) + "','" \
+                   + str(input2_dir) + "','" \
+                   + os.path.join(str(output_dir),'pipeline2.nii.gz') +"');quit"
+            cmd1 = cmd1 + "\""
+            print cmd1
+            cmd = proc_header + cmd1 + ')'
+            
             # print cmd
             logging.info('Processing SWI ' + cmd)
         except ValueError:
@@ -1271,6 +1280,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             print 'this path: %s' % thispath
             
             cmd1 = "matlab -nodesktop -nosplash -r \""
+            cmd1 = cmd1 + "addpath matlab/NLmeans; "
             cmd1 = cmd1 +  'call_pipline1(\'' + str(input1_dir) + '\',\'' \
                    + str(input2_dir) + '\',\'' \
                    + os.path.join(str(output_dir),'pipeline1.nii.gz') +'\');quit'
@@ -1316,6 +1326,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             print 'this path: %s' % thispath
             
             cmd1 = "matlab -nodesktop -nosplash -r \""
+            cmd1 = cmd1 + "addpath matlab/NLmeans; "
             cmd1 = cmd1 +  "call_pipline2('" + str(input1_dir) + "','" \
                    + str(input2_dir) + "','" \
                    + os.path.join(str(output_dir),'pipeline2.nii.gz') +"');quit"
@@ -1360,6 +1371,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             print 'this path: %s' % thispath
             
             cmd1 = "matlab -nodesktop -nosplash -r \""
+            cmd1 = cmd1 + "addpath matlab/NLmeans; "
             cmd1 = cmd1 +  "call_pipline3('" + str(input1_dir) + "','" \
                    + str(input2_dir) + "','" \
                    + os.path.join(str(output_dir),'pipeline3.nii.gz') +"');quit"
