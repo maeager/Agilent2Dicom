@@ -73,18 +73,30 @@ voxelsize=voxelsize1;
 
 [pha1, swi_n1, swi_p1, mag1] = phaserecon_v1(ksp1,ksp1,0.4,1,0.05);
 % Necessary translations to match FDF images
-swi_n1=flipdim(flipdim(flipdim(swi_n1,1),2),3);
-swi_n1=circshift(swi_n1,[1,1,1]);
-
+mag1=flipdim(flipdim(flipdim(mag1,1),2),3);
+mag1=circshift(mag1,[1,1,1]);
+pha1=flipdim(flipdim(flipdim(pha1,1),2),3);
+pha1=circshift(pha1,[1,1,1]);
 if ~isempty(ksp2)
     [pha2, swi_n2, swi_p2, mag2] = phaserecon_v1(ksp2,ksp2,0.4,1, ...
                                                  0.05);
-    swi_n2=flipdim(flipdim(flipdim(swi_n2,1),2),3);
-    swi_n2=circshift(swi_n2,[1,1,1]);
+    mag2=flipdim(flipdim(flipdim(mag2,1),2),3);
+    mag2=circshift(mag2,[1,1,1]);
+    pha2=flipdim(flipdim(flipdim(pha2,1),2),3);
+    pha3=circshift(pha2,[1,1,1]);
 end
 
+stdmask=stdfilt(mag1);
+posmask=find(pha1>0);
+stdmask=stdfilt(mag1);
+stdphmask=stdfilt(pha1);
+gbmask =getbiggestobject(stdphmask<0.013 | stdmask>2000);
+mask=(gbmask.*(pha1>0));
 
+r_mag = mean(mag1(mask==1));
+r_pha = mean(pha1(mask==1));
 
+    mci_mag1 = mci(mag1,pha1,[r_mag, r_pha]);
 
 
 
@@ -94,30 +106,19 @@ if exist(out,'file')~=2 && ~isdir(out)
     mkdir (out)
 end
 if isdir(out)
-    out=[out '/swi_neg.nii.gz'];
+    out=[out '/mci.nii.gz'];
 end
 if exist(out,'file')
     delete(out)
 end
 
 if isempty(ksp2)
-    save_nii(make_nii(swi_n1,voxelsize,[],16),out)
+    save_nii(make_nii(mci_mag1,voxelsize,[],16),out)
 else
-    save_nii(make_nii((swi_n1+swi_n2)/2,voxelsize,[],16),out)
+    mci_mag2 = mci(mag2,pha2,[r_mag,rpha]);
+    save_nii(make_nii((mci_mag1+mci_mag2)/2,voxelsize,[],16),out)
 end
 
-if posflag == 1
-   swi_p1=flipdim(flipdim(flipdim(swi_p1,1),2),3);
-   swi_p1=circshift(swi_p1,[1,1,1]);
- 
-    if isempty(ksp2)
-        save_nii(make_nii(swi_p1,voxelsize,[],16),out)
-    else
-        swi_p2=flipdim(flipdim(flipdim(swi_p2,1),2),3);
-        swi_p2=circshift(swi_p2,[1,1,1]);
-        save_nii(make_nii((swi_p1+swi_p2)/2,voxelsize,[],16),out)
-    end
-end
 
 
 
@@ -130,6 +131,12 @@ function output = mci(magnitude,phase,reference)
 % PHASE = phase image
 % REFERENCE = reference point
 %
-% Created by Zhaolin Chen , adapted by Amanda Ng on 11 March 2009
-
-    output = sqrt((magnitude-reference(1)).^2 + (phase-reference(2)).^2);
+% Created by Zhaolin Chen 
+% Adapted by Amanda Ng on 11 March 2009
+% Updated by Michael Eager July 2015
+    
+    phasereg=phase.*0;
+    phasereg(phase>0)=phase(phase>0)-reference(2);
+    phasereg(phase<0)=phase(phase<0)+reference(2);
+    
+    output = sqrt((magnitude-reference(1)).^2 + (phasereg).^2);
