@@ -21,7 +21,7 @@
 
 """
 
-import os
+import os,sys
 import datetime
 import dateutil
 import dateutil.tz
@@ -696,8 +696,8 @@ def ProcparToDicomMap(procpar, args):
         ds.ImageType = ["ORIGINAL", "PRIMARY", "ASL", "NONE"]
 
         tmp_file = open(os.path.join(args.outputdir, 'ASL'), 'w')
-        tmp_file.write(str(A=[-63   -31     1    33   -62   -30     2    34   -61   -29     3    35   -60   -28     4    36   -59   -27     5    37   -58   -26     6	38   -57   -25     7    39   -56   -24     8    40   -55   -23     9    41   -54   -22    10    42   -53   -21    11    43   -52   -20	12    44   -51   -19    13    45   -50   -18    14    46   -49   -17    15    47   -48   -16    16    48   -47   -15    17    49   -46	-14    18    50   -45   -13    19    51   -44   -12    20    52   -43   -11    21    53   -42   -10    22    54   -41    -9    23    55	-40    -8    24    56   -39    -7    25    57   -38    -6    26    58   -37    -5    27    59   -36    -4    28    60   -35    -3    29	61   -34    -2    30    62   -33    -1    31    63   -32     0    32    64];
-))
+        
+        tmp_file.write(str([-63 ,  -31 ,    1 ,   33,   -62 ,  -30 ,    2,    34,   -61,   -29,     3  ,  35 ,  -60  , -28 ,    4 ,   36 ,  -59  , -27,     5,    37 ,  -58,   -26  ,   6,	38   -57 ,  -25  ,   7  ,  39  , -56 ,  -24    , 8,    40,   -55,   -23  ,   9 ,   41   -54,   -22 ,   10  ,  42 ,  -53 ,  -21 ,   11 ,   43 ,  -52 ,  -20,	12   , 44 ,  -51  , -19   , 13,    45  , -50  , -18,    14 ,   46 ,  -49 ,  -17  ,  15,    47,   -48,   -16,    16   , 48  , -47  , -15  ,  17,    49,   -46,	-14  ,  18 ,   50,   -45   -13,    19 ,   51  , -44 ,  -12  ,  20 ,   52 ,  -43 ,  -11 ,   21 ,   53,   -42,   -10  ,  22,    54  , -41  ,  -9  ,  23  ,  55, -40,  -8 ,   24 ,   56 ,  -39 ,   -7,    25 ,   57 ,  -38 ,   -6 ,   26   , 58  , -37 ,   -5   , 27  ,  59  , -36 ,   -4,    28,    60  , -35 ,   -3   , 29,	61 ,  -34,    -2 ,   30 ,   62 ,  -33 ,   -1 ,   31  ,  63 ,  -32  ,   0 ,   32  ,  64]))
         tmp_file.close()
 
     # Per-frame Functional Groups Sequence (5200,9230) 1
@@ -1096,7 +1096,7 @@ def ProcparToDicomMap(procpar, args):
     if 'asl' in procpar.keys() and procpar['asl'] == 'y':
         # TODO: CONTINUOUS PSEUDOCONTINUOUS PULSED
         ds.ArterialSpinLabelingContrast = 'CONTINUOUS'
-    if ASL in procpar['pslabel']
+#FIXME    if 'ASL' in procpar['pslabel']:
 
 # Steady State Pulse Sequence (0018,9017)     1C Steady State Sequence.
 #                                                Defined Terms:
@@ -1645,7 +1645,9 @@ def ProcparToDicomMap(procpar, args):
     #      endif
     AcqMatrix1 = 0
     if MRAcquisitionType == '3D':
-        if 'nv' in procpar.keys() and procpar['nv'] > 0:
+        if 'diff' in procpar.keys() and procpar['diff']=='y':
+            AcqMatrix1 = procpar['fn'] / 2.0
+        elif 'nv' in procpar.keys() and procpar['nv'] > 0:
             AcqMatrix1 = procpar['nv']
         elif 'fn1' in procpar.keys() and procpar['fn1'] > 0:
             if args.verbose:
@@ -1656,8 +1658,8 @@ def ProcparToDicomMap(procpar, args):
         else:
             AcqMatrix1 = 0
     elif MRAcquisitionType == '2D':
-        if 'diff' in procpar.keys() and procpar['diff'] == 'y':
-            AcqMatrix2 = procpar['fn'] / 2.0
+        if 'diff' in procpar.keys() and procpar['diff']=='y':
+            AcqMatrix1 = procpar['fn'] / 2.0
         elif 'np' in procpar.keys() and procpar['np'] > 0:
             AcqMatrix1 = procpar['np'] / 2.0
         elif 'fn' in procpar.keys() and procpar['fn'] > 0:
@@ -1669,8 +1671,8 @@ def ProcparToDicomMap(procpar, args):
         else:
             AcqMatrix1 = 0
     if AcqMatrix1 == 0:
-        print "AcqMatrix Rows is zero!"
-        exit
+        print "AcqMatrix Row is zero!"
+        sys.exit(1)
 
     ds.Rows = str(AcqMatrix1)
 
@@ -1701,7 +1703,9 @@ def ProcparToDicomMap(procpar, args):
     #      endif
     AcqMatrix2 = 0
     if MRAcquisitionType == '3D':
-        if 'np' in procpar.keys() and procpar['np'] > 0:
+        if 'diff' in procpar.keys() and procpar['diff'] == 'y':
+            AcqMatrix2 = procpar['fn1'] / 2.0
+        elif 'np' in procpar.keys() and procpar['np'] > 0:
             AcqMatrix2 = procpar['np'] / 2.0
         elif 'fn' in procpar.keys() and procpar['fn'] > 0:
             if args.verbose:
@@ -1726,7 +1730,7 @@ def ProcparToDicomMap(procpar, args):
             AcqMatrix2 = 0
     if AcqMatrix2 == 0:
         print "AcqMatrix Cols is zero!"
-        exit
+        sys.exit(1)
 
     ds.Columns = str(AcqMatrix2)
 
@@ -1959,13 +1963,16 @@ def CalcTransMatrix(ds, orientation, location, span, rank, PixelSpacing, SliceTh
     #    print "Location: ", location, location.shape
 
     # diff = numpy.setdiff1d(span, location)
-
+    print 'CalcTransMatrix'
     if numpy.prod(span.shape) != numpy.prod(location.shape):
-        span = numpy.resize(span, (1, 3))
+        span = span.resize((1, 3))
     # print span
     origin = location - span / 2.0
-
+    print 'CalcTransMatrix'
+    print orientation.transpose()
+    print origin.transpose()
     FirstVoxel = orientation.transpose() * origin.transpose()
+    print 'CalcTransMatrix'
 
     # DICOM patient coordinate system is defined such that x increases towards
     # the patient's left, y increases towards the patient's posterior, and z
@@ -1974,11 +1981,11 @@ def CalcTransMatrix(ds, orientation, location, span, rank, PixelSpacing, SliceTh
     # in the user reference frame remains the same, while y and z are inverted.
     # See DICOM Standard section C.7.6.2.1.1
 
-    ImagePositionPatient = FirstVoxel.flatten().tolist()[0]
+    ImagePositionPatient = FirstVoxel.flatten().tolist()[0:3]
     ImagePositionPatient[1] *= -1
     ImagePositionPatient[2] *= -1
 
-    ImageOrientationPatient = orientation.flatten().tolist()[0]
+    ImageOrientationPatient = orientation.flatten().tolist()[0:9]
     ImageOrientationPatient[1] *= -1
     ImageOrientationPatient[2] *= -1
     ImageOrientationPatient[4] *= -1
@@ -2014,7 +2021,23 @@ def CalcTransMatrix(ds, orientation, location, span, rank, PixelSpacing, SliceTh
                            ImagePositionPatient[2]],
                           [0, 0, 0, 1]])
     else:
-        ImageTransformationMatrix = []
+#        ImageTransformationMatrix = []
+        ImageTransformationMatrix = \
+            numpy.matrix([[PixelSpacing[0] * ImageOrientationPatient[0],
+                           PixelSpacing[1] * ImageOrientationPatient[1],
+                           SliceThickness * ImageOrientationPatient[2],
+                           ImagePositionPatient[0]],
+                          [PixelSpacing[0] * ImageOrientationPatient[3],
+                           PixelSpacing[1] * ImageOrientationPatient[4],
+                           SliceThickness * ImageOrientationPatient[5],
+                           ImagePositionPatient[1]],
+                          [PixelSpacing[0] * ImageOrientationPatient[6],
+                           PixelSpacing[1] * ImageOrientationPatient[7],
+                           SliceThickness * ImageOrientationPatient[8],
+                           ImagePositionPatient[2]],
+                          [0, 0, 0, 1]])   
+    print 'CalcTransMatrix'
+
     return ds, ImageTransformationMatrix
 
 if __name__ == "__main__":

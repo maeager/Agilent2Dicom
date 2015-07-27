@@ -43,8 +43,9 @@ set -o errexit  # -e
 PROGNAME=$(basename "$0")
 AGILENT2DICOM=agilentFDF2dicom.py  # Legacy: agilent2dicom.py #
 KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
-DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
 
+## This is bad hack - need to put dicom3tool binaries in /usr/local/bin or ~/bin
+#DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
 DCM3TOOLS=$(/bin/ls -d "${FDF2DCMPATH}"/../dicom3tools_*/bin/*)
 #DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/"
 #DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
@@ -272,7 +273,7 @@ then
     nechos=$(printf "%1.0f" "$nechos")
     echo "Multi echo sequence, $nechos echos"
     for ((iecho=1;iecho<=nechos;++iecho)); do
-     	echoext=$(printf '%03d' $iecho)
+     	echoext=$(printf '%03d' $iecho) 
      	echo "Converting echo ${iecho} using dcmulti"
      	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${echoext}.dcm" | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     done

@@ -131,8 +131,7 @@ if __name__ == "__main__":
         os.makedirs(outdir)
 
     # # Read in data procpar
-    procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir,
-                                                                'procpar'))
+    procpar, procpartext = ReadProcpar.ReadProcpar(os.path.join(args.inputdir,'procpar'))
     # if args.verbose:
     #     print procpar
 
@@ -141,8 +140,7 @@ if __name__ == "__main__":
 
     # Calculate the max and min throughout all fdf iles in dataset;
     # calculate the intercept and slope for casting to UInt16
-    RescaleIntercept, RescaleSlope = RescaleFDF.FindScale(fdffiles, ds,
-                                                          procpar, args)
+    RescaleIntercept, RescaleSlope = RescaleFDF.FindScale(fdffiles, ds, procpar, args)
 
     # # Per frame implementation
     # Read in data from fdf file, if 3D split frames

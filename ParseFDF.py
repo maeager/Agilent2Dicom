@@ -39,10 +39,10 @@ import ProcparToDicomMap
 
 def AssertImplementation(testval, fdffilename, comment, assumption):
     """ASSERTIMPLEMENTATION - Check FDF properties match up with interpretation
-  of procpar Due to lack of documentation on the use of the procpar file, the
-  interpretation implemented in this script is based on various documents and
-  scripts and may have errors.  This function seeks to double check some of the
-  interpretations against the fdf properties.
+    of procpar Due to lack of documentation on the use of the procpar file, the
+    interpretation implemented in this script is based on various documents and
+    scripts and may have errors.  This function seeks to double check some of the
+    interpretations against the fdf properties.
 
     """
     if testval:
@@ -51,8 +51,7 @@ def AssertImplementation(testval, fdffilename, comment, assumption):
         else:
             fdfstr = ""
 
-        print "\nImplementation check error:\n" + fdfstr
-        + comment + '\nAssumption:' + assumption + '\n'
+        print "\nImplementation check error:\n" + fdfstr + comment + '\nAssumption:' + assumption + '\n'
         # sys.exit(1)
 
 
@@ -408,9 +407,9 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     ds.ImageComments = A2D.FDF2DCM_Image_Comments + \
         '\n' + fdf_properties['filetext']
 
-    orientation = numpy.matrix(fdf_properties['orientation']).reshape(3, 3)
-    location = numpy.matrix(fdf_properties['location']) * 10
-    span = numpy.matrix(numpy.append(fdf_properties['span'], 0) * 10.0)
+    orientation = numpy.array(fdf_properties['orientation']).reshape(3, 3)
+    location = numpy.array(fdf_properties['location']) * 10.0
+    span = numpy.array(numpy.append(fdf_properties['span'], 0) * 10.0)
 
     if args.verbose:
         print "FDF Span: ", span, span.shape
