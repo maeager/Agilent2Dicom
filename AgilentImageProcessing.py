@@ -83,7 +83,11 @@ module load massive virtualgl\n\
 module load matlab/r2014a \n\
 module list \n\
 else \n\
-echo ''Not in MASSIVE.  Assuming matlab in PATH.'' \n\
+  echo ''Checking whether matlab in PATH.'' \n\
+  if test -x `which matlab`; \n\
+  then echo "MATLAB found."; \n\
+  else echo "Cannot find MATLAB in PATH. Close program and exit PATH in local bashrc file. Exiting shell..; exit 1; \n\
+  fi \n\
 fi \n\
 echo ''Done''\n '
 
