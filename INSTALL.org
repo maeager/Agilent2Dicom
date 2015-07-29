@@ -1,5 +1,6 @@
 # -*- mode: org -*-
 #+AUTHOR: Michael Eager
+#+DATE:
 
 * Setup and install
 
@@ -27,40 +28,6 @@ sudo yum install python-setuptools numpy scipy python-tk dcmtk
 sudo pip install pydicom argparse
 #+end_src
 
-The Agilent workstation is a RHEL.  Use `yum groupinstall
-"Developmental Tools"` to enable more features if you want more recent
-packages (e.g. atlas-devel, lapack-devel, PyQt4-devel) required to install numpy
-and scipy from source.
-
-*** RHELW 6
-RedHat Enterprise Linux Workstation 6 - Agilent console
-#+begin_src bash
-sudo yum install --upgrade python
-cd ~/src
-export LAPACK_SRC=/home/vnmr1/src/lapack-3.3.0/SRC/
-   wget http://www.netlib.org/lapack/lapack-3.5.0.tgz 
-   tar zxvf lapack-3.5.0.tgz && cd lapack-3.5.0
-   cp make.inc.example make.inc 
-   sed -i -e 's/^OPTS\(.*\)/OPTS \1 -m64 -fPIC/' -e 's/^NOOPT\(.*\)/NOOPT \1 -m64 -fPIC/' make.inc
-
-   make 
-   make -C BLAS/SRC
-   
-#   ln -s blas_LINUX.a libblas.a
-#   ln -s lapack_LINUX.a liblapack.a
-#   ln -s tmglib_LINUX.a libtmglib.a
-
-export BLAS_SRC=/home/vnmr1/src/lapack-3.5.0/BLAS/SRC
-export ATLAS=/home/vnmr1/src/ATLAS_3.11.30/ATLAS
-export LD_LIBRARY_PATH=$HOME/src/lapack-3.5.0:$LD_LIBRARY_PATH
-export PYTHONPATH=~/.local/lib/python2.6/site-packages:/usr/lib64/python2.6/site-packages:/usr/lib/python2.6/site-packages
-
-pip install --user --force-reinstall --upgrade numpy
-pip install --user --force-reinstall --upgrade scipy
-python -c 'import numpy;numpy.test()
-python -c 'import scipy;scipy.test()'
-
-#+end_src
 
 
 
@@ -144,33 +111,61 @@ make install.man                      # into ./man
 
 ** Install MRtrix
 
-MRtrix source code and documentation:  http://www.brain.org.au/software/mrtrix/
+MRtrix source code and documentation:  http://www.brain.org.au/software/mrtrix/.
 
-For MRtrix stable version (0.2.12)
+For MRtrix stable version (0.2.12), follow instructions on
+http://jdtournier.github.io/mrtrix-0.2/install/unix.html.  For
+first-time installation, install required dependencies: g++, python,
+gtkmm, gtkglext, libgsl & a working OpenGL environment
+
+On debian:
+#+BEGIN_SRC bash
+sudo apt-get install g++ python libglib2.0-dev libgtk2.0-dev libglibmm-2.4-dev libgtkmm-2.4-dev libgtkglext1-dev libgsl0-dev libgl1-mesa-dev libglu1-mesa-dev
+#+END_SRC
+On MASSIVE:
+#+BEGIN_SRC bash
+module load python/2.7.8-gcc qt/4.8.4 gcc/4.8.2 glew/1.10.0 glut gsl gtkglext zlib virtualgl/2.3.x pyqt4 git
+#+END_SRC
+On RedHat 6 (Agilent console does not have the appropriate repos - so look for rpms below and save to ~/src/):
+#+BEGIN_SRC bash
+sudo yum install -y gtkmm24 glibmm24 glib2-devel mesa-libGL-devel mesa-libGLw-devel freeglut-devel PyQt4-devel
+sudo rpm -i  src/cairomm-devel-1.8.0-2.1.el6.x86_64.rpm \
+src/dcmtk-3.6.0-7.fc16.src.rpm \
+src/glibmm24-devel-2.22.1-1.el6.x86_64.rpm \
+src/glibmm24-devel-2.45.3-1.fc23.i686.rpm \
+src/gtkglext-1.0.6-1.el5.rf.x86_64.rpm \
+src/gtkglext-devel-1.0.6-1.el5.rf.x86_64.rpm \
+src/gtkmm24-devel-2.18.2-1.el6.x86_64.rpm \
+src/libsigc++20-devel-2.2.4.2-1.el6.x86_64-1.rpm \
+src/libsigc++20-devel-2.2.4.2-1.el6.x86_64.rpm \
+src/pangomm-devel-2.26.0-1.el6.x86_64.rpm 
+
+#+END_SRC
+
+Simple compile procedure:
 #+begin_src bash
-# For first-time installation, install required dependencies:
-#   g++, python, gtkmm, gtkglext, libgsl & a working OpenGL environment
-
-# 1. Unpack archive:
+# 1. Go to NITRC.org and download package
+# Unpack archive:
     tar xjf mrtrix-0.2.X.tar.bz2
 
 # 2. Compile:
     cd mrtrix-0.2.X/
     ./build
 
-# 3. Install (as root):
-    ./build install
+# if there are compilation errors for pango_x_fonts*, add -lpangox-1.0 to build step
 
+# 3. Install (as root):
+    sudo ./build install
+# this installs executables to /opt/mrtrix
+# unfortunately the lib in /opt/mrtrix/lib is not linked to /usr/lib
+# either add to LD_LIBRARY_PATH in bashrc or soft link it
 #+end_src
 
-
-For mrtrix3:
+For mrtrix3 built on MASSIVE:
 #+begin_src bash
-module load python/2.7.8-gcc qt/4.8.4 gcc/4.8.2 glew/1.10.0 glut gsl gtkglext zlib virtualgl/2.3.x pyqt4 git
 
 git clone https://github.com/jdtournier/mrtrix3
 cd mrtrix
-
 export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7
 export CFLAGS="-I/usr/include -DGLX_GLXEXT_PROTOTYPES"
 python2.7 ./configure
@@ -181,14 +176,13 @@ python2.7 ./build
 # Then complete the build again
 python2.7 ./build
 
-## Optional: Install as root
-# sudo python ./build install
+# Optional: Install as root
+ sudo python ./build install
 #+end_src
-
 
 * Setup matlab third party packages
 
-** Non-local means
+** Non-local means filter
    Read README file in NLmeans and compile vlfeat
 #+BEGIN_SRC sh
    mkdir matlab/NLmeans;
@@ -215,9 +209,42 @@ unzip ../NIFTI*.zip
 #+END_SRC
 
 * [Optional] Scipy install from source
-http://www.scipy.org/scipylib/building/linux.html
+Read this first:  http://www.scipy.org/scipylib/building/linux.html
 
 ATLAS
 http://sourceforge.net/projects/math-atlas/files/latest/download?source=files
 Lapack
 wget http://www.netlib.org/lapack/lapack-3.5.0.tgz 
+
+The Agilent workstation is a RHEL.  Use `yum groupinstall
+"Developmental Tools"` to enable more features if you want more recent
+packages (e.g. atlas-devel, lapack-devel, PyQt4-devel) required to install numpy
+and scipy from source.
+
+#+begin_src bash
+sudo yum install --upgrade python
+cd ~/src
+export LAPACK_SRC=/home/vnmr1/src/lapack-3.3.0/SRC/
+   wget http://www.netlib.org/lapack/lapack-3.5.0.tgz 
+   tar zxvf lapack-3.5.0.tgz && cd lapack-3.5.0
+   cp make.inc.example make.inc 
+   sed -i -e 's/^OPTS\(.*\)/OPTS \1 -m64 -fPIC/' -e 's/^NOOPT\(.*\)/NOOPT \1 -m64 -fPIC/' make.inc
+
+   make 
+   make -C BLAS/SRC
+   
+#   ln -s blas_LINUX.a libblas.a
+#   ln -s lapack_LINUX.a liblapack.a
+#   ln -s tmglib_LINUX.a libtmglib.a
+
+export BLAS_SRC=/home/vnmr1/src/lapack-3.5.0/BLAS/SRC
+export ATLAS=/home/vnmr1/src/ATLAS_3.11.30/ATLAS
+export LD_LIBRARY_PATH=$HOME/src/lapack-3.5.0:$LD_LIBRARY_PATH
+export PYTHONPATH=~/.local/lib/python2.6/site-packages:/usr/lib64/python2.6/site-packages:/usr/lib/python2.6/site-packages
+
+pip install --user --force-reinstall --upgrade numpy
+pip install --user --force-reinstall --upgrade scipy
+python -c 'import numpy;numpy.test()
+python -c 'import scipy;scipy.test()'
+
+#+end_src

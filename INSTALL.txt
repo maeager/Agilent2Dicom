@@ -1,155 +1,264 @@
-                               INSTALL
-                               =======
-
-Author: Michael Eager <eagerm@m2108>
-Date: 2014-10-30 16:05:15 EST
+Michael Eager
 
 
 Table of Contents
-=================
-1 Setup and install 
-    1.1 Prerequisites 
-    1.2 Get the code 
-    1.3 Check 
-    1.4 Install Dicom3tools 
-    1.5 Install MRtrix 
+_________________
 
-
-1 Setup and install 
-~~~~~~~~~~~~~~~~~~~~
-
-1.1 Prerequisites 
-==================
-Install the required applications and python packages your appropriate
-linux distribution package manager (or Pip for local python
-installations).
-
-On Debian/Ubuntu/LinuxMint:
-  sudo apt-get install python-setuptools python-dicom python-numpy python-tk dcmtk
-
-
-or Redhat/CentOS/Fedora:
-  sudo yum install python-setuptools numpy scipy python-tk dcmtk
-  sudo pip install pydicom
-
-
-The Agilent workstation is a RHEL.  Use yum groupinstall
-"Developmental Tools" to enable more features if you want more recent
-packages (e.g. atlas-devel, lapack-devel) required to install numpy
-and scipy from source.
-
-1.2 Get the code 
-=================
-Pull the stable version from the MBI bitbucket repository, using:
-
-  hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
-
-
-On the Agilent 9.4T MR console, download the tar zipped bundle of the
-source code and unpack it.  Add the Agilent2Dicom source path to the
-PATH environment variable (csh is the default shell, but also add the
-path in the bash user config file).
-
-  wget https://bitbucket.org/mbi-image/agilent2dicom/get/default.tar.gz
-  mkdir Agilent2Dicom
-  tar zxvf default.tar.gz Agilent2Dicom/ 
-  cd Agilent2Dicom
-  echo "export PATH=`pwd`:${PATH}" >> ~/.bashrc
-  echo "set PATH `pwd`:${PATH}" >> ~/.cshrc
-
-
-
-1.3 Check 
-==========
-Check your python installation for the required packages using the
-check.py script:
-
-  cd Agilent2Dicom
-  ./check.py
+1 Setup and install
+.. 1.1 Prerequisites
+..... 1.1.1 RHELW 6
+.. 1.2 Get the code
+.. 1.3 Check
+.. 1.4 Install Dicom3tools
+.. 1.5 Install MRtrix
+2 Setup matlab third party packages
+.. 2.1 Non-local means filter
+.. 2.2 Copy of NIFTI package (mathworks)
+3 [Optional] Scipy install from source
 
 
 
 
 
-1.4 Install Dicom3tools 
-========================
-
-Install dicom3tools from [http://www.dclunie.com/dicom3tools.html] into
-the Agilent2Dicom folder.  The default settings for MBI's Agilent 9.4T
-MR scanner are used below.  The default UID root value '1.3.6.1.4.1'
-is unique to the MBI Agilent 9.4T MR scanner and should be changed for
-other devices.  The dependencies for compiling dicom3tools are imake,
-gcc and binutil-essentials.
-
-On MASSIVE use: 
-  module load imake gcc.
-
-
-
-On the Agilent console, use: 
-  sudo yum install imake gcc binutil-essentials
-
-
-
-Once the dependencies have been installed, begin by downloading the
-latest dicom3tools [http://www.dclunie.com/dicom3tools/workinprogress/],
-adjust the config/site.p-def file for the appropriate settings. Follow
-the compile instructions below for installing on the Agilent console:
-
-  cd ~/src/    # On MASSIVE use cd ~/Monash016/eagerm/Agilent2Dicom
-  wget   http://www.dclunie.com/dicom3tools/workinprogress/dicom3tools_1.00.snapshot.20140306142442.tar.bz2
-  tar jxvf dicom3tools_1.00.snapshot.20140306142442.tar.bz2
-  cd dicom3tools_1.00.snapshot.20140306142442
-  
-  sed -i 's/CLUNIE/MBIAGILENT/' config/site.p-def
-  ./Configure
-  #            setenv IMAKEINCLUDE -I./config                              # only needed for tcsh
-  imake -I./config -DInstallInTopDir -DUseMBIAGILENT1ID -DDefaultUIDRoot=1.3.6.1.4.1
-  make World
-  make install                          # into ./bin
-  make install.man                      # into ./man
-
-
-
-1.5 Install MRtrix 
+1 Setup and install
 ===================
 
-MRtrix source code and documentation:  [http://www.brain.org.au/software/mrtrix/]
+1.1 Prerequisites
+~~~~~~~~~~~~~~~~~
 
-For MRtrix stable version (0.2.12)
-  # For first-time installation, install required dependencies:
-  #   g++, python, gtkmm, gtkglext, libgsl & a working OpenGL environment
-  
-  # 1. Unpack archive:
-      tar xjf mrtrix-0.2.X.tar.bz2
-  
-  # 2. Compile:
-      cd mrtrix-0.2.X/
-      ./build
-  
-  # 3. Install (as root):
-      ./build install
+  Install the required applications and python packages your appropriate
+  linux distribution package manager (or Pip for local python
+  installations).
 
+  MASSIVE (Centos 6):
+  ,----
+  | module load build atlas cuda/7.0  mrtrix3 fsl/5.0.8 dcmtk git boost python/2.7.8-gcc octave imagemagick mercurial matlab/r2014b
+  | pip install --user argparse mahotus pyfft pyopencl pycuda reikna pydicom
+  `----
 
+  On Debian/Ubuntu/LinuxMint:
+  ,----
+  | sudo apt-get install python-setuptools python-dicom python-numpy python-tk dcmtk scipy
+  | sudo pip install argparse mahotus pyfft pycuda pyopencl
+  `----
 
-For mrtrix3:
-  module load python/2.7.8-gcc qt/4.8.4 gcc/4.8.2 glew/1.10.0 glut gsl gtkglext zlib virtualgl/2.3.x pyqt4 git
-  
-  git clone https://github.com/jdtournier/mrtrix3
-  cd mrtrix
-  
-  export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7
-  export CFLAGS="-I/usr/include -DGLX_GLXEXT_PROTOTYPES"
-  python2.7 ./configure
-  python2.7 ./build
-  
-  # Known error in the build process: run the gl_core command
-   g++ -c -fPIC -march=native -DMRTRIX_WORD64 -DMRTRIX_USE_TR1 -Wall -Wno-unused-function -Wno-unused-parameter -O2 -DNDEBUG -Isrc -Icmd -Ilib -Icmd -I/usr/local/gsl/1.12-gcc/include -I/usr/include -DHAVE_INLINE -DGLX_GLXEXT_PROTOTYPES src/gui/opengl/gl_core_3_3.cpp -o src/gui/opengl/gl_core_3_3.o
-  # Then complete the build again
-  python2.7 ./build
-  
-  ## Optional: Install as root
-  # sudo python ./build install
+  or Redhat/CentOS/Fedora:
+  ,----
+  | sudo yum install python-setuptools numpy scipy python-tk dcmtk
+  | sudo pip install pydicom argparse
+  `----
+
+  The Agilent workstation is a RHEL.  Use `yum groupinstall
+  "Developmental Tools"` to enable more features if you want more recent
+  packages (e.g. atlas-devel, lapack-devel, PyQt4-devel) required to
+  install numpy and scipy from source.
 
 
+1.1.1 RHELW 6
+-------------
 
+  RedHat Enterprise Linux Workstation 6 - Agilent console
+  ,----
+  | sudo yum install --upgrade python
+  | cd ~/src
+  | export LAPACK_SRC=/home/vnmr1/src/lapack-3.3.0/SRC/
+  |    wget http://www.netlib.org/lapack/lapack-3.5.0.tgz 
+  |    tar zxvf lapack-3.5.0.tgz && cd lapack-3.5.0
+  |    cp make.inc.example make.inc 
+  |    sed -i -e 's/^OPTS\(.*\)/OPTS \1 -m64 -fPIC/' -e 's/^NOOPT\(.*\)/NOOPT \1 -m64 -fPIC/' make.inc
+  | 
+  |    make 
+  |    make -C BLAS/SRC
+  | 
+  | #   ln -s blas_LINUX.a libblas.a
+  | #   ln -s lapack_LINUX.a liblapack.a
+  | #   ln -s tmglib_LINUX.a libtmglib.a
+  | 
+  | export BLAS_SRC=/home/vnmr1/src/lapack-3.5.0/BLAS/SRC
+  | export ATLAS=/home/vnmr1/src/ATLAS_3.11.30/ATLAS
+  | export LD_LIBRARY_PATH=$HOME/src/lapack-3.5.0:$LD_LIBRARY_PATH
+  | export PYTHONPATH=~/.local/lib/python2.6/site-packages:/usr/lib64/python2.6/site-packages:/usr/lib/python2.6/site-packages
+  | 
+  | pip install --user --force-reinstall --upgrade numpy
+  | pip install --user --force-reinstall --upgrade scipy
+  | python -c 'import numpy;numpy.test()
+  | python -c 'import scipy;scipy.test()'
+  `----
+
+
+1.2 Get the code
+~~~~~~~~~~~~~~~~
+
+  Pull the stable version from the MBI repository, using:
+  ,----
+  | # hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
+  | git clone ssh://carbon2.mbi.monash.edu.au:mbi-image/agilent2dicom Agilent2Dicom
+  `----
+
+  On the Agilent 9.4T MR console, download the tar zipped bundle of the
+  source code and unpack it.  Add the Agilent2Dicom source path to the
+  PATH environment variable (csh is the default shell, but also add the
+  path in the bash user config file).
+
+  ,----
+  | # wget https://bitbucket.org/mbi-image/agilent2dicom/get/default.tar.gz
+  | #mkdir Agilent2Dicom
+  | #tar zxvf default.tar.gz Agilent2Dicom/ 
+  | wget https://carbon2.mbi.monash.edu.au/mbi-image/Agilent2Dicom/repository/archive.zip
+  | unzip archive.zip
+  | cd Agilent2Dicom.git
+  | echo "export PATH=`pwd`:${PATH}" >> ~/.bashrc
+  | echo "setenv PATH `pwd`:$PATH" >> ~/.cshrc
+  `----
+
+
+1.3 Check
+~~~~~~~~~
+
+  Check your python installation for the required packages using the
+  check.py script:
+
+  ,----
+  | cd Agilent2Dicom
+  | ./check.py
+  `----
+
+
+1.4 Install Dicom3tools
+~~~~~~~~~~~~~~~~~~~~~~~
+
+  Install dicom3tools from [http://www.dclunie.com/dicom3tools.html]
+  into the Agilent2Dicom folder.  The default settings for MBI's Agilent
+  9.4T MR scanner are used below.  The default UID root value
+  '1.3.6.1.4.1' is unique to the MBI Agilent 9.4T MR scanner and should
+  be changed for other devices.  The dependencies for compiling
+  dicom3tools are imake, gcc and binutil-essentials.
+
+  On MASSIVE use:
+  ,----
+  | module load imake gcc.
+  `----
+
+
+  On the Agilent console, use:
+  ,----
+  | sudo yum install imake gcc binutil-essentials
+  `----
+
+
+  Once the dependencies have been installed, begin by downloading the
+  latest dicom3tools
+  [http://www.dclunie.com/dicom3tools/workinprogress/], adjust the
+  config/site.p-def file for the appropriate settings. Follow the
+  compile instructions below for installing on the Agilent console:
+
+  ,----
+  | cd ~/src/    # On MASSIVE use cd ~/Monash016/eagerm/Agilent2Dicom
+  | wget   http://www.dclunie.com/dicom3tools/workinprogress/dicom3tools_1.00.snapshot.20140306142442.tar.bz2
+  | tar jxvf dicom3tools_1.00.snapshot.20140306142442.tar.bz2
+  | cd dicom3tools_1.00.snapshot.20140306142442
+  | 
+  | sed -i 's/CLUNIE/MBIAGILENT/' config/site.p-def
+  | ./Configure
+  | #            setenv IMAKEINCLUDE -I./config                              # only needed for tcsh
+  | imake -I./config -DInstallInTopDir -DUseMBIAGILENT1ID -DDefaultUIDRoot=1.3.6.1.4.1
+  | make World
+  | make install                          # into ./bin
+  | make install.man                      # into ./man
+  `----
+
+
+1.5 Install MRtrix
+~~~~~~~~~~~~~~~~~~
+
+  MRtrix source code and documentation:
+  [http://www.brain.org.au/software/mrtrix/].
+
+  For MRtrix stable version (0.2.12), follow instructions on
+  [http://jdtournier.github.io/mrtrix-0.2/install/unix.html].  For
+  first-time installation, install required dependencies: g++, python,
+  gtkmm, gtkglext, libgsl & a working OpenGL environment
+
+  On debian:
+
+  On MASSIVE:
+
+  On RedHat 6:
+
+
+  ,----
+  | # 1. Go to NITRC.org and download package
+  | # Unpack archive:
+  |     tar xjf mrtrix-0.2.X.tar.bz2
+  | 
+  | # 2. Compile:
+  |     cd mrtrix-0.2.X/
+  |     ./build
+  | 
+  | # 3. Install (as root):
+  |     ./build install
+  `----
+
+
+  For mrtrix3:
+  ,----
+  | git clone https://github.com/jdtournier/mrtrix3
+  | cd mrtrix
+  | 
+  | export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7
+  | export CFLAGS="-I/usr/include -DGLX_GLXEXT_PROTOTYPES"
+  | python2.7 ./configure
+  | python2.7 ./build
+  | 
+  | # Known error in the build process: run the gl_core command
+  |  g++ -c -fPIC -march=native -DMRTRIX_WORD64 -DMRTRIX_USE_TR1 -Wall -Wno-unused-function -Wno-unused-parameter -O2 -DNDEBUG -Isrc -Icmd -Ilib -Icmd -I/usr/local/gsl/1.12-gcc/include -I/usr/include -DHAVE_INLINE -DGLX_GLXEXT_PROTOTYPES src/gui/opengl/gl_core_3_3.cpp -o src/gui/opengl/gl_core_3_3.o
+  | # Then complete the build again
+  | python2.7 ./build
+  | 
+  | # Optional: Install as root
+  |  sudo python ./build install
+  `----
+
+
+2 Setup matlab third party packages
+===================================
+
+2.1 Non-local means filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  Read README file in NLmeans and compile vlfeat
+  ,----
+  | mkdir matlab/NLmeans;
+  | cd matlab/NLmeans
+  | git clone https://github.com/UB-TFG-TFM-1415/SS-DDLS.git
+  | patch -p1 SS-DDLS-patch.txt
+  | mv SS-DDLS/Code/Utils/MRIDenoisingPackage ./
+  | rm -rf SS-DDLS
+  | git clone https://github.com/vlfeat/vlfeat.git
+  | cd vlfeat
+  | make
+  `----
+
+
+2.2 Copy of NIFTI package (mathworks)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  ,----
+  | cd matlab
+  | zip_path=`curl http://www.mathworks.com.au/matlabcentral/fileexchange/8797-tools-for-nifti-and-analyze-image?download=true`
+  | zip_path=` echo $zip_path | sed 's#<html><body>You are being <a href="\(.*\)">redirected</a>.</body></html>#\1#'`
+  | wget $zip_path
+  | mkdir NIFTI
+  | cd NIFTI
+  | unzip ../NIFTI*.zip
+  `----
+
+
+3 [Optional] Scipy install from source
+======================================
+
+  [http://www.scipy.org/scipylib/building/linux.html]
+
+  ATLAS
+  [http://sourceforge.net/projects/math-atlas/files/latest/download?source=files]
+  Lapack wget [http://www.netlib.org/lapack/lapack-3.5.0.tgz]
