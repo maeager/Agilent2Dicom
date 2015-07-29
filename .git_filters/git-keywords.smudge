@@ -40,7 +40,7 @@ $ident = $1;
 while (<STDIN>) {
     s/\$Date[^\$]*\$/\$Date:   $date \$/;
     s/\$Author[^\$]*\$/\$Author: $author \$/;
-    s/\$Id[^\$]*\$/\$Id: $filename | $date | $name \$/;
+    s/\$Id[^\$]*\$/\$Id: $filename | $ident | $name \$/;
     s/\$File[^\$]*\$/\$File:   $filename \$/;
     s/\$Source[^\$]*\$/\$Source: $path \$/;
     s/\$Revision[^\$]*\$/\$Revision: $ident \$/;
