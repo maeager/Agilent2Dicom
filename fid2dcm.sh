@@ -26,21 +26,37 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ###############################################
 
+function error_exit(){
+     echo "${PROGNAME}: ${1:-Unknown error}" 1>&2
+     # if [ -x `which mutt` && "$USER" == "vnmr1" ]; then
+     #     logfiles=$(find ${FID2DCMPATH} ${PWD} -name *.log -print0)
+     #   EMAIL="$USER@$HOST"
+     #   echo "Error occured `date`" | mutt -s "${PROGNAME}: ${1:-Unknown error}" -a $logfiles  michael.eager@monash.edu
+      # fi
+     exit 1                                                                       
+}
+function yesno(){
+    read -r -p "$@" response
+    response=$(echo "$response" | awk '{print tolower($0)}')
+# response=${response,,} # tolower Bash 4.0
+    if [[ "$response" =~ ^(yes|y| ) ]]; then
+	return 0
+    fi
+    return 1
+}
 
-
-## Set config variables
-FID2DCMPATH="$(dirname "$0")"
-source "${FID2DCMPATH}/agilent2dicom_globalvars.py"
-## variable collected global FID2DCMVERSION=0.5
-PROGNAME=$(basename "$0")
-FID2DICOM=fid2dicom.py
-KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
-DCM3TOOLS="${FID2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
-DCM3TOOLS=$(/bin/ls -d "${FID2DCMPATH}"/../dicom3tools_*/bin/*)
-#DCM3TOOLS="${FID2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/"
-#DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
-RM='/bin/rm -f'
-RMDIR='/bin/rm -rf'
+## Make sure dcmulti and dciodvfy are in PATH
+if [ -x dcmulti ];then
+    DCM3TOOLS=$(dirname $(which dcmulti))
+else
+    DCM3TOOLS=$(/bin/ls -d "${FID2DCMPATH}"/../dicom3tools_*/bin/*)
+fi
+if [ ! -d "${DCM3TOOLS}" ]; then
+    error_exit("${DCM3TOOLS} path not found")                   
+elif [ ! -x "${DCM3TOOLS}/dcmulti" ]; then
+    error_exit( "Unable to find Dicom3Tool's executable dcmulti")
+fi
+export PATH=${PATH}:${DCM3TOOLS}
 
 ## Check dcmtk applications on MASSIVE or Agilent console
 if test ${MASSIVEUSERNAME+defined}; then
@@ -49,14 +65,18 @@ else
     DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
     export PATH=${PATH}:${DCMTK}
 fi
-if [ ! -d "${DCM3TOOLS}" ]; then
-    echo "${DCM3TOOLS} path not found"
-    exit 1
-elif [ ! -x "${DCM3TOOLS}/dcmulti" ]; then
-    echo "Unable to find Dicom3Tool's executable dcmulti"
-    exit 1
-fi 
-export PATH=${PATH}:${DCM3TOOLS}
+
+
+
+## Set config variables
+FID2DCMPATH="$(dirname "$0")"
+source "${FID2DCMPATH}/agilent2dicom_globalvars.py"
+PROGNAME=$(basename "$0")
+FID2DICOM=fid2dicom.py
+RM='/bin/rm -f'
+RMDIR='/bin/rm -rf'
+E_BADARGS=65
+
 declare -i verbosity=0
 declare -i do_modify=1
 declare -i do_filter=0
@@ -74,28 +94,7 @@ set -o errexit  # -e
 # exec 2>> $(dirname $0)/error.log
 ## set -x  # show debugging output
 
-E_BADARGS=65
 
-#source ${FID2DCMPATH}/yesno.sh
-function yesno(){
-    read -r -p "$@" response
-    response=$(echo "$response" | awk '{print tolower($0)}')
-# response=${response,,} # tolower Bash 4.0
-    if [[ "$response" =~ ^(yes|y| ) ]]; then
-	return 0
-    fi
-    return 1
-}
-
-function error_exit(){
-    echo "${PROGNAME}: ${1:-Unknown error}" 1>&2
-    # if [ -x `which mutt` && "$USER" == "vnmr1" ]; then
-    #     logfiles=$(find ${FID2DCMPATH} ${PWD} -name *.log -print0)
-    # 	EMAIL="$USER@$HOST" 
-    # 	echo "Error occured `date`" | mutt -s "${PROGNAME}: ${1:-Unknown error}" -a $logfiles  michael.eager@monash.edu 
-    # fi
-    exit 1
-}
 
 
 # Print usage information and exit

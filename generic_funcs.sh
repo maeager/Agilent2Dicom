@@ -1,5 +1,5 @@
 #!/usr/bin/env  bash 
-## FID/FDF DICOM converter functions
+## FID/FDF DICOM converter shell functions
 #
 # - Michael Eager (michael.eager@monash.edu.au)
 # - Monash Biomedical Imaging 

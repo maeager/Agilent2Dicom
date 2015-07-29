@@ -4,21 +4,21 @@
 #
 # - Michael Eager (michael.eager@monash.edu)
 # - Monash Biomedical Imaging 
-
-  # Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
-
-  # This program is free software: you can redistribute it and/or modify
-  # it under the terms of the GNU General Public License as published by
-  # the Free Software Foundation, either version 3 of the License, or
-  # (at your option) any later version.
-
-  # This program is distributed in the hope that it will be useful,
-  # but WITHOUT ANY WARRANTY; without even the implied warranty of
-  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  # GNU General Public License for more details.
-
-  # You should have received a copy of the GNU General Public License
-  # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 # Check DCMTK on MASSIVE or Agilent console
@@ -29,18 +29,17 @@ if test ${MASSIVEUSERNAME+defined}; then
 else
     DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
     export PATH=${PATH}:${DCMTK}
-
 fi
 
 if [ ! -x $(which dcmodify) ];then
-    echo "ERROR: dcmodify not found (fix-dicoms.sh)"; 
+    error_exit("dcmodify not found (fix-dicoms.sh)"); 
     exit 1
 fi
 
 
 output_dir=$1
 MODIFY=1
-##COMMON FIXES to enhanced DICOMs
+## COMMON FIXES to enhanced DICOMs
 DCMODIFY="dcmodify --no-backup  " # --ignore-errors" 
 files=$(find ${output_dir} -type f -name "*.dcm" | grep -v tmp)
 

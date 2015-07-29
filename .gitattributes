@@ -1,6 +1,6 @@
 # .gitattributes
 # Map file extensions to git filters
 
-*.py filter=git-keywords
-*.sh filter=git-keywords
+*.py filter=rcs-keywords
+*.sh filter=rcs-keywords
  

@@ -86,7 +86,7 @@ fi
 
 if [ -z $SERVER_STR ]
 then {
-    echo "Error: must input server string (e.g. titanium, daris059)"
+    echo "Error: must input server string (e.g. titanium, mf-erc)"
     exit 1;
 }
 fi
@@ -141,7 +141,7 @@ fi
 echo "Upload to DaRIS"
 $STORESCU --aetitle $DICOM_CALLING_AET --call $DICOM_CALLED_AET  $DICOM_SERVER  $DICOM_PORT   --scan-pattern "*.dcm" --scan-directories $DICOM_DIR || (echo "STORESCU failed." && exit 1 )
 echo "File upload to DaRIS completed."
-
+exit 0
 
 
 

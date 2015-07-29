@@ -39,8 +39,9 @@ if [ $# -eq 4 ];then
 fi
 
 
-
-module load  mrtrix matlab/r2013a
+if test ${MASSIVEUSERNAME+defined}; then
+    module load  mrtrix matlab
+fi
 
 [ ! -d ${outpath} ] &&  mkdir ${outpath}
 
