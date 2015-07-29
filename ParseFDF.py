@@ -461,8 +461,9 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     ''' % (str(procpar['fn1'] / 2.0), str(procpar['nv']),
            str(procpar['fn'] / 2.0), str(procpar['np']),
            str(fdf_properties['matrix'][1]), str(ds.Rows))
-    AssertImplementation(int(float(ds.Rows)) != int(
-        fdf_properties['matrix'][1]), filename, CommentStr, AssumptionStr)
+    AssertImplementation(
+        int(float(ds.Rows)) != int(fdf_properties['matrix'][1]),
+        filename, CommentStr, AssumptionStr)
     if args.verbose:
         print 'Rows ', procpar['fn'] / 2.0, procpar['fn1'] / 2.0, \
             procpar['nv'], procpar['np'] / 2.0
@@ -480,8 +481,9 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     ''' % (str(procpar['fn'] / 2.0), str(procpar['np']),
            str(procpar['fn1'] / 2.0), str(procpar['nv']),
            str(fdf_properties['matrix'][0]), str(ds.Columns))
-    AssertImplementation(int(float(ds.Columns)) != int(
-        fdf_properties['matrix'][0]), filename, CommentStr, AssumptionStr)
+    AssertImplementation(
+        int(float(ds.Columns)) != int(fdf_properties['matrix'][0]),
+        filename, CommentStr, AssumptionStr)
     if args.verbose:
         print 'Columns ', procpar['fn'] / 2.0, procpar['fn1'] / 2.0, \
             procpar['nv'], procpar['np'] / 2.0, fdf_properties['matrix'][0]
