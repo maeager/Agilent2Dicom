@@ -103,7 +103,10 @@ def ParseDiffusionFDF(ds, procpar, fdf_properties, args):
 
     # Sort diffusion based on sorted index of bvalue instead of
     # fdf_properties['array_index']
-    ds.AcquisitionNumber = bvaluesortidx[diffusion_idx]
+    if ds.MRAcquisitionType == '2D':
+        ds.AcquisitionNumber = fdf_properties['array_index']
+    else:
+        ds.AcquisitionNumber = bvaluesortidx[diffusion_idx]
 
     if math.fabs(bvalue[diffusion_idx] - fdf_properties['bvalue']) > 0.005:
         print 'Procpar and fdf B-value mismatch: procpar value ',
@@ -573,7 +576,8 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     else:
         ds.ImagesInAcquisition = 1
 
-    if len(ds.ImageType) >= 3 and ds.ImageType[2] == 'DIFFUSION':
+    # if len(ds.ImageType) >= 3 and 
+    if ds.ImageType[2] == 'DIFFUSION':
         ds = ParseDiffusionFDF(ds, procpar, fdf_properties, args)
 
     # Multi dimension Organisation and Index module
