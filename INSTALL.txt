@@ -6,7 +6,6 @@ _________________
 
 1 Setup and install
 .. 1.1 Prerequisites
-..... 1.1.1 RHELW 6
 .. 1.2 Get the code
 .. 1.3 Check
 .. 1.4 Install Dicom3tools
@@ -15,6 +14,7 @@ _________________
 .. 2.1 Non-local means filter
 .. 2.2 Copy of NIFTI package (mathworks)
 3 [Optional] Scipy install from source
+.. 3.1 Testing
 
 
 
@@ -46,43 +46,6 @@ _________________
   ,----
   | sudo yum install python-setuptools numpy scipy python-tk dcmtk
   | sudo pip install pydicom argparse
-  `----
-
-  The Agilent workstation is a RHEL.  Use `yum groupinstall
-  "Developmental Tools"` to enable more features if you want more recent
-  packages (e.g. atlas-devel, lapack-devel, PyQt4-devel) required to
-  install numpy and scipy from source.
-
-
-1.1.1 RHELW 6
--------------
-
-  RedHat Enterprise Linux Workstation 6 - Agilent console
-  ,----
-  | sudo yum install --upgrade python
-  | cd ~/src
-  | export LAPACK_SRC=/home/vnmr1/src/lapack-3.3.0/SRC/
-  |    wget http://www.netlib.org/lapack/lapack-3.5.0.tgz 
-  |    tar zxvf lapack-3.5.0.tgz && cd lapack-3.5.0
-  |    cp make.inc.example make.inc 
-  |    sed -i -e 's/^OPTS\(.*\)/OPTS \1 -m64 -fPIC/' -e 's/^NOOPT\(.*\)/NOOPT \1 -m64 -fPIC/' make.inc
-  | 
-  |    make 
-  |    make -C BLAS/SRC
-  | 
-  | #   ln -s blas_LINUX.a libblas.a
-  | #   ln -s lapack_LINUX.a liblapack.a
-  | #   ln -s tmglib_LINUX.a libtmglib.a
-  | 
-  | export BLAS_SRC=/home/vnmr1/src/lapack-3.5.0/BLAS/SRC
-  | export ATLAS=/home/vnmr1/src/ATLAS_3.11.30/ATLAS
-  | export LD_LIBRARY_PATH=$HOME/src/lapack-3.5.0:$LD_LIBRARY_PATH
-  | export PYTHONPATH=~/.local/lib/python2.6/site-packages:/usr/lib64/python2.6/site-packages:/usr/lib/python2.6/site-packages
-  | 
-  | pip install --user --force-reinstall --upgrade numpy
-  | pip install --user --force-reinstall --upgrade scipy
-  | python -c 'import numpy;numpy.test()
-  | python -c 'import scipy;scipy.test()'
   `----
 
 
@@ -180,12 +143,30 @@ _________________
   gtkmm, gtkglext, libgsl & a working OpenGL environment
 
   On debian:
-
+  ,----
+  | sudo apt-get install g++ python libglib2.0-dev libgtk2.0-dev libglibmm-2.4-dev libgtkmm-2.4-dev libgtkglext1-dev libgsl0-dev libgl1-mesa-dev libglu1-mesa-dev
+  `----
   On MASSIVE:
+  ,----
+  | module load python/2.7.8-gcc qt/4.8.4 gcc/4.8.2 glew/1.10.0 glut gsl gtkglext zlib virtualgl/2.3.x pyqt4 git
+  `----
+  On RedHat 6 (Agilent console does not have the appropriate repos - so
+  look for rpms below and save to ~/src/):
+  ,----
+  | sudo yum install -y gtkmm24 glibmm24 glib2-devel mesa-libGL-devel mesa-libGLw-devel freeglut-devel PyQt4-devel
+  | sudo rpm -i  src/cairomm-devel-1.8.0-2.1.el6.x86_64.rpm \
+  | src/dcmtk-3.6.0-7.fc16.src.rpm \
+  | src/glibmm24-devel-2.22.1-1.el6.x86_64.rpm \
+  | src/glibmm24-devel-2.45.3-1.fc23.i686.rpm \
+  | src/gtkglext-1.0.6-1.el5.rf.x86_64.rpm \
+  | src/gtkglext-devel-1.0.6-1.el5.rf.x86_64.rpm \
+  | src/gtkmm24-devel-2.18.2-1.el6.x86_64.rpm \
+  | src/libsigc++20-devel-2.2.4.2-1.el6.x86_64-1.rpm \
+  | src/libsigc++20-devel-2.2.4.2-1.el6.x86_64.rpm \
+  | src/pangomm-devel-2.26.0-1.el6.x86_64.rpm
+  `----
 
-  On RedHat 6:
-
-
+  Simple compile procedure:
   ,----
   | # 1. Go to NITRC.org and download package
   | # Unpack archive:
@@ -195,16 +176,19 @@ _________________
   |     cd mrtrix-0.2.X/
   |     ./build
   | 
+  | # if there are compilation errors for pango_x_fonts*, add -lpangox-1.0 to build step
+  | 
   | # 3. Install (as root):
-  |     ./build install
+  |     sudo ./build install
+  | # this installs executables to /opt/mrtrix
+  | # unfortunately the lib in /opt/mrtrix/lib is not linked to /usr/lib
+  | # either add to LD_LIBRARY_PATH in bashrc or soft link it
   `----
 
-
-  For mrtrix3:
+  For mrtrix3 built on MASSIVE:
   ,----
   | git clone https://github.com/jdtournier/mrtrix3
   | cd mrtrix
-  | 
   | export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7/site-packages:/usr/local/python/2.7.8-gcc/lib/python2.7
   | export CFLAGS="-I/usr/include -DGLX_GLXEXT_PROTOTYPES"
   | python2.7 ./configure
@@ -257,8 +241,132 @@ _________________
 3 [Optional] Scipy install from source
 ======================================
 
-  [http://www.scipy.org/scipylib/building/linux.html]
+  Read this first: [http://www.scipy.org/scipylib/building/linux.html]
 
   ATLAS
   [http://sourceforge.net/projects/math-atlas/files/latest/download?source=files]
   Lapack wget [http://www.netlib.org/lapack/lapack-3.5.0.tgz]
+
+  The Agilent workstation is a RHEL.  Use `yum groupinstall
+  "Developmental Tools"` to enable more features if you want more recent
+  packages (e.g. atlas-devel, lapack-devel, PyQt4-devel) required to
+  install numpy and scipy from source.
+
+  [Obsolete]
+  ,----
+  | sudo yum install --upgrade python
+  | cd ~/src
+  | export LAPACK_SRC=/home/vnmr1/src/lapack-3.5.0/SRC/
+  |    wget http://www.netlib.org/lapack/lapack-3.5.0.tgz 
+  |    tar zxvf lapack-3.5.0.tgz && cd lapack-3.5.0
+  |    cp make.inc.example make.inc 
+  |    sed -i -e 's/^OPTS\(.*\)/OPTS \1 -m64 -fPIC/' -e 's/^NOOPT\(.*\)/NOOPT \1 -m64 -fPIC/' make.inc
+  | 
+  |    make 
+  |    make -C BLAS/SRC
+  | 
+  | #   ln -s blas_LINUX.a libblas.a
+  | #   ln -s lapack_LINUX.a liblapack.a
+  | #   ln -s tmglib_LINUX.a libtmglib.a
+  | 
+  | export BLAS_SRC=/home/vnmr1/src/lapack-3.5.0/BLAS/SRC
+  | export ATLAS=/home/vnmr1/src/ATLAS_3.11.30/ATLAS
+  | export LD_LIBRARY_PATH=$HOME/src/lapack-3.5.0:$LD_LIBRARY_PATH
+  | export PYTHONPATH=~/.local/lib/python2.6/site-packages:/usr/lib64/python2.6/site-packages:/usr/lib/python2.6/site-packages
+  | 
+  | pip install --user --force-reinstall --upgrade numpy
+  | pip install --user --force-reinstall --upgrade scipy
+  | python -c 'import numpy;numpy.test()
+  | python -c 'import scipy;scipy.test()'
+  `----
+
+  Numpy scipy prerequisites
+  ,----
+  | pip install --user Tempita
+  | pip install --user cython
+  `----
+
+  [http://www.scipy.org/scipylib/building/linux.html#building-atlas]
+
+  ATLAS and lapack, download package at
+  [http://sourceforge.net/project/showfiles.php?group_id=23725]
+
+  ,----
+  | tar zxvf ATLAS-3.11.30
+  | cd ATLAS-3.11.30/ATLAS
+  | mkdir ATLAS_LINUX
+  | cd ATLAS_LINUX
+  | sudo /usr/bin/cpufreq-selector -g performance
+  | ../configure -Fa alg -fPIC --with-netlib-lapack-tarfile=$HOME/src/lapack-3.5.0.tgz
+  | ## This will take some time
+  | make
+  | cd lib
+  | make shared
+  | make ptshared
+  | sudo make install
+  | ## when finished, reset the cpu throttling
+  | sudo /usr/bin/cpufreq-selector -g ondemand
+  `----
+
+  Now get Scipy.  Use shared or threaded atlas in compilation
+  ,----
+  | cd ~/src
+  | git clone https://github.com/scipy/scipy.git
+  | cd scipy
+  | export ATLAS=/usr/local/atlas/lib/libsatlas.so
+  | export LAPACK=/usr/local/atlas/lib/liblapack.a
+  | export BLAS=/usr/local/atlas/lib/libcblas.a
+  | pip install --user --force-reinstall --upgrade numpy
+  | python setup.py install --user
+  | 
+  | python -c 'import numpy; numpy.show_config()'
+  | python -c 'import numpy;numpy.test()'
+  | python -c 'import scipy;scipy.test()'
+  `----
+
+
+3.1 Testing
+~~~~~~~~~~~
+
+  ,----
+  | #!/usr/bin/env python                                                           
+  | import numpy
+  | import sys
+  | import timeit
+  | 
+  | try:
+  |     import numpy.core._dotblas
+  |     print 'FAST BLAS'
+  | except ImportError:
+  |     print 'slow blas'
+  | 
+  | print "version:", numpy.__version__
+  | print "maxint:", sys.maxint
+  | print
+  | 
+  | x = numpy.random.random((1000,1000))
+  | 
+  | setup = "import numpy; x = numpy.random.random((1000,1000))"
+  | count = 5
+  | 
+  | t = timeit.Timer("numpy.dot(x, x.T)", setup=setup)
+  | print "dot:", t.timeit(count)/count, "sec"
+  `----
+
+  ,----
+  | #!/usr/bin/env python                                                           
+  | import timeit
+  | 
+  | 
+  | setup = "import numpy;\
+  | 	import scipy.linalg as linalg;\
+  | 	x = numpy.random.random((1000,1000));\
+  | 	z = numpy.dot(x, x.T)"
+  | count = 5
+  | 
+  | t = timeit.Timer("linalg.cholesky(z, lower=True)", setup=setup)
+  | print "cholesky:", t.timeit(count)/count, "sec"
+  | 
+  | t = timeit.Timer("linalg.svd(z)", setup=setup)
+  | print "svd:", t.timeit(count)/count, "sec"
+  `----
