@@ -1226,7 +1226,8 @@ typedef enum {
         print 'Processing diffusion image'
 
     # Get procpar diffusion parameters
-    Bvalue = procpar['bvalue']  # 64 element array
+    Bvalue = procpar['bvalue']  # 64 element array for 31 directions
+                                # 10 for 3 directions
     BValueSortIdx = np.argsort(Bvalue)
     BvalSave = procpar['bvalSave']
     if 'bvalvs' in procpar.keys():
@@ -1258,8 +1259,10 @@ typedef enum {
     # fdf_properties['array_index']
 
     # Sort diffusion based on sorted index of Bvalue instead of
-    # fdf_properties['array_index']
-    ds.AcquisitionNumber = BValueSortIdx[diffusion_idx]
+    if ds.MRAcquisitionType == '2D':
+        fdf_properties['array_index']
+    else:
+        ds.AcquisitionNumber = BValueSortIdx[diffusion_idx]
 
 #    if (math.fabs(Bvalue[ diffusion_idx ] - fid_properties['bvalue']) > 0.005):
 # print 'Procpar and fdf B-value mismatch: procpar value ', Bvalue[
@@ -1273,6 +1276,8 @@ typedef enum {
 
     diffusionseq = Dataset()
     if Bvalue[diffusion_idx] < 20:
+        if Bvalue[diffusion_idx] != 0:
+            print "Diffusion reference not quite zero, setting to zero instead!"
         diffusionseq.DiffusionBValue = 0
         diffusionseq.DiffusionDirectionality = 'NONE'
     else:
@@ -1302,7 +1307,7 @@ typedef enum {
         diffbmatseq.DiffusionBValueYZ = BvalueSP[diffusion_idx]
         diffbmatseq.DiffusionBValueZZ = BvalueSS[diffusion_idx]
         diffusionseq.DiffusionBMatrixSequence = Sequence([diffbmatseq])
-        
+
     # TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
     diffusionseq.DiffusionAnisotropyType = 'FRACTIONAL'
     ds.MRDiffusionSequence = Sequence([diffusionseq])
