@@ -192,7 +192,23 @@ def vessel_mask(img,thr=0.74,reps=2):
         mask = ndimage.binary_fill_holes(mask, structure = np.ones((20, 20, 20)))
     return img * mask
 
+
+def max_contrast_image(magnitude,phase,reference):
+    """MCI maximum contrast image
+
+ Created by Zhaolin Chen 
+ Adapted by Amanda Ng on 11 March 2009
+ Updated by Michael Eager July 2015
+    """    
+    phasereg=phase.*0
+    phasereg(phase>0)=phase(phase>0)-reference[1]
+    phasereg(phase<0)=phase(phase<0)+reference[1]
     
+    output = np.sqrt((magnitude-reference[0])**2 + (phasereg)**2)
+    return output
+
+
+
 
 if __name__ == "__main__":
 

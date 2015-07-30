@@ -4,13 +4,29 @@
 Noiseest:  Noise estimation from two images
 Phaserecon:  homodyne filter phase reconstruction
 
+ - Michael Eager  (michael.eager@monash.edu)
+"""
+"""
+  Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
 
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
 from scipy import ndimage
 
-def noiseest(img1,img2):
+def tworepnoiseest(img1,img2):
     if np.iscomplexobj(img1) and np.iscomplexobj(img2):
         real_STD = noiseest(img1.real,img2.real)
         imag_STD = noiseest(img1.imag,img2.imag)
@@ -156,12 +172,6 @@ def pipeline_three(cmplx_ksp):
     hdyne_image = mag_hdyne * np.exp(-1i* pha_hdyne)
 
 
-
-
-    
-
-
-    
 
 if __name__ == "__main__":
 
