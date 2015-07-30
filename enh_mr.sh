@@ -47,9 +47,9 @@ else
 #DCM3TOOLS=$(echo "${DCM3TOOLS}"$(ls "${DCM3TOOLS}")"/")
 fi
 if [ ! -d "${DCM3TOOLS}" ]; then
-    error_exit("${DCM3TOOLS} path not found")                   
+    error_exit "${DCM3TOOLS} path not found"
 elif [ ! -x "${DCM3TOOLS}/dcmulti" ]; then
-    error_exit( "Unable to find Dicom3Tool's executable dcmulti")
+    error_exit  "Unable to find Dicom3Tool's executable dcmulti"
 fi   
 export PATH=${PATH}:${DCM3TOOLS}
 RM='/bin/rm -f'
@@ -246,7 +246,7 @@ then
 #    ${RM} "${output_dir}/MULTIECHO"
     echo "Multi echo sequence completed."
     
-elif  [ -f "${stddcmdir}/DIFFUSION" -o bdirs > 0 ]; then
+elif  [ -f "${stddcmdir}/DIFFUSION"  ]; then
     #if  [ -f "${stddcmdir}/DIFFUSION" ]; then
 #	echo "Contents of DIFFUSION"; cat "${stddcmdir}/DIFFUSION"; printf '\n'
 

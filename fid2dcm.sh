@@ -35,6 +35,7 @@ function error_exit(){
       # fi
      exit 1                                                                       
 }
+
 function yesno(){
     read -r -p "$@" response
     response=$(echo "$response" | awk '{print tolower($0)}')
@@ -44,17 +45,24 @@ function yesno(){
     fi
     return 1
 }
+## Set config variables
+FID2DCMPATH="$(dirname "$0")"
+source "${FID2DCMPATH}/agilent2dicom_globalvars.py"
+PROGNAME=$(basename "$0")
+FID2DICOM=fid2dicom.py
+
 
 ## Make sure dcmulti and dciodvfy are in PATH
+DCM3TOOLS=""
 if [ -x dcmulti ];then
     DCM3TOOLS=$(dirname $(which dcmulti))
 else
     DCM3TOOLS=$(/bin/ls -d "${FID2DCMPATH}"/../dicom3tools_*/bin/*)
 fi
 if [ ! -d "${DCM3TOOLS}" ]; then
-    error_exit("${DCM3TOOLS} path not found")                   
+    error_exit "${DCM3TOOLS} path not found"
 elif [ ! -x "${DCM3TOOLS}/dcmulti" ]; then
-    error_exit( "Unable to find Dicom3Tool's executable dcmulti")
+    error_exit "Unable to find Dicom3Tool's executable dcmulti"
 fi
 export PATH=${PATH}:${DCM3TOOLS}
 
@@ -68,11 +76,6 @@ fi
 
 
 
-## Set config variables
-FID2DCMPATH="$(dirname "$0")"
-source "${FID2DCMPATH}/agilent2dicom_globalvars.py"
-PROGNAME=$(basename "$0")
-FID2DICOM=fid2dicom.py
 RM='/bin/rm -f'
 RMDIR='/bin/rm -rf'
 E_BADARGS=65

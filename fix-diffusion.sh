@@ -32,7 +32,7 @@ else
 fi
 
 if [ ! -x $(which dcmodify) ];then
-    error_exit("dcmodify not found (fix-dicoms.sh)"); 
+    error_exit "dcmodify not found (fix-dicoms.sh)"
     exit 1
 fi
 

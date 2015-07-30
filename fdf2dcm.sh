@@ -247,11 +247,11 @@ then
 
 
 ## Crux of script - conversion of FDF images to standard DICOM images
-    echo  "Calling agilent2dicom"
+    echo  "Calling agilentFDF2dicom"
     echo " Arguments: ", "${python_args}" -i "${input_dir}" -o "${output_dir}"
     "${FDF2DCMPATH}/${AGILENT2DICOM}" ${python_args} -i "${input_dir}" -o "${output_dir}"
 
-    [ $? -ne 0 ] && error_exit "$LINENO: agilent2dicom failed"
+    [ $? -ne 0 ] && error_exit "$LINENO: $AGILENT2DICOM failed"
     
     [ ! -d "${output_dir}" ] && error_exit "$LINENO: Output dir not created by agilent2dicom."
 
@@ -273,7 +273,7 @@ then
     nechos=$(printf "%1.0f" "$nechos")
     echo "Multi echo sequence, $nechos echos"
     for ((iecho=1;iecho<=nechos;++iecho)); do
-     	echoext=$(printf '%03d' $iecho) 
+     	echoext=$(printf '%03d' $iecho)
      	echo "Converting echo ${iecho} using dcmulti"
      	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${echoext}.dcm" | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     done
@@ -297,14 +297,16 @@ elif  [ -f "${output_dir}/DIFFUSION" ]; then
 
     # nbdirs=$(cat ${output_dir}/DIFFUSION)
     # ((++nbdirs)) # increment by one for B0
-    nbdirs=$(ls -1 "${output_dir}/tmp/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
+    nbdirs=$(ls -1 ${output_dir}/tmp/slice* | sed 's/.*image\(.*\)echo.*/\1/' | tail -1)
+    # strip leading zeroes 
+    nbdirs=$((10#$nbdirs))
 
     echo "Diffusion sequence, $nbdirs B-directions"
     for ((ibdir=1;ibdir<=nbdirs;ibdir++)); do
      	bdirext=$(printf '%03d' $ibdir)
      	echo "Converting bdir ${ibdir} using dcmulti"
 	## Input files are sorted by image number and slice number. 
-     	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 "${output_dir}/tmp/*image${bdirext}*.dcm" | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+     	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 ${output_dir}/tmp/*image${bdirext}*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
     done
     echo "Diffusion files compacted."
@@ -333,7 +335,7 @@ else
     ## number. The second argument reorders the list of 2D dicom files
     ## based on echo time, then image number, then slice number.
     ## Only one output file is required, 0001.dcm. 
-    ${DCMULTI} "${output_dir}/0001.dcm" $(ls -1 "${output_dir}/tmp/*.dcm"  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
+    ${DCMULTI} "${output_dir}/0001.dcm" $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     [ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
 
 fi
