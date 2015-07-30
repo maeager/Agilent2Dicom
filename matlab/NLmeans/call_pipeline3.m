@@ -15,6 +15,7 @@ addpath(fullfile(root_path, 'matlab/NLmeans'))
 addpath(genpath(fullfile(root_path, 'matlab/NLmeans/MRIDenoisingPackage')))
 run  matlab/NLmeans/vlfeat-0.9.17/toolbox/vl_setup.m
 
+display('Calling non-local means filter pipeline 3')
 
 voxelsize=[];
 
@@ -67,11 +68,8 @@ if sum(voxelsize1) ~= sum(voxelsize2)
 end
 voxelsize=voxelsize1;
 
-
 display 'Calling pipeline 3'
 tic(),MRIdenoised3 = pipeline3(ksp1,ksp2);toc()
-% plotting_Wt2(abs(ge3drep1fid(:,:,71)),MRIdenoised2(:,:,71),MRIdenoised3(:,:,71))
-% save New-joint-data/WT2/denoised_ge3d.mat MRIdenoised2 MRIdenoised3
 
 if exist(out,'file')~=2 && ~isdir(out)
     %if not a file or a dir, create dir

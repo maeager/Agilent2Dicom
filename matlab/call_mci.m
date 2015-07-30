@@ -1,5 +1,5 @@
 function call_mci(in1,in2,out)
-% Calling non-local means pipeline 3
+% Calling MCI - max contrast imaging
 %
 % - (C) 2015 Michael Eager (michael.eager@monash.edu)
 % - Monash Biomedical Imaging
@@ -11,7 +11,7 @@ addpath(fullfile(root_path,'matlab'))
 addpath(fullfile(root_path,'matlab/NIFTI'))
 addpath(fullfile(root_path, 'matlab/Agilent/'))
 
-
+display('Calling MCI')
 if nargin == 3
     posflag=0;
 end

@@ -1,5 +1,5 @@
 function call_swi(in1,in2,out,posflag)
-% Calling non-local means pipeline 3
+% Calling susceptibility weighted imaging filter
 %
 % - (C) 2015 Michael Eager (michael.eager@monash.edu)
 % - Monash Biomedical Imaging
@@ -11,6 +11,7 @@ addpath(fullfile(root_path,'matlab'))
 addpath(fullfile(root_path,'matlab/NIFTI'))
 addpath(fullfile(root_path, 'matlab/Agilent/'))
 
+display('Calling SWI')
 
 if nargin == 3
     posflag=0;

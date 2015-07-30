@@ -15,6 +15,8 @@ addpath(fullfile(root_path, 'matlab/NLmeans'))
 addpath(genpath(fullfile(root_path, 'matlab/NLmeans/MRIDenoisingPackage')))
 run  matlab/NLmeans/vlfeat-0.9.17/toolbox/vl_setup.m
 
+display('Calling non-local means filter pipeline 1')
+
 voxelsize=[];
 
 if exist(in,'file')==2 && ~isempty(strfind(in,'.nii'))
