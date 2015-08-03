@@ -1,19 +1,20 @@
 function call_pipeline1(in,out)
 % Calling non-local means pipeline 1
-%
+%  Use rician noise estimator to calculate std of noise in one MRI
+% magnitude image
 % - (C) Michael Eager 2015 (michael.eager@monash.edu)
 % - Monash Biomedical Imaging
-
-[a,b,c] = fileparts(mfilename('fullpath')) ;
+display([' In call_pipeline1 ' in  out])
+[a,b,c] = fileparts(mfilename('fullpath')) 
 [a,b,c] = fileparts(a) ;
-root_path=a;
-addpath(fullfile(root_path,'matlab'))
-addpath(fullfile(root_path,'matlab/NIFTI'))
-addpath(fullfile(root_path, 'matlab/Agilent/'))
-addpath(fullfile(root_path, 'matlab/NLmeans'))
+root_path=a
+addpath(fullfile(root_path,'../matlab'))
+addpath(fullfile(root_path,'../matlab/NIFTI'))
+addpath(fullfile(root_path, '../matlab/Agilent/'))
+addpath(fullfile(root_path, '../matlab/NLmeans'))
 % add recursive directories in MRI denoise package
-addpath(genpath(fullfile(root_path, 'matlab/NLmeans/MRIDenoisingPackage')))
-run  matlab/NLmeans/vlfeat-0.9.17/toolbox/vl_setup.m
+addpath(genpath(fullfile(root_path, '../matlab/NLmeans/MRIDenoisingPackage')))
+run (fullfile(root_path,'../matlab/NLmeans/vlfeat/toolbox/vl_setup.m'))
 
 display('Calling non-local means filter pipeline 1')
 

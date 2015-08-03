@@ -7,13 +7,13 @@ function call_pipeline3(in1,in2,out)
 [a,b,c] = fileparts(mfilename('fullpath')) ;
 [a,b,c] = fileparts(a) ;
 root_path=a;
-addpath(fullfile(root_path,'matlab'))
-addpath(fullfile(root_path,'matlab/NIFTI'))
-addpath(fullfile(root_path, 'matlab/Agilent/'))
-addpath(fullfile(root_path, 'matlab/NLmeans'))
+addpath(fullfile(root_path,'../matlab'))
+addpath(fullfile(root_path,'../matlab/NIFTI'))
+addpath(fullfile(root_path, '../matlab/Agilent/'))
+addpath(fullfile(root_path, '../matlab/NLmeans'))
 % add recursive directories in MRI denoise package
-addpath(genpath(fullfile(root_path, 'matlab/NLmeans/MRIDenoisingPackage')))
-run  matlab/NLmeans/vlfeat-0.9.17/toolbox/vl_setup.m
+addpath(genpath(fullfile(root_path, '../matlab/NLmeans/MRIDenoisingPackage')))
+run  (fullfile(root_path, '../matlab/NLmeans/vlfeat/toolbox/vl_setup.m'))
 
 display('Calling non-local means filter pipeline 3')
 
