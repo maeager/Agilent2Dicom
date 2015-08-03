@@ -46,8 +46,8 @@ path in the bash user config file).
 
 #+begin_src sh
 # wget https://bitbucket.org/mbi-image/agilent2dicom/get/default.tar.gz
-#mkdir Agilent2Dicom
-#tar zxvf default.tar.gz Agilent2Dicom/ 
+# mkdir Agilent2Dicom
+# tar zxvf default.tar.gz Agilent2Dicom/ 
 wget https://carbon2.mbi.monash.edu.au/mbi-image/Agilent2Dicom/repository/archive.zip
 unzip archive.zip
 cd Agilent2Dicom.git
@@ -61,8 +61,8 @@ Check your python installation for the required packages using the
 check.py script:
 
 #+begin_src bash
-cd Agilent2Dicom
-./check.py
+ cd Agilent2Dicom
+ ./check.py
 #+end_src
 
 

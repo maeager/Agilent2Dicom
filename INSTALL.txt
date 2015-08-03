@@ -14,7 +14,6 @@ _________________
 .. 2.1 Non-local means filter
 .. 2.2 Copy of NIFTI package (mathworks)
 3 [Optional] Scipy install from source
-.. 3.1 Testing
 
 
 
@@ -210,12 +209,13 @@ _________________
 2.1 Non-local means filter
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  Read README file in NLmeans and compile vlfeat
+  Read README file in NLmeans and compile vlfeat. MATLAB must be in PATH
+  for vlfeat to compile correctly.
   ,----
   | mkdir matlab/NLmeans;
   | cd matlab/NLmeans
   | git clone https://github.com/UB-TFG-TFM-1415/SS-DDLS.git
-  | patch -p1 SS-DDLS-patch.txt
+  | (cd SS-DDLS;patch -p1 ../SS-DDLS-patch.txt)
   | mv SS-DDLS/Code/Utils/MRIDenoisingPackage ./
   | rm -rf SS-DDLS
   | git clone https://github.com/vlfeat/vlfeat.git
@@ -243,14 +243,46 @@ _________________
 
   Read this first: [http://www.scipy.org/scipylib/building/linux.html]
 
-  ATLAS
+  1. Download ATLAS and Lapack
+  ATLAS link:
   [http://sourceforge.net/projects/math-atlas/files/latest/download?source=files]
-  Lapack wget [http://www.netlib.org/lapack/lapack-3.5.0.tgz]
+  Lapack link: [http://www.netlib.org/lapack/lapack-3.5.0.tgz]
 
-  The Agilent workstation is a RHEL.  Use `yum groupinstall
+  1. Prerequistites for ATLAS and Lapack
+  The Agilent workstation is a RHEL 6.  Use `yum groupinstall
   "Developmental Tools"` to enable more features if you want more recent
   packages (e.g. atlas-devel, lapack-devel, PyQt4-devel) required to
   install numpy and scipy from source.
+
+
+
+  1. Install Numpy scipy prerequisites
+  ,----
+  | pip install --user Tempita
+  | pip install --user cython
+  `----
+
+
+
+  1. ATLAS and lapack compilation
+  Read
+  [http://www.scipy.org/scipylib/building/linux.html#building-atlas]
+  ,----
+  | tar zxvf ATLAS-3.11.30
+  | cd ATLAS-3.11.30/ATLAS
+  | mkdir ATLAS_LINUX
+  | cd ATLAS_LINUX
+  | sudo /usr/bin/cpufreq-selector -g performance
+  | ../configure -Fa alg -fPIC --with-netlib-lapack-tarfile=$HOME/src/lapack-3.5.0.tgz
+  | ## This will take some time
+  | make
+  | cd lib
+  | make shared
+  | make ptshared
+  | sudo make install
+  | ## when finished, reset the cpu throttling
+  | sudo /usr/bin/cpufreq-selector -g ondemand
+  `----
 
   [Obsolete]
   ,----
@@ -280,35 +312,11 @@ _________________
   | python -c 'import scipy;scipy.test()'
   `----
 
-  Numpy scipy prerequisites
-  ,----
-  | pip install --user Tempita
-  | pip install --user cython
-  `----
 
-  [http://www.scipy.org/scipylib/building/linux.html#building-atlas]
+  1. Compile Numpy and Scipy.
+  Use shared or threaded atlas in compilation. Numpy from pip is fine
+  (1.9.2) but scipy needs to come from the git repo.
 
-  ATLAS and lapack, download package at
-  [http://sourceforge.net/project/showfiles.php?group_id=23725]
-
-  ,----
-  | tar zxvf ATLAS-3.11.30
-  | cd ATLAS-3.11.30/ATLAS
-  | mkdir ATLAS_LINUX
-  | cd ATLAS_LINUX
-  | sudo /usr/bin/cpufreq-selector -g performance
-  | ../configure -Fa alg -fPIC --with-netlib-lapack-tarfile=$HOME/src/lapack-3.5.0.tgz
-  | ## This will take some time
-  | make
-  | cd lib
-  | make shared
-  | make ptshared
-  | sudo make install
-  | ## when finished, reset the cpu throttling
-  | sudo /usr/bin/cpufreq-selector -g ondemand
-  `----
-
-  Now get Scipy.  Use shared or threaded atlas in compilation
   ,----
   | cd ~/src
   | git clone https://github.com/scipy/scipy.git
@@ -324,10 +332,7 @@ _________________
   | python -c 'import scipy;scipy.test()'
   `----
 
-
-3.1 Testing
-~~~~~~~~~~~
-
+  1. Testing
   ,----
   | #!/usr/bin/env python                                                           
   | import numpy
