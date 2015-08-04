@@ -1,4 +1,4 @@
-function call_swi(in1,in2,out,posflag)
+function call_swi(in1,in2,out,order,preprocess,saveRI,swineg,swipos)
 % Calling susceptibility weighted imaging filter
 %
 % - (C) 2015 Michael Eager (michael.eager@monash.edu)
@@ -13,8 +13,17 @@ addpath(fullfile(root_path, 'matlab/Agilent/'))
 
 display('Calling SWI')
 
-if nargin == 3
-    posflag=0;
+if nargin < 7
+    swipos=0;
+end
+if nargin < 6
+    swipneg=0;
+end
+if nargin < 5
+    saveRI=0;
+end
+if nargin < 4
+    order=0;    
 end
     
 
@@ -101,10 +110,10 @@ else
     save_nii(make_nii((swi_n1+swi_n2)/2,voxelsize,[],16),out)
 end
 
-if posflag == 1
+if swipos == 1
    swi_p1=flipdim(flipdim(flipdim(swi_p1,1),2),3);
    swi_p1=circshift(swi_p1,[1,1,1]);
- 
+   out = regexp(out,'neg','pos');
     if isempty(ksp2)
         save_nii(make_nii(swi_p1,voxelsize,[],16),out)
     else
@@ -113,3 +122,4 @@ if posflag == 1
         save_nii(make_nii((swi_p1+swi_p2)/2,voxelsize,[],16),out)
     end
 end
+

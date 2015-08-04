@@ -1,4 +1,4 @@
-function call_pipeline3(in1,in2,out)
+function call_pipeline3(in1,in2,out,flags)
 % Calling non-local means pipeline 3
 %
 % - (C) 2015 Michael Eager (michael.eager@monash.edu)
@@ -16,6 +16,16 @@ addpath(genpath(fullfile(root_path, '../matlab/NLmeans/MRIDenoisingPackage')))
 run  (fullfile(root_path, '../matlab/NLmeans/vlfeat/toolbox/vl_setup.m'))
 
 display('Calling non-local means filter pipeline 3')
+saveRI=0;savePhase=0;
+if nargin ==3
+    flags=0
+end
+if flags>=4
+    savePhase=1;
+end
+if mod(flags,2)==1
+    saveRI=1;
+end
 
 voxelsize=[];
 
@@ -76,9 +86,17 @@ if exist(out,'file')~=2 && ~isdir(out)
     mkdir (out)
 end
 if isdir(out)
-    out=[out '/pipeline3.nii.gz'];
+    out=[out '/pipeline3_magn.nii.gz'];
 end
 if exist(out,'file')
     delete(out)
 end
-save_nii(make_nii(MRIdenoised3,voxelsize,[],16),out)
+save_nii(make_nii(abs(MRIdenoised3),voxelsize,[],16),out)
+
+if savePhase
+    save_nii(make_nii(angle(MRIdenoised3),voxelsize,[],16),regexprep(out,'magn','pha'))
+end
+if saveRI
+    save_nii(make_nii(real(MRIdenoised3),voxelsize,[],16),regexprep(out,'magn','real'))
+    save_nii(make_nii(imag(MRIdenoised3),voxelsize,[],16),regexprep(out,'magn','imag'))
+end    

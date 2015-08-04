@@ -13,7 +13,8 @@
 # Version 1.8.1:
 # Version 1.8.2: CleanUpDicom dialog
 #   Name change: AgilentImageProcessing replaces Agilent2DicomQt2
-# Version 2.0.0: Phase and non-local means image processing tools included in new tab
+# Version 2.0.0: Phase and non-local means image processing tools included in 
+#                new tab
 #
 # Copyright 2015 Michael Eager
 #
@@ -49,9 +50,9 @@ from PyQt4.QtGui import QDialog, QFileDialog, QApplication
 from Agilent2DicomQt2 import Ui_MainWindow, _translate
 from ReadProcpar import ReadProcpar, ProcparInfo
 from agilent2dicom_globalvars import AGILENT2DICOM_APP_VERSION, AGILENT2DICOM_VERSION
-DEBUGGING = 1
 import logging
-
+from dcmcleanup import Ui_CleanUpDialog
+DEBUGGING = 1
 # Agilent2DicomAppVersion=0.7
 __author__ = "Michael Eager, Monash Biomedical Imaging"
 __version__ = str(AGILENT2DICOM_APP_VERSION)
@@ -61,49 +62,53 @@ __copyright__ = "Copyright 2014-2015 Michael Eager"
 
 Agilent2DicomAppStamp = re.sub(
     r'\$Id$', r'\1', "$Id$")
-cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
+cmd_header = 'source ~/.bashrc;(if test ${MASSIVE_USERNAME+defined}; \n\
 then \n\
-echo ''On Massive'' \n\
-module purge \n\
-module load massive virtualgl\n\
-module load python/2.7.1-gcc \n\
-module load python/2.7.3-gcc \n\
-module load dcmtk mrtrix \n\
-#module list \n\
-#export PYTHONPATH=/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages \n\
+   echo \"On Massive\" \n\
+   module purge \n\
+   module load massive virtualgl\n\
+   module load python/2.7.1-gcc \n\
+   module load python/2.7.3-gcc \n\
+   module load dcmtk mrtrix \n\
+   #module list \n\
+   #export PYTHONPATH=/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages \n\
 else \n\
-echo ''Not in MASSIVE'' \n\
+echo \"Not in MASSIVE\" \n\
 fi \n\
-echo ''Done''\n '
-proc_header = '(if test ${MASSIVE_USERNAME+defined} \n\
-then \n\
-echo ''On Massive'' \n\
-module purge \n\
-module load massive virtualgl\n\
-module load matlab/r2014a \n\
-module list \n\
-else \n\
-  echo ''Checking whether matlab in PATH.'' \n\
-  if test -x `which matlab`; \n\
-  then echo "MATLAB found."; \n\
-  else echo "Cannot find MATLAB in PATH. Close program and exit PATH in local bashrc file. Exiting shell..; exit 1; \n\
-  fi \n\
-fi \n\
-echo ''Done''\n '
+echo \"Done\"; '
 
-mrview_header = 'if test ${MASSIVE_USERNAME+defined} \n\
+proc_header = 'source ~/.bashrc;(if test ${MASSIVE_USERNAME+defined}; \n\
 then \n\
-echo ''On Massive'' \n\
-module purge \n\
-module load massive virtualgl\n\
-module load mrtrix3 \n\
-module list \n\
-GL = vglrun\n\
+   echo \"On Massive\" \n\
+   module purge \n\
+   module load massive virtualgl\n\
+   module load matlab \n\
+   module list \n\
+else \n\
+   echo \"Checking whether matlab in PATH.\" \n\
+   if test -x `which matlab`; \n\
+   then \n\
+      echo \"MATLAB found.\"; \n\
+   else \n\
+      echo \"Cannot find MATLAB in PATH. Close program and exit PATH in local bashrc file. Exiting shell..\"; \n\
+       exit 1; \n\
+   fi \n\
+fi \n\
+echo \"Done\"; '
+
+mrview_header = 'source ~/.bashrc;if test ${MASSIVE_USERNAME+defined}; \n\
+then \n\
+   echo "On Massive" \n\
+   module purge \n\
+   module load massive virtualgl\n\
+   module load mrtrix3 \n\
+   module list \n\
+   GL = vglrun\n\
 else GL= \n\
 fi; $GL mrview '
 
 inputdir = []
-from dcmcleanup import Ui_CleanUpDialog
+
 
 
 class CleanUpDialog(QtGui.QDialog, Ui_CleanUpDialog):
@@ -182,8 +187,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_changefid.clicked.connect(self.ChangeFIDpath)
         self.ui.pushButton_changedicom2.clicked.connect(
             self.ChangeFIDDicomPath)
-         
-        
+
         self.ui.pushButton_convert.clicked.connect(self.ConvertFDF)
         self.ui.pushButton_check.clicked.connect(self.CheckFDF)
         self.ui.pushButton_view.clicked.connect(self.ViewFDF)
@@ -205,17 +209,14 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_SWI.clicked.connect(self.ProcSWI)
         self.ui.pushButton_MEE.clicked.connect(self.ProcMEE)
         self.ui.pushButton_MCI.clicked.connect(self.ProcMCI)
-        
         self.ui.pushButton_NLpipeline1.clicked.connect(self.ProcNLpipeline1)
         self.ui.pushButton_NLpipeline2.clicked.connect(self.ProcNLpipeline2)
         self.ui.pushButton_NLpipeline3.clicked.connect(self.ProcNLpipeline3)
-        
 
         QtCore.QObject.connect(self.ui.actionSave_Filter_Outputs_to_Nifti,
                                QtCore.SIGNAL(
                                    QtCore.QString.fromUtf8("triggered()")),
                                self.toggleNifti)
-
         QtCore.QObject.connect(self.ui.actionAbout,
                                QtCore.SIGNAL(
                                    QtCore.QString.fromUtf8("triggered()")),
@@ -1006,14 +1007,14 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
                     out = re.sub('img', 'nii', newdir)
                 else:
                     out = newdir + '.nii'
-                self.ui.lineEdit_ProcOutfolder.setText(out)
+                self.ui.lineEdit_ProcOutputfolder.setText(out)
 
             # Reset checkboxes
-            #self.ui.checkBox_gaussian3D.setChecked(False)
-            #self.ui.checkBox_gaussian2D.setChecked(False)
-            #self.ui.checkBox_median.setChecked(False)
-            #self.ui.checkBox_wiener.setChecked(False)
-            #self.UpdateGUI()
+            # self.ui.checkBox_gaussian3D.setChecked(False)
+            # self.ui.checkBox_gaussian2D.setChecked(False)
+            # self.ui.checkBox_median.setChecked(False)
+            # self.ui.checkBox_wiener.setChecked(False)
+            # self.UpdateGUI()
             logging.info('ChangeProc1path ' + newdir)
         except ValueError:
             logging.info('ChangeProc1path error')
@@ -1034,7 +1035,6 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             fidfiles = [f for f in files if f.endswith('fid')]
             if len(fidfiles) == 0:
                 print 'Input folder does not contain any fid files'
-                
                 fdffiles = [f for f in files if f.endswith('.fdf')]
                 if len(fdffiles) == 0:
                     print 'Error: Folder does not contain any fid of fdf files'
@@ -1043,7 +1043,6 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
                     print 'FDF folder found ', newdir
             else:
                 print 'FID folder found ', newdir
-                
             logging.info('ChangeProc2path ' + newdir)
         except ValueError:
             logging.info('ChangeProc2path error')
@@ -1058,19 +1057,16 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             self.ui.lineEdit_ProcInfolder1.setText(newnifti)
             if not os.path.isfile(newnifti):
                 print "File not found"
-                
             if success:
-                
-                out = os.path.dirname( newnifti )
-                
-                self.ui.lineEdit_ProcOutfolder.setText(out)
+                out = os.path.dirname(newnifti)
+                self.ui.lineEdit_ProcOutputfolder.setText(out)
 
             # Reset checkboxes
-            #self.ui.checkBox_gaussian3D.setChecked(False)
-            #self.ui.checkBox_gaussian2D.setChecked(False)
-            #self.ui.checkBox_median.setChecked(False)
-            #self.ui.checkBox_wiener.setChecked(False)
-            #self.UpdateGUI()
+            # self.ui.checkBox_gaussian3D.setChecked(False)
+            # self.ui.checkBox_gaussian2D.setChecked(False)
+            # self.ui.checkBox_median.setChecked(False)
+            # self.ui.checkBox_wiener.setChecked(False)
+            # self.UpdateGUI()
             logging.info('ChangeProc1file ' + newnifti)
         except ValueError:
             logging.info('ChangeProc1file error')
@@ -1085,7 +1081,6 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             self.ui.lineEdit_ProcInfolder2.setText(newnifti)
             if not os.path.isfile(newnifti):
                 print "File not found"
-                
             logging.info('ChangeProc2file ' + newdir)
         except ValueError:
             logging.info('ChangeProc2file error')
@@ -1100,9 +1095,6 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         """
         self.ui.lineEdit_ProcInfolder2.setText("")
 
-    
-            
-    
     def ChangeProcOutputPath(self):
         """ChangeProcOutputPath
         """
@@ -1115,7 +1107,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
                                                           '''))
             files = os.listdir(newdir)
             niifiles = [f for f in files if f.endswith('.nii.gz')]
-            if not len(dcmfiles) == 0:
+            if not len(niifiles) == 0:
                 quit_msg = "Do you want to delete existing niftis?"
                 reply = QtGui.QMessageBox.question(self, 'Message',
                                                    quit_msg,
@@ -1130,39 +1122,34 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
                     logging.info('ProcOutputpath ... deleted Niftis.')
             
             self.ui.lineEdit_ProcOutputfolder.setText(newdir)
-            
             self.UpdateGUI()
             logging.info('ChangeProcOutputpath ' + newdir)
         except ValueError:
             logging.info('ChangeProcOutputpath error')
 
-            
     def ProcSWI(self):
         """Process SWI
         """
         try:
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
-            #input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
-            output_dir = str(self.ui.lineEdit_ProcOutfolder.text())
-            
+            input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
+            output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
+            preprocess = int(self.ui.radioButton_swipreprocess.isChecked())
+            swiorder = str(self.ui.lineEdit_swiorder.text())
+            saveRI = int(self.ui.radioButton_swisaveRI.isChecked())
+            swineg = int(self.ui.radioButton_swineg.isChecked())
+            swipos = int(self.ui.radioButton_swipos.isChecked())
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
-            print 'swifid path: %s' % thispath
-            cmd1 = os.path.join(thispath, 'swifid.sh')
-            cmd1 = cmd1 + ' -v '
-            cmd1 = cmd1 + ' -i ' + str(input1_dir) + ' -o ' + str(output_dir)
-            print cmd1
-            cmd = cmd_header + cmd1 + ')'
-            cmd1 = "matlab -nodesktop -nosplash -r \""
-            cmd1 = cmd1 + "addpath matlab; "
-            cmd1 = cmd1 +  "call_swi('" + str(input1_dir) + "','" \
-                   + str(input2_dir) + "','" \
-                   + os.path.join(str(output_dir),'pipeline2.nii.gz') +"');quit"
-            cmd1 = cmd1 + "\""
-            print cmd1
-            cmd = proc_header + cmd1 + ')'
+            # print 'swifid path: %s' % thispath
+            # cmd1 = os.path.join(thispath, 'swifid.sh')
+            # cmd1 = cmd1 + ' -v '
+            # cmd1 = cmd1 + ' -i ' + str(input1_dir) + ' -o ' + str(output_dir)
+            # print cmd1
+            # cmd = cmd_header + cmd1 + ')'
+            cmd = """%s matlab -nodesktop -nosplash -r "addpath ./matlab;call_swi('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%d,%d,%d,%d);quit"  """%(proc_header, str(input1_dir) , str(input2_dir), str(output_dir),swiorder,preprocess,saveRI,swineg,swipos)
             
-            # print cmd
+            print cmd
             logging.info('Processing SWI ' + cmd)
         except ValueError:
             logging.error('ProcSWI error', exc_info=True)
@@ -1193,18 +1180,14 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         """
         try:
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
-            #input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
-            output_dir = str(self.ui.lineEdit_ProcOutfolder.text())
+            input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
+            output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
+            saveRI = int(self.ui.radioButton_MCI_RI.isChecked())
             
-            thispath = os.path.dirname(
-                os.path.realpath(os.path.abspath(__file__)))
-            print 'mcifid path: %s' % thispath
-            cmd1 = os.path.join(thispath, 'mcifid.sh')
-            cmd1 = cmd1 + ' -v '
-            cmd1 = cmd1 + ' -i ' + str(input1_dir) + ' -o ' + str(output_dir)
-            print cmd1
-            cmd = cmd_header + cmd1 + ')'
-            # print cmd
+            cmd = """%s matlab -nodesktop -nosplash -r "addpath ./matlab;call_mci('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%d);quit"  """%(proc_header, str(input1_dir) , str(input2_dir), str(output_dir),saveRI)
+            # print cmd1
+            # cmd = cmd_header + cmd1 + ')'
+            print cmd
             logging.info('Processing MCI ' + cmd)
         except ValueError:
             logging.error('ProcMCI error', exc_info=True)
@@ -1234,18 +1217,27 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         """
         try:
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
-            #input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
-            output_dir = str(self.ui.lineEdit_ProcOutfolder.text())
-            
+            input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
+            output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
+            meeorder = str(self.ui.lineEdit_meeorder.text())
+            preprocess = int(self.ui.radioButton_meepreproc.isChecked())
+            saveRI  = int(self.ui.radioButton_meesaveRI.isChecked())
+            useswi = int(self.ui.radioButton_meeswi.isChecked())
+            if useswi and saveRI:
+                msg = "SWI is not complex, so real/imag output not possible. Do you want the SWI disabled and save the real/imag from the homodyne filtered image?"
+                reply = QtGui.QMessageBox.question(self, 'Message', msg,QtGui.QMessageBox.Yes,QtGui.QMessageBox.No)
+                if reply == QtGui.QMessageBox.Yes:
+                    #                    event.accept()
+                    self.ui.radioButton_meeswi.setChecked(False)
+                else:
+                    self.radioButton_meesaveRI.setChecked(False)
+                    #                    event.ignore()
+
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
-            print 'meefid path: %s' % thispath
-            cmd1 = os.path.join(thispath, 'meefid.sh')
-            cmd1 = cmd1 + ' -v '
-            cmd1 = cmd1 + ' -i ' + str(input1_dir) + ' -o ' + str(output_dir)
-            print cmd1
-            cmd = proc_header + cmd1 + ')'
-            # print cmd
+            cmd = """%s matlab -nodesktop -nosplash -r "addpath ./matlab;call_swi('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%s,%d,%d,%d);quit"  """%(proc_header, str(input1_dir) , str(input2_dir), os.path.join(str(output_dir),'swi.nii.gz'),meeorder,preprocess,saveRI,useswi)
+
+            print cmd
             logging.info('Processing MEE ' + cmd)
         except ValueError:
             logging.error('ProcMEE error', exc_info=True)
@@ -1277,20 +1269,19 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         try:
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             # input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
-            output_dir = str(self.ui.lineEdit_ProcOutfolder.text())
+            output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
+
+#            radioButton_NLreps
+            inputRI=int(self.uiradioButton_NLinputRI.isChecked())
+                             
             
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
             
-            cmd1 = "matlab -nodesktop -nosplash -r \""
-            cmd1 = cmd1 + "addpath matlab/NLmeans; "
-            cmd1 = cmd1 +  'call_pipline1(\'' + str(input1_dir) + '\',\'' \
-                   + str(input2_dir) + '\',\'' \
-                   + os.path.join(str(output_dir),'pipeline1.nii.gz') +'\');quit'
-            cmd1 = cmd1 + "\""
-            print cmd1
-            cmd = proc_header + cmd1 + ')'
+            cmd = """%s matlab -nodesktop -nosplash -r \"addpath ./matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d);quit\" )""" % (proc_header,str(input1_dir), os.path.join(str(output_dir),'pipeline1.nii.gz'),inputRI)
+            print cmd
+            
             # print cmd
             logging.info('Processing NLpipeline1 ' + cmd)
         except ValueError:
@@ -1323,20 +1314,13 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         try:
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
-            output_dir = str(self.ui.lineEdit_ProcOutfolder.text())
+            output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
             
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
+            cmd = """ %s matlab -nodesktop -nosplash -r "addpath matlab/NLmeans; call_pipeline2('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"');quit" )""" % ( proc_header,str(input1_dir), str(input2_dir),os.path.join(str(output_dir),'pipeline2.nii.gz'))
             
-            cmd1 = "matlab -nodesktop -nosplash -r \""
-            cmd1 = cmd1 + "addpath matlab/NLmeans; "
-            cmd1 = cmd1 +  "call_pipline2('" + str(input1_dir) + "','" \
-                   + str(input2_dir) + "','" \
-                   + os.path.join(str(output_dir),'pipeline2.nii.gz') +"');quit"
-            cmd1 = cmd1 + "\""
-            print cmd1
-            cmd = proc_header + cmd1 + ')'
             # print cmd
             logging.info('Processing NLpipeline2 ' + cmd)
         except ValueError:
@@ -1368,21 +1352,15 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         try:
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
-            output_dir = str(self.ui.lineEdit_ProcOutfolder.text())
-            
+            output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
+            saveRI=int(self.uiradioButton_NLsaveRI.isChecked())
+            savePhase=int(self.uiradioButton_NLsavePhase.isChecked())
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
-            
-            cmd1 = "matlab -nodesktop -nosplash -r \""
-            cmd1 = cmd1 + "addpath matlab/NLmeans; "
-            cmd1 = cmd1 +  "call_pipline3('" + str(input1_dir) + "','" \
-                   + str(input2_dir) + "','" \
-                   + os.path.join(str(output_dir),'pipeline3.nii.gz') +"');quit"
-            cmd1 = cmd1 + "\""
-            print cmd1
-            cmd = cmd_header + cmd1 + ')'
-            # print cmd
+            cmd = """ %s matlab -nodesktop -nosplash -r "addpath matlab/NLmeans;  call_pipeline3('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%s);quit" )""" % ( proc_header,                                                         str(input1_dir), str(input2_dir),str(output_dir),str(saveRI+ 4*savePhase))
+          
+            print cmd
             logging.info('Processing NLpipeline3 ' + cmd)
         except ValueError:
             logging.error('ProcNLpipeline3 error', exc_info=True)

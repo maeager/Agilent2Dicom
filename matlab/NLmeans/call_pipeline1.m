@@ -1,4 +1,4 @@
-function call_pipeline1(in,out)
+function call_pipeline1(in,out,in2)
 % Calling non-local means pipeline 1
 %  Use rician noise estimator to calculate std of noise in one MRI
 % magnitude image
@@ -38,6 +38,28 @@ else
     display(['Cannot find ' in])
     return
 end
+
+if nargin == 3
+    display('Pipeline 1 with real and imag')
+    if exist(in2,'file') && ~isempty(strfind(in2,'.nii')) 
+        nii2_in=load_nii(in2);
+        img2=nii2_in.img;
+        voxelsize2 = nii2_in.dime.pixdim(2:4);
+    elseif ~isempty(strfind(in2,'.img')) && isdir(in2)
+        [img2 hdr] =readfdf(in2);
+        %    voxelsize=hdr.FOVcm/size(img)*10;
+        voxelsize2 = hdr.voxelsize*10;
+    elseif ~isempty(strfind(in2,'.fid')) && isdir(in2)
+        [img2, hdr, ksp, RE, IM] = readfid(in2);
+        %    voxelsize2=hdr.FOVcm*10/size(img);
+        voxelsize2 = hdr.voxelmm;
+    else
+        display(['Cannot find ' in2])
+        return
+    end
+    img = abs(complex(img,img2))
+end
+
 
 display 'Calling pipeline 1'
 tic(),MRIdenoised1=pipeline1(NormaliseImage2(img)*256);toc()

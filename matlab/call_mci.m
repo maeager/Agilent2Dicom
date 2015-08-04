@@ -1,4 +1,4 @@
-function call_mci(in1,in2,out)
+function call_mci(in1,in2,out,saveRI)
 % Calling MCI - max contrast imaging
 %
 % - (C) 2015 Michael Eager (michael.eager@monash.edu)
@@ -13,7 +13,7 @@ addpath(fullfile(root_path, 'matlab/Agilent/'))
 
 display('Calling MCI')
 if nargin == 3
-    posflag=0;
+    saveRI=0;
 end
     
 
@@ -106,20 +106,32 @@ if exist(out,'file')~=2 && ~isdir(out)
     mkdir (out)
 end
 if isdir(out)
-    out=[out '/mci.nii.gz'];
+    out=[out '/mci_magn.nii.gz'];
 end
 if exist(out,'file')
     delete(out)
 end
 
 if isempty(ksp2)
-    save_nii(make_nii(mci_mag1,voxelsize,[],16),out)
+    save_nii(make_nii(abs(mci_mag1),voxelsize,[],16),out)
 else
     mci_mag2 = mci(mag2,pha2,[r_mag,rpha]);
-    save_nii(make_nii((mci_mag1+mci_mag2)/2,voxelsize,[],16),out)
+    save_nii(make_nii(abs((mci_mag1+mci_mag2)/2.0),voxelsize,[],16),out)
 end
 
-
+if saveRI
+    if isempty(ksp2)
+        save_nii(make_nii(real(mci_mag1),voxelsize,[],16),regexprep(out,'magn','real'))
+        save_nii(make_nii(imag(mci_mag1),voxelsize,[],16),regexprep(out,'magn','imag'))
+    else
+        save_nii(make_nii(real((mci_mag1+mci_mag2)/2.0),voxelsize, ...
+                          [],16),regexprep(out,'magn','real'))
+        save_nii(make_nii(imag((mci_mag1+mci_mag2)/2.0),voxelsize, ...
+                          [],16),regexprep(out,'magn','imag'))
+        
+        
+    end
+end
 
 
 function output = mci(magnitude,phase,reference)

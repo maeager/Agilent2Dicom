@@ -49,7 +49,7 @@ display('Processing Real denoised image')
 tic(),MRIdenoised_real = MRIDenoisingMRONLM(avg_real,est_std_real/sqrt(2),1,1,3,1,0);toc()
 display('Processing Imag denoised image')
 MRIdenoised_imag = MRIDenoisingMRONLM(avg_imag,est_std_imag/sqrt(2),1,1,3,1,0);toc()
-MRIdenoised = abs(complex(MRIdenoised_real,MRIdenoised_imag));
+MRIdenoised = complex(MRIdenoised_real,MRIdenoised_imag);
 
 
 

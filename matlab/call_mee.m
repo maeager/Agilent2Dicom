@@ -1,4 +1,4 @@
-function call_mee(in1,in2,out,porder)
+function call_mee(in1,in2,out,porder,preprocess,saveRI,useswi)
 % Calling MEE - multi-echo enhancement
 %
 % - (C) 2015 Michael Eager (michael.eager@monash.edu)
@@ -12,10 +12,20 @@ addpath(fullfile(root_path,'./matlab/NIFTI'))
 addpath(fullfile(root_path, './matlab/Agilent/'))
 
 display('Calling MCI')
-if nargin == 3
+if nargin < 4 
     porder=3;
 end
-    
+if nargin < 5
+    preprocess=0;
+end
+if nargin < 6
+    saveRI=0;
+end
+if nargin < 7
+    useswi=0;
+end
+
+
 
 voxelsize=[];
 ksp1=[];ksp2=[];
@@ -70,24 +80,35 @@ if ~isempty(in2) && sum(voxelsize1) ~= sum(voxelsize2)
 end
 voxelsize=voxelsize1;
 
+%% If using preprocessing
+% add content
+
+%% Homodyne filter
 
 [pha1, swi_n1, swi_p1, mag1] = phaserecon_v1(ksp1,ksp1,0.4,1,0.05);
 % Necessary translations to match FDF images
-mag1=flipdim(flipdim(flipdim(mag1,1),2),3);
-mag1=circshift(mag1,[1,1,1]);
-pha1=flipdim(flipdim(flipdim(pha1,1),2),3);
-pha1=circshift(pha1,[1,1,1]);
-if ~isempty(ksp2)
-    [pha2, swi_n2, swi_p2, mag2] = phaserecon_v1(ksp2,ksp2,0.4,1, ...
-                                                 0.05);
-    mag2=flipdim(flipdim(flipdim(mag2,1),2),3);
-    mag2=circshift(mag2,[1,1,1]);
-    pha2=flipdim(flipdim(flipdim(pha2,1),2),3);
-    pha2=circshift(pha2,[1,1,1]);
-end
 
+
+
+if ~useswi
+    mag1=flipdim(flipdim(flipdim(mag1,1),2),3);
+    mag1=circshift(mag1,[1,1,1]);
+    pha1=flipdim(flipdim(flipdim(pha1,1),2),3);
+    pha1=circshift(pha1,[1,1,1]);
+    if ~isempty(ksp2)
+        [pha2, swi_n2, swi_p2, mag2] = phaserecon_v1(ksp2,ksp2,0.4,1, 0.05);
+        mag2=flipdim(flipdim(flipdim(mag2,1),2),3);
+        mag2=circshift(mag2,[1,1,1]);
+        pha2=flipdim(flipdim(flipdim(pha2,1),2),3);
+        pha2=circshift(pha2,[1,1,1]);
+    end
 
     mee_mag1 = mee((mag1.*exp(1i*pha1)),porder);
+else
+    swi1=flipdim(flipdim(flipdim(swi_n1,1),2),3);
+    swi1=circshift(swi1,[1,1,1]);
+    mee_mag1 = mee(swi1,porder);
+end
 
 
 if exist(out,'file')~=2 && ~isdir(out)
@@ -95,17 +116,36 @@ if exist(out,'file')~=2 && ~isdir(out)
     mkdir (out)
 end
 if isdir(out)
-    out=[out '/mee.nii.gz'];
+    out=[out '/mee_magn.nii.gz'];
 end
 if exist(out,'file')
     delete(out)
 end
 
 if isempty(ksp2)
-    save_nii(make_nii(mee_mag1,voxelsize,[],16),out)
+    save_nii(make_nii(abs(mee_mag1),voxelsize,[],16),out)
 else
-    mee_mag2 = mee((mag2.*exp(1i*pha2)),porder);
-    save_nii(make_nii((mee_mag1+mee_mag2)/2.0,voxelsize,[],16),out)
+    if ~useswi
+        mee_mag2 = mee((mag2.*exp(1i*pha2)),porder);
+    else
+        swi2=flipdim(flipdim(flipdim(swi_n2,1),2),3);
+        swi2=circshift(swi2,[1,1,1]);
+        mee_mag2 = mee(swi2,porder);
+    end
+    save_nii(make_nii(abs((mee_mag1+mee_mag2)/2.0),voxelsize,[],16),out)
+end
+
+
+if saveRI && ~useswi
+    if isempty(ksp2)
+        save_nii(make_nii(real(mee_mag1),voxelsize,[],16),regexprep(out,'magn','real'))
+        save_nii(make_nii(imag(mee_mag1),voxelsize,[],16),regexprep(out,'magn','imag'))
+    else
+        save_nii(make_nii(real((mee_mag1+mee_mag2)/2.0),voxelsize, ...
+                          [],16),regexprep(out,'magn','real'))
+        save_nii(make_nii(imag((mee_mag1+mee_mag2)/2.0),voxelsize, ...
+                          [],16),regexprep(out,'magn','imag'))
+    end
 end
 
 
