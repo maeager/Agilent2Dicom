@@ -1,5 +1,6 @@
 
-import pstats, cProfile
+import pstats
+import cProfile
 
 
 import os
@@ -30,7 +31,8 @@ parser.add_argument('-a', '--axis_order', help='Axis order eg 1,0,2.')
 parser.add_argument(
     '-v', '--verbose', help='Verbose comments.', action="store_true")
 
-args = parser.parse_args(['--inputdir','../ExampleAgilentData/kidney512iso_01.fid/'])
+args = parser.parse_args(
+    ['--inputdir', '../ExampleAgilentData/kidney512iso_01.fid/'])
 
 procpar, procpartext = Procpar.ReadProcpar(
     os.path.join(args.inputdir, 'procpar'))
@@ -40,7 +42,7 @@ fidfiles = [f for f in files if f.endswith('fid')]
 print "Number of FID files ", len(fidfiles)
 print "Reading FID"
 filename = fidfiles[len(fidfiles) - 1]
-args.verbose=1
+args.verbose = 1
 pp, hdr, dims, data_real, data_imag = readfid(args.inputdir,
                                               procpar, args)
 
@@ -57,12 +59,14 @@ ksp = KSP.kspaceshift(ksp)
 # (uu,vv,ww) = KSP.fouriercoords(ksp.shape)
 # Fgauss = KSP.fouriergauss(ksp.shape, np.array((1,1,1)))
 
+
 def tic():
-    #Homemade version of matlab tic and toc functions
-    #https://stackoverflow.com/questions/5849800/tic-toc-functions-analog-in-python
+    # Homemade version of matlab tic and toc functions
+    # https://stackoverflow.com/questions/5849800/tic-toc-functions-analog-in-python
     import time
     global startTime_for_tictoc
     startTime_for_tictoc = time.time()
+
 
 def toc():
     import time
@@ -74,7 +78,7 @@ def toc():
         return ""
 
 import numpy as np
-## REINKA
+# REINKA
 
 from reikna import cluda
 from reikna.cluda import functions, dtypes
@@ -82,11 +86,12 @@ from reikna.cluda import dtypes, any_api
 from reikna.fft import FFT
 from reikna.fft import FFTShift
 from reikna.core import Annotation, Type, Transformation, Parameter
-from pyopencl.tools import clear_first_arg_caches 
+from pyopencl.tools import clear_first_arg_caches
 sigma = np.ones(3)
 
-def kspacegaussian_filter_CL(ksp,sigma):
-    sz=ksp.shape
+
+def kspacegaussian_filter_CL(ksp, sigma):
+    sz = ksp.shape
     dtype = np.complex64
     ftype = np.float32
     #api = cluda.ocl_api()
@@ -94,7 +99,7 @@ def kspacegaussian_filter_CL(ksp,sigma):
     thr = api.Thread.create()
     data_dev = thr.to_device(ksp)
     ifft = FFT(data_dev)
-    FACTOR=1.0
+    FACTOR = 1.0
     program = thr.compile("""
 KERNEL void gauss_kernel(
     GLOBAL_MEM ${ctype} *dest,
@@ -128,15 +133,15 @@ KERNEL void gauss_kernel(
   dest[idx].y = src[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
-                          render_kwds=dict(ctype=dtypes.ctype(dtype),
-                                           ftype=dtypes.ctype(ftype),
-                                           ultype=dtypes.ctype(np.uint64),
-                                           exp=functions.exp(ftype)),fast_math=True)
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR),
+        render_kwds=dict(ctype=dtypes.ctype(dtype),
+                         ftype=dtypes.ctype(ftype),
+                         ultype=dtypes.ctype(np.uint64),
+                         exp=functions.exp(ftype)), fast_math=True)
     gauss_kernel = program.gauss_kernel
     #data_dev = thr.empty_like(ksp_dev)
-    gauss_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
-    
+    gauss_kernel(data_dev, data_dev, global_size=sz[0] * sz[1] * sz[2])
+
     thr.synchronize()
     ##
     #api = any_api()
@@ -144,13 +149,14 @@ KERNEL void gauss_kernel(
     #data_dev = thr.to_device(ksp_out)
     ifft = FFT(data_dev)
     cifft = ifft.compile(thr)
-    cifft(data_dev, data_dev,inverse=0)
-    result = np.fft.fftshift(data_dev.get() / sz[0]*sz[1]*sz[2])
-    result = result[::-1,::-1,::-1]
-    result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
-    return result  #,ksp_out
+    cifft(data_dev, data_dev, inverse=0)
+    result = np.fft.fftshift(data_dev.get() / sz[0] * sz[1] * sz[2])
+    result = result[::-1, ::-1, ::-1]
+    result = np.roll(np.roll(np.roll(result, 1, axis=2), 1, axis=1), 1, axis=0)
+    return result  # ,ksp_out
 
-def kspacegaussian_filter_CL2(ksp,sigma):
+
+def kspacegaussian_filter_CL2(ksp, sigma):
     """ Kspace gaussian filter and recon using GPU OpenCL
 
     1. GPU intialisation
@@ -163,9 +169,9 @@ def kspacegaussian_filter_CL2(ksp,sigma):
     8. Execute FFTshift
     9. Retrieve reconstruced complex image from GPU
     10. Reorganise image to standard (mimic numpy format)
-    
+
     """
-    sz=ksp.shape
+    sz = ksp.shape
     dtype = np.complex64
     ftype = np.float32
     ultype = np.uint64
@@ -174,7 +180,7 @@ def kspacegaussian_filter_CL2(ksp,sigma):
     thr = api.Thread.create()
     data_dev = thr.to_device(ksp)
     ifft = FFT(data_dev)
-    FACTOR=1.0
+    FACTOR = 1.0
     program = thr.compile("""
 KERNEL void gauss_kernel(
     GLOBAL_MEM ${ctype} *dest,
@@ -208,38 +214,37 @@ KERNEL void gauss_kernel(
   dest[idx].y = src[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
-                          render_kwds=dict(ctype=dtypes.ctype(dtype),
-                                           ftype=dtypes.ctype(ftype),
-                                           exp=functions.exp(ftype)),fast_math=True)
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR),
+        render_kwds=dict(ctype=dtypes.ctype(dtype),
+                         ftype=dtypes.ctype(ftype),
+                         exp=functions.exp(ftype)), fast_math=True)
     gauss_kernel = program.gauss_kernel
     #data_dev = thr.empty_like(ksp_dev)
-    gauss_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
-    
+    gauss_kernel(data_dev, data_dev, global_size=sz[0] * sz[1] * sz[2])
+
     thr.synchronize()
-    ## Recon
+    # Recon
     #data_dev = thr.to_device(ksp)
     ifftobj = FFT(data_dev)
     cifft = ifftobj.compile(thr)
     fftshiftobj = FFTShift(data_dev)
     cfftshift = fftshiftobj.compile(thr)
-    cifft(data_dev, data_dev,inverse=0)
+    cifft(data_dev, data_dev, inverse=0)
     thr.synchronize()
-    cfftshift(data_dev,data_dev)
+    cfftshift(data_dev, data_dev)
     thr.synchronize()
     result2 = data_dev.get() / np.prod(np.array(ksp.shape))
-    result2 = result2[::-1,::-1,::-1]
+    result2 = result2[::-1, ::-1, ::-1]
     thr.release()
     return result2
 
 
-    
 tic()
-imggauss = kspacegaussian_filter_CL(ksp,np.ones(3))
+imggauss = kspacegaussian_filter_CL(ksp, np.ones(3))
 print 'Reikna OpenCL Gaussian+recon+ numpy fftshift: first run'
 toc()
 tic()
-imggauss2 = kspacegaussian_filter_CL2(ksp,np.ones(3))
+imggauss2 = kspacegaussian_filter_CL2(ksp, np.ones(3))
 print 'Reikna OpenCL Gaussian+recon+ Reikna FFTShift: first run'
 toc()
 
@@ -257,22 +262,22 @@ from reikna.core import Annotation, Type, Transformation, Parameter
 
 api = any_api()
 thr = api.Thread.create()
-N=512
+N = 512
 
 tic()
 data_dev = thr.to_device(ksp)
 ifft = FFT(data_dev)
 cifft = ifft.compile(thr)
-cifft(data_dev, data_dev,inverse=0)
+cifft(data_dev, data_dev, inverse=0)
 thr.synchronize()
 toc()
 result = np.fft.fftshift(data_dev.get() / N**3)
-result = result[::-1,::-1,::-1]
-result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
+result = result[::-1, ::-1, ::-1]
+result = np.roll(np.roll(np.roll(result, 1, axis=2), 1, axis=1), 1, axis=0)
 print "Reikna IFFT time and first three results:"
-print "%s sec, %s" % (toc(), str(np.abs(result[:3,0,0])))
+print "%s sec, %s" % (toc(), str(np.abs(result[:3, 0, 0])))
 thr.release()
-del ifft,cifft,data_dev,thr
+del ifft, cifft, data_dev, thr
 
 thr = api.Thread.create()
 tic()
@@ -281,28 +286,29 @@ ifft = FFT(data_dev)
 cifft = ifft.compile(thr)
 fftshiftobj = FFTShift(data_dev)
 cfftshift = fftshiftobj.compile(thr)
-cifft(data_dev, data_dev,inverse=0)
+cifft(data_dev, data_dev, inverse=0)
 thr.synchronize()
 toc()
-cfftshift(data_dev,data_dev)
+cfftshift(data_dev, data_dev)
 thr.synchronize()
 result2 = data_dev.get() / N**3
-result2 = result2[::-1,::-1,::-1]
+result2 = result2[::-1, ::-1, ::-1]
 #result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
 print "Reikna IFFT time and first three results:"
-print "%s sec, %s" % (toc(), str(np.abs(result2[:3,0,0])))
+print "%s sec, %s" % (toc(), str(np.abs(result2[:3, 0, 0])))
 thr.release()
-del ifft,cifft,data_dev,fftshiftobj, cfftshift
+del ifft, cifft, data_dev, fftshiftobj, cfftshift
 
-del thr,api
+del thr, api
 
 tic()
 reference = np.fft.fftshift(np.fft.ifftn(ksp))
 print "Numpy IFFTN time and first three results:"
-print "%s sec, %s" % (toc(), str(np.abs(reference[:3,0,0])))
+print "%s sec, %s" % (toc(), str(np.abs(reference[:3, 0, 0])))
 
-#print np.linalg.norm(imggauss-image_filtered) / np.linalg.norm(image_filtered)
-print np.linalg.norm((np.abs(imggauss2))-np.abs(image_filtered)) / np.linalg.norm(np.abs(image_filtered))
+# print np.linalg.norm(imggauss-image_filtered) /
+# np.linalg.norm(image_filtered)
+print np.linalg.norm((np.abs(imggauss2)) - np.abs(image_filtered)) / np.linalg.norm(np.abs(image_filtered))
 
 import matplotlib
 matplotlib.use('Agg')
@@ -311,21 +317,20 @@ import matplotlib.pyplot as plt
 # clear the plot
 
 
-f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(2,3, sharex='col', sharey='row')
-ax1.imshow(np.abs(ksp[:,:, 250]), aspect='auto')
+f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(
+    2, 3, sharex='col', sharey='row')
+ax1.imshow(np.abs(ksp[:, :, 250]), aspect='auto')
 ax1.set_title('Sharing x per column, y per row')
-ax2.imshow((np.abs(result[:,:, 250]/512**3)), aspect='auto')
-ax3.imshow(np.log10(np.abs(imggauss2[:,:, 250]))-np.log10(np.abs(image_filtered[:,:, 250])), aspect='auto')
-ax4.imshow((np.abs(reference[:,:, 250])), aspect='auto')
-ax5.imshow(np.squeeze(np.abs(imggauss2[:,:,250])), aspect='auto')
-ax6.imshow(np.squeeze(np.abs(image_filtered[:,:,250])), aspect='auto')
+ax2.imshow((np.abs(result[:, :, 250] / 512**3)), aspect='auto')
+ax3.imshow(np.log10(np.abs(imggauss2[
+           :, :, 250])) - np.log10(np.abs(image_filtered[:, :, 250])), aspect='auto')
+ax4.imshow((np.abs(reference[:, :, 250])), aspect='auto')
+ax5.imshow(np.squeeze(np.abs(imggauss2[:, :, 250])), aspect='auto')
+ax6.imshow(np.squeeze(np.abs(image_filtered[:, :, 250])), aspect='auto')
 plt.savefig('results_reiknaCL.jpg')
 
 
-
-
-
-## Epanechnikov
+# Epanechnikov
 
 from cplxfilter import epanechnikov_kernel
 
@@ -363,24 +368,25 @@ def fourierepanechnikov(siz, sigma):
         print (np.ceil(sigma[0]) + 2,
                np.ceil(sigma[1]) + 2, np.ceil(sigma[2]) + 2)
         print sigma
-        fsiz =  (np.ceil(sigma)+2).astype(int)
-        for i in xrange(0,fsiz.size):
+        fsiz = (np.ceil(sigma) + 2).astype(int)
+        for i in xrange(0, fsiz.size):
             if is_odd(fsiz[i]):
-                fsiz[i]+=1
-                
+                fsiz[i] += 1
+
         Kepa = epanechnikov_kernel((np.ceil(sigma[0]) + 2, np.ceil(sigma[1]) + 2,
                                     np.ceil(sigma[2]) + 2), sigma)
-    
+
     Kfilter = np.zeros(np.array(siz), dtype=np.complex64)
     szmin = np.floor(
         np.array(siz) / 2.0 - np.floor(np.array(Kepa.shape) / 2.0) - 1)
     szmax = np.floor(szmin + np.array(Kepa.shape))
     print "Epa filter size ", siz, " image filter ", Kepa.shape, " szmin ", szmin, " szmax ", szmax
     Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = Kepa
-    Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]].imag = Kepa
-    
-    #return np.abs(fftshift(clfftn(Kfilter)))
-    
+    Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[
+        1], szmin[2]:szmax[2]].imag = Kepa
+
+    # return np.abs(fftshift(clfftn(Kfilter)))
+
     api = any_api()
     thr = api.Thread.create()
     data_dev = thr.to_device(Kfilter)
@@ -390,10 +396,10 @@ def fourierepanechnikov(siz, sigma):
     cfftshift = fftshift.compile(thr)
     cfft(data_dev, data_dev)
     thr.synchronize()
-    cfftshift(data_dev,data_dev)
+    cfftshift(data_dev, data_dev)
     thr.synchronize()
-    
-    result2 = data_dev.get() # / np.prod(np.array(ksp.shape))
+
+    result2 = data_dev.get()  # / np.prod(np.array(ksp.shape))
     #result2 = result2[::-1,::-1,::-1]
     thr.release()
     result = np.zeros(np.array(siz), dtype=np.complex64)
@@ -402,7 +408,7 @@ def fourierepanechnikov(siz, sigma):
     return result
 
 
-sigma = np.ones(3)*np.sqrt(7)
+sigma = np.ones(3) * np.sqrt(7)
 # Fepanechnikov= fourierepanechnikov(ksp.shape,sigma)
 
 from cplxfilter import epanechnikov_kernel
@@ -410,7 +416,9 @@ from cplxfilter import epanechnikov_kernel
 # Wolfram alpha:
 #     Abs[FourierTransform[(1+i)*UnitBox[x/2]*(1-x^2)*0.75]]
 #    => 0.423142 abs((4 sin(omega)-4 omega cos(omega))/omega^3)
-def kspaceepanechnikov_filter(ksp,sigma):
+
+
+def kspaceepanechnikov_filter(ksp, sigma):
     """ Kspace gaussian filter and recon using GPU OpenCL
 
     1. GPU intialisation
@@ -423,9 +431,9 @@ def kspaceepanechnikov_filter(ksp,sigma):
     8. Execute FFTshift
     9. Retrieve reconstruced complex image from GPU
     10. Reorganise image to standard (mimic numpy format)
-    
+
     """
-    sz=ksp.shape
+    sz = ksp.shape
     dtype = np.complex64
     ftype = np.float32
     ultype = np.uint64
@@ -434,7 +442,7 @@ def kspaceepanechnikov_filter(ksp,sigma):
     thr = api.Thread.create()
     data_dev = thr.to_device(ksp)
     ifft = FFT(data_dev)
-    FACTOR=1.0
+    FACTOR = 1.0
     program = thr.compile("""
 KERNEL void epan_kernel(
     GLOBAL_MEM ${ctype} *dest,
@@ -467,12 +475,12 @@ KERNEL void epan_kernel(
   dest[idx].y = src[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
-                          render_kwds=dict(ctype=dtypes.ctype(dtype),
-                                           ftype=dtypes.ctype(ftype)),fast_math=True)
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR),
+        render_kwds=dict(ctype=dtypes.ctype(dtype),
+                         ftype=dtypes.ctype(ftype)), fast_math=True)
     epan_kernel = program.epan_kernel
     #data_dev = thr.empty_like(ksp_dev)
-    epan_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
+    epan_kernel(data_dev, data_dev, global_size=sz[0] * sz[1] * sz[2])
     return data_dev()
     # thr.synchronize()
     # ## Recon
@@ -491,31 +499,31 @@ KERNEL void epan_kernel(
     # return result2
 
 
-
-def kspaceepanechnikov_filter_CL2(ksp,sigma):
+def kspaceepanechnikov_filter_CL2(ksp, sigma):
     sz = ksp.shape
     dtype = np.complex64
     ftype = np.float32
     clear_first_arg_caches()
-    fsiz = (5,5,5)
+    fsiz = (5, 5, 5)
     print (np.ceil(sigma[0]) + 2,
            np.ceil(sigma[1]) + 2, np.ceil(sigma[2]) + 2)
     print sigma
-    fsiz =  (np.ceil(sigma)+2).astype(int)
-    for i in xrange(0,fsiz.size):
+    fsiz = (np.ceil(sigma) + 2).astype(int)
+    for i in xrange(0, fsiz.size):
         if not fsiz[i] & 0x1:
-            fsiz[i]+=1
-    ## Create image-domain Epanechikov kernel            
+            fsiz[i] += 1
+    # Create image-domain Epanechikov kernel
     Kepa = epanechnikov_kernel(fsiz, sigma)
-    ## Place kernel at centre of ksp-sized matrix
+    # Place kernel at centre of ksp-sized matrix
     Kfilter = np.zeros(np.array(sz), dtype=np.complex64)
     szmin = np.floor(
         np.array(sz) / 2.0 - np.floor(np.array(Kepa.shape) / 2.0) - 1)
     szmax = np.floor(szmin + np.array(Kepa.shape))
     print "Epa filter size ", sz, " image filter ", Kepa.shape, " szmin ", szmin, " szmax ", szmax
     Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = Kepa
-    Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]].imag = Kepa
-    ## Create fourier-domain Epanechnikov filter
+    Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[
+        1], szmin[2]:szmax[2]].imag = Kepa
+    # Create fourier-domain Epanechnikov filter
     api = any_api()
     thr = api.Thread.create()
     data_dev = thr.to_device(Kfilter)
@@ -525,8 +533,8 @@ def kspaceepanechnikov_filter_CL2(ksp,sigma):
     cfftshift = fftshift.compile(thr)
     crfft(data_dev, data_dev)
     thr.synchronize()
-    cfftshift(data_dev,data_dev)
-    Fepanechnikov =  np.abs(data_dev.get()) # / np.prod(np.array(ksp.shape))
+    cfftshift(data_dev, data_dev)
+    Fepanechnikov = np.abs(data_dev.get())  # / np.prod(np.array(ksp.shape))
     #result2 = result2[::-1,::-1,::-1]
     thr.synchronize()
     #result = np.zeros(np.array(siz), dtype=np.complex64)
@@ -543,41 +551,41 @@ KERNEL void multiply_them(
   const SIZE_T i = get_local_id(0);
   dest[i].x = a[i].x * f[i];
   dest[i].y = a[i].y * f[i];
-}""", render_kwds=dict(ctype=dtypes.ctype(dtype),ftype=dtypes.ctype(ftype)))
-    
+}""", render_kwds=dict(ctype=dtypes.ctype(dtype), ftype=dtypes.ctype(ftype)))
+
     data_dev = thr.to_device(ksp)
     filter_dev = thr.to_device(Fepanechnikov)
     multiply_them = program.multiply_them
-    multiply_them(data_dev,data_dev,filter_dev, global_size=512*512*512)
+    multiply_them(data_dev, data_dev, filter_dev, global_size=512 * 512 * 512)
     thr.synchronize()
     del filter_dev, program
     #api = cluda.ocl_api()
     #api = any_api()
     #thr = api.Thread.create()
-    ## Filter 
+    # Filter
     # data_dev = thr.to_device(ksp)
     # ifft = FFT(data_dev)
-    FACTOR=1.0
+    FACTOR = 1.0
 
-    ## Recon
-    #thr.synchronize()
+    # Recon
+    # thr.synchronize()
     #data_dev = thr.to_device(ksp)
     ifft = FFT(data_dev)
     cifft = ifft.compile(thr)
     fftshiftobj = FFTShift(data_dev)
     cfftshift = fftshiftobj.compile(thr)
-    cifft(data_dev, data_dev,inverse=0)
+    cifft(data_dev, data_dev, inverse=0)
     thr.synchronize()
-    cfftshift(data_dev,data_dev)
+    cfftshift(data_dev, data_dev)
     thr.synchronize()
     result2 = data_dev.get() / np.prod(np.array(ksp.shape))
-    result2 = result2[::-1,::-1,::-1]
+    result2 = result2[::-1, ::-1, ::-1]
     thr.release()
     return result2
 
-sigma = np.ones(3)*np.sqrt(7)  
+sigma = np.ones(3) * np.sqrt(7)
 tic()
-kimage_epan = kspaceepanechnikov_filter_CL2(ksp,sigma)
+kimage_epan = kspaceepanechnikov_filter_CL2(ksp, sigma)
 print 'GPU Epanechnikov filter'
 toc()
 tic()
@@ -587,7 +595,6 @@ print 'CPU Epanechnikov filter'
 toc()
 
 
-
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -595,17 +602,18 @@ import matplotlib.pyplot as plt
 # clear the plot
 
 
-f, ((ax1, ax3, ax5), (ax2, ax4, ax6)) = plt.subplots(2,3, sharex='col', sharey='row')
-ax1.imshow(np.abs(ksp[:,:, 250]), aspect='auto')
+f, ((ax1, ax3, ax5), (ax2, ax4, ax6)) = plt.subplots(
+    2, 3, sharex='col', sharey='row')
+ax1.imshow(np.abs(ksp[:, :, 250]), aspect='auto')
 ax1.set_title('KSP data')
 ax3.set_title('GPU recon')
-ax3.imshow(np.squeeze(np.abs(kimage_epan[250,:,:])), aspect='auto')
+ax3.imshow(np.squeeze(np.abs(kimage_epan[250, :, :])), aspect='auto')
 ax2.set_title('GPU - CPU ')
-ax2.imshow((np.abs(kimage_epan[:,:, 250]))-(np.abs(image_filtered[:,:, 250])), aspect='auto')
+ax2.imshow((np.abs(kimage_epan[:, :, 250])) -
+           (np.abs(image_filtered[:, :, 250])), aspect='auto')
 ax5.set_title('CPU recon')
-ax5.imshow(np.squeeze(np.abs(image_filtered[250,:,:])), aspect='auto')
+ax5.imshow(np.squeeze(np.abs(image_filtered[250, :, :])), aspect='auto')
 
-ax4.imshow(np.squeeze(np.abs(kimage_epan[:,:,250])), aspect='auto')
-ax6.imshow(np.squeeze(np.abs(image_filtered[:,:,250])), aspect='auto')
+ax4.imshow(np.squeeze(np.abs(kimage_epan[:, :, 250])), aspect='auto')
+ax6.imshow(np.squeeze(np.abs(image_filtered[:, :, 250])), aspect='auto')
 plt.savefig('results_reiknaCL_epan.jpg')
-

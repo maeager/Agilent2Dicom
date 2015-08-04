@@ -68,7 +68,6 @@ class Agilent2DicomWindow(QtGui.QWidget):
         self.ui.setWindowTitle(_translate(
             "Form", "MBI\'s Agilent to Dicom converter application (" + __version__ + ")", None))
 
-
         # Make some local modifications.
         # self.colorDepthCombo.addItem("2 colors (1 bit per pixel)")
 

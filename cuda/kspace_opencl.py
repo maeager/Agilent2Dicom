@@ -35,7 +35,7 @@ else:
     from scipy import ndimage
     # from scipy import signal
 
-# import reikna.cluda as cl    
+# import reikna.cluda as cl
 # from reikna.cluda import dtypes, any_api
 # from reikna.fft import FFT
 # from reikna.core import Annotation, Type, Transformation, Parameter
@@ -43,8 +43,9 @@ from pyfft.cl import Plan
 import pyopencl as cl
 import pyopencl.array as cl_array
 
-    
-from pyopencl.tools import clear_first_arg_caches,get_gl_sharing_context_properties
+
+from pyopencl.tools import clear_first_arg_caches, get_gl_sharing_context_properties
+
 
 def clinit():
     """Initialize OpenCL with GL-CL interop.
@@ -54,11 +55,13 @@ def clinit():
     # handling OSX
     if sys.platform == "darwin":
         ctx = cl.Context(properties=get_gl_sharing_context_properties(),
-                             devices=[])
+                         devices=[])
     else:
-        ctx = cl.Context(properties=[(cl.context_properties.PLATFORM, plats[0])])
+        ctx = cl.Context(
+            properties=[(cl.context_properties.PLATFORM, plats[0])])
     queue = cl.CommandQueue(ctx)
     return ctx, queue
+
 
 def clfftn(data):
     """ OpenCL FFT 3D
@@ -66,29 +69,31 @@ def clfftn(data):
     clear_first_arg_caches()
     #ctx = cl.create_some_context(interactive=False)
     #queue = cl.CommandQueue(ctx)
-    ctx,queue = clinit()
+    ctx, queue = clinit()
     plan = Plan(data.shape, normalize=True, queue=queue)
     # forward transform on device
     gpu_data = cl_array.to_device(queue, data)
     # forward transform
-    plan.execute(gpu_data.data) 
+    plan.execute(gpu_data.data)
     #result = gpu_data.get()
     result = gpu_data.get()
     return result
-    
+
+
 def clifftn(data):
-    clear_first_arg_caches() 
+    clear_first_arg_caches()
     ctx = cl.create_some_context(interactive=False)
     queue = cl.CommandQueue(ctx)
     plan = Plan(data.shape, normalize=True, queue=queue)
-    #Inverse transform:
-    plan.execute(gpu_data.data, inverse=True) 
+    # Inverse transform:
+    plan.execute(gpu_data.data, inverse=True)
     result = gpu_data.get()
     return result
-    
+
 # sigma = np.ones(3)
 
-def kspacegaussian_filter_pyfftCL(ksp,sigma):
+
+def kspacegaussian_filter_pyfftCL(ksp, sigma):
     clear_first_arg_caches()
     sz = ksp.shape
     dtype = np.complex64
@@ -97,11 +102,11 @@ def kspacegaussian_filter_pyfftCL(ksp,sigma):
     ctx = cl.create_some_context(interactive=False)
     queue = cl.CommandQueue(ctx)
     queue.flush()
-    data_dev = cl_array.to_device(queue,ksp)
+    data_dev = cl_array.to_device(queue, ksp)
     w = h = k = 512
-    plan = Plan((w,h,k), normalize=True, queue=queue)
-    FACTOR=1.0
-    program = cl.Program(ctx,"""
+    plan = Plan((w, h, k), normalize=True, queue=queue)
+    FACTOR = 1.0
+    program = cl.Program(ctx, """
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 #include "pyopencl-complex.h" 
 __kernel void gauss_kernel(__global cfloat_t *dest) //, __global cfloat_t *src)
@@ -131,27 +136,24 @@ __kernel void gauss_kernel(__global cfloat_t *dest) //, __global cfloat_t *src)
   dest[idx].y = dest[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR)).build()
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR)).build()
     gauss_kernel = program.gauss_kernel
     #data_dev = thr.empty_like(ksp_dev)
-    gauss_kernel(queue, sz, None, data_dev.data).wait() #, data_dev.data
+    gauss_kernel(queue, sz, None, data_dev.data).wait()  # , data_dev.data
     ksp_out = data_dev.get()
     queue.flush()
     ctx = cl.create_some_context(interactive=False)
     queue = cl.CommandQueue(ctx)
     w = h = k = 512
-    plan = Plan((w,h,k), normalize=True, queue=queue)
+    plan = Plan((w, h, k), normalize=True, queue=queue)
     data2_dev = cl_array.to_device(queue, ksp_out)
     plan.execute(data2_dev.data, inverse=True)
     result = data2_dev.get()
     result = np.fft.fftshift(result)
     queue.finish()
-    return result  #,ksp_out
+    return result  # ,ksp_out
 
 
-    
-
-    
 def fouriercoords(siz):
     """fouriercoords
     Create x,y,z mesh of Fourier domain space
@@ -181,7 +183,7 @@ def fouriercoords(siz):
         return (uu, vv, [])
 
 
-def kspacegaussian_filter(ksp,sigma):
+def kspacegaussian_filter(ksp, sigma):
     from reikna import cluda
     from reikna.cluda import functions, dtypes
     sz = ksp.shape
@@ -223,18 +225,19 @@ KERNEL void gauss_kernel(
   dest[idx].y = src[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
-                          render_kwds=dict(ctype=dtypes.ctype(dtype),
-                                           ftype=dtypes.ctype(ftype), ultype=dtypes.ctype(np.uint64),
-                                           exp=functions.exp(ftype)),fast_math=True)
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR),
+        render_kwds=dict(ctype=dtypes.ctype(dtype),
+                         ftype=dtypes.ctype(ftype), ultype=dtypes.ctype(np.uint64),
+                         exp=functions.exp(ftype)), fast_math=True)
 
     gauss_kernel = program.gauss_kernel
     data_dev = thr.to_device(ksp)
-    gauss_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
+    gauss_kernel(data_dev, data_dev, global_size=sz[0] * sz[1] * sz[2])
     ksp_out = data_dev.get()
     return ksp_out
-        
-def kspacegaussian_filter_CL(ksp,sigma):
+
+
+def kspacegaussian_filter_CL(ksp, sigma):
     from reikna import cluda
     from reikna.cluda import functions, dtypes
     sz = np.array(ksp.shape)
@@ -276,27 +279,27 @@ KERNEL void gauss_kernel(
   dest[idx].y = src[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
-                          render_kwds=dict(ctype=dtypes.ctype(dtype),
-                                           ftype=dtypes.ctype(ftype), ultype=dtypes.ctype(np.uint64),
-                                           exp=functions.exp(ftype)),fast_math=True)
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR),
+        render_kwds=dict(ctype=dtypes.ctype(dtype),
+                         ftype=dtypes.ctype(ftype), ultype=dtypes.ctype(np.uint64),
+                         exp=functions.exp(ftype)), fast_math=True)
 
     gauss_kernel = program.gauss_kernel
     data_dev = thr.empty_like(ksp)
-    gauss_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
+    gauss_kernel(data_dev, data_dev, global_size=sz[0] * sz[1] * sz[2])
     ksp_out = data_dev.get()
 
     ifft = FFT(data_dev)
     cifft = ifft.compile(thr)
-    cifft(data_dev, data_dev,inverse=0)
-    result = np.fft.fftshift(data_dev.get() / sz[0]*sz[1]*sz[2])
-    result = result[::-1,::-1,::-1]
-    result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
-    
+    cifft(data_dev, data_dev, inverse=0)
+    result = np.fft.fftshift(data_dev.get() / sz[0] * sz[1] * sz[2])
+    result = result[::-1, ::-1, ::-1]
+    result = np.roll(np.roll(np.roll(result, 1, axis=2), 1, axis=1), 1, axis=0)
+
     return ksp_out
 
 
-def kspacegaussian_filter_CL2(ksp,sigma):
+def kspacegaussian_filter_CL2(ksp, sigma):
     """ Kspace gaussian filter and recon using GPU OpenCL
 
     1. GPU intialisation
@@ -309,9 +312,9 @@ def kspacegaussian_filter_CL2(ksp,sigma):
     8. Execute FFTshift
     9. Retrieve reconstruced complex image from GPU
     10. Reorganise image to standard (mimic numpy format)
-    
+
     """
-    sz=ksp.shape
+    sz = ksp.shape
     dtype = np.complex64
     ftype = np.float32
     ultype = np.uint64
@@ -320,7 +323,7 @@ def kspacegaussian_filter_CL2(ksp,sigma):
     thr = api.Thread.create()
     data_dev = thr.to_device(ksp)
     ifft = FFT(data_dev)
-    FACTOR=1.0
+    FACTOR = 1.0
     program = thr.compile("""
 KERNEL void gauss_kernel(
     GLOBAL_MEM ${ctype} *dest,
@@ -354,50 +357,47 @@ KERNEL void gauss_kernel(
   dest[idx].y = src[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
-                          render_kwds=dict(ctype=dtypes.ctype(dtype),
-                                           ftype=dtypes.ctype(ftype),
-                                           exp=functions.exp(ftype)),fast_math=True)
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR),
+        render_kwds=dict(ctype=dtypes.ctype(dtype),
+                         ftype=dtypes.ctype(ftype),
+                         exp=functions.exp(ftype)), fast_math=True)
     gauss_kernel = program.gauss_kernel
-    gauss_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
+    gauss_kernel(data_dev, data_dev, global_size=sz[0] * sz[1] * sz[2])
     thr.synchronize()
-    ## Recon
+    # Recon
     #data_dev = thr.to_device(ksp)
     ifftobj = FFT(data_dev)
     cifft = ifftobj.compile(thr)
     fftshiftobj = FFTShift(data_dev)
     cfftshift = fftshiftobj.compile(thr)
-    cifft(data_dev, data_dev,inverse=0)
+    cifft(data_dev, data_dev, inverse=0)
     thr.synchronize()
-    cfftshift(data_dev,data_dev)
+    cfftshift(data_dev, data_dev)
     thr.synchronize()
     result2 = data_dev.get() / np.prod(np.array(ksp.shape))
-    result2 = result2[::-1,::-1,::-1]
+    result2 = result2[::-1, ::-1, ::-1]
     thr.release()
     return result2
 
-
-    
 
 def gaussian_fourierkernel(siz, sigma_):
     """
     Create Gaussian Fourier filter kernel with GPU
     """
     if not hasattr(sigma, "__len__"):  # type(sigma) is float:
-        sigma = np.ones(3)*sigma_
+        sigma = np.ones(3) * sigma_
     elif len(sigma) == 2:
         sigma[2] = 0.0
-    
 
-    sz=siz
+    sz = siz
     ctype = np.complex64
     ftype = np.float32
     #api = cluda.ocl_api()
     api = any_api()
     thr = api.Thread.create()
-    base = np.ones(siz,ctype)
+    base = np.ones(siz, ctype)
     data_dev = thr.to_device(base)
-    FACTOR=1.0
+    FACTOR = 1.0
     program = thr.compile("""
 KERNEL void gauss_kernel(
     GLOBAL_MEM ${ctype} *dest,
@@ -431,19 +431,19 @@ KERNEL void gauss_kernel(
   dest[idx].y = src[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
-                          render_kwds=dict(ctype=dtypes.ctype(ctype),
-                                           ftype=dtypes.ctype(ftype),
-                                           exp=functions.exp(ftype)),fast_math=True)
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR),
+        render_kwds=dict(ctype=dtypes.ctype(ctype),
+                         ftype=dtypes.ctype(ftype),
+                         exp=functions.exp(ftype)), fast_math=True)
     gauss_kernel = program.gauss_kernel
     #data_dev = thr.empty_like(ksp_dev)
-    gauss_kernel(data_dev, data_dev, global_size=sz[0]*sz[1]*sz[2])
+    gauss_kernel(data_dev, data_dev, global_size=sz[0] * sz[1] * sz[2])
     gfilter = data_dev.get()
     thr.synchronize()
     thr.release()
 
     return gfilter
-    
+
 
 def fourierlaplace(siz):
     """
@@ -454,18 +454,17 @@ def fourierlaplace(siz):
 #    # / (siz[0] * siz[1] * siz[2])
 #    return -(4 * np.pi * np.pi) * (uu * uu + vv * vv + ww * ww)
 
-    
     dtype = np.complex64
     ftype = np.float32
     #api = cluda.ocl_api()
     ctx = cl.create_some_context(interactive=False)
     queue = cl.CommandQueue(ctx)
     queue.flush()
-    laplace=np.ones(siz)
-    laplace_dev = cl_array.to_device(queue,laplace)
-    
-    FACTOR =  (4 * np.pi * np.pi).astype(ftype)
-    program = cl.Program(ctx,"""
+    laplace = np.ones(siz)
+    laplace_dev = cl_array.to_device(queue, laplace)
+
+    FACTOR = (4 * np.pi * np.pi).astype(ftype)
+    program = cl.Program(ctx, """
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 #include "pyopencl-complex.h" 
 __kernel void gauss_kernel(__global cfloat_t *dest) //, __global cfloat_t *src)
@@ -493,14 +492,13 @@ __kernel void gauss_kernel(__global cfloat_t *dest) //, __global cfloat_t *src)
   dest[idx].y = dest[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2])).build()
+""" % (sz[0], sz[1], sz[2])).build()
     gauss_kernel = program.laplace_kernel
     #data_dev = thr.empty_like(ksp_dev)
-    laplace_kernel(queue, sz, None, laplace_dev.data).wait() #, data_dev.data
+    laplace_kernel(queue, sz, None, laplace_dev.data).wait()  # , data_dev.data
     laplace = laplace_dev.get()
     return laplace
 
-    
 
 def fourierlaplaceinhom(siz, sigma):
     """
@@ -553,8 +551,8 @@ def fourierepanechnikov(siz, sigma):
     szmax = np.floor(szmin + np.array(Kepa.shape))
     print "Epa filter size ", siz, " image filter ", Kepa.shape, " szmin ", szmin, " szmax ", szmax
     Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = Kepa
-    #return np.abs(fftshift(clfftn(Kfilter)))
-    
+    # return np.abs(fftshift(clfftn(Kfilter)))
+
     api = any_api()
     thr = api.Thread.create()
     data_dev = thr.to_device(ksp)
@@ -564,14 +562,12 @@ def fourierepanechnikov(siz, sigma):
     cfftshift = fftshift.compile(thr)
     cifft(data_dev, data_dev)
     thr.synchronize()
-    cfftshift(data_dev,data_dev)
+    cfftshift(data_dev, data_dev)
     thr.synchronize()
     result2 = data_dev.get() / np.prod(np.array(ksp.shape))
     #result2 = result2[::-1,::-1,::-1]
     thr.release()
     return np.abs(result2)
-
-
 
 
 def fwhm(sigma):
@@ -619,7 +615,7 @@ def inhomogeneouscorrection(ksp, siz, sigma):
     # HG = fftn(ifftshift(hG))
 #    HGh = sqrt(pi*2*sigma*sigma)*
     HG = np.expm1(-np.pi * np.pi * (uu * uu + vv * vv + ww * ww)
-                * (2 * sigma * sigma))+1
+                  * (2 * sigma * sigma)) + 1
     del uu, vv, ww
 
     kspHG = ksp * HG
@@ -663,30 +659,32 @@ def kspaceepanechnikov_filter(ksp, bdwidth_=None):
 
 from cplxfilter import epanechnikov_kernel
 
-def kspaceepanechnikov_filter_CL2(ksp,sigma):
+
+def kspaceepanechnikov_filter_CL2(ksp, sigma):
     sz = ksp.shape
     dtype = np.complex64
     ftype = np.float32
     clear_first_arg_caches()
-    fsiz = (5,5,5)
+    fsiz = (5, 5, 5)
     print (np.ceil(sigma[0]) + 2,
            np.ceil(sigma[1]) + 2, np.ceil(sigma[2]) + 2)
     print sigma
-    fsiz =  (np.ceil(sigma)+2).astype(int)
-    for i in xrange(0,fsiz.size):
+    fsiz = (np.ceil(sigma) + 2).astype(int)
+    for i in xrange(0, fsiz.size):
         if not fsiz[i] & 0x1:
-            fsiz[i]+=1
-    ## Create image-domain Epanechikov kernel            
+            fsiz[i] += 1
+    # Create image-domain Epanechikov kernel
     Kepa = epanechnikov_kernel(fsiz, sigma)
-    ## Place kernel at centre of ksp-sized matrix
+    # Place kernel at centre of ksp-sized matrix
     Kfilter = np.zeros(np.array(sz), dtype=np.complex64)
     szmin = np.floor(
         np.array(sz) / 2.0 - np.floor(np.array(Kepa.shape) / 2.0) - 1)
     szmax = np.floor(szmin + np.array(Kepa.shape))
     print "Epa filter size ", sz, " image filter ", Kepa.shape, " szmin ", szmin, " szmax ", szmax
     Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]] = Kepa
-    Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[1], szmin[2]:szmax[2]].imag = Kepa
-    ## Create fourier-domain Epanechnikov filter
+    Kfilter[szmin[0]:szmax[0], szmin[1]:szmax[
+        1], szmin[2]:szmax[2]].imag = Kepa
+    # Create fourier-domain Epanechnikov filter
     api = any_api()
     thr = api.Thread.create()
     data_dev = thr.to_device(Kfilter)
@@ -696,8 +694,8 @@ def kspaceepanechnikov_filter_CL2(ksp,sigma):
     cfftshift = fftshift.compile(thr)
     crfft(data_dev, data_dev)
     thr.synchronize()
-    cfftshift(data_dev,data_dev)
-    Fepanechnikov =  np.abs(data_dev.get()) # / np.prod(np.array(ksp.shape))
+    cfftshift(data_dev, data_dev)
+    Fepanechnikov = np.abs(data_dev.get())  # / np.prod(np.array(ksp.shape))
     #result2 = result2[::-1,::-1,::-1]
     thr.synchronize()
     #result = np.zeros(np.array(siz), dtype=np.complex64)
@@ -714,31 +712,29 @@ KERNEL void multiply_them(
   const SIZE_T i = get_local_id(0);
   dest[i].x = a[i].x * f[i];
   dest[i].y = a[i].y * f[i];
-}""", render_kwds=dict(ctype=dtypes.ctype(dtype),ftype=dtypes.ctype(ftype)))
-    
+}""", render_kwds=dict(ctype=dtypes.ctype(dtype), ftype=dtypes.ctype(ftype)))
+
     data_dev = thr.to_device(ksp)
     filter_dev = thr.to_device(Fepanechnikov)
     multiply_them = program.multiply_them
-    multiply_them(data_dev,data_dev,filter_dev, global_size=512*512*512)
+    multiply_them(data_dev, data_dev, filter_dev, global_size=512 * 512 * 512)
     thr.synchronize()
     del filter_dev, program
-    FACTOR=1.0
+    FACTOR = 1.0
 
-    ## Recon
+    # Recon
     ifft = FFT(data_dev)
     cifft = ifft.compile(thr)
     fftshiftobj = FFTShift(data_dev)
     cfftshift = fftshiftobj.compile(thr)
-    cifft(data_dev, data_dev,inverse=0)
+    cifft(data_dev, data_dev, inverse=0)
     thr.synchronize()
-    cfftshift(data_dev,data_dev)
+    cfftshift(data_dev, data_dev)
     thr.synchronize()
     result2 = data_dev.get() / np.prod(np.array(ksp.shape))
-    result2 = result2[::-1,::-1,::-1]
+    result2 = result2[::-1, ::-1, ::-1]
     thr.release()
     return result2
-
-    
 
 
 def kspaceshift(ksp):
@@ -1027,16 +1023,13 @@ if __name__ == "__main__":
     # image_filtered = simpleifft(kspacegaussian_filter(ksp,
     # 0.707, 0, 'nearest'))
 
-
     # initialize the CL context
     #ctx, queue = clinit()
     # create a pure read-only OpenCL buffer
-    #clbuf = cl.Buffer(ctx,
+    # clbuf = cl.Buffer(ctx,
     #                cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR,
     #                hostbuf=ksp)
 
-    
-        
     # print "Saving Gaussian image"
     # save_nifti(normalise(np.abs(image_filtered)), 'gauss_fourierimage')
 
@@ -1133,26 +1126,21 @@ if __name__ == "__main__":
 #    'gauss_kspdepth')
 #    test_double_resolution_depth(kspgauss, 'gauss_depth_large')
 
-
-
     tic()
-    imggauss = kspacegaussian_filter_pyfftCL(ksp,np.ones(3))
+    imggauss = kspacegaussian_filter_pyfftCL(ksp, np.ones(3))
     print 'PyFFT +OpenCL Gaussian filter:'
     toc()
 
-
-    
     tic()
-    imggauss = kspacegaussian_filter_CL(ksp,np.ones(3))
+    imggauss = kspacegaussian_filter_CL(ksp, np.ones(3))
     print 'Reikna OpenCL Gaussian+recon+ numpy fftshift: first run'
     toc()
     tic()
-    imggauss2 = kspacegaussian_filter_CL2(ksp,np.ones(3))
+    imggauss2 = kspacegaussian_filter_CL2(ksp, np.ones(3))
     print 'Reikna OpenCL Gaussian+recon+ Reikna FFTShift: first run'
     toc()
 
 
-    
 #    tic()
 #    imggauss = kspacegaussian_filter_reiknaCL(ksp,np.ones(3))
 #    print 'Reikna FFT +OpenCL Gaussian filter:'

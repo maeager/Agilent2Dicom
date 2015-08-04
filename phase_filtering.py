@@ -41,8 +41,7 @@ else:
 from kspace_filter import *
 
 
-
-def phaserecon(ksp,sigma,intpl=1.0,thr=0.05):
+def phaserecon(ksp, sigma, intpl=1.0, thr=0.05):
     """Homodyne filter reconstruction
 
     Calculate phase images from complex inputs
@@ -57,55 +56,54 @@ def phaserecon(ksp,sigma,intpl=1.0,thr=0.05):
             pha -- phase images
             mag -- magnatitue images
             swi -- phase weighted magnatitue images
-    
+
     Original MATLAB code: Zhaolin Chen @ Howard Florey Institute
     Adapted Python code: Michael Eager @ MBI
      modified LP filter 27-04-2015
      converted to python 01-05-2015
-    """    
-    ksize = np.array(ksp.shape[:3]) # [Nfe,Npe,Npe2] = size(kimg);
+    """
+    ksize = np.array(ksp.shape[:3])  # [Nfe,Npe,Npe2] = size(kimg);
 
     # creat a Gaussian LPF
     (uu, vv, ww) = fouriercoords(ksize)
     # Original Gaussian kernel
     gfilter = gaussian_fourierkernel(uu, vv, ww, sigma)
- 
-    #Shift kspace data to centre
+
+    # Shift kspace data to centre
     ksp = kspaceshift(ksp)
- 
+
     if intpl is None:
-        intpl=1.0
-    img = fftshift(fftn(ksp,intpl*ksize))
-    img_lpf = fftshift(fftn(ksp*gfilter, intpl*ksize))
+        intpl = 1.0
+    img = fftshift(fftn(ksp, intpl * ksize))
+    img_lpf = fftshift(fftn(ksp * gfilter, intpl * ksize))
 
     img_hpf = img / img_lpf
     mag = np.abs(img)
-    pha = np.angle(img_hpf);
+    pha = np.angle(img_hpf)
 
     if thr is None:
         thr = 0.05
 
-    #Calculate threshold
-    thd = (thr/np.sqrt(np.sqrt(intpl)))*np.max(np.abs(img))
+    # Calculate threshold
+    thd = (thr / np.sqrt(np.sqrt(intpl))) * np.max(np.abs(img))
     # Get indexes of thresholded points
-    i,j,k = np.where(abs(img) > thd)
+    i, j, k = np.where(abs(img) > thd)
     # Apply adjustment to values above threshold
-    pha[i,j,k] = pha[i,j,k]/10
+    pha[i, j, k] = pha[i, j, k] / 10
 
     return pha, mag
-    
 
-def swi(magn, phase,order):
+
+def swi(magn, phase, order):
     """ Suseptibility weighted image
     Magnitude and phase must be unwrapped data
     """
     if order is None:
-        order=4.0
+        order = 4.0
 
     weight = phase / np.pi + 1.0
     weight = weight.clip(min=0.0, max=1.0)
     return magn * (weight**order)
-
 
 
 def swi2(magn, phase, order=4.0):
@@ -114,14 +112,12 @@ def swi2(magn, phase, order=4.0):
     """
     if order is None:
         order = 4.0
-    wnmask = (phase / np.pi + 1.0) 
-    wnmask = wnmask.clip(min=0.0, max=1.0) 
-    wpmask = (1 - phase / np.pi) 
-    wpmask = wpmask.clip(min=0.0, max=1.0) 
+    wnmask = (phase / np.pi + 1.0)
+    wnmask = wnmask.clip(min=0.0, max=1.0)
+    wpmask = (1 - phase / np.pi)
+    wpmask = wpmask.clip(min=0.0, max=1.0)
 
     return magn * (wnmask**order), magn ** (wpmask**order)
-         
-
 
 
 def basicswi(cmplx_input_image, mask, order=2):
@@ -143,7 +139,7 @@ def basicswi(cmplx_input_image, mask, order=2):
         return np.abs(cmplx_input_image)
 
 
-def multiecho_enhanced(img1,img2,img3):
+def multiecho_enhanced(img1, img2, img3):
     """
     Multi-echo enhancement - Inverse sum of squares
     I = (sum(img_i.^-p,i)./N).^(-1/p), where p = 2 or 3
@@ -162,52 +158,52 @@ def multiecho_enhanced(img1,img2,img3):
     Monash Biomedical Imaging
     """
     p = 3.0
-    return ((img1**(-p) + img2**(-p) + img3**(-p))/3)**(-1.0/p)
-        
+    return ((img1**(-p) + img2**(-p) + img3**(-p)) / 3)**(-1.0 / p)
+
+
 def getbiggestcc(mask):
     """GETBIGGESTCC get the biggest connected component in binary image
     """
     # Find connected components
     label_im, nb_labels = ndimage.label(mask)
     sizes = ndimage.sum(mask, label_im, range(nb_labels + 1))
-    max_pos= ndimage.maximum_position(sizes)
-    masked_sizes = sizes > (ndimage.maximum(sizes) - 1) #==max_pos#
+    max_pos = ndimage.maximum_position(sizes)
+    masked_sizes = sizes > (ndimage.maximum(sizes) - 1)  # ==max_pos#
     return masked_sizes[label_im]
 
-    
+
 def vessel_enhance(img):
     """ Vessel enhancement algorithm
     """
     return (1 - normalise(img)**2)**2
 
-def vessel_mask(img,thr=0.74,reps=2):
+
+def vessel_mask(img, thr=0.74, reps=2):
 
     # Apply threshiold to vessel_enhanced img
     mask = img < thr
     # Get biggest segment
-    for i in xrange(0,reps):
-        mask = ndimage.binary_erosion(mask, structure = np.ones((10, 10, 10)))
+    for i in xrange(0, reps):
+        mask = ndimage.binary_erosion(mask, structure=np.ones((10, 10, 10)))
         mask = getbiggestcc(mask)
-        mask = ndimage.binary_dilation(pixel, structure = np.ones((10, 10, 10)))
-        mask = ndimage.binary_fill_holes(mask, structure = np.ones((20, 20, 20)))
+        mask = ndimage.binary_dilation(pixel, structure=np.ones((10, 10, 10)))
+        mask = ndimage.binary_fill_holes(mask, structure=np.ones((20, 20, 20)))
     return img * mask
 
 
-def max_contrast_image(magnitude,phase,reference):
+def max_contrast_image(magnitude, phase, reference):
     """MCI maximum contrast image
 
  Created by Zhaolin Chen 
  Adapted by Amanda Ng on 11 March 2009
  Updated by Michael Eager July 2015
-    """    
-    phasereg=phase.*0
-    phasereg(phase>0)=phase(phase>0)-reference[1]
-    phasereg(phase<0)=phase(phase<0)+reference[1]
-    
-    output = np.sqrt((magnitude-reference[0])**2 + (phasereg)**2)
+    """
+    phasereg = phase.*0
+    phasereg(phase > 0) = phase(phase > 0) - reference[1]
+    phasereg(phase < 0) = phase(phase < 0) + reference[1]
+
+    output = np.sqrt((magnitude - reference[0])**2 + (phasereg)**2)
     return output
-
-
 
 
 if __name__ == "__main__":
@@ -299,25 +295,25 @@ if __name__ == "__main__":
 
     print "Computing Homodyne filter from Original image"
     print "sigma ", 10.0
-    pha,mag = phaserecon(ksp, 10.0,intpl=1.0,thr=0.05)
-    
+    pha, mag = phaserecon(ksp, 10.0, intpl=1.0, thr=0.05)
+
     # print "Saving Gaussian image"
     save_nifti(mag, 'homodyne_magnitude')
-    save_nifti(pha,'homodyne_phase')
+    save_nifti(pha, 'homodyne_phase')
 
     print "Computing SWI images from Homodyne filtered images"
-    swi_n,swi_p = swi2(mag,pha)
+    swi_n, swi_p = swi2(mag, pha)
 
-    if len(ksp.shape)==5:
-        pha,mag1 = phaserecon(ksp[:,:,:,0,0], 10.0,intpl=1.0,thr=0.05)
-        swi1 = swi(mag1,pha)
-        pha,mag2 = phaserecon(ksp[:,:,:,0,1], 10.0,intpl=1.0,thr=0.05)
-        swi1 = swi(mag2,pha)
-        pha,mag3 = phaserecon(ksp[:,:,:,0,2], 10.0,intpl=1.0,thr=0.05)
-        swi1 = swi(mag3,pha)
+    if len(ksp.shape) == 5:
+        pha, mag1 = phaserecon(ksp[:, :, :, 0, 0], 10.0, intpl=1.0, thr=0.05)
+        swi1 = swi(mag1, pha)
+        pha, mag2 = phaserecon(ksp[:, :, :, 0, 1], 10.0, intpl=1.0, thr=0.05)
+        swi1 = swi(mag2, pha)
+        pha, mag3 = phaserecon(ksp[:, :, :, 0, 2], 10.0, intpl=1.0, thr=0.05)
+        swi1 = swi(mag3, pha)
 
-        mag_mee = multiecho_enhanced(mag1,mag2,mag3)
-        swi_mee = multiecho_enhanced(swi1,swi2,swi3)
+        mag_mee = multiecho_enhanced(mag1, mag2, mag3)
+        swi_mee = multiecho_enhanced(swi1, swi2, swi3)
 
         save_nifti(mag, 'homodyne_magnitude')
-        save_nifti(pha,'homodyne_phase')
+        save_nifti(pha, 'homodyne_phase')

@@ -21,7 +21,8 @@
 
 """
 
-import pstats, cProfile
+import pstats
+import cProfile
 
 
 import os
@@ -52,7 +53,8 @@ parser.add_argument('-a', '--axis_order', help='Axis order eg 1,0,2.')
 parser.add_argument(
     '-v', '--verbose', help='Verbose comments.', action="store_true")
 
-args = parser.parse_args(['--inputdir','../ExampleAgilentData/kidney512iso_01.fid/'])
+args = parser.parse_args(
+    ['--inputdir', '../ExampleAgilentData/kidney512iso_01.fid/'])
 
 procpar, procpartext = Procpar.ReadProcpar(
     os.path.join(args.inputdir, 'procpar'))
@@ -62,7 +64,7 @@ fidfiles = [f for f in files if f.endswith('fid')]
 print "Number of FID files ", len(fidfiles)
 print "Reading FID"
 filename = fidfiles[len(fidfiles) - 1]
-args.verbose=1
+args.verbose = 1
 pp, hdr, dims, data_real, data_imag = readfid(args.inputdir,
                                               procpar, args)
 
@@ -78,12 +80,14 @@ print "Shift kspace centre to max point"
 ksp = KSP.kspaceshift(ksp)
 # (uu,vv,ww) = KSP.fouriercoords(ksp.shape)
 
+
 def tic():
-    #Homemade version of matlab tic and toc functions
-    #https://stackoverflow.com/questions/5849800/tic-toc-functions-analog-in-python
+    # Homemade version of matlab tic and toc functions
+    # https://stackoverflow.com/questions/5849800/tic-toc-functions-analog-in-python
     import time
     global startTime_for_tictoc
     startTime_for_tictoc = time.time()
+
 
 def toc():
     import time
@@ -102,21 +106,22 @@ from pyfft.cl import Plan
 import pyopencl as cl
 import pyopencl.array as cl_array
 
-sigma= np.ones(3)
+sigma = np.ones(3)
 
-def kspacegaussian_filter_CL(ksp,sigma,ctx):
-    sz=ksp.shape
+
+def kspacegaussian_filter_CL(ksp, sigma, ctx):
+    sz = ksp.shape
     dtype = np.complex64
     ftype = np.float32
     #api = cluda.ocl_api()
     #ctx = cl.create_some_context(0)
     queue = cl.CommandQueue(ctx)
-    #queue.flush()
-    data_dev = cl_array.to_device(queue,ksp)
+    # queue.flush()
+    data_dev = cl_array.to_device(queue, ksp)
     w = h = k = 512
-    plan = Plan((w,h,k), normalize=True, queue=queue)
-    FACTOR=1.0
-    program = cl.Program(ctx,"""
+    plan = Plan((w, h, k), normalize=True, queue=queue)
+    FACTOR = 1.0
+    program = cl.Program(ctx, """
 #pragma OPENCL EXTENSION cl_khr_fp64: enable
 #include "pyopencl-complex.h" 
 __kernel void gauss_kernel(__global cfloat_t *dest) //, __global cfloat_t *src)
@@ -146,28 +151,28 @@ __kernel void gauss_kernel(__global cfloat_t *dest) //, __global cfloat_t *src)
   dest[idx].y = dest[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR)).build()
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR)).build()
     gauss_kernel = program.gauss_kernel
     #data_dev = thr.empty_like(ksp_dev)
-    gauss_kernel(queue, sz, None, data_dev.data).wait() #, data_dev.data
+    gauss_kernel(queue, sz, None, data_dev.data).wait()  # , data_dev.data
     ksp_out = data_dev.get()
     queue.flush()
     #ctx = cl.create_some_context(interactive=False)
     #queue = cl.CommandQueue(ctx)
     w = h = k = 512
-    plan = Plan((w,h,k), normalize=True, queue=queue)
+    plan = Plan((w, h, k), normalize=True, queue=queue)
     data2_dev = cl_array.to_device(queue, ksp_out)
     plan.execute(data2_dev.data, inverse=True)
     result = data2_dev.get()
     result = np.fft.fftshift(result)
     queue.finish()
-    return result  #,ksp_out
+    return result  # ,ksp_out
 
 plats = cl.get_platforms()
 ctx = cl.Context(properties=[(cl.context_properties.PLATFORM, plats[0])])
 
 tic()
-imggauss = kspacegaussian_filter_CL(ksp,np.ones(3),ctx)
+imggauss = kspacegaussian_filter_CL(ksp, np.ones(3), ctx)
 print 'PyFFT +OpenCL Gaussian filter:'
 toc()
 tic()
@@ -176,27 +181,26 @@ kspgauss2 = KSP.kspacegaussian_filter2(ksp, 1)
 image_filtered = simpleifft(procpar, dims, hdr, kspgauss2, args)
 toc()
 
-##  PYFFT
-
+# PYFFT
 
 
 tic()
 #ctx = cl.create_some_context(interactive=False)
 #queue = cl.CommandQueue(ctx)
 w = h = k = 512
-plan = Plan((w,h,k), normalize=True, queue=queue)
+plan = Plan((w, h, k), normalize=True, queue=queue)
 gpu_data = cl_array.to_device(queue, ksp)
-plan.execute(gpu_data.data, inverse=True) 
+plan.execute(gpu_data.data, inverse=True)
 result = gpu_data.get()
 toc()
 result = np.fft.fftshift(result)
 print "PyFFT OpenCL IFFT time and first three results:"
-print "%s sec, %s" % (toc(), str(np.abs(result[:3,0,0])))
+print "%s sec, %s" % (toc(), str(np.abs(result[:3, 0, 0])))
 
 tic()
 reference = np.fft.fftshift(np.fft.ifftn(ksp))
 print "Numpy IFFTN time and first three results:"
-print "%s sec, %s" % (toc(), str(np.abs(reference[:3,0,0])))
+print "%s sec, %s" % (toc(), str(np.abs(reference[:3, 0, 0])))
 
 
 print "Calulating L1 norm "
@@ -210,13 +214,15 @@ import matplotlib.pyplot as plt
 # clear the plot
 
 
-f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(2,3, sharex='col', sharey='row')
-ax1.imshow(np.abs(ksp[:,:, 250]), aspect='auto')
+f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(
+    2, 3, sharex='col', sharey='row')
+ax1.imshow(np.abs(ksp[:, :, 250]), aspect='auto')
 ax1.set_title('PyFFT + PyOpenCL Complex K-space filter')
-ax2.imshow(np.log10(np.abs(result[:,:, 250]/512**3)), aspect='auto')
-ax3.imshow(np.log10(np.abs(result[:,:, 250]/512**3)-np.abs(reference[:,:, 250])), aspect='auto')
-ax4.imshow(np.log10(np.abs(reference[:,:, 250])), aspect='auto')
-ax5.imshow(np.squeeze(np.abs(imggauss[:,:,250])), aspect='auto')
-ax6.imshow(np.squeeze(np.abs(image_filtered[:,:,250])), aspect='auto')
+ax2.imshow(np.log10(np.abs(result[:, :, 250] / 512**3)), aspect='auto')
+ax3.imshow(np.log10(
+    np.abs(result[:, :, 250] / 512**3) - np.abs(reference[:, :, 250])), aspect='auto')
+ax4.imshow(np.log10(np.abs(reference[:, :, 250])), aspect='auto')
+ax5.imshow(np.squeeze(np.abs(imggauss[:, :, 250])), aspect='auto')
+ax6.imshow(np.squeeze(np.abs(image_filtered[:, :, 250])), aspect='auto')
 
 plt.savefig('results_pyfftCL.jpg')

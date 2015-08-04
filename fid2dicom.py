@@ -336,7 +336,8 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
     logging.info('Procpar to dicom complete')
     filename = fidfiles[len(fidfiles) - 1]
     try:
-        procpar, hdr, dims, data_real, data_imag = FID.readfid(args.inputdir, procpar, args)
+        procpar, hdr, dims, data_real, data_imag = FID.readfid(
+            args.inputdir, procpar, args)
     except IOError:
         logging.error('fid2dicom: IOError in readfid.')
         sys.exit(1)

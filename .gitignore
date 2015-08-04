@@ -286,3 +286,6 @@ docs/_build/
 
 # PyBuilder
 target/
+
+# Pystyle
+*.orig

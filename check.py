@@ -13,7 +13,7 @@ try:
 except ImportError:
     raise ImportError("Import failed for standard modules.")
 
-try:    
+try:
     import dicom
     import uuid
     import argparse
@@ -21,10 +21,11 @@ try:
     from dicom.sequence import Sequence
     from dicom.dataset import Dataset
 except ImportError:
-    raise ImportError("Import failed for Pip imports: dicom, uuid, or argparse.")
+    raise ImportError(
+        "Import failed for Pip imports: dicom, uuid, or argparse.")
 
 try:
-    import numpy  # ; numpy.test()    
+    import numpy  # ; numpy.test()
     import scipy  # ; scipy.test()
     if scipy.__version__[2] == 7:
         scipy.pkgload('signal')

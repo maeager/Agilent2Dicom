@@ -10,8 +10,8 @@ ftype = np.float32
 api = cluda.ocl_api()
 thr = api.Thread.create()
 
-sigma=np.ones(3) 
-FACTOR = (((np.sqrt(2*np.pi)**3)*np.prod(sigma)))
+sigma = np.ones(3)
+FACTOR = (((np.sqrt(2 * np.pi)**3) * np.prod(sigma)))
 
 program = thr.compile("""
 KERNEL void gauss_kernel(
@@ -54,14 +54,15 @@ KERNEL void gauss_kernel(
   dest[idx].y = src[idx].y * weight;  //(${ftype})k; //
   
 }
-""" % (N,N,N,sigma[0],sigma[1],sigma[2],FACTOR), render_kwds=dict(ctype=dtypes.ctype(dtype),
-                                ftype=dtypes.ctype(ftype),
-    exp=functions.exp(ftype)),fast_math=True)
+""" % (N, N, N, sigma[0], sigma[1], sigma[2], FACTOR), render_kwds=dict(ctype=dtypes.ctype(dtype),
+                                                                        ftype=dtypes.ctype(
+                                                                            ftype),
+                                                                        exp=functions.exp(ftype)), fast_math=True)
 
 gauss_kernel = program.gauss_kernel
 
-r1 = np.ones((N,N,N)).astype(ftype)   #/N
-r2 = np.ones((N,N,N)).astype(ftype)   #/N
+r1 = np.ones((N, N, N)).astype(ftype)  # /N
+r2 = np.ones((N, N, N)).astype(ftype)  # /N
 a = r1 + 1j * r2
 b = r1 - 1j * r2
 a_dev = thr.to_device(a)
@@ -73,10 +74,10 @@ dest_dev = thr.empty_like(a_dev)
 
 # (np.pi).astype(np.float32),
 #gauss_kernel(dest_dev, a_dev, sigma_dev, local_size=N,global_size=N*N*N)
-gauss_kernel(dest_dev, a_dev, local_size=N,global_size=N*N*N)
+gauss_kernel(dest_dev, a_dev, local_size=N, global_size=N * N * N)
 dest_out = dest_dev.get()
 print dest_out
-#max_dest = 
+# max_dest =
 
 
 #dest_numpy = (1.0/np.sqrt(2*np.pi))*np.exp(-2*np.pi*(a*a + b*b))

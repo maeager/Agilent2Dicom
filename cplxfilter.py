@@ -36,7 +36,7 @@ else:
     from scipy.signal import wiener
     from scipy import ndimage
     # from scipy import signal
-    
+
 
 def cplxgaussian_filter(real_input, imag_input, sigma=0.707, order_=0,
                         mode_='nearest', cval_=0.0):
@@ -448,7 +448,7 @@ filtered result with the same shape as im.
     """
     # scipy.signal.wiener(im, mysize=None, noise=None)
     # ,(size_, size_, size_)
-    filtersiz=(3,3,3)
+    filtersiz = (3, 3, 3)
     print "Complex Wiener filter window size ", mysize_, " noise ", noise_
     if not noise_:
         noise_ = ndimage.standard_deviation(real_input)
@@ -568,7 +568,7 @@ Nonparametric Econometrics: Theory and Practice
     vv = yy[np.newaxis, :, np.newaxis] * mult_fact
     ww = zz[np.newaxis, np.newaxis, :] * mult_fact
     if np.prod(fsize) != np.prod(half_fsiz * 2):
-        
+
         uu = uu[:fsize[0], :fsize[1], :fsize[2]]
         vv = vv[:fsize[0], :fsize[1], :fsize[2]]
         ww = ww[:fsize[0], :fsize[1], :fsize[2]]
@@ -595,7 +595,8 @@ Nonparametric Econometrics: Theory and Practice
     epan = epan * (epan > 0)
     # epan = epan / ndimage.sum(epan)
     return epan.astype(np.float32)
-#end epanechnikov_kernel
+# end epanechnikov_kernel
+
 
 def cplxepanechnikov_filter(real_input, imag_input, sigma_=1.87,
                             size_=3, mode_='reflect', order_=0):

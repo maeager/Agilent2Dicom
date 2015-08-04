@@ -57,7 +57,7 @@ __copyright__ = "Copyright 2014 Michael Eager"
 
 
 Agilent2DicomAppStamp = re.sub(
-    r'\$Id(.*)\$', r'\1', "$Id$")
+    r'\$Id$', r'\1', "$Id$")
 cmd_header = '(if test ${MASSIVE_USERNAME+defined} \n\
 then \n\
 echo ''On Massive'' \n\

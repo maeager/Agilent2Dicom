@@ -576,7 +576,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     else:
         ds.ImagesInAcquisition = 1
 
-    # if len(ds.ImageType) >= 3 and 
+    # if len(ds.ImageType) >= 3 and
     if ds.ImageType[2] == 'DIFFUSION':
         ds = ParseDiffusionFDF(ds, procpar, fdf_properties, args)
 

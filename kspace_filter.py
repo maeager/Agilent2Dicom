@@ -63,6 +63,7 @@ def fouriercoords(siz):
             vv = vv[:siz[0], :siz[1]]
         return (uu, vv, [])
 
+
 def gaussian_fourierkernel_old(uu, vv, ww, sigma):
     """
     Create Gaussian Fourier filter kernel
@@ -86,8 +87,8 @@ def gaussian_fourierkernel_old(uu, vv, ww, sigma):
         gfilter = gfilter / maxval
     else:
         gfilter = np.exp(-2 * (np.pi ** 2) * ((sigma[0] ** 2) * uu ** 2 +
-                                                (sigma[1] ** 2) * vv ** 2 +
-                                                (sigma[2] ** 2) * ww ** 2))
+                                              (sigma[1] ** 2) * vv ** 2 +
+                                              (sigma[2] ** 2) * ww ** 2))
         midpoint = np.ceil(np.array(uu.shape) / 2.0)
         maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
                                          midpoint[1] - 10:midpoint[1] + 10,
@@ -95,13 +96,14 @@ def gaussian_fourierkernel_old(uu, vv, ww, sigma):
         gfilter = gfilter / maxval
     return gfilter
 
+
 def gaussian_fourierkernel(uu, vv, ww, sigma):
     """
     Create Gaussian Fourier filter kernel
     """
     if not hasattr(sigma, "__len__"):  # type(sigma) is float:
         gfilter = np.expm1(-2 * (np.pi ** 2) *
-                         (uu ** 2 + vv ** 2 + ww ** 2) * (sigma ** 2))+1
+                           (uu ** 2 + vv ** 2 + ww ** 2) * (sigma ** 2)) + 1
 
         midpoint = np.ceil(np.array(uu.shape) / 2.0)
         maxval = ndimage.maximum(gfilter[midpoint[0] - 10:midpoint[0] + 10,
@@ -127,38 +129,36 @@ def gaussian_fourierkernel(uu, vv, ww, sigma):
     return gfilter
 
 
-
-def gaussian_fourierkernel_quarter_v2(uu,vv,ww,sigma):
-    siz = np.floor(np.array(uu.shape) / 2 + 1 ).astype(int)
+def gaussian_fourierkernel_quarter_v2(uu, vv, ww, sigma):
+    siz = np.floor(np.array(uu.shape) / 2 + 1).astype(int)
     gfilter = np.empty_like(uu)
     alpha = np.exp(-2 * (np.pi ** 2))
     if not hasattr(sigma, "__len__"):  # type(sigma) is float:
-        
-        for ii in xrange(0,siz[0]):
-            for jj in xrange(0,siz[1]):
-                for kk in xrange(0,siz[2]):
-                    gfilter[ii,jj,kk] = np.expm1(
-                        (sigma ** 2) * ((uu[ii,jj,kk] ** 2) +
-                                        (vv[ii,jj,kk] ** 2) +
-                                        (ww[ii,jj,kk] ** 2))) + 1
+
+        for ii in xrange(0, siz[0]):
+            for jj in xrange(0, siz[1]):
+                for kk in xrange(0, siz[2]):
+                    gfilter[ii, jj, kk] = np.expm1(
+                        (sigma ** 2) * ((uu[ii, jj, kk] ** 2) +
+                                        (vv[ii, jj, kk] ** 2) +
+                                        (ww[ii, jj, kk] ** 2))) + 1
     else:
-        for ii in xrange(0,siz[0]):
-            for jj in xrange(0,siz[1]):
-                for kk in xrange(0,siz[2]):
-                    gfilter[ii,jj,kk] = np.expm1(((sigma[0] ** 2) * uu[ii,jj,kk] ** 2) +
-                                                 ((sigma[1] ** 2) * vv[ii,jj,kk] ** 2) +
-                                                 ((sigma[2] ** 2) * ww[ii,jj,kk] ** 2)) + 1
-        
+        for ii in xrange(0, siz[0]):
+            for jj in xrange(0, siz[1]):
+                for kk in xrange(0, siz[2]):
+                    gfilter[ii, jj, kk] = np.expm1(((sigma[0] ** 2) * uu[ii, jj, kk] ** 2) +
+                                                   ((sigma[1] ** 2) * vv[ii, jj, kk] ** 2) +
+                                                   ((sigma[2] ** 2) * ww[ii, jj, kk] ** 2)) + 1
+
     # Copy second quadrant
-    gfilter[siz[0]:,:siz[1],:siz[2]] = gfilter[siz[0]-2:-1:1,:,:]
+    gfilter[siz[0]:, :siz[1], :siz[2]] = gfilter[siz[0] - 2:-1:1, :, :]
     # Copy third and fourth quadrant
-    gfilter[:,siz[1]:,:siz[2]] = gfilter[:,siz[1]-2:-1:1,:]
+    gfilter[:, siz[1]:, :siz[2]] = gfilter[:, siz[1] - 2:-1:1, :]
     # Copy fifth to eighth quadrant
-    gfilter[:,:,siz[2]:] = gfilter[:,:,siz[2]-2:-1:1]
-    maxval = gfilter[siz[0],siz[1],siz[2]]
+    gfilter[:, :, siz[2]:] = gfilter[:, :, siz[2] - 2:-1:1]
+    maxval = gfilter[siz[0], siz[1], siz[2]]
     gfilter *= alpha / maxval
     return gfilter
-
 
 
 def fouriergauss(siz, sigma):
@@ -171,6 +171,7 @@ def fouriergauss(siz, sigma):
     """
     (uu, vv, ww) = fouriercoords(siz)
     return gaussian_fourierkernel(uu, vv, ww, sigma)
+
 
 def fouriergauss_v2(siz, sigma):
     """
@@ -186,7 +187,7 @@ def fouriergauss_v2(siz, sigma):
     (uu, vv, ww) = fouriercoords(siz)
     return gaussian_fourierkernel_quarter_v2(uu, vv, ww, sigma)
 
-    
+
 def cplxfouriergauss(siz, sigma):
     """
     Complex Gaussian in Fourier domain :
@@ -236,7 +237,7 @@ def fourierepanechnikov(siz, sigma):
      Wolfram alpha:
      Abs[FourierTransform[(1+i)*UnitBox[x/2]*(1-x^2)*0.75]]
     => 0.423142 abs((4 sin(omega)-4 omega cos(omega))/omega^3)
-    
+
     """
     # (uu, vv, ww) = fouriercoords(siz)
     # uu = uu + np.spacing(1)
@@ -323,15 +324,15 @@ def fouriergauss2(siz, voxmm, sigma):
         # if type(sigma) is float or type(sigma) is np.float64:
         factor = 1 / (np.sqrt(2 * np.pi / sigma ** 2) * sigma)
         component = factor * (np.expm1(-0.5 * (uu ** 2 + vv ** 2 + ww ** 2) *
-                                    (sigma ** 2))+1)
+                                       (sigma ** 2)) + 1)
     else:
         factor = 1 / (np.sqrt(2 * np.pi / ((sigma[0] * sigma[0]) +
                                            (sigma[1] * sigma[1]) +
                                            (sigma[2] * sigma[2]))) *
                       np.prod(sigma))
         component = factor * (np.expm1(-0.5 * ((sigma[0] * sigma[0] * uu * uu) +
-                                            (sigma[1] * sigma[1] * vv * vv) +
-                                            (sigma[2] * sigma[2] * ww * ww)))+1)
+                                               (sigma[1] * sigma[1] * vv * vv) +
+                                               (sigma[2] * sigma[2] * ww * ww))) + 1)
     return component
 
 
@@ -380,7 +381,7 @@ def inhomogeneouscorrection(ksp, siz, sigma):
     # HG = fftn(ifftshift(hG))
 #    HGh = sqrt(pi*2*sigma*sigma)*
     HG = np.expm1(-np.pi * np.pi * (uu * uu + vv * vv + ww * ww)
-                * (2 * sigma * sigma))+1
+                  * (2 * sigma * sigma)) + 1
     del uu, vv, ww
 
     kspHG = ksp * HG
@@ -479,6 +480,7 @@ def kspacegaussian_filter2(ksp, sigma_=None):
     return out_ksp
 # end kspacegaussian_filter2
 
+
 def kspacegaussian_filter3(ksp, sigma_=None):
     """
     Apply Gaussian filter in Fourier domain to kspace data.
@@ -508,7 +510,7 @@ def kspacegaussian_filter3(ksp, sigma_=None):
     return out_ksp
 # end kspacegaussian_filter3
 
-    
+
 def kspacecplxgaussian_filter(ksp, sigma_=None):
     """
     Apply Gaussian filter in Fourier domain to kspace real and imag data
@@ -671,8 +673,6 @@ def imageshift(image1, image2):
     print ""
     return image2
 # end imageshift
-
-    
 
 
 def open_image(image_filtered):
@@ -884,7 +884,8 @@ if __name__ == "__main__":
     # for filename in fidfiles:
     print "Reading FID"
     filename = fidfiles[len(fidfiles) - 1]
-    pp, hdr, dims, data_real, data_imag = readfid(args.inputdir,  procpar, args)
+    pp, hdr, dims, data_real, data_imag = readfid(
+        args.inputdir,  procpar, args)
     print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
     affine = np.eye(4)
     # # affine[:3, :3]= np.arange(9).reshape((3, 3))
@@ -944,7 +945,6 @@ if __name__ == "__main__":
     # print "Saving Gaussian image"
     save_nifti(normalise(np.abs(image_filtered)), 'gauss_v3_kspimage')
 
-    
     print "Computing Gaussian sub-band1.5 image from Original image"
     Fsubband = fouriergausssubband15(ksp.shape, 0.707)
     image_filtered = simpleifft(procpar, dims, hdr, (ksp * Fsubband), args)

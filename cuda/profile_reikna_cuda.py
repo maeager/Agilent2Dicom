@@ -1,5 +1,6 @@
 
-import pstats, cProfile
+import pstats
+import cProfile
 
 
 import os
@@ -30,7 +31,8 @@ parser.add_argument('-a', '--axis_order', help='Axis order eg 1,0,2.')
 parser.add_argument(
     '-v', '--verbose', help='Verbose comments.', action="store_true")
 
-args = parser.parse_args(['--inputdir','../ExampleAgilentData/kidney512iso_01.fid/'])
+args = parser.parse_args(
+    ['--inputdir', '../ExampleAgilentData/kidney512iso_01.fid/'])
 
 procpar, procpartext = Procpar.ReadProcpar(
     os.path.join(args.inputdir, 'procpar'))
@@ -40,7 +42,7 @@ fidfiles = [f for f in files if f.endswith('fid')]
 print "Number of FID files ", len(fidfiles)
 print "Reading FID"
 filename = fidfiles[len(fidfiles) - 1]
-args.verbose=1
+args.verbose = 1
 pp, hdr, dims, data_real, data_imag = readfid(args.inputdir,
                                               procpar, args)
 
@@ -55,12 +57,14 @@ image, ksp = recon(pp, dims, hdr,
 print "Shift kspace centre to max point"
 ksp = KSP.kspaceshift(ksp)
 
+
 def tic():
-    #Homemade version of matlab tic and toc functions
-    #https://stackoverflow.com/questions/5849800/tic-toc-functions-analog-in-python
+    # Homemade version of matlab tic and toc functions
+    # https://stackoverflow.com/questions/5849800/tic-toc-functions-analog-in-python
     import time
     global startTime_for_tictoc
     startTime_for_tictoc = time.time()
+
 
 def toc():
     import time
@@ -73,7 +77,7 @@ def toc():
 
 
 import numpy as np
-## REINKA
+# REINKA
 import pycuda.driver as drv
 import pycuda.tools
 import pycuda.autoinit
@@ -82,11 +86,12 @@ from reikna.fft import FFT
 from reikna.fft import FFTShift
 from reikna.core import Annotation, Type, Transformation, Parameter
 
-#from pyopencl.tools import clear_first_arg_caches 
+#from pyopencl.tools import clear_first_arg_caches
 sigma = np.ones(3)
 
-def kspacegaussian_filter_CL(ksp,sigma):
-    sz=ksp.shape
+
+def kspacegaussian_filter_CL(ksp, sigma):
+    sz = ksp.shape
     dtype = np.complex64
     ftype = np.float32
     #api = cluda.ocl_api()
@@ -94,7 +99,7 @@ def kspacegaussian_filter_CL(ksp,sigma):
     thr = api.Thread.create()
     data_dev = thr.to_device(ksp)
     ifft = FFT(data_dev)
-    FACTOR=1.0
+    FACTOR = 1.0
     program = thr.compile("""
 KERNEL void gauss_kernel(
     GLOBAL_MEM ${ctype} *dest,
@@ -128,13 +133,13 @@ KERNEL void gauss_kernel(
   dest[idx].y = src[idx].y * weight; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
-                          render_kwds=dict(ctype=dtypes.ctype(dtype),
-                                           ftype=dtypes.ctype(ftype),
-                                           exp=functions.exp(ftype)),fast_math=True)
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR),
+        render_kwds=dict(ctype=dtypes.ctype(dtype),
+                         ftype=dtypes.ctype(ftype),
+                         exp=functions.exp(ftype)), fast_math=True)
     gauss_kernel = program.gauss_kernel
     #data_dev = thr.empty_like(ksp_dev)
-    gauss_kernel(data_dev, data_dev, global_size=(sz[0],sz[1],sz[2]))
+    gauss_kernel(data_dev, data_dev, global_size=(sz[0], sz[1], sz[2]))
     # ksp_out = data_dev.get()
     thr.synchronize()
     ##
@@ -143,14 +148,15 @@ KERNEL void gauss_kernel(
     #data_dev = thr.to_device(ksp_out)
     ifft = FFT(data_dev)
     cifft = ifft.compile(thr)
-    cifft(data_dev, data_dev,inverse=0)
-    result = np.fft.fftshift(data_dev.get() / sz[0]*sz[1]*sz[2])
-    result = result[::-1,::-1,::-1]
-    result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
-    return result  #,ksp_out
+    cifft(data_dev, data_dev, inverse=0)
+    result = np.fft.fftshift(data_dev.get() / sz[0] * sz[1] * sz[2])
+    result = result[::-1, ::-1, ::-1]
+    result = np.roll(np.roll(np.roll(result, 1, axis=2), 1, axis=1), 1, axis=0)
+    return result  # ,ksp_out
 
-def kspacegaussian_filter_CL2(ksp,sigma):
-    sz=ksp.shape
+
+def kspacegaussian_filter_CL2(ksp, sigma):
+    sz = ksp.shape
     dtype = np.complex64
     ftype = np.float32
     #api = cluda.ocl_api()
@@ -158,7 +164,7 @@ def kspacegaussian_filter_CL2(ksp,sigma):
     thr = api.Thread.create()
     data_dev = thr.to_device(ksp)
     ifft = FFT(data_dev)
-    FACTOR=1.0
+    FACTOR = 1.0
     program = thr.compile("""
 KERNEL void gauss_kernel(
     GLOBAL_MEM ${ctype} *dest,
@@ -192,38 +198,38 @@ KERNEL void gauss_kernel(
   dest[idx].y = src[idx].y * weight * factor; 
   
 }
-""" % (sz[0],sz[1],sz[2],sigma[0],sigma[1],sigma[2],FACTOR),
-                          render_kwds=dict(ctype=dtypes.ctype(dtype),
-                                           ftype=dtypes.ctype(ftype),
-                                           exp=functions.exp(ftype)),fast_math=True)
+""" % (sz[0], sz[1], sz[2], sigma[0], sigma[1], sigma[2], FACTOR),
+        render_kwds=dict(ctype=dtypes.ctype(dtype),
+                         ftype=dtypes.ctype(ftype),
+                         exp=functions.exp(ftype)), fast_math=True)
     gauss_kernel = program.gauss_kernel
     #data_dev = thr.empty_like(ksp_dev)
-    gauss_kernel(data_dev, data_dev, global_size=(sz[0],sz[1],sz[2]))
-    
+    gauss_kernel(data_dev, data_dev, global_size=(sz[0], sz[1], sz[2]))
+
     thr.synchronize()
     #data_dev = thr.to_device(ksp)
     ifft = FFT(data_dev)
     cifft = ifft.compile(thr)
     fftshift = FFTShift(data_dev)
     cfftshift = fftshift.compile(thr)
-    cifft(data_dev, data_dev,inverse=0)
+    cifft(data_dev, data_dev, inverse=0)
     thr.synchronize()
-    cfftshift(data_dev,data_dev)
+    cfftshift(data_dev, data_dev)
     thr.synchronize()
     result2 = data_dev.get() / np.prod(np.array(ksp.shape))
-    result2 = result2[::-1,::-1,::-1]
+    result2 = result2[::-1, ::-1, ::-1]
     thr.release()
     return result2
 
 pycuda.tools.clear_context_caches()
-    
+
 tic()
-imggauss = kspacegaussian_filter_CL(ksp,np.ones(3))
+imggauss = kspacegaussian_filter_CL(ksp, np.ones(3))
 print 'Reikna Cuda Gaussian+recon+ numpy fftshift: first run'
 toc()
 pycuda.tools.clear_context_caches()
 tic()
-imggauss2 = kspacegaussian_filter_CL2(ksp,np.ones(3))
+imggauss2 = kspacegaussian_filter_CL2(ksp, np.ones(3))
 print 'Reikna Cuda Gaussian+recon+ Reikna FFTShift: first run'
 toc()
 pycuda.tools.clear_context_caches()
@@ -234,35 +240,33 @@ image_filtered = simpleifft(procpar, dims, hdr, kspgauss2, args)
 toc()
 
 
-
-
 # create two timers so we can speed-test each approach
 #start = drv.Event()
 #end = drv.Event()
 api = cuda_api()
 thr = api.Thread.create()
-N=512
+N = 512
 
 tic()
 data_dev = thr.to_device(ksp)
 ifft = FFT(data_dev)
 cifft = ifft.compile(thr)
 thr.synchronize()
-cifft(data_dev, data_dev,inverse=0)
+cifft(data_dev, data_dev, inverse=0)
 result = np.fft.fftshift(data_dev.get() / N**3)
-result = result[::-1,::-1,::-1]
-result = np.roll(np.roll(np.roll(result,1,axis=2),1,axis=1),1,axis=0)
+result = result[::-1, ::-1, ::-1]
+result = np.roll(np.roll(np.roll(result, 1, axis=2), 1, axis=1), 1, axis=0)
 
 print "Reikna IFFT time and first three results:"
-print "%s sec, %s" % (toc(), str(np.abs(result[:3,0,0])))
+print "%s sec, %s" % (toc(), str(np.abs(result[:3, 0, 0])))
 
 tic()
 reference = np.fft.fftshift(np.fft.ifftn(ksp))
 print "Numpy IFFTN time and first three results:"
-print "%s sec, %s" % (toc(), str(np.abs(reference[:3,0,0])))
+print "%s sec, %s" % (toc(), str(np.abs(reference[:3, 0, 0])))
 
 print np.linalg.norm(result - reference) / np.linalg.norm(reference)
-print np.linalg.norm((np.abs(imggauss2))-np.abs(image_filtered)) / np.linalg.norm(np.abs(image_filtered))
+print np.linalg.norm((np.abs(imggauss2)) - np.abs(image_filtered)) / np.linalg.norm(np.abs(image_filtered))
 
 
 import matplotlib
@@ -272,29 +276,33 @@ import matplotlib.pyplot as plt
 # clear the plot
 
 
-f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(2,3, sharex='col', sharey='row')
-ax1.imshow(np.abs(ksp[:,:, 250]), aspect='auto')
+f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(
+    2, 3, sharex='col', sharey='row')
+ax1.imshow(np.abs(ksp[:, :, 250]), aspect='auto')
 ax1.set_title('Sharing x per column, y per row')
-ax2.imshow(np.log10(np.abs(result[:,:, 250]/512**3)), aspect='auto')
-ax3.imshow(np.log10(np.abs(result[:,:, 250]/512**3))-np.log10(np.abs(reference[:,:, 250])), aspect='auto')
-ax4.imshow(np.log10(np.abs(reference[:,:, 250])), aspect='auto')
-ax5.imshow(np.squeeze(np.abs(result[250,:,:])), aspect='auto')
-ax6.imshow(np.squeeze(np.abs(reference[250,:,:])), aspect='auto')
+ax2.imshow(np.log10(np.abs(result[:, :, 250] / 512**3)), aspect='auto')
+ax3.imshow(np.log10(np.abs(result[
+           :, :, 250] / 512**3)) - np.log10(np.abs(reference[:, :, 250])), aspect='auto')
+ax4.imshow(np.log10(np.abs(reference[:, :, 250])), aspect='auto')
+ax5.imshow(np.squeeze(np.abs(result[250, :, :])), aspect='auto')
+ax6.imshow(np.squeeze(np.abs(reference[250, :, :])), aspect='auto')
 plt.savefig('results_reiknaCUDA.jpg')
 
 
-f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(2,3, sharex='col', sharey='row')
+f, ((ax1, ax2, ax5), (ax3, ax4, ax6)) = plt.subplots(
+    2, 3, sharex='col', sharey='row')
 ax1.set_title('K-space')
-ax1.imshow(np.abs(ksp[:,:, 250]), aspect='auto')
+ax1.imshow(np.abs(ksp[:, :, 250]), aspect='auto')
 ax2.set_title('Reikna CUDA Complex K-space filter\n GPU Recon')
-ax2.imshow((np.abs(result[:,:, 250]/512**3)), aspect='auto')
+ax2.imshow((np.abs(result[:, :, 250] / 512**3)), aspect='auto')
 ax3.set_title('Diff (log10)')
-ax3.imshow(np.log10(np.abs(imggauss[:,:, 250])-np.abs(image_filtered[:,:, 250])), aspect='auto')
+ax3.imshow(np.log10(
+    np.abs(imggauss[:, :, 250]) - np.abs(image_filtered[:, :, 250])), aspect='auto')
 ax4.set_title('Numpy Recon')
-ax4.imshow((np.abs(reference[:,:, 250])), aspect='auto')
+ax4.imshow((np.abs(reference[:, :, 250])), aspect='auto')
 ax5.set_title('GPU Filtered Recon')
-ax5.imshow(np.squeeze(np.abs(imggauss[:,:,250])), aspect='auto')
+ax5.imshow(np.squeeze(np.abs(imggauss[:, :, 250])), aspect='auto')
 ax6.set_title('Standard Filter')
-ax6.imshow(np.squeeze(np.abs(image_filtered[:,:,250])), aspect='auto')
+ax6.imshow(np.squeeze(np.abs(image_filtered[:, :, 250])), aspect='auto')
 
 plt.savefig('results_reiknaCUDA.jpg')

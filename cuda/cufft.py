@@ -27,7 +27,7 @@ for i in xrange(batch_size):
 toc()
 tic()
 x_gpu = gpuarray.to_gpu(x)
-xf_gpu = gpuarray.empty((batch_size, N, N/2+1), np.complex64)
+xf_gpu = gpuarray.empty((batch_size, N, N / 2 + 1), np.complex64)
 plan_forward = cu_fft.Plan((N, N), np.float32, np.complex64, batch_size)
 cu_fft.fft(x_gpu, xf_gpu, plan_forward)
 
@@ -50,8 +50,6 @@ cu_fft.fft(x_gpu, x_gpu, plan)
 cu_fft.ifft(x_gpu, x_gpu, plan, True)
 toc()
 print 'Success status: ', np.allclose(x, x_gpu.get(), atol=1e-6)
-
-
 
 
 # Reconstruction from complex kspace

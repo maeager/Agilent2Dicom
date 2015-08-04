@@ -57,7 +57,8 @@ def readfid(fidfolder, procpar, args):
 
     #  get acqcycles and TE from procpar
     if not procpar:
-        procpar,procpartext = ReadProcpar.ReadProcpar(os.path.join(fidfolder, 'procpar'))
+        procpar, procpartext = ReadProcpar.ReadProcpar(
+            os.path.join(fidfolder, 'procpar'))
 
     # Define fid headers from procpar on first occasion
     fid_header = dict()
@@ -73,9 +74,9 @@ def readfid(fidfolder, procpar, args):
     fid_header['mode'] = '%dD' % procpar['nD']
     if procpar['nD'] == 2:
         fid_header['FOVcm'] = [procpar['lro'], procpar['lpe']]
-        if 'diff' in procpar.keys() and procpar['diff']=='y':
+        if 'diff' in procpar.keys() and procpar['diff'] == 'y':
             fid_header['dims'] = [
-                procpar['fn']/2,
+                procpar['fn'] / 2,
                 procpar['fn1'] / 2,
                 procpar['ns']]
         else:
@@ -127,7 +128,7 @@ def readfid(fidfolder, procpar, args):
     #  others). ('int32')
     fid_header['tbytes'], = struct.unpack(
         endian + 'i', f.read(int32size))
-    #tbytes is set to (np*ebytes).('int32')
+    # tbytes is set to (np*ebytes).('int32')
     fid_header['bbytes'], = struct.unpack(
         endian + 'i', f.read(int32size))
     # bbytes is set to (ntraces*tbytes + nbheaders*sizeof(struct
@@ -203,8 +204,8 @@ def readfid(fidfolder, procpar, args):
     dims = [0, 0, 0]
     # validate dimensions
     if procpar['nD'] == 2:
-        if 'diff' in procpar.keys() and procpar['diff']=='y':
-            dims[0] = procpar['fn']/2,
+        if 'diff' in procpar.keys() and procpar['diff'] == 'y':
+            dims[0] = procpar['fn'] / 2,
             dims[1] = procpar['fn1'] / 2,
             dims[2] = procpar['ns']
         else:
@@ -285,7 +286,8 @@ def readfid(fidfolder, procpar, args):
     fid_header['roi'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
     fid_header['origin'] = np.array(
         fid_header['location']) - np.array(fid_header['span']) / 2.0
-    # TODO orientation alignment still needs fixing - what does this tag do to the data?
+    # TODO orientation alignment still needs fixing - what does this tag do to
+    # the data?
     if procpar['orient'] == "sag":
         # TODO fid_header['orientation']= [0,0,1,1,0,0,0,1,0]
         fid_header['orientation'] = [1, 0, 0, 0, 1, 0, 0, 0, 1]
@@ -311,23 +313,23 @@ def readfid(fidfolder, procpar, args):
         # Read a block header
         header = dict()
         header['scale'], = struct.unpack(
-            endian + 'h', f.read(int16size))  #scaling factor fid,1,'int16')
+            endian + 'h', f.read(int16size))  # scaling factor fid,1,'int16')
         header['bstatus'], = struct.unpack(
             endian + 'h', f.read(int16size))  # status of data in block fid,1,'int16')
         header['index'], = struct.unpack(
-            endian + 'h', f.read(int16size))  #block index  fid,1,'int16')
+            endian + 'h', f.read(int16size))  # block index  fid,1,'int16')
         header['mode'], = struct.unpack(
             endian + 'h', f.read(int16size))  # mode of data in block fid,1,'int16')
         header['ctcount'], = struct.unpack(
-            endian + 'i', f.read(int32size))  #ct value for FID fid,1,'int32')
+            endian + 'i', f.read(int32size))  # ct value for FID fid,1,'int32')
         header['lpval'], = struct.unpack(
-            endian + 'f', f.read(int32size))  #f2 (2D-f1) left phase in phasefile fid,1,'float32')
+            endian + 'f', f.read(int32size))  # f2 (2D-f1) left phase in phasefile fid,1,'float32')
         header['rpval'], = struct.unpack(
             endian + 'f', f.read(int32size))  # f2 (2D-f1) right phase in phasefile fid,1,'float32')
         header['lvl'], = struct.unpack(
-            endian + 'f', f.read(int32size))  #level drift correction fid,1,'float32')
+            endian + 'f', f.read(int32size))  # level drift correction fid,1,'float32')
         header['tlt'], = struct.unpack(
-            endian + 'f', f.read(int32size))  #tilt drift correction  fid,1,'float32')
+            endian + 'f', f.read(int32size))  # tilt drift correction  fid,1,'float32')
 
         header['s_data'] = int(get_bit(header['bstatus'], 1))
         header['s_spec'] = int(get_bit(header['bstatus'], 2))
@@ -415,7 +417,8 @@ def readfid(fidfolder, procpar, args):
 
         if args.verbose:
             print header
-        data = np.fromfile(f, count=fid_header['np'] * fid_header['ntraces'], dtype=dtype_str)
+        data = np.fromfile(
+            f, count=fid_header['np'] * fid_header['ntraces'], dtype=dtype_str)
         if args.verbose:
             print "Raw FID data: Dim and shape: ", data.ndim, data.shape
         data = np.reshape(data, [fid_header['ntraces'], fid_header['np']])
@@ -428,7 +431,7 @@ def readfid(fidfolder, procpar, args):
             data[:, 1:fid_header['np']:2]).T
         # break
     if f.tell() != os.fstat(f.fileno()).st_size:
-        print "ReadFID: OS Error, fid file completed without finishing to end of file." 
+        print "ReadFID: OS Error, fid file completed without finishing to end of file."
     f.close()
     # print iblock
     if iblock == 0:
@@ -448,34 +451,38 @@ def readfid(fidfolder, procpar, args):
         return procpar, fid_header, dims, ksp_data_real, ksp_data_imag
 # end readfid
 
-def ASL_recon(fidfolder,procpar,args):
+
+def ASL_recon(fidfolder, procpar, args):
     """ASL_recon modified from seg_recon_ms_complex.m script in UCL groups Cardiac ASL script
 
-    
+
     """
-    procpar, fid_header, dims, ksp_data_real, ksp_data_imag=readfid(fidfolder,procpar,args)
-    FID = np.complex(ksp_data_real,ksp_data_imag)
+    procpar, fid_header, dims, ksp_data_real, ksp_data_imag = readfid(
+        fidfolder, procpar, args)
+    FID = np.complex(ksp_data_real, ksp_data_imag)
     ns = procpar['ns']
     frames = procpar['noframes']
-    ro = procpar['lro']*frames # or np/2 of nv
-    pe = procpar['lpe']*frames 
-    seg = procpar['etl'] # locetl
+    ro = procpar['lro'] * frames  # or np/2 of nv
+    pe = procpar['lpe'] * frames
+    seg = procpar['etl']  # locetl
     ASL = 2
-    numb = ASL*frames
-    pelist=[-63 ,  -31 ,    1 ,   33,   -62 ,  -30 ,    2,    34,   -61,   -29,     3  ,  35 ,  -60  , -28 ,    4 ,   36 ,  -59  , -27,     5,    37 ,  -58,   -26  ,   6,	38   -57 ,  -25  ,   7  ,  39  , -56 ,  -24    , 8,    40,   -55,   -23  ,   9 ,   41   -54,   -22 ,   10  ,  42 ,  -53 ,  -21 ,   11 ,   43 ,  -52 ,  -20,	12   , 44 ,  -51  , -19   , 13,    45  , -50  , -18,    14 ,   46 ,  -49 ,  -17  ,  15,    47,   -48,   -16,    16   , 48  , -47  , -15  ,  17,    49,   -46,	-14  ,  18 ,   50,   -45   -13,    19 ,   51  , -44 ,  -12  ,  20 ,   52 ,  -43 ,  -11 ,   21 ,   53,   -42,   -10  ,  22,    54  , -41  ,  -9  ,  23  ,  55, -40,  -8 ,   24 ,   56 ,  -39 ,   -7,    25 ,   57 ,  -38 ,   -6 ,   26   , 58  , -37 ,   -5   , 27  ,  59  , -36 ,   -4,    28,    60  , -35 ,   -3   , 29,	61 ,  -34,    -2 ,   30 ,   62 ,  -33 ,   -1 ,   31  ,  63 ,  -32  ,   0 ,   32  ,  64]
-        
-    fidtmp = np.reshape(FID, [ro,seg,ns,pe/seg*numb])
-    ksp = np.zeros(ro,pe,numb,ns)
-    for ll in xrange(1,ns):
-        fidtmp2 = np.squeeze(fidtmp[:,:,ll,:])
-        for j in xrange(1,numb):
-            fidtmp3[:,:,j] = np.reshape(fidtmp2[:,:,j::numb],[ro,pe])
-        ksp[:,:,:,ll]=fidtmp3[:,pelist+63,:]
-        
+    numb = ASL * frames
+    pelist = [-63,  -31,    1,   33,   -62,  -30,    2,    34,   -61,   -29,     3,  35,  -60, -28,    4,   36,  -59, -27,     5,    37,  -58,   -26,   6,	38 - 57,  -25,   7,  39, -56,  -24, 8,    40,   -55,   -23,   9,   41 - 54,   -22,   10,  42,  -53,  -21,   11,   43,  -52,  -20,	12, 44,  -51, -19, 13,    45, -50, -18,    14,   46,  -49,  -17,  15,    47,   -48,   -16,
+              16, 48, -47, -15,  17,    49,   -46,	-14,  18,   50,   -45 - 13,    19,   51, -44,  -12,  20,   52,  -43,  -11,   21,   53,   -42,   -10,  22,    54, -41,  -9,  23,  55, -40,  -8,   24,   56,  -39,   -7,    25,   57,  -38,   -6,   26, 58, -37,   -5, 27,  59, -36,   -4,    28,    60, -35,   -3, 29,	61,  -34,    -2,   30,   62,  -33,   -1,   31,  63,  -32,   0,   32,  64]
+
+    fidtmp = np.reshape(FID, [ro, seg, ns, pe / seg * numb])
+    ksp = np.zeros(ro, pe, numb, ns)
+    for ll in xrange(1, ns):
+        fidtmp2 = np.squeeze(fidtmp[:, :, ll, :])
+        for j in xrange(1, numb):
+            fidtmp3[:, :, j] = np.reshape(fidtmp2[:, :, j::numb], [ro, pe])
+        ksp[:, :, :, ll] = fidtmp3[:, pelist + 63, :]
+
 #        for jj in xrange(1,numb):
     img = fftshift(ifftn(fftshift(ksp)))
     return ksp, img, procpar, fid_header
-    
+
+
 def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
     """recon Reconstruct k-space image data into N-D image
     :param procpar:   procpar dictionary
@@ -963,25 +970,28 @@ def save_as_nifti(image, basename):
         new_image.set_data_dtype(np.float32)
         nib.save(new_image, basename + '.nii.gz')
 
+
 def cuda_ifft(cmplx_array):
     from reikna.cluda import dtypes, any_api
     from reikna.fft import FFT
     from reikna.core import Annotation, Type, Transformation, Parameter
 
-
     # Pick the first available GPGPU API and make a Thread on it.
     api = any_api()
     thr = api.Thread.create()
     data_dev = thr.to_device(cmplx_array)
-    # Create the FFT computation and attach the transformation above to its input.
-    ifft = FFT(data_dev) # (A shortcut: using the array type saved in the transformation)
+    # Create the FFT computation and attach the transformation above to its
+    # input.
+    # (A shortcut: using the array type saved in the transformation)
+    ifft = FFT(data_dev)
     # fft.parameter.input.connect(trf, trf.output, new_input=trf.input)
     cifft = ifft.compile(thr)
     # Run the computation
-    cifft(data_dev, data_dev,inverse=0)
+    cifft(data_dev, data_dev, inverse=0)
     result = data_dev.get()
     return result
-        
+
+
 def double_resolution2(ksp, basename, procpar, hdr, args):
     """double_resolution creates double resolution image from k-space data
     based on super-resolution methodsfor multiple averages, this just expands the
@@ -1173,7 +1183,7 @@ def ParseDiffusionFID(ds, procpar, diffusion_idx, args):
     :returns: Dicom struct
 
     VNMRJ 4.0:
-    
+
 SGLDiffusion Module
     The DIFFUSION_T structure is defined to have the following structure members in
 sglCommon.h
@@ -1227,7 +1237,7 @@ typedef enum {
 
     # Get procpar diffusion parameters
     Bvalue = procpar['bvalue']  # 64 element array for 31 directions
-                                # 10 for 3 directions
+    # 10 for 3 directions
     BValueSortIdx = np.argsort(Bvalue)
     BvalSave = procpar['bvalSave']
     if 'bvalvs' in procpar.keys():
@@ -1563,7 +1573,7 @@ def ParseFID(ds, fid_properties, procpar, args):
     if args.verbose:
         print 'Calculating orientation and span'
         print fid_properties['orientation']
-        print np.array(fid_properties['location'])*10
+        print np.array(fid_properties['location']) * 10
         print fid_properties['span']
     orientation = np.matrix(fid_properties['orientation']).reshape(3, 3)
     location = np.matrix(np.array(fid_properties['location']) * 10.0)
@@ -1575,7 +1585,7 @@ def ParseFID(ds, fid_properties, procpar, args):
         print "Span: ", span, span.shape
         print "Location: ", location, location.shape
         print orientation.transpose()
-    
+
     ds, tmatrix = ProcparToDicomMap.CalcTransMatrix(ds, orientation,
                                                     location, span, fidrank,
                                                     PixelSpacing,
