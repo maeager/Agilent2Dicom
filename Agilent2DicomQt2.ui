@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>1321</width>
-    <height>699</height>
+    <height>794</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (2.0.0)</string>
+   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (2.0.1)</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -174,7 +174,7 @@
                <x>0</x>
                <y>0</y>
                <width>1068</width>
-               <height>218</height>
+               <height>266</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -407,7 +407,7 @@
 Warning: use identical sigma values on isotropic images only. Non-isotropic values should be based on image size in comma-serarated list</string>
               </property>
               <property name="currentIndex">
-               <number>0</number>
+               <number>2</number>
               </property>
               <widget class="QWidget" name="tab_7">
                <attribute name="title">
@@ -856,7 +856,7 @@ Pseudo super-resolution does not give additional subvoxel information to the ima
                     <item>
                      <widget class="QRadioButton" name="radioButton_15">
                       <property name="text">
-                       <string>Disable DIcom output, use Nifti instead</string>
+                       <string>Disable Dicom output, use Nifti instead</string>
                       </property>
                      </widget>
                     </item>
@@ -1817,7 +1817,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                <x>0</x>
                <y>0</y>
                <width>1068</width>
-               <height>130</height>
+               <height>225</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -1985,7 +1985,7 @@ Folder</string>
           <item row="3" column="1">
            <widget class="QTabWidget" name="tabWidget">
             <property name="currentIndex">
-             <number>3</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="tabWidgetPage1">
              <attribute name="title">
@@ -2013,30 +2013,6 @@ SWI Negative (default output) and Positive contrasts available</string>
                  <layout class="QHBoxLayout" name="horizontalLayout_14">
                   <item>
                    <layout class="QGridLayout" name="gridLayout_10">
-                    <item row="3" column="0">
-                     <widget class="QRadioButton" name="radioButton_swipos">
-                      <property name="text">
-                       <string>Produce SWI positive</string>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="2" column="0">
-                     <widget class="QRadioButton" name="radioButton_swineg">
-                      <property name="text">
-                       <string>Produce SWI negative</string>
-                      </property>
-                      <property name="checked">
-                       <bool>true</bool>
-                      </property>
-                     </widget>
-                    </item>
-                    <item row="1" column="0">
-                     <widget class="QRadioButton" name="radioButton_swisaveRI">
-                      <property name="text">
-                       <string>Save Real and Imag Homodyne filtered images</string>
-                      </property>
-                     </widget>
-                    </item>
                     <item row="4" column="0">
                      <layout class="QHBoxLayout" name="horizontalLayout_24">
                       <item>
@@ -2068,6 +2044,30 @@ SWI Negative (default output) and Positive contrasts available</string>
                       </item>
                      </layout>
                     </item>
+                    <item row="1" column="0">
+                     <widget class="QCheckBox" name="checkBox_swisaveRI">
+                      <property name="text">
+                       <string>Save Real and Imag Homodyne filtered images</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="2" column="0">
+                     <widget class="QCheckBox" name="checkBox_swineg">
+                      <property name="text">
+                       <string>Produce SWI negative</string>
+                      </property>
+                      <property name="checked">
+                       <bool>true</bool>
+                      </property>
+                     </widget>
+                    </item>
+                    <item row="3" column="0">
+                     <widget class="QCheckBox" name="checkBox_swipos">
+                      <property name="text">
+                       <string>Produce SWI positive</string>
+                      </property>
+                     </widget>
+                    </item>
                    </layout>
                   </item>
                  </layout>
@@ -2083,13 +2083,6 @@ SWI Negative (default output) and Positive contrasts available</string>
                  <widget class="QLabel" name="label_29">
                   <property name="text">
                    <string>Pre-processing</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="2" column="1">
-                 <widget class="QRadioButton" name="radioButton_swipreprocess">
-                  <property name="text">
-                   <string>Use Complex Kspace filtering prior to Phase-based processing </string>
                   </property>
                  </widget>
                 </item>
@@ -2116,6 +2109,26 @@ SWI Negative (default output) and Positive contrasts available</string>
                    </widget>
                   </item>
                  </layout>
+                </item>
+                <item row="6" column="1">
+                 <spacer name="verticalSpacer_10">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="2" column="1">
+                 <widget class="QCheckBox" name="checkBox_swipreprocess">
+                  <property name="text">
+                   <string>Use Complex Kspace filtering prior to Phase-based processing </string>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
@@ -2176,34 +2189,24 @@ Let p=2 or 3 for images with susceptibility components. Otherwise use p=-2 or -3
                 </item>
                 <item row="2" column="1">
                  <layout class="QGridLayout" name="gridLayout_9">
-                  <item row="1" column="0">
-                   <widget class="QRadioButton" name="radioButton_meesaveRI">
-                    <property name="text">
-                     <string>Compute Real and Imaginary </string>
-                    </property>
-                   </widget>
-                  </item>
                   <item row="0" column="0">
-                   <widget class="QRadioButton" name="radioButton_meepreproc">
+                   <widget class="QCheckBox" name="checkBox_meepreproc">
                     <property name="text">
                      <string>Use Complex Kspace filtered image magnitude</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="1">
-                   <widget class="QRadioButton" name="radioButton_meeswi">
+                  <item row="2" column="0">
+                   <widget class="QCheckBox" name="checkBox_meesaveRI">
                     <property name="text">
-                     <string>Use SWI magnitude</string>
+                     <string>Save Real and Imaginary components</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="1" column="1">
-                   <widget class="QRadioButton" name="radioButton_6">
-                    <property name="enabled">
-                     <bool>false</bool>
-                    </property>
+                  <item row="1" column="0">
+                   <widget class="QCheckBox" name="checkBox_meeswi">
                     <property name="text">
-                     <string>More options</string>
+                     <string>Use SWI magnitude</string>
                     </property>
                    </widget>
                   </item>
@@ -2222,19 +2225,6 @@ Let p=2 or 3 for images with susceptibility components. Otherwise use p=-2 or -3
                    <string>Order</string>
                   </property>
                  </widget>
-                </item>
-                <item row="3" column="0">
-                 <spacer name="verticalSpacer_11">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
                 </item>
                 <item row="4" column="1">
                  <layout class="QHBoxLayout" name="horizontalLayout_44">
@@ -2260,6 +2250,19 @@ Let p=2 or 3 for images with susceptibility components. Otherwise use p=-2 or -3
                   </item>
                  </layout>
                 </item>
+                <item row="5" column="1">
+                 <spacer name="verticalSpacer_13">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
                </layout>
               </item>
              </layout>
@@ -2281,22 +2284,6 @@ Optimal vector difference between GM and WM.</string>
                    <string>Options</string>
                   </property>
                  </widget>
-                </item>
-                <item row="2" column="2">
-                 <widget class="QLineEdit" name="lineEdit_2"/>
-                </item>
-                <item row="3" column="0">
-                 <spacer name="verticalSpacer_9">
-                  <property name="orientation">
-                   <enum>Qt::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>40</height>
-                   </size>
-                  </property>
-                 </spacer>
                 </item>
                 <item row="4" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_47">
@@ -2336,6 +2323,26 @@ Optimal vector difference between GM and WM.</string>
                   </property>
                  </widget>
                 </item>
+                <item row="2" column="2">
+                 <widget class="QRadioButton" name="radioButton_MCI_RI">
+                  <property name="text">
+                   <string>Save Real and Imag</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="2">
+                 <spacer name="verticalSpacer_9">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
                </layout>
               </item>
              </layout>
@@ -2347,15 +2354,22 @@ Optimal vector difference between GM and WM.</string>
              <layout class="QHBoxLayout" name="horizontalLayout_21">
               <item>
                <layout class="QGridLayout" name="gridLayout_8">
-                <item row="4" column="1">
+                <item row="7" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_20">
                   <item>
-                   <widget class="QRadioButton" name="radioButton_3">
-                    <property name="enabled">
-                     <bool>false</bool>
-                    </property>
+                   <widget class="QRadioButton" name="radioButton_NLreps">
                     <property name="text">
-                     <string>RadioButton</string>
+                     <string>Repetitions</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="radioButton_NLinputRI">
+                    <property name="text">
+                     <string>Real and Imag (only valid for Pipeline 1)</string>
                     </property>
                    </widget>
                   </item>
@@ -2381,15 +2395,19 @@ Optimal vector difference between GM and WM.</string>
                   </item>
                  </layout>
                 </item>
-                <item row="8" column="1">
+                <item row="11" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_23">
                   <item>
-                   <widget class="QRadioButton" name="radioButton_10">
-                    <property name="enabled">
-                     <bool>false</bool>
-                    </property>
+                   <widget class="QCheckBox" name="checkBox_NLsaveRI">
                     <property name="text">
-                     <string>RadioButton</string>
+                     <string>Save Real/Imag</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="checkBox_NLsavePhase">
+                    <property name="text">
+                     <string>Save Phase</string>
                     </property>
                    </widget>
                   </item>
@@ -2415,64 +2433,54 @@ Optimal vector difference between GM and WM.</string>
                   </item>
                  </layout>
                 </item>
-                <item row="3" column="0">
+                <item row="6" column="0">
                  <widget class="QLabel" name="label_44">
                   <property name="text">
                    <string>Pipeline 1</string>
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="1">
+                <item row="6" column="2">
                  <widget class="QLabel" name="label_46">
                   <property name="text">
                    <string>Magnitude  (Image 1) -&gt; Automatic Non-local means -&gt; Denoised Image</string>
                   </property>
                  </widget>
                 </item>
-                <item row="5" column="1">
+                <item row="8" column="2">
                  <widget class="QLabel" name="label_11">
                   <property name="text">
-                   <string>Noise Estimated NLm (multiple reps required)
+                   <string>Noise Estimated NLm (2 reps required)
 Magnitude (Image 1) -&gt; Noise Est -&gt; Non-local means -&gt; Denoised Image
 Magnitude (Image 2) -^</string>
                   </property>
                  </widget>
                 </item>
-                <item row="5" column="0">
+                <item row="8" column="0">
                  <widget class="QLabel" name="label_10">
                   <property name="text">
                    <string>Pipeline 2</string>
                   </property>
                  </widget>
                 </item>
-                <item row="7" column="0">
+                <item row="10" column="0">
                  <widget class="QLabel" name="label_12">
                   <property name="text">
                    <string>Pipeline 3</string>
                   </property>
                  </widget>
                 </item>
-                <item row="7" column="1">
+                <item row="10" column="2">
                  <widget class="QLabel" name="label_14">
                   <property name="text">
-                   <string>Complex Noise Estimated NLm (multiple complex reps required)
+                   <string>Complex Noise Estimated NLm (2 complex reps required)
 Complex Image 1 -&gt; Homodyne Filter -&gt; X -&gt; Noise Est (Real)-&gt; Non-local means (Real) -&gt; Denoised Complex Image
 Complex Image 2 -&gt; Homodyne Filter -^     &gt; Noise Est (Imag)-&gt; Non-local means (Imag) -^</string>
                   </property>
                  </widget>
                 </item>
-                <item row="6" column="1">
+                <item row="9" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_22">
-                  <item>
-                   <widget class="QRadioButton" name="radioButton_9">
-                    <property name="enabled">
-                     <bool>false</bool>
-                    </property>
-                    <property name="text">
-                     <string>RadioButton</string>
-                    </property>
-                   </widget>
-                  </item>
                   <item>
                    <spacer name="horizontalSpacer_5">
                     <property name="orientation">
@@ -2495,17 +2503,17 @@ Complex Image 2 -&gt; Homodyne Filter -^     &gt; Noise Est (Imag)-&gt; Non-loca
                   </item>
                  </layout>
                 </item>
-                <item row="9" column="0">
+                <item row="12" column="0">
                  <widget class="QLabel" name="label_15">
                   <property name="enabled">
                    <bool>false</bool>
                   </property>
                   <property name="text">
-                   <string>Option 4</string>
+                   <string>Pipeline 4</string>
                   </property>
                  </widget>
                 </item>
-                <item row="9" column="1">
+                <item row="12" column="2">
                  <widget class="QLabel" name="label_18">
                   <property name="enabled">
                    <bool>false</bool>
@@ -2523,23 +2531,71 @@ Complex Image 2 -&gt; Homodyne Filter -^(HPF)     Low Pass -&gt;           -&gt;
                    <bool>true</bool>
                   </property>
                   <property name="text">
-                   <string>Input folder format</string>
+                   <string/>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
+                 <layout class="QHBoxLayout" name="horizontalLayout_25">
+                  <item>
+                   <widget class="QLabel" name="label_40">
+                    <property name="enabled">
+                     <bool>true</bool>
+                    </property>
+                    <property name="text">
+                     <string>Non-local means denoising filters using MRIdenoising package (Coupe and Manjon, Univ Bordeaux)
+
+MRONLM filter used: P. Coupe, J.V. Manjon, R. Robles, D.L. Collins
+ Adaptive Multiresolution Non-Local Means Filter for 3D MR Image Denoising. 
+IET Image Processing. 2012 
+ Note:  Outputs are the magnitude of the NLmeans filter saved as Nifti. If two inputs are included the 2 and 3 pipelines output the average NLmeans result.</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="3" column="0">
+                 <spacer name="verticalSpacer_12">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="2" column="0">
+                 <widget class="QLabel" name="label_49">
+                  <property name="text">
+                   <string>NL Filter</string>
                   </property>
                  </widget>
                 </item>
                 <item row="2" column="1">
-                 <widget class="QLabel" name="label_40">
-                  <property name="text">
-                   <string>Note:  Outputs are the magnitude of the NLmeans filter saved as Nifti. If two inputs are included the 2 and 3 pipelines output the average NLmeans result.</string>
-                  </property>
-                 </widget>
+                 <layout class="QHBoxLayout" name="horizontalLayout_26"/>
                 </item>
-                <item row="1" column="1">
-                 <layout class="QHBoxLayout" name="horizontalLayout_25">
+                <item row="2" column="2">
+                 <layout class="QHBoxLayout" name="horizontalLayout_31">
                   <item>
-                   <widget class="QCheckBox" name="checkBox_NLreps">
+                   <widget class="QRadioButton" name="PRINLM">
+                    <property name="enabled">
+                     <bool>false</bool>
+                    </property>
                     <property name="text">
-                     <string>Repetitions</string>
+                     <string>PRINLM</string>
+                    </property>
+                    <property name="checkable">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="MRONLM">
+                    <property name="text">
+                     <string>MRONLM</string>
                     </property>
                     <property name="checked">
                      <bool>true</bool>
@@ -2547,20 +2603,40 @@ Complex Image 2 -&gt; Homodyne Filter -^(HPF)     Low Pass -&gt;           -&gt;
                    </widget>
                   </item>
                   <item>
-                   <widget class="QCheckBox" name="checkBox_NLrealimag">
+                   <widget class="QRadioButton" name="ONLM">
                     <property name="text">
-                     <string>Real/Imag</string>
+                     <string>ONLM</string>
                     </property>
                    </widget>
                   </item>
                   <item>
-                   <widget class="QCheckBox" name="checkBox_NLother">
+                   <widget class="QRadioButton" name="AONLM">
                     <property name="text">
-                     <string>Other</string>
+                     <string>AONLM</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QRadioButton" name="ODCT">
+                    <property name="text">
+                     <string>ODCT</string>
                     </property>
                    </widget>
                   </item>
                  </layout>
+                </item>
+                <item row="13" column="2">
+                 <spacer name="verticalSpacer_11">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </item>
@@ -2582,7 +2658,7 @@ Complex Image 2 -&gt; Homodyne Filter -^(HPF)     Low Pass -&gt;           -&gt;
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string>Agilent2Dicom v2.0.0</string>
+         <string>Agilent2Dicom v2.0.1</string>
         </property>
        </widget>
       </item>
