@@ -1133,11 +1133,11 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
-            preprocess = int(self.ui.radioButton_swipreprocess.isChecked())
+            preprocess = int(self.ui.checkBox_swipreprocess.isChecked())
             swiorder = str(self.ui.lineEdit_swiorder.text())
-            saveRI = int(self.ui.radioButton_swisaveRI.isChecked())
-            swineg = int(self.ui.radioButton_swineg.isChecked())
-            swipos = int(self.ui.radioButton_swipos.isChecked())
+            saveRI = int(self.ui.checkBox_swisaveRI.isChecked())
+            swineg = int(self.ui.checkBox_swineg.isChecked())
+            swipos = int(self.ui.checkBox_swipos.isChecked())
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             # print 'swifid path: %s' % thispath
@@ -1220,18 +1220,18 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
             meeorder = str(self.ui.lineEdit_meeorder.text())
-            preprocess = int(self.ui.radioButton_meepreproc.isChecked())
-            saveRI = int(self.ui.radioButton_meesaveRI.isChecked())
-            useswi = int(self.ui.radioButton_meeswi.isChecked())
+            preprocess = int(self.ui.checkBox_meepreproc.isChecked())
+            saveRI = int(self.ui.checkBox_meesaveRI.isChecked())
+            useswi = int(self.ui.checkBox_meeswi.isChecked())
             if useswi and saveRI:
                 msg = "SWI is not complex, so real/imag output not possible. Do you want the SWI disabled and save the real/imag from the homodyne filtered image?"
                 reply = QtGui.QMessageBox.question(
                     self, 'Message', msg, QtGui.QMessageBox.Yes, QtGui.QMessageBox.No)
                 if reply == QtGui.QMessageBox.Yes:
                     #                    event.accept()
-                    self.ui.radioButton_meeswi.setChecked(False)
+                    self.ui.checkBox_meeswi.setChecked(False)
                 else:
-                    self.radioButton_meesaveRI.setChecked(False)
+                    self.checkBox_meesaveRI.setChecked(False)
                     #                    event.ignore()
 
             thispath = os.path.dirname(
@@ -1273,7 +1273,8 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
 
 #            radioButton_NLreps
-            inputRI = int(self.uiradioButton_NLinputRI.isChecked())
+            inputRI = int(self.ui.radioButton_NLinputRI.isChecked())
+            
 
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
@@ -1319,8 +1320,9 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
-            cmd = """ %s matlab -nodesktop -nosplash -r "addpath matlab/NLmeans; call_pipeline2('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"');quit" )""" % (
-                proc_header, str(input1_dir), str(input2_dir), os.path.join(str(output_dir), 'pipeline2.nii.gz'))
+            cmd = """ %s matlab -nodesktop -nosplash -r "addpath %s/matlab/NLmeans; call_pipeline2('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"');quit" )""" % (
+                proc_header, thispath, str(input1_dir), str(input2_dir),
+                os.path.join(str(output_dir), 'pipeline2.nii.gz'))
 
             # print cmd
             logging.info('Processing NLpipeline2 ' + cmd)
@@ -1354,13 +1356,14 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
-            saveRI = int(self.uiradioButton_NLsaveRI.isChecked())
-            savePhase = int(self.uiradioButton_NLsavePhase.isChecked())
+            saveRI = int(self.ui.checkBox_NLsaveRI.isChecked())
+            savePhase = int(self.ui.checkBox_NLsavePhase.isChecked())
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
-            cmd = """ %s matlab -nodesktop -nosplash -r "addpath matlab/NLmeans;  call_pipeline3('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%s);quit" )""" % (
-                proc_header,                                                         str(input1_dir), str(input2_dir), str(output_dir), str(saveRI + 4 * savePhase))
+            cmd = """ %s matlab -nodesktop -nosplash -r "addpath %s/matlab/NLmeans;  call_pipeline3('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%s);quit" )""" % (
+                proc_header, thispath, str(input1_dir), str(input2_dir),
+                str(output_dir), str(saveRI + 4 * savePhase))
 
             print cmd
             logging.info('Processing NLpipeline3 ' + cmd)
