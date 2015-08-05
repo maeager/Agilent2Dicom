@@ -105,6 +105,13 @@ def ParseDiffusionFDF(ds, procpar, fdf_properties, args):
     # fdf_properties['array_index']
     if ds.MRAcquisitionType == '2D':
         ds.AcquisitionNumber = fdf_properties['array_index']
+        ds.FrameAcquisitionNumber = fdf_properties['array_index']
+        loc = numpy.array(fdf_properties['location'], dtype='|S9')
+        ds.ImagePositionPatient = [loc[0], loc[1],loc[2]]
+        orient = numpy.array(fdf_properties['orientation'], dtype='|S9')
+        ds.ImageOrientationPatient = [orient[0], orient[1], orient[2],
+                                      orient[3], orient[4], orient[5],
+                                      orient[6], orient[7], orient[8]]        
     else:
         ds.AcquisitionNumber = bvaluesortidx[diffusion_idx]
 
@@ -576,7 +583,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     else:
         ds.ImagesInAcquisition = 1
 
-    # if len(ds.ImageType) >= 3 and
+    # if len(ds.ImageType) >= 3 and 
     if ds.ImageType[2] == 'DIFFUSION':
         ds = ParseDiffusionFDF(ds, procpar, fdf_properties, args)
 
@@ -585,7 +592,8 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     # ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
     # or SEQUENCE == "Diffusion":
-    if len(ds.ImageType) >= 3 and ds.ImageType[2] == "MULTIECHO":
+    if (len(ds.ImageType) >= 3 and ds.ImageType[2] == "MULTIECHO") or \
+       (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):
         DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(
             A2D.ID_Type_DimensionIndex1, [], [],
             args.verbose), ProcparToDicomMap.CreateUID(
@@ -603,7 +611,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
 
     ds.DimensionOrganizationSequence = Sequence([DimOrgSeq])
 
-    if len(ds.ImageType) >= 3 and ds.ImageType[2] == 'MULTIECHO':
+    if (len(ds.ImageType) >= 3 and ds.ImageType[2] == 'MULTIECHO'):
         DimIndexSeq1 = Dataset()
         # Image position patient 20,32 or 20,12
         DimIndexSeq1.DimensionIndexPointer = (0x0020, 0x0032)
@@ -623,6 +631,28 @@ def ParseFDF(ds, fdf_properties, procpar, args):
         DimIndexSeq2.add_new(
             (0x0020, 0x9164), 'UI', DimOrgSeq.DimensionOrganizationUID[1])
         DimIndexSeq2.DimensionDescriptionLabel = 'Fourth dimension (multiecho)'
+        ds.DimensionIndexSequence = Sequence([DimIndexSeq2, DimIndexSeq1])
+        
+    elif (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):
+        DimIndexSeq1 = Dataset()
+        # Image position patient 20,32 or 20,12
+        DimIndexSeq1.DimensionIndexPointer = (0x0020, 0x0032)
+
+        # #DimIndexSeq1.DimensionIndexPrivateCreator=
+        # #DimIndexSeq1.FunctionalGroupPointer=
+        # #DimIndexSeq1.FunctionalGroupPrivateCreator=
+        DimIndexSeq1.add_new(
+            (0x0020, 0x9164), 'UI', DimOrgSeq.DimensionOrganizationUID[0])
+        DimIndexSeq1.DimensionDescriptionLabel = 'Third Spatial dimension'
+
+        DimIndexSeq2 = Dataset()
+        DimIndexSeq2.DimensionIndexPointer = (0x0018, 0x9087) # Diffusion b-value
+        # DimIndexSeq2.DimensionIndexPrivateCreator=
+        # DimIndexSeq2.FunctionalGroupPointer=
+        # DimIndexSeq2.FunctionalGroupPrivateCreator=
+        DimIndexSeq2.add_new(
+            (0x0020, 0x9164), 'UI', DimOrgSeq.DimensionOrganizationUID[1])
+        DimIndexSeq2.DimensionDescriptionLabel = 'Fourth dimension (diffusion b value)'
         ds.DimensionIndexSequence = Sequence([DimIndexSeq2, DimIndexSeq1])
     else:
         DimIndexSeq1 = Dataset()
@@ -783,6 +813,10 @@ def Save2dFDFtoDicom(image_data, ds, fdf_properties, outdir, filename):
     else:
         dcmfilename = os.path.join(
             outdir, os.path.splitext(filename)[0] + '.dcm')
+
+    ds.ImagePositionPatient = fdf_properties['location']
+    ds.ImageOrientationPatient = fdf_properties['orientation']
+
     # Save DICOM
     ds.save_as(dcmfilename)
 

@@ -467,8 +467,7 @@ def ASL_recon(fidfolder, procpar, args):
     seg = procpar['etl']  # locetl
     ASL = 2
     numb = ASL * frames
-    pelist = [-63,  -31,    1,   33,   -62,  -30,    2,    34,   -61,   -29,     3,  35,  -60, -28,    4,   36,  -59, -27,     5,    37,  -58,   -26,   6,	38 - 57,  -25,   7,  39, -56,  -24, 8,    40,   -55,   -23,   9,   41 - 54,   -22,   10,  42,  -53,  -21,   11,   43,  -52,  -20,	12, 44,  -51, -19, 13,    45, -50, -18,    14,   46,  -49,  -17,  15,    47,   -48,   -16,
-              16, 48, -47, -15,  17,    49,   -46,	-14,  18,   50,   -45 - 13,    19,   51, -44,  -12,  20,   52,  -43,  -11,   21,   53,   -42,   -10,  22,    54, -41,  -9,  23,  55, -40,  -8,   24,   56,  -39,   -7,    25,   57,  -38,   -6,   26, 58, -37,   -5, 27,  59, -36,   -4,    28,    60, -35,   -3, 29,	61,  -34,    -2,   30,   62,  -33,   -1,   31,  63,  -32,   0,   32,  64]
+    pelist = [-63,  -31,    1,   33,   -62,  -30,    2,    34,   -61,   -29,     3,  35,  -60, -28,    4,   36,  -59, -27,     5,    37,  -58,   -26,   6,	38 - 57,  -25,   7,  39, -56,  -24, 8,    40,   -55,   -23,   9,   41 - 54,   -22,   10,  42,  -53,  -21,   11,   43,  -52,  -20,	12, 44,  -51, -19, 13,    45, -50, -18,    14,   46,  -49,  -17,  15,    47,   -48,   -16,              16, 48, -47, -15,  17,    49,   -46,	-14,  18,   50,   -45 - 13,    19,   51, -44,  -12,  20,   52,  -43,  -11,   21,   53,   -42,   -10,  22,    54, -41,  -9,  23,  55, -40,  -8,   24,   56,  -39,   -7,    25,   57,  -38,   -6,   26, 58, -37,   -5, 27,  59, -36,   -4,    28,    60, -35,   -3, 29,	61,  -34,    -2,   30,   62,  -33,   -1,   31,  63,  -32,   0,   32,  64]
 
     fidtmp = np.reshape(FID, [ro, seg, ns, pe / seg * numb])
     ksp = np.zeros(ro, pe, numb, ns)
@@ -1271,6 +1270,13 @@ typedef enum {
     # Sort diffusion based on sorted index of Bvalue instead of
     if ds.MRAcquisitionType == '2D':
         fdf_properties['array_index']
+        ds.FrameAcquisitionNumber = fdf_properties['array_index']
+        loc = numpy.array(fdf_properties['location'], dtype='|S9')
+        ds.ImagePositionPatient = [loc[0], loc[1],loc[2]]
+        orient = numpy.array(fdf_properties['orientation'], dtype='|S9')
+        ds.ImageOrientationPatient = [orient[0], orient[1], orient[2],
+                                      orient[3], orient[4], orient[5],
+                                      orient[6], orient[7], orient[8]]    
     else:
         ds.AcquisitionNumber = BValueSortIdx[diffusion_idx]
 
@@ -1753,7 +1759,7 @@ def ParseFID(ds, fid_properties, procpar, args):
     DimOrgSeq = Dataset()
     #ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
-    if ds.ImageType[2] == "MULTIECHO":  # or SEQUENCE == "Diffusion":
+    if (ds.ImageType[2] == "MULTIECHO") or (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):  # or SEQUENCE == "Diffusion":
         DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(A2D.UID_Type_DimensionIndex1,
                                                                 [], [], args.verbose),
                                     ProcparToDicomMap.CreateUID(A2D.UID_Type_DimensionIndex2,
@@ -1790,6 +1796,28 @@ def ParseFID(ds, fid_properties, procpar, args):
         DimIndexSeq2.add_new(
             (0x0020, 0x9164), 'UI', DimOrgSeq.DimensionOrganizationUID[1])
         DimIndexSeq2.DimensionDescriptionLabel = 'Fourth dimension (multiecho)'
+        ds.DimensionIndexSequence = Sequence([DimIndexSeq2, DimIndexSeq1])
+           
+    elif (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):
+        DimIndexSeq1 = Dataset()
+        # Image position patient 20,32 or 20,12
+        DimIndexSeq1.DimensionIndexPointer = (0x0020, 0x0032)
+
+        # #DimIndexSeq1.DimensionIndexPrivateCreator=
+        # #DimIndexSeq1.FunctionalGroupPointer=
+        # #DimIndexSeq1.FunctionalGroupPrivateCreator=
+        DimIndexSeq1.add_new(
+            (0x0020, 0x9164), 'UI', DimOrgSeq.DimensionOrganizationUID[0])
+        DimIndexSeq1.DimensionDescriptionLabel = 'Third Spatial dimension'
+
+        DimIndexSeq2 = Dataset()
+        DimIndexSeq2.DimensionIndexPointer = (0x0018, 0x9087) # Diffusion b-value
+        # DimIndexSeq2.DimensionIndexPrivateCreator=
+        # DimIndexSeq2.FunctionalGroupPointer=
+        # DimIndexSeq2.FunctionalGroupPrivateCreator=
+        DimIndexSeq2.add_new(
+            (0x0020, 0x9164), 'UI', DimOrgSeq.DimensionOrganizationUID[1])
+        DimIndexSeq2.DimensionDescriptionLabel = 'Fourth dimension (diffusion b value)'
         ds.DimensionIndexSequence = Sequence([DimIndexSeq2, DimIndexSeq1])
     else:
         DimIndexSeq1 = Dataset()

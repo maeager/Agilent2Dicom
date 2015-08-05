@@ -178,7 +178,8 @@ if __name__ == "__main__":
                                       outdir, filename)
 
         if (len(ds.ImageType) >= 3 and ds.ImageType[2] == "MULTIECHO") or \
-           re.search('slab|img_', filename):
+                re.search('slab|img_', filename) or \
+                (ds.ImageType[2] == "DIFFUSION" and  ds.AcquisitionNumber==ds.ImagesInAcquisition):
             print ds.FrameContentSequence[0].StackID, \
                 ds.FrameContentSequence[0].StackID[0]
             print type(ds.FrameContentSequence[0].StackID), \
@@ -188,3 +189,4 @@ if __name__ == "__main__":
             if args.verbose:
                 print "Incrementing volume StackID ", \
                     ds.FrameContentSequence[0].StackID
+            volume=volume+1
