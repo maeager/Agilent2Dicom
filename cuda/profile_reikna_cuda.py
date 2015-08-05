@@ -56,6 +56,8 @@ image, ksp = recon(pp, dims, hdr,
 #del data_real, data_imag
 print "Shift kspace centre to max point"
 ksp = KSP.kspaceshift(ksp)
+# (uu,vv,ww) = KSP.fouriercoords(ksp.shape)
+# Fgauss = KSP.fouriergauss(ksp.shape, np.array((1,1,1)))
 
 
 def tic():
@@ -74,7 +76,6 @@ def toc():
     else:
         print "Toc: start time not set"
         return ""
-
 
 import numpy as np
 # REINKA
