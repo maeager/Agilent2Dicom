@@ -1,4 +1,4 @@
-function call_pipeline3(in1,in2,out,flags)
+function call_pipeline3(in1,in2,out,flags,NLfilter)
 % Calling non-local means pipeline 3
 %
 % - (C) 2015 Michael Eager (michael.eager@monash.edu)
@@ -17,7 +17,7 @@ run  (fullfile(root_path, '../matlab/NLmeans/vlfeat/toolbox/vl_setup.m'))
 
 display('Calling non-local means filter pipeline 3')
 saveRI=0;savePhase=0;
-if nargin ==3
+if nargin <4
     flags=0
 end
 if flags>=4
@@ -26,7 +26,9 @@ end
 if mod(flags,2)==1
     saveRI=1;
 end
-
+if nargin < 5
+    NLfilter=0;
+end
 voxelsize=[];
 
 if exist(in1,'file')==2 && ~isempty(strfind(in1,'.nii')) 
@@ -79,7 +81,7 @@ end
 voxelsize=voxelsize1;
 
 display 'Calling pipeline 3'
-tic(),MRIdenoised3 = pipeline3(ksp1,ksp2);toc()
+tic(),MRIdenoised3 = pipeline3(ksp1,ksp2,NLfilter);toc()
 
 if exist(out,'file')~=2 && ~isdir(out)
     %if not a file or a dir, create dir

@@ -1,4 +1,4 @@
-function MRIdenoised = pipeline3(ksp1,ksp2)
+function MRIdenoised = pipeline3(ksp1,ksp2,NLfilter)
 %%  Non-local means denoising Option 3
 % this method calculates the noise estimate from two images 
 % and applies NL means to the complex average image
@@ -6,6 +6,9 @@ function MRIdenoised = pipeline3(ksp1,ksp2)
 % - (C) Michael Eager 2015 (michael.eager@monash.edu)
 % Monash Biomedical Imaging
 
+if nargin==2
+    NLfilter=0
+end
 
 [pha1, swi_n1, swi_p1, mag1] = phaserecon_v1(ksp1,ksp1,0.4,1,0.05);
 hdyne1 = mag1.*exp(-1i*pha1);
@@ -45,10 +48,34 @@ if est_std_real < eps(single(1))*1000 || est_std_imag < ...
     return
 end
 
-display('Processing Real denoised image')
-tic(),MRIdenoised_real = MRIDenoisingMRONLM(avg_real,est_std_real/sqrt(2),1,1,3,1,0);toc()
-display('Processing Imag denoised image')
-MRIdenoised_imag = MRIDenoisingMRONLM(avg_imag,est_std_imag/sqrt(2),1,1,3,1,0);toc()
+switch NLfilter
+  case 0
+    display('Processing Real denoised image - MRONLM')
+    tic(),MRIdenoised_real = MRIDenoisingMRONLM(avg_real,est_std_real/sqrt(2),1,1,3,1,0);toc()
+    display('Processing Imag denoised image - MRONLM')
+    MRIdenoised_imag = MRIDenoisingMRONLM(avg_imag,est_std_imag/sqrt(2),1,1,3,1,0);toc()
+  case 1
+    display('Processing Real denoised image - PRINLM')
+    tic(),MRIdenoised_real = MRIDenoisingPRINLM(avg_real,est_std_real/sqrt(2),1,1,0);toc()
+    display('Processing Imag denoised image - PRINLM')
+    MRIdenoised_imag = MRIDenoisingPRINLM(avg_imag,est_std_imag/sqrt(2),1,1,0);toc()
+  case 2
+    display('Processing Real denoised image - AONLM')
+    tic(),MRIdenoised_real = MRIDenoisingAONLM(avg_real,1,1,3,1,0);toc()
+    display('Processing Imag denoised image - AONLM ')
+    MRIdenoised_imag = MRIDenoisingAONLM(avg_imag,1,1,3,1,0);toc()
+  case 3
+    display('Processing Real denoised image -ONLM ')
+    tic(),MRIdenoised_real = MRIDenoisingONLM(avg_real,est_std_real/sqrt(2),1,1,3,1,0);toc()
+    display('Processing Imag denoised image -ONLM ')
+    MRIdenoised_imag = MRIDenoisinONLM(avg_imag,est_std_imag/sqrt(2),1,1,3,1,0);toc()
+  otherwise
+    display('Processing Real denoised image - MRONLM')
+    tic(),MRIdenoised_real = MRIDenoisingMRONLM(avg_real,est_std_real/sqrt(2),1,1,3,1,0);toc()
+    display('Processing Imag denoised image - MRONLM')
+    MRIdenoised_imag = MRIDenoisingMRONLM(avg_imag,est_std_imag/sqrt(2),1,1,3,1,0);toc()
+end
+
 MRIdenoised = complex(MRIdenoised_real,MRIdenoised_imag);
 
 

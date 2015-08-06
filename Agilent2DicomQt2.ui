@@ -173,8 +173,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>1068</width>
-               <height>269</height>
+               <width>172</width>
+               <height>35</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -1816,8 +1816,8 @@ The mode parameter determines how the array borders are handled, where cval is t
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>1068</width>
-               <height>231</height>
+               <width>133</width>
+               <height>35</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -2622,11 +2622,49 @@ patchsize=1, searcharea=3, rician=1</string>
                   <item>
                    <widget class="QRadioButton" name="ONLM">
                     <property name="toolTip">
-                     <string>The multi-resolution ONLM filter is described in:   
-
-P. Coupe, J. V Manjon, M. Robles, D. L. Collins                     
-Adaptive Multiresolution Non-Local Means Filter for three-dimensional 
-magnetic resonance image denoising.    IET Image Processing. 6(5): 558-568, 2012       </string>
+                     <string>
+%   Description:  Denoising of a 3D MRI image using the ONLM filter
+%               
+%
+%   Usage:      MRIDenoisingONLM(ima, h, beta, patchsize, searcharea, rician, verbose)
+%
+%   ima:        3D MR image
+%   h:          std of rician noise
+%   beta:       smoothing parameter (default 1)
+%   patchsize:  radius of patch in voxel
+%   searcharea: radius of search area in voxel
+%   rician:     0: Gaussian noise 1: Rician noise 
+%   verbose:    0 no display of graph
+%               1 display of graph
+%
+%                          Details on ONLM filter
+%**************************************************************************
+%* The ONLM filter is described in:                                       *
+%*                                                                        *
+%* P. Coupe, P. Yger, S. Prima, P. Hellier, C. Kervrann, C. Barillot.     *
+%* An Optimized Blockwise Non Local Means Denoising Filter for 3D Magnetic*
+%* Resonance Images. IEEE Transactions on Medical Imaging, 27(4):425-441, *
+%* Avril 2008                                                             *
+%**************************************************************************
+%                      Details on Rician adaptation
+%**************************************************************************
+%* The adaptation to Rician noise is described in:                        *
+%*                                                                        *
+%* N. Wiest-Daessle, S. Prima, P. Coupe, S.P. Morrissey, C. Barillot.     *
+%* Rician noise removal by non-local means filtering for low              *
+%* signal-to-noise ratio MRI: Applications to DT-MRI. In 11th             *
+%* International Conference on Medical Image Computing and                *
+%* Computer-Assisted Intervention, MICCAI'2008,                           *
+%* Pages 171-179, New York, Etats-Unis, Septembre 2008                    *
+%**************************************************************************
+%
+% Pierrick Coupe - pierrick.coupe@labri.fr
+% Jose V. Manjon - jmanjon@fis.upv.es
+%
+% Universit� de Bordeaux
+% LaBRI, UMR 5800, 33400 Talence
+%
+% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon</string>
                     </property>
                     <property name="text">
                      <string>ONLM</string>
@@ -2635,6 +2673,38 @@ magnetic resonance image denoising.    IET Image Processing. 6(5): 558-568, 2012
                   </item>
                   <item>
                    <widget class="QRadioButton" name="AONLM">
+                    <property name="toolTip">
+                     <string>%   Description: Denoising of a 3D MR image using the AONLM filter
+%
+%
+%   Usage:      MRIDenoisingAONLM(ima, patchsize, searcharea, beta, rician, verbose)
+%
+%   ima:        3D MRI image
+%   patchsize:  radius of patch in voxel
+%   searcharea: radius of search area in voxel
+%   beta:       smoothing parameter (default 1)
+%   rician:     0: Gaussian noise 1: Rician noise 
+%   verbose:    0 no display of graph
+%               1 display of graph
+%
+%                          Details on ANLM filter
+%**************************************************************************
+%* The AONLM filter is described in:                                      *
+%*                                                                        *
+%* J. V. Manjon, P. Coupe, L. Marti-Bonmati, D. L. Collins, M. Robles.    *
+%* Adaptive Non-Local Means Denoising of MR Images with Spatially         *
+%* varying Noise Levels.                                                  *
+%* Journal of Magnetic Resonance Imaging, 31(1):192-203, 2010             *
+%**************************************************************************
+%
+% Pierrick Coupe - pierrick.coupe@labri.fr
+% Jose V. Manjon - jmanjon@fis.upv.es
+%
+% Universit� de Bordeaux
+% LaBRI, UMR 5800, 33400 Talence
+%
+% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon</string>
+                    </property>
                     <property name="text">
                      <string>AONLM</string>
                     </property>
@@ -2642,6 +2712,36 @@ magnetic resonance image denoising.    IET Image Processing. 6(5): 558-568, 2012
                   </item>
                   <item>
                    <widget class="QRadioButton" name="ODCT">
+                    <property name="toolTip">
+                     <string>
+%   Description: Denoising of a 3D MRI image using the ODCT filter
+%               
+%   Usage:      MRIDenoisingODCT(ima, h, rician, verbose)
+%
+%   ima:        3D MR image
+%   h:          std of noise
+%   rician:     0: Gaussian noise 1: Rician noise 
+%   verbose:    0 no display of graph
+%               1 display of graph
+%
+%                          Details on ODCT filter
+%**************************************************************************
+%* The ODCT filter is described in:                                       *
+%*                                                                        *
+%* JV Manjon, P. Coupe, A Buades, DL Collins, M. Robles                   *
+%* New methods for MRI denoising based on sparseness and self-similarity. * 
+%* Medical Image Analysis, 16(1):18-27                                    *
+%* 2012                                                                   *
+%**************************************************************************
+%
+% Pierrick Coupe - pierrick.coupe@labri.fr
+% Jose V. Manjon - jmanjon@fis.upv.es
+%
+% Universite de Bordeaux
+% LaBRI, UMR 5800, 33400 Talence
+%
+% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon</string>
+                    </property>
                     <property name="text">
                      <string>ODCT</string>
                     </property>

@@ -918,7 +918,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         procpar, procpartext = ReadProcpar(
             os.path.join(str(self.ui.lineEdit_fidpath.text()),
                          'procpar'))
-        # ds, MRAcq_type=ProcparToDicomMap(procpar)
+        # ds, SNLMRAcq_type=ProcparToDicomMap(procpar)
         try:
             ftext = open(
                 os.path.join(str(self.ui.lineEdit_fidpath.text()),
@@ -1316,7 +1316,14 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
-
+            if self.ui.MRONLM.isChecked():
+                NLfilter=0
+            elif self.ui.PRINLM.isChecked():
+                NLfilter=1
+            elif self.ui.AONLM.isChecked():
+                NLfilter=2
+            elif self.ui.ONLM.isChecked():
+                NLfilter=3
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
@@ -1358,6 +1365,14 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
             saveRI = int(self.ui.checkBox_NLsaveRI.isChecked())
             savePhase = int(self.ui.checkBox_NLsavePhase.isChecked())
+            if self.ui.MRONLM.isChecked():
+                NLfilter=0
+            elif self.ui.PRINLM.isChecked():
+                NLfilter=1
+            elif self.ui.AONLM.isChecked():
+                NLfilter=2
+            elif self.ui.ONLM.isChecked():
+                NLfilter=3
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath

@@ -1,4 +1,4 @@
-function call_pipeline2(in1,in2,out)
+function call_pipeline2(in1,in2,out,NLfilter)
 % Calling non-local means pipeline 2
 %
 % - (C) 2015 Michael Eager (michael.eager@monash.edu)
@@ -16,7 +16,9 @@ addpath(genpath(fullfile(root_path, '../matlab/NLmeans/MRIDenoisingPackage')))
 run (fullfile(root_path, '../matlab/NLmeans/vlfeat/toolbox/vl_setup.m'))
 
 display('Calling non-local means filter pipeline 1')
-
+if nargin < 4
+    NLfilter=0;
+end
 if exist(in1,'file')==2 && ~isempty(strfind(in1,'.nii'))
     nii1_in=load_nii(in1);
     img1=nii1_in.img;
@@ -60,7 +62,7 @@ end
 voxelsize=voxelsize1;
 
 display('Calling pipeline 2')
-tic(),MRIdenoised2=pipeline2(img1,img2);toc()
+tic(),MRIdenoised2=pipeline2(img1,img2,NLfilter);toc()
 
 
 if exist(out,'file')==2
