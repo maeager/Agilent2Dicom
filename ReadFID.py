@@ -452,13 +452,13 @@ def readfid(fidfolder, procpar, args):
 # end readfid
 
 
-def ASL_recon(fidfolder, procpar, args):
+def Cardiac_ASL_recon(procpar, fid_header, dims, ksp_data_real, ksp_data_imag,  args):
     """ASL_recon modified from seg_recon_ms_complex.m script in UCL groups Cardiac ASL script
 
 
     """
-    procpar, fid_header, dims, ksp_data_real, ksp_data_imag = readfid(
-        fidfolder, procpar, args)
+    #procpar, fid_header, dims, ksp_data_real, ksp_data_imag = readfid(
+    #    fidfolder, procpar, args)
     FID = np.complex(ksp_data_real, ksp_data_imag)
     ns = procpar['ns']
     frames = procpar['noframes']

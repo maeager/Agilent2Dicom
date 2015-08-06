@@ -10,6 +10,7 @@
   Version 1.5: super-resolution with k-space filtered Gaussian and Epanechnikov data
   Version 1.6: Standard deviation filters
   Version 1.7: Logging
+  Version 1.8: Cardiac ASL recon
 
   $Id$
   $Date$
@@ -252,6 +253,9 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
     parser.add_argument('-C', '--no_centre_shift',
                         help='Disable centering maximum in k-space data.',
                         action="store_true")
+    parser.add_argument('-cASL', '--cardiac_ASL_recon',
+                        help='Use UCL cardiac ASL recon.',
+                        action="store_true")
     parser.add_argument(
         '-v', '--verbose', help='Verbose.', action="store_true")
 
@@ -348,34 +352,46 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
     # Change dicom for specific FID header info
     ds, matsize, tmatrix = FID.ParseFID(ds, hdr, procpar, args)
     logging.info('ParseFID complete')
-    tic()
-    ksp = FID.convksp(procpar, dims, hdr, data_real,
-                      data_imag, args)
-    logging.info('FID.convksp complete ' + toc())
-    if args.verbose:
-        print 'Image shape:', str(ksp.shape)
+
+    Recon_comment=''
+    if args.cardiac_ASL_recon:
+        tic()
+        ksp, image_data, procpar, fid_header = FID.Cardiac_ASL_recon(procpar, fid_header, dims, ksp_data_real, ksp_data_imag,  args)
+        logging.info('FID.Cardiac_ASL_recon complete ' + toc())
+        if args.verbose:
+            print 'Image shape:', str(ksp.shape)
+        Recon_comment='Reconstructed using Cardiac ASL method from UCL.'
+    else:
+        tic()
+        ksp = FID.convksp(procpar, dims, hdr, data_real,
+                          data_imag, args)
+        logging.info('FID.convksp complete ' + toc())
+        if args.verbose:
+            print 'Image shape:', str(ksp.shape)
 
     # Rescale image data
     # ds, image_scaled = FID.RescaleImage(ds, image_data, RescaleIntercept,
     # RescaleSlope, args)
 
-    if not args.no_centre_shift:
-        ksp = KSP.kspaceshift(ksp)
-        logging.info('Kspace shift complete')
+        if not args.no_centre_shift:
+            ksp = KSP.kspaceshift(ksp)
+            logging.info('Kspace shift complete')
 
-    if args.verbose:
-        print "Reconstructing raw image"
-    logging.info('Reconstructing raw image')
-    tic()
-    image_data = FID.simpleifft(procpar, dims, hdr, ksp, args)
-    # fftshift(ifftn(ifftshift(ksp)))
-    logging.info('IFFT recon complete ' + toc())
+            if args.verbose:
+                print "Reconstructing raw image"
+                logging.info('Reconstructing raw image')
+                tic()
+                image_data = FID.simpleifft(procpar, dims, hdr, ksp, args)
+                # fftshift(ifftn(ifftshift(ksp)))
+                logging.info('IFFT recon complete ' + toc())
+                Recon_comment='Basic reconstruction of unfiltered k-space data.'
     ds.DerivationDescription = '''%s\n
-    Agilent2Dicom Version: %s \nVCS Stamp: %s
-    Scipy version: %s
-    Basic reconstruction of unfiltered k-space data.
+    Agilent2Dicom Version: %s \nVCS Stamp: %s\n
+    Scipy version: %s\n
+    Reconstructed using : %s \n
     ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
-           scipy.__version__)
+           scipy.__version__, Recon_comment)
+    
     FID.SaveFIDtoDicom(ds, procpar, image_data, hdr, tmatrix, args, outdir)
     logging.info('Image saved to DICOM.')
     if args.nifti:
@@ -414,10 +430,11 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             sys.exit(1)
 
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
-        Scipy version: %s
+        Scipy version: %s\n
+        Reconstructed using : %s\n
         Complex Gaussian filter: sigma=%s order=%d mode=%s.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
-               scipy.__version__, str(sigma), args.gaussian_order,
+               scipy.__version__, Recon_comment, str(sigma), args.gaussian_order,
                args.gaussian_mode)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
@@ -446,11 +463,12 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                 'CPLX.cplxgaussian_filter CPLX.cplxgaussian_laplace error.')
             sys.exit(1)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
-        Scipy version: %s
+        Scipy version: %s\n
+        Reconstructed using : %s \n
         Complex Gaussian filter: sigma=%s, order=0, mode=nearest.
         Complex Laplace filter: sigma=%s.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION,
-               DVCS_STAMP, scipy.__version__, str(args.sigma), str(args.sigma))
+               DVCS_STAMP, scipy.__version__, Recon_comment, str(args.sigma), str(args.sigma))
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
                            re.sub('.dcm', '-laplacegaussian.dcm', outdir))
@@ -476,10 +494,11 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             logging.error('CPLX.cplxmedian_filter error.')
             sys.exit(1)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
-        Scipy version: %s
+        Scipy version: %s\n
+        Reconstructed using : %s \n
         Complex Median filter: window size=%s.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION,
-               DVCS_STAMP, scipy.__version__,
+               DVCS_STAMP, scipy.__version__,Recon_comment,
                str(args.window_size))
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
@@ -508,11 +527,12 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             logging.error('CPLX.cplxmedian_filter error.')
             sys.exit(1)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
-        Scipy version: %s
+        Scipy version: %s\n
+        Reconstructed using : %s \n
         Complex Wiener filter: window size=%s, noise=%f.
         ''' % (Derivation_Description,
                AGILENT2DICOM_VERSION, DVCS_STAMP,
-               scipy.__version__, str(args.window_size),
+               scipy.__version__, Recon_comment, str(args.window_size),
                args.wiener_noise)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
@@ -534,11 +554,12 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                                                float(args.window_size))
         logging.info('Cplx stdev complete ' + toc())
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
-        Scipy version: %s
+        Scipy version: %s\n
+        Reconstructed using : %s \n
         Complex Std dev filter: window size=%s.
         ''' % (Derivation_Description,
                AGILENT2DICOM_VERSION, DVCS_STAMP,
-               scipy.__version__, str(args.window_size))
+               scipy.__version__,Recon_comment, str(args.window_size))
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
                            re.sub('.dcm', '-stdev.dcm', outdir))
@@ -557,11 +578,12 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             np.abs(image_data), int(args.window_size))
         logging.info('Mag stdev complete ' + toc())
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
-        Scipy version: %s
+        Scipy version: %s\n
+        Reconstructed using : %s \n
         Local Std dev filter of magnitude image: window
         size=%s.''' % (Derivation_Description,
                        AGILENT2DICOM_VERSION, DVCS_STAMP,
-                       scipy.__version__, str(args.window_size))
+                       scipy.__version__, Recon_comment, str(args.window_size))
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
                            re.sub('.dcm', '-stdevmag.dcm', outdir))
@@ -581,11 +603,12 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                                                args.window_size)
         logging.info('Phase stdev complete ' + toc())
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
-        Scipy version: %s
+        Scipy version: %s\n
+        Reconstructed using : %s \n
         Std dev filter of phase: window size=%s.
         ''' % (Derivation_Description,
                AGILENT2DICOM_VERSION, DVCS_STAMP,
-               scipy.__version__, str(args.window_size))
+               scipy.__version__, Recon_comment, str(args.window_size))
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
                            re.sub('.dcm', '-stdevpha.dcm', outdir))
@@ -620,10 +643,11 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
             logging.info('CPLX.cplxepanechnikov_filter error.', exc_info=True)
             sys.exit(1)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
-        Scipy version: %s
+        Scipy version: %s\n
+        Reconstructed using : %s \n
         Complex Epanechnikov filter: bandwidth=%s,window=%s,order=0.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
-               scipy.__version__, str(args.epanechnikov_bandwidth), str(args.window_size))
+               scipy.__version__, Recon_comment, str(args.epanechnikov_bandwidth), str(args.window_size))
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
                            re.sub('.dcm', '-epanechnikov.dcm', outdir))
@@ -661,10 +685,11 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         # image_filtered = CPLX.cplxgaussian_filter(image_data.real,
         # image_data.imag, args.sigma, args.gaussian_order, args.gaussian_mode)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
-        Scipy version: %s
+        Scipy version: %s\n
+        Reconstructed using : %s \n
         Complex Fourier Gaussian filter: sigma=%s.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
-               scipy.__version__, str(sigma))
+               scipy.__version__, Recon_comment, str(sigma))
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
                            re.sub('.dcm', '-kspgaussian.dcm', outdir))
@@ -708,10 +733,11 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         # image_data.imag, args.sigma, args.gaussian_order,
         # args.gaussian_mode)
         ds.DerivationDescription = '''%s\nAgilent2Dicom Version: %s - %s
-        Scipy version: %s
+        Scipy version: %s\n
+        Reconstructed using : %s \n
         Complex Fourier Epanechnikov filter,  bandwidth=%s.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION,
-               DVCS_STAMP, scipy.__version__, str(epabw))
+               DVCS_STAMP, scipy.__version__, Recon_comment, str(epabw))
 
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,

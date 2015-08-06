@@ -595,7 +595,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     if (len(ds.ImageType) >= 3 and ds.ImageType[2] == "MULTIECHO") or \
        (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):
         DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(
-            A2D.ID_Type_DimensionIndex1, [], [],
+            A2D.UID_Type_DimensionIndex1, [], [],
             args.verbose), ProcparToDicomMap.CreateUID(
                 A2D.UID_Type_DimensionIndex2, [], [],
                 args.verbose)]
