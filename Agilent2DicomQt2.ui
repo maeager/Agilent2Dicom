@@ -2395,7 +2395,7 @@ Optimal vector difference between GM and WM.</string>
                   </item>
                  </layout>
                 </item>
-                <item row="11" column="2">
+                <item row="13" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_23">
                   <item>
                    <widget class="QCheckBox" name="checkBox_NLsaveRI">
@@ -2447,7 +2447,7 @@ Optimal vector difference between GM and WM.</string>
                   </property>
                  </widget>
                 </item>
-                <item row="8" column="2">
+                <item row="9" column="2">
                  <widget class="QLabel" name="label_11">
                   <property name="text">
                    <string>Noise Estimated NLm (2 reps required)
@@ -2456,21 +2456,21 @@ Magnitude (Image 2) -^</string>
                   </property>
                  </widget>
                 </item>
-                <item row="8" column="0">
+                <item row="9" column="0">
                  <widget class="QLabel" name="label_10">
                   <property name="text">
                    <string>Pipeline 2</string>
                   </property>
                  </widget>
                 </item>
-                <item row="10" column="0">
+                <item row="12" column="0">
                  <widget class="QLabel" name="label_12">
                   <property name="text">
                    <string>Pipeline 3</string>
                   </property>
                  </widget>
                 </item>
-                <item row="10" column="2">
+                <item row="12" column="2">
                  <widget class="QLabel" name="label_14">
                   <property name="text">
                    <string>Complex Noise Estimated NLm (2 complex reps required)
@@ -2479,7 +2479,7 @@ Complex Image 2 -&gt; Homodyne Filter -^     &gt; Noise Est (Imag)-&gt; Non-loca
                   </property>
                  </widget>
                 </item>
-                <item row="9" column="2">
+                <item row="10" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_22">
                   <item>
                    <spacer name="horizontalSpacer_5">
@@ -2503,7 +2503,7 @@ Complex Image 2 -&gt; Homodyne Filter -^     &gt; Noise Est (Imag)-&gt; Non-loca
                   </item>
                  </layout>
                 </item>
-                <item row="12" column="0">
+                <item row="15" column="0">
                  <widget class="QLabel" name="label_15">
                   <property name="enabled">
                    <bool>false</bool>
@@ -2513,7 +2513,7 @@ Complex Image 2 -&gt; Homodyne Filter -^     &gt; Noise Est (Imag)-&gt; Non-loca
                   </property>
                  </widget>
                 </item>
-                <item row="12" column="2">
+                <item row="15" column="2">
                  <widget class="QLabel" name="label_18">
                   <property name="enabled">
                    <bool>false</bool>
@@ -2545,9 +2545,7 @@ Complex Image 2 -&gt; Homodyne Filter -^(HPF)     Low Pass -&gt;           -&gt;
                     <property name="text">
                      <string>Non-local means denoising filters using MRIdenoising package (Coupe and Manjon, Univ Bordeaux)
 
-MRONLM filter used: P. Coupe, J.V. Manjon, R. Robles, D.L. Collins
- Adaptive Multiresolution Non-Local Means Filter for 3D MR Image Denoising. 
-IET Image Processing. 2012 
+MRONLM filter is the preferred filter 
  Note:  Outputs are the magnitude of the NLmeans filter saved as Nifti. If two inputs are included the 2 and 3 pipelines output the average NLmeans result.</string>
                     </property>
                    </widget>
@@ -2584,6 +2582,14 @@ IET Image Processing. 2012
                     <property name="enabled">
                      <bool>false</bool>
                     </property>
+                    <property name="toolTip">
+                     <string>The PRINLM filter is described in:                                   
+ JV Manjon, P. Coupe, A Buades, DL Collins, M. Robles  
+ New methods for MRI denoising based on sparseness and self-similarity. 
+Medical Image Analysis, 16(1):18-27, 2012
+
+ [ imaPRINLM] = MRIDenoisingPRINLM(ima, h, beta=1, rician=1, verbose)</string>
+                    </property>
                     <property name="text">
                      <string>PRINLM</string>
                     </property>
@@ -2594,6 +2600,17 @@ IET Image Processing. 2012
                   </item>
                   <item>
                    <widget class="QRadioButton" name="MRONLM">
+                    <property name="toolTip">
+                     <string> The MRONLM filter is described in:    
+
+P. Coupe, J.V. Manjon, R. Robles, D.L. Collins    
+ Adaptive Multiresolution Non-Local Means Filter for 3D MR Image 
+ Denoising. 6(5): 558-568,  IET Image Processing.      2012  
+
+[ MRORNLM] = MRIDenoisingMRONLM(ima, h, beta, patchsize, searcharea, rician, verbose)
+
+patchsize=1, searcharea=3, rician=1</string>
+                    </property>
                     <property name="text">
                      <string>MRONLM</string>
                     </property>
@@ -2604,6 +2621,13 @@ IET Image Processing. 2012
                   </item>
                   <item>
                    <widget class="QRadioButton" name="ONLM">
+                    <property name="toolTip">
+                     <string>The multi-resolution ONLM filter is described in:   
+
+P. Coupe, J. V Manjon, M. Robles, D. L. Collins                     
+Adaptive Multiresolution Non-Local Means Filter for three-dimensional 
+magnetic resonance image denoising.    IET Image Processing. 6(5): 558-568, 2012       </string>
+                    </property>
                     <property name="text">
                      <string>ONLM</string>
                     </property>
@@ -2625,7 +2649,7 @@ IET Image Processing. 2012
                   </item>
                  </layout>
                 </item>
-                <item row="13" column="2">
+                <item row="16" column="2">
                  <spacer name="verticalSpacer_11">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
@@ -2637,6 +2661,34 @@ IET Image Processing. 2012
                    </size>
                   </property>
                  </spacer>
+                </item>
+                <item row="3" column="2">
+                 <widget class="Line" name="line_2">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="8" column="2">
+                 <widget class="Line" name="line_3">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="11" column="2">
+                 <widget class="Line" name="line_4">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="14" column="2">
+                 <widget class="Line" name="line_5">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
                 </item>
                </layout>
               </item>
