@@ -592,8 +592,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     # ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
     # or SEQUENCE == "Diffusion":
-    if (len(ds.ImageType) >= 3 and ds.ImageType[2] == "MULTIECHO") or \
-       (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):
+    if (len(ds.ImageType) >= 3 and ds.ImageType[2] == "MULTIECHO") or (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):
         DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(
             A2D.UID_Type_DimensionIndex1, [], [],
             args.verbose), ProcparToDicomMap.CreateUID(
@@ -611,7 +610,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
 
     ds.DimensionOrganizationSequence = Sequence([DimOrgSeq])
 
-    if (len(ds.ImageType) >= 3 and ds.ImageType[2] == 'MULTIECHO'):
+    if len(ds.ImageType) >= 3 and ds.ImageType[2] == 'MULTIECHO':
         DimIndexSeq1 = Dataset()
         # Image position patient 20,32 or 20,12
         DimIndexSeq1.DimensionIndexPointer = (0x0020, 0x0032)
