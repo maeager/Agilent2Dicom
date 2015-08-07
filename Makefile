@@ -378,8 +378,8 @@ check_all: check_standard2d check_me3d check_me2d check_cine check_asl check_dif
 
 .PHONY: kwexpand
 kwexpand:
-	for file in agilent2dicom.py agilentFDF2dicom.py fdf2dcm.sh agilent2dicom_globalvars.py fid2dicom.py fid2dcm.sh Agilent2DicomApp.py Agilent2DicomAppQt.py AgilentImageProcessing.py; do cp $$file $$file.orig; .git_filter/git-keywords.smudge $$file < $$file.orig > $$file; done
+	for file in agilent2dicom.py agilentFDF2dicom.py fdf2dcm.sh agilent2dicom_globalvars.py fid2dicom.py fid2dcm.sh Agilent2DicomApp.py Agilent2DicomAppQt.py AgilentImageProcessing.py; do cp $$file $$file.orig; .git_filters/git-keywords.smudge $$file < $$file.orig > $$file; done
 
 .PHONY: kwshrink
 kwshrink:
-	for file in agilent2dicom.py agilentFDF2dicom.py fdf2dcm.sh agilent2dicom_globalvars.py fid2dicom.py fid2dcm.sh Agilent2DicomApp.py Agilent2DicomAppQt.py AgilentImageProcessing.py; do cp $$file $$file.orig; .git_filter/git-keywords.clean $$file < $$file.orig > $$file; done
+	for file in agilent2dicom.py agilentFDF2dicom.py fdf2dcm.sh agilent2dicom_globalvars.py fid2dicom.py fid2dcm.sh Agilent2DicomApp.py Agilent2DicomAppQt.py AgilentImageProcessing.py; do cp $$file $$file.orig; .git_filters/git-keywords.clean $$file < $$file.orig > $$file; done
