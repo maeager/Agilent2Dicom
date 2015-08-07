@@ -7,6 +7,7 @@ function call_pipeline2(in1,in2,out,NLfilter)
 [a,b,c] = fileparts(mfilename('fullpath')) ;
 [a,b,c] = fileparts(a) ;
 root_path=a;
+warning off MATLAB:dispatcher:nameConflict
 addpath(fullfile(root_path,'../matlab'))
 addpath(fullfile(root_path,'../matlab/NIFTI'))
 addpath(fullfile(root_path, '../matlab/Agilent/'))
@@ -19,6 +20,15 @@ display('Calling non-local means filter pipeline 1')
 if nargin < 4
     NLfilter=0;
 end
+
+%% Clean input strings
+in1 = regexprep(in1,'"','');
+out = regexprep(out,'"','');
+in2 = regexprep(in2,'"',''); 
+
+
+
+
 if exist(in1,'file')==2 && ~isempty(strfind(in1,'.nii'))
     nii1_in=load_nii(in1);
     img1=nii1_in.img;
@@ -94,14 +104,30 @@ display('Calling pipeline 2')
 tic(),MRIdenoised2=pipeline2(img1,img2,NLfilter);toc()
 
 
-if exist(out,'file')==2
+if exist(out,'file') == 2
     delete(out)
+    denoised_file=out
+    [a,b,c] = fileparts(out) ;
+    raw_file = [ a, '/raw_average.nii.gz'];						   
 else
     if isdir(out)
-        out=[out, '/pipeline2.nii.gz'];
+        denoised_file=[out, '/pipeline2.nii.gz'];
+raw_file = [out, '/raw_average.nii.gz'];
     else
         mkdir(out)
-        out=[out, '/pipeline2.nii.gz'];
+        denoised_file=[out, '/pipeline2.nii.gz'];
+        raw_file = [out, '/raw_average.nii.gz'];
     end
 end
-save_nii(make_nii(MRIdenoised2,voxelsize,[],16),out)
+if exist(raw_file,'file')
+    display(['Deleting ' raw_file ])
+    delete(raw_file)
+end
+if exist(denoised_file,'file')
+    display(['Deleting ' denoised_file ])
+    delete(denoised_file)
+end
+display(['Saving ' raw_file ])
+save_nii(make_nii(abs(img1+img2)/2,voxelsize,[],16),outraw_file)
+display(['Saving ' denoised_file ])
+save_nii(make_nii(MRIdenoised2,voxelsize,[],16),denoised_file)
