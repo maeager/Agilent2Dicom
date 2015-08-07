@@ -63,7 +63,7 @@ __copyright__ = "Copyright 2014-2015 Michael Eager"
 
 Agilent2DicomAppStamp = re.sub(
     r'\$Id$', r'\1', "$Id$")
-cmd_header = 'source ~/.bashrc;(if test ${MASSIVE_USERNAME+defined}; \n\
+cmd_header = 'source ~/.bashrc; if test ${MASSIVE_USERNAME+defined}; \n\
 then \n\
    echo \"On Massive\" \n\
    module purge \n\
@@ -72,13 +72,13 @@ then \n\
    module load python/2.7.3-gcc \n\
    module load dcmtk mrtrix \n\
    #module list \n\
-   #export PYTHONPATH=/usr/local/python/2.7.3-gcc/lib/python2.7/site-packages:/usr/local/pyqt4/4.11/lib/python2.7/site-packages:/usr/local/python/2.7.1-gcc/lib/python2.7:/usr/local/python/2.7.1-gcc/lib/python2.7/site-packages \n\
+   echo $PYTHONPATH \n\
 else \n\
 echo \"Not in MASSIVE\" \n\
 fi \n\
 echo \"Done\"; '
 
-proc_header = 'source ~/.bashrc;(if test ${MASSIVE_USERNAME+defined}; \n\
+proc_header = 'source ~/.bashrc; if test ${MASSIVE_USERNAME+defined}; \n\
 then \n\
    echo \"On Massive\" \n\
    module purge \n\
@@ -386,7 +386,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             if self.ui.checkBox_debugging.isChecked():
                 cmd1 += ' -v '
             print cmd1
-            cmd = cmd_header + cmd1 + ')'
+            cmd = cmd_header + cmd1 
             logging.info('Convert FDF :' + cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                                    executable="/bin/bash").stdout.read()
@@ -494,7 +494,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 os.path.realpath(os.path.abspath(__file__)))
             cmd1 = 'mrinfo ' + output_dir
             print cmd1
-            cmd = cmd_header + cmd1 + ')'
+            cmd = cmd_header + cmd1 
             logging.info('CheckFDF ' + cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                                    executable="/bin/bash").stdout.read()
@@ -701,7 +701,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd1 = cmd1 + ' -v ' + self.getCommandArgs()
             cmd1 = cmd1 + ' -i ' + str(input_dir) + ' -o ' + str(output_dir)
             print cmd1
-            cmd = cmd_header + cmd1 + ')'
+            cmd = cmd_header + cmd1 
             # print cmd
             logging.info('ConvertFID ' + cmd)
         except ValueError:
@@ -755,7 +755,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     cmd1 = os.path.join(
                         thispath, 'dcheck.sh') + ' -o ' + str(dcmpath)
                     # print cmd1
-                    # cmd = cmd_header + cmd1 +')'
+                    # cmd = cmd_header + cmd1 
                     # print cmd
                     print subprocess.Popen(cmd1,
                                            stdout=subprocess.PIPE, shell=True,
@@ -1146,7 +1146,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             # cmd1 = cmd1 + ' -v '
             # cmd1 = cmd1 + ' -i ' + str(input1_dir) + ' -o ' + str(output_dir)
             # print cmd1
-            # cmd = cmd_header + cmd1 + ')'
+            # cmd = cmd_header + cmd1 
             cmd = """%s matlab -nodesktop -nosplash -r "addpath ./matlab;call_swi('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%d,%d,%d,%d);quit"  """ % (
                 proc_header, str(input1_dir), str(input2_dir), str(output_dir), swiorder, preprocess, saveRI, swineg, swipos)
 
@@ -1187,7 +1187,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             cmd = """%s matlab -nodesktop -nosplash -r "addpath ./matlab;call_mci('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%d);quit"  """ % (
                 proc_header, str(input1_dir), str(input2_dir), str(output_dir), saveRI)
             # print cmd1
-            # cmd = cmd_header + cmd1 + ')'
+            # cmd = cmd_header + cmd1 
             print cmd
             logging.info('Processing MCI ' + cmd)
         except ValueError:
@@ -1281,8 +1281,8 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
 
-            cmd = """%s matlab -nodesktop -nosplash -r \"addpath ./matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d);quit\" )""" % (
-                proc_header, str(input1_dir), os.path.join(str(output_dir), 'pipeline1.nii.gz'), inputRI)
+            cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d);quit\" """ % (
+                proc_header, this_path, str(input1_dir), str(output_dir), inputRI)
             print cmd
 
             # print cmd
@@ -1328,9 +1328,8 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
-            cmd = """ %s matlab -nodesktop -nosplash -r "addpath %s/matlab/NLmeans; call_pipeline2('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"');quit" )""" % (
-                proc_header, thispath, str(input1_dir), str(input2_dir),
-                os.path.join(str(output_dir), 'pipeline2.nii.gz'))
+            cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"');quit\" """ % (
+                proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir))
 
             # print cmd
             logging.info('Processing NLpipeline2 ' + cmd)
@@ -1377,7 +1376,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
-            cmd = """ %s matlab -nodesktop -nosplash -r "addpath %s/matlab/NLmeans;  call_pipeline3('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%s);quit" )""" % (
+            cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;  call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%s);quit\" """ % (
                 proc_header, thispath, str(input1_dir), str(input2_dir),
                 str(output_dir), str(saveRI + 4 * savePhase))
 

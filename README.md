@@ -8,13 +8,17 @@ the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into
 enhanced MR DICOM images. Further development has added new features
 for filtering and noise removal.
 
-Homepage: [MBI's Confluence homepage](https://confluence-vre.its.monash.edu.au/display/MBI/Agilent+FDF+to+Dicom+converter)
+Homepage: [Project's MBI intranet homepage](https://confluence-vre.its.monash.edu.au/display/MBI/Agilent2Dicom+Application)
 
 Source code: 
+
 [https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom](https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom)
+
+
 [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom) [DEPRECIATED]
 
-Agilent2Dicom is at version 2.0
+
+Version: Agilent2Dicom is at version 2.0.1
 
 
 ## Basic overview ##
@@ -289,7 +293,7 @@ filtering is available for Gaussian (-G), Epanechnikov (-Y) and Laplacian
 stored as NIFTI. Save different components of reconstruction or complex
 filtering including magnitude (-m), phase (-p), or real and imaginary (-r).
 K-space data can also be saved as a MATLAB mat file (-k). Save images as NIFTI
-using -N. FID2DICOM Version 1.6.5
+using -N. FID2DICOM Version 1.8
 
 
 optional arguments:
@@ -353,6 +357,8 @@ optional arguments:
                         Standard deviation filter of reconstructed magnitude.
     -C, --no_centre_shift
                         Disable centering maximum in k-space data.
+  -cASL, --cardiac_ASL_recon
+                        Use UCL cardiac ASL recon.
   -v, --verbose         Verbose.
 
 ```
