@@ -15,6 +15,7 @@
 #   Name change: AgilentImageProcessing replaces Agilent2DicomQt2
 # Version 2.0.0: Phase and non-local means image processing tools included in
 #                new tab
+# Version 2.0.1: Non-local means options and allows use of FDF/FID and nifti
 #
 # Copyright 2015 Michael Eager
 #
@@ -918,7 +919,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         procpar, procpartext = ReadProcpar(
             os.path.join(str(self.ui.lineEdit_fidpath.text()),
                          'procpar'))
-        # ds, SNLMRAcq_type=ProcparToDicomMap(procpar)
+        # ds, MRAcq_type=ProcparToDicomMap(procpar)
         try:
             ftext = open(
                 os.path.join(str(self.ui.lineEdit_fidpath.text()),
