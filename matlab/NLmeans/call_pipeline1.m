@@ -22,17 +22,17 @@ voxelsize=[];
 
 if exist(in,'file')==2 && ~isempty(strfind(in,'.nii'))
     nii_in=load_nii(in);
-    img=nii_in.img;
-    voxelsize=nii_in.dime.pixdim(2:4);
+    img = nii_in.img;
+    voxelsize = nii_in.dime.pixdim(2:4);
 elseif ~isempty(strfind(in,'.img')) && isdir(in)
     [img hdr] =readfdf(in);
     %    voxelsize=hdr.FOVcm/size(img)*10;
-    voxelsize=hdr.roi*10/hdr.matrix;
-    voxelsize2 = hdr.voxelsize*10;
+    % voxelsize=hdr.roi*10/hdr.matrix;
+    voxelsize = hdr.voxelsize * 10;
 elseif ~isempty(strfind(in,'.fid')) && isdir(in)
     [img, hdr, ksp, RE, IM] = readfid(in);
-    % voxelsize=hdr.FOVcm*10/size(img)
-    voxelsize=hdr.voxelmm;
+    % voxelsize = hdr.FOVcm * 10 / size(img)
+    voxelsize = hdr.voxelmm;
     img=abs(img);
 else
     display(['Cannot find ' in])
@@ -48,7 +48,7 @@ if nargin == 3
     elseif ~isempty(strfind(in2,'.img')) && isdir(in2)
         [img2 hdr] =readfdf(in2);
         %    voxelsize=hdr.FOVcm/size(img)*10;
-        voxelsize2 = hdr.voxelsize*10;
+        voxelsize2 = hdr.voxelsize * 10;
     elseif ~isempty(strfind(in2,'.fid')) && isdir(in2)
         [img2, hdr, ksp, RE, IM] = readfid(in2);
         %    voxelsize2=hdr.FOVcm*10/size(img);
@@ -60,6 +60,18 @@ if nargin == 3
     img = abs(complex(img,img2))
 end
 
+img=squeeze(img);
+
+if length(size(img)) == 4
+    display 'Reducing 4D image down to 3D'
+    img=img(:,:,:,1);
+elseif length(size(img)) == 5
+    display 'Reducing 5D image down to 3D'
+    img=img(:,:,:,1,1);
+elseif length(size(img)) > 5
+    display 'Unable to process images greater than 5D'
+    return
+end
 
 display 'Calling pipeline 1'
 tic(),MRIdenoised1=pipeline1(NormaliseImage2(img)*256);toc()

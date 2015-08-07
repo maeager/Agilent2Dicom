@@ -37,6 +37,21 @@ else
     return
 end
 
+img1=squeeze(img1);
+
+if length(size(img1)) == 4
+    display 'Reducing 4D image down to 3D'
+    img1=img1(:,:,:,1);
+elseif length(size(img1)) == 5
+    display 'Reducing 5D image down to 3D'
+    img1=img1(:,:,:,1,1);
+elseif length(size(img1)) > 5
+    display 'Unable to process images greater than 5D'
+    return
+end
+
+
+
 if exist(in2,'file') && ~isempty(strfind(in2,'.nii')) 
     nii2_in=load_nii(in2);
     img2=nii2_in.img;
@@ -53,6 +68,20 @@ else
     display(['Cannot find ' in2])
     return
 end
+
+img2=squeeze(img2);
+
+if length(size(img2)) == 4
+    display 'Reducing 4D image down to 3D'
+    img2=img2(:,:,:,1);
+elseif length(size(img2)) == 5
+    display 'Reducing 5D image down to 3D'
+    img2=img2(:,:,:,1,1);
+elseif length(size(img2)) > 5
+    display 'Unable to process images greater than 5D'
+    return
+end
+
 
 if sum(voxelsize1) ~= sum(voxelsize2)
   display(['Voxelsizes don''t match: ' str2num(voxelsize1) ' ' ...

@@ -30,16 +30,16 @@ if nargin < 5
     NLfilter=0;
 end
 voxelsize=[];
-
+shifted=0;
 if exist(in1,'file')==2 && ~isempty(strfind(in1,'.nii')) 
     nii1_in=load_nii(in1);
     img=nii1_in.img;
-    ksp1=fftn(img);
+ksp1=fftshift(fftn(img));shifted=1;
     voxelsize1=nii1_in.dime.pixdim(2:4);
 elseif ~isempty(strfind(in1,'.img')) && isdir(in1)
     [img hdr] =readfdf(in1);
     %    voxelsize=hdr.FOVcm/size(img)*10;
-    ksp1=fftn(img);
+    ksp1=fftshift(fftn(img));shifted=1;
     %    voxelsize1=hdr.roi*10/hdr.matrix;
 voxelsize1 = hdr.voxelsize*10;
 elseif ~isempty(strfind(in1,'.fid')) && isdir(in1)
@@ -51,15 +51,30 @@ else
     return
 end
 
+
+ksp1=squeeze(ksp1);
+
+if length(size(ksp1)) == 4
+    display 'Reducing 4D image down to 3D'
+    ksp1=ksp1(:,:,:,1);
+elseif length(size(ksp1)) == 5
+    display 'Reducing 5D image down to 3D'
+    ksp1=ksp1(:,:,:,1,1);
+elseif length(size(ksp1)) > 5
+    display 'Unable to process images greater than 5D'
+    return
+end
+
+
 if exist(in2,'file')==2 && ~isempty(strfind(in2,'.nii')) 
     nii2_in=load_nii(in2);
-    img=nii2_in.img;
-    ksp2=fftn(img);
+    img = nii2_in.img;
+    ksp2 = fftshift(fftn(img));shifted=1;
     voxelsize2=nii2_in.dime.pixdim(2:4);
 elseif ~isempty(strfind(in2,'.img')) && isdir(in2)
     [img hdr] =readfdf(in2);
     %    voxelsize=hdr.FOVcm/size(img)*10;
-    ksp2=fftn(img);
+    ksp2=fftshift(fftn(img));shifted=1;
     %voxelsize2=hdr.roi*10/hdr.matrix;
     voxelsize2 = hdr.voxelsize*10;
 elseif ~isempty(strfind(in2,'.fid')) && isdir(in2)
@@ -68,6 +83,19 @@ elseif ~isempty(strfind(in2,'.fid')) && isdir(in2)
     voxelsize2=hdr.voxelmm;
 else
     display(['Cannot find ' in2])
+    return
+end
+
+ksp2=squeeze(ksp2);
+
+if length(size(ksp2)) == 4
+    display 'Reducing 4D image down to 3D'
+    ksp2=ksp2(:,:,:,1);
+elseif length(size(ksp2)) == 5
+    display 'Reducing 5D image down to 3D'
+    ksp2=ksp2(:,:,:,1,1);
+elseif length(size(ksp2)) > 5
+    display 'Unable to process images greater than 5D'
     return
 end
 
@@ -82,9 +110,11 @@ voxelsize=voxelsize1;
 
 display 'Calling pipeline 3'
 tic(),MRIdenoised3 = pipeline3(ksp1,ksp2,NLfilter);toc()
-
+if shifted
+    MRIdenoised3 = ifftshift(MRIdenoised3);
+end
 if exist(out,'file')~=2 && ~isdir(out)
-    %if not a file or a dir, create dir
+    % if not a file or a dir, create dir
     mkdir (out)
 end
 if isdir(out)
