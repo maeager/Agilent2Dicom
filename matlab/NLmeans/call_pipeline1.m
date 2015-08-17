@@ -33,7 +33,7 @@ end
 if exist(in,'file')==2 && ~isempty(strfind(in,'.nii'))
     nii_in=load_nii(in);
     img = nii_in.img;
-    voxelsize = nii_in.dime.pixdim(2:4);
+    voxelsize = nii_in.hdr.dime.pixdim(2:4);
 elseif ~isempty(strfind(in,'.img')) && isdir(in)
     [img hdr] =readfdf(in);
     %    voxelsize=hdr.FOVcm/size(img)*10;
@@ -95,7 +95,7 @@ else
    if ~isdir(out) 
       mkdir(out)
    end
-   denoised_file==[out '/pipeline1.nii.gz'];
+   denoised_file = [out '/pipeline1.nii.gz'];
    raw_file = [out, '/raw_average.nii.gz'];
 end
 

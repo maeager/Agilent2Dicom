@@ -42,7 +42,7 @@ if exist(in1,'file')==2 && ~isempty(strfind(in1,'.nii'))
     nii1_in=load_nii(in1);
     img1=nii1_in.img;
     ksp1=fftshift(fftn(img1));shifted=1;
-    voxelsize1=nii1_in.dime.pixdim(2:4);
+    voxelsize1=nii1_in.hdr.dime.pixdim(2:4);
 elseif ~isempty(strfind(in1,'.img')) && isdir(in1)
     [img1 hdr] =readfdf(in1);
     %    voxelsize=hdr.FOVcm/size(img)*10;
@@ -77,7 +77,7 @@ if exist(in2,'file')==2 && ~isempty(strfind(in2,'.nii'))
     nii2_in=load_nii(in2);
     img2 = nii2_in.img;
     ksp2 = fftshift(fftn(img2));shifted=1;
-    voxelsize2=nii2_in.dime.pixdim(2:4);
+    voxelsize2=nii2_in.hdr.dime.pixdim(2:4);
 elseif ~isempty(strfind(in2,'.img')) && isdir(in2)
     [img2 hdr] =readfdf(in2);
     %    voxelsize=hdr.FOVcm/size(img)*10;

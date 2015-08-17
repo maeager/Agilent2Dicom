@@ -32,7 +32,7 @@ in2 = regexprep(in2,'"','');
 if exist(in1,'file')==2 && ~isempty(strfind(in1,'.nii'))
     nii1_in=load_nii(in1);
     img1=nii1_in.img;
-    voxelsize1 = nii1_in.dime.pixdim(2:4);
+    voxelsize1 = nii1_in.hdr.dime.pixdim(2:4);
 elseif ~isempty(strfind(in1,'.img')) && isdir(in1)
     [img1 hdr] =readfdf(in1);
     %    voxelsize=hdr.FOVcm/size(img)*10;
@@ -65,7 +65,7 @@ end
 if exist(in2,'file') && ~isempty(strfind(in2,'.nii')) 
     nii2_in=load_nii(in2);
     img2=nii2_in.img;
-    voxelsize2 = nii2_in.dime.pixdim(2:4);
+    voxelsize2 = nii2_in.hdr.dime.pixdim(2:4);
 elseif ~isempty(strfind(in2,'.img')) && isdir(in2)
     [img2 hdr] =readfdf(in2);
     %    voxelsize=hdr.FOVcm/size(img)*10;
@@ -106,16 +106,16 @@ tic(),MRIdenoised2=pipeline2(img1,img2,NLfilter);toc()
 
 if exist(out,'file') == 2
     delete(out)
-    denoised_file=out
+    denoised_file = out
     [a,b,c] = fileparts(out) ;
     raw_file = [ a, '/raw_average.nii.gz'];						   
 else
     if isdir(out)
-        denoised_file=[out, '/pipeline2.nii.gz'];
+        denoised_file = [out, '/pipeline2.nii.gz'];
 raw_file = [out, '/raw_average.nii.gz'];
     else
         mkdir(out)
-        denoised_file=[out, '/pipeline2.nii.gz'];
+        denoised_file = [out, '/pipeline2.nii.gz'];
         raw_file = [out, '/raw_average.nii.gz'];
     end
 end
