@@ -155,7 +155,7 @@ display(['Saving ' denoised_file ])
 save_nii(make_nii(abs(MRIdenoised3),voxelsize,[],16),denoised_file)
 
 if savePhase
-    denoised_phase_file = regexprep(denoised_file,'magn','real');
+    denoised_phase_file = regexprep(denoised_file,'magn','pha');
     if exist(denoised_phase_file,'file')
       display(['Deleting ' denoised_phase_file ])
       delete(denoised_phase_file)
@@ -163,6 +163,21 @@ if savePhase
     display(['Saving ' denoised_phase_file ])
     save_nii(make_nii(angle(MRIdenoised3),voxelsize,[],16),denoised_phase_file)
 end
+if saveSWI
+    denoised_swi_file = regexprep(denoised_file,'magn','real');
+    if exist(denoised_swi_file,'file')
+      display(['Deleting ' denoised_swi_file ])
+      delete(denoised_swi_file)
+    end
+    display(['Saving ' denoised_swi_file ])
+    pha = angle(MRIdenoised3);
+    phasemask_n = (pha+pi)./pi;
+    [x] = find(pha>=0);
+    phasemask_n(x) = 1;
+    swi_n = phasemask_n.^4.*abs(MRIdenoised3);
+    save_nii(make_nii(swi_n,voxelsize,[],16),denoised_swi_file)
+end
+
 if saveRI
     denoised_real_file = regexprep(denoised_file,'magn','real');
     denoised_imag_file = regexprep(denoised_file,'magn','imag')
