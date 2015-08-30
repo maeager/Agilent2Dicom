@@ -1,3 +1,4 @@
+
 function call_pipeline3(in1,in2,out,flags,NLfilter)
 % Calling non-local means pipeline 3
 %
@@ -17,14 +18,18 @@ addpath(genpath(fullfile(root_path, '../matlab/NLmeans/MRIDenoisingPackage')))
 run  (fullfile(root_path, '../matlab/NLmeans/vlfeat/toolbox/vl_setup.m'))
 
 display('Calling non-local means filter pipeline 3')
-saveRI=0;savePhase=0;
+saveRI=0;savePhase=0;saveSWI=0;
 if nargin <4
-    flags=0
+    flags=0;
 end
-if flags>=4
+
+if flags>=8
+    saveSWI=1;
+end
+if rem(flags,8)>=4
     savePhase=1;
 end
-if mod(flags,2)==1
+if mod(flags,2) == 1
     saveRI=1;
 end
 if nargin < 5

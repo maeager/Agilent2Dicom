@@ -1,4 +1,4 @@
-function call_pipeline1(in,out,in2)
+function call_pipeline1(in,out,in2,NLfilter,hfinal)
 % Calling non-local means pipeline 1
 %  Use rician noise estimator to calculate std of noise in one MRI
 % magnitude image
@@ -20,12 +20,18 @@ run (fullfile(root_path,'../matlab/NLmeans/vlfeat/toolbox/vl_setup.m'))
 display('Calling non-local means filter pipeline 1')
 
 voxelsize=[];
+hfinal=[];
+NLfilter=[];
 
 %% Clean input strings
 in = regexprep(in,'"','');
 out = regexprep(out,'"','');
-if nargin == 3 
-  in2 = regexprep(in2,'"',''); 
+if nargin >= 3 
+    if isstr(in2)
+        in2 = regexprep(in2,'"',''); 
+    else
+        in2=[];
+    end
 end
 
 
@@ -49,7 +55,7 @@ else
     return
 end
 
-if nargin == 3
+if nargin == 3 && ~isempty(in2)
     display('Pipeline 1 with real and imag')
     if exist(in2,'file') && ~isempty(strfind(in2,'.nii')) 
         nii2_in=load_nii(in2);
@@ -84,11 +90,13 @@ elseif length(size(img)) > 5
 end
 
 display 'Calling pipeline 1'
-tic(),MRIdenoised1=pipeline1(NormaliseImage2(img)*256);toc()
+
+tic(),MRIdenoised1=pipeline1(NormaliseImage2(img)*256,NLfilter, ...
+                             hfinal);toc()
 
 if exist(out,'file')==2
     delete(out)
-    denoised_file=out
+    denoised_file = out
     [a,b,c] = fileparts(out) ;
     raw_file = [ a, '/raw_average.nii.gz'];	
 else
@@ -98,6 +106,9 @@ else
    denoised_file = [out '/pipeline1.nii.gz'];
    raw_file = [out, '/raw_average.nii.gz'];
 end
-
-save_nii(make_nii(img,voxelsize,[],16),raw_file)
+% Save raw input image average if not already saved
+if exist(raw_file,'file') ~= 2
+    save_nii(make_nii(img,voxelsize,[],16),raw_file)
+end
+%Save the denoised image
 save_nii(make_nii(MRIdenoised1,voxelsize,[],16),denoised_file)

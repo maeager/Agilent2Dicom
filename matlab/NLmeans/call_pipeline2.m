@@ -119,15 +119,16 @@ raw_file = [out, '/raw_average.nii.gz'];
         raw_file = [out, '/raw_average.nii.gz'];
     end
 end
-if exist(raw_file,'file')
-    display(['Deleting ' raw_file ])
-    delete(raw_file)
+if exist(raw_file,'file') ~= 2
+    display(['Saving ' raw_file ])
+    save_nii(make_nii(abs(img1+img2)/2,voxelsize,[],16),raw_file)
+    % display(['Deleting ' raw_file ])
+    % delete(raw_file)
 end
 if exist(denoised_file,'file')
-    display(['Deleting ' denoised_file ])
+    display(['Deleting old ' denoised_file ])
     delete(denoised_file)
 end
-display(['Saving ' raw_file ])
-save_nii(make_nii(abs(img1+img2)/2,voxelsize,[],16),outraw_file)
+
 display(['Saving ' denoised_file ])
 save_nii(make_nii(MRIdenoised2,voxelsize,[],16),denoised_file)

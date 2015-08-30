@@ -68,7 +68,13 @@ switch NLfilter
     display('Processing Real denoised image -ONLM ')
     tic(),MRIdenoised_real = MRIDenoisingONLM(avg_real,est_std_real/sqrt(2),1,1,3,1,0);toc()
     display('Processing Imag denoised image -ONLM ')
-    MRIdenoised_imag = MRIDenoisinONLM(avg_imag,est_std_imag/sqrt(2),1,1,3,1,0);toc()
+    MRIdenoised_imag = MRIDenoisinONLM(avg_imag,est_std_imag/ ...
+                                       sqrt(2),1,1,3,1,0);toc()
+  case 4
+    display('Processing Real denoised image - ODCT')
+    tic(),MRIdenoised_real = MRIDenoisingODCT(avg_real,est_std_real/sqrt(2),1,1,0);toc()
+    display('Processing Imag denoised image - ODCT')
+    MRIdenoised_imag = MRIDenoisingODCT(avg_imag,est_std_imag/sqrt(2),1,1,0);toc()
   otherwise
     display('Processing Real denoised image - MRONLM')
     tic(),MRIdenoised_real = MRIDenoisingMRONLM(avg_real,est_std_real/sqrt(2),1,1,3,1,0);toc()
