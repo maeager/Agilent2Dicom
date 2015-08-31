@@ -204,6 +204,10 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_ChangeNifti2.clicked.connect(self.ChangeProcFile2)
         self.ui.pushButton_ClearProc1.clicked.connect(self.ClearProcLine1)
         self.ui.pushButton_ClearProc2.clicked.connect(self.ClearProcLine2)
+        
+        self.ui.pushButton_CoilSensChangeDir.clicked.connect(self.ClearCoilSensDir)
+        self.ui.pushButton_CoilSensChangeFile.clicked.connect(self.ChangeCoilSensFile)
+        self.ui.pushButton_CoilSensClear.clicked.connect(self.ClearProcLine3)
         self.ui.pushButton_procout.clicked.connect(self.ChangeProcOutputPath)
 
         self.ui.pushButton_SWI.clicked.connect(self.ProcSWI)
@@ -1047,6 +1051,35 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         except ValueError:
             logging.info('ChangeProc2path error')
 
+    def ChangeCoilSensDir(self):
+        """ChangeCoilSensDir
+        """
+        success = 1
+        try:
+            newdir = str(
+                QFileDialog.getExistingDirectory(self, "Select FID or FDF Directory"))
+            self.ui.lineEdit_CoilSensDir.setText(newdir)
+            files = os.listdir(newdir)
+            if 'procpar' not in files:
+                print '''ChangeCoilSensDir Error: FID folder does not contain a
+                         procpar file'''
+                success = 0
+            fidfiles = [f for f in files if f.endswith('fid')]
+            if len(fidfiles) == 0:
+                print 'Input folder does not contain any fid files'
+                fdffiles = [f for f in files if f.endswith('.fdf')]
+                if len(fdffiles) == 0:
+                    print 'Error: Folder does not contain any fid of fdf files'
+                    success = 0
+                else:
+                    print 'FDF folder found ', newdir
+            else:
+                print 'FID folder found ', newdir
+            logging.info('ChangeCoilSensDir ' + newdir)
+        except ValueError:
+            self.ui.lineEdit_CoilSensDir.setText("")
+            logging.info('ChangeCoilSensDir error')
+
     def ChangeProcFile1(self):
         """ChangeProc1path
         """
@@ -1085,6 +1118,24 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         except ValueError:
             logging.info('ChangeProc2file error')
 
+    def ChangeProcFile1(self):
+        """ChangeProc1path
+        """
+        success = 1
+        try:
+            newnifti = str(
+                QFileDialog.getOpenFileName(self, "Select Nifti file"))
+            self.ui.lineEdit_CoilSens.setText(newnifti)
+            if not os.path.isfile(newnifti):
+                print "File not found"
+            if success:
+                out = os.path.dirname(newnifti)
+                self.ui.lineEdit_CoilSens.setText(out)
+
+            logging.info('ChangeCoilSensFile ' + newnifti)
+        except ValueError:
+            logging.info('ChangeCoilSensFile error')
+
     def ClearProcLine1(self):
         """ChangeProc1path
         """
@@ -1094,6 +1145,11 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         """ChangeProc2path
         """
         self.ui.lineEdit_ProcInfolder2.setText("")
+
+    def ClearProcLine3(self):
+        """ChangeProc2path
+        """
+        self.ui.lineEdit_CoilSens.setText("")
 
     def ChangeProcOutputPath(self):
         """ChangeProcOutputPath
@@ -1265,6 +1321,20 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         print 'ProcMEE completed.'
         logging.info('ProcMEE done')
 
+    def GetNLfilter():
+        if self.ui.MRONLM.isChecked():
+            return 0
+        elif self.ui.PRINLM.isChecked():
+            return 1
+        elif self.ui.AONLM.isChecked():
+            return 2
+        elif self.ui.ONLM.isChecked():
+            return 3
+        elif self.ui.ODCT.isChecked():
+            return 4
+        else:
+            return 0
+        
     def ProcNLpipeline1(self):
         """Process NLpipeline1
         """
@@ -1275,14 +1345,14 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
 
 #            radioButton_NLreps
             inputRI = int(self.ui.radioButton_NLinputRI.isChecked())
-            
+            NLfilter = GetNLfilter()
 
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
 
             cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d);quit\" """ % (
-                proc_header, this_path, str(input1_dir), str(output_dir), inputRI)
+                proc_header, thispath, str(input1_dir), output_dir, NLfilter)
             print cmd
 
             # print cmd
@@ -1317,19 +1387,13 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
-            if self.ui.MRONLM.isChecked():
-                NLfilter=0
-            elif self.ui.PRINLM.isChecked():
-                NLfilter=1
-            elif self.ui.AONLM.isChecked():
-                NLfilter=2
-            elif self.ui.ONLM.isChecked():
-                NLfilter=3
+            NLfilter = GetNLfilter()
+            
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
-            cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"');quit\" """ % (
-                proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir))
+            cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d);quit\" """ % (
+                proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir),NLfilter)
 
             # print cmd
             logging.info('Processing NLpipeline2 ' + cmd)
@@ -1365,20 +1429,14 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
             saveRI = int(self.ui.checkBox_NLsaveRI.isChecked())
             savePhase = int(self.ui.checkBox_NLsavePhase.isChecked())
-            if self.ui.MRONLM.isChecked():
-                NLfilter=0
-            elif self.ui.PRINLM.isChecked():
-                NLfilter=1
-            elif self.ui.AONLM.isChecked():
-                NLfilter=2
-            elif self.ui.ONLM.isChecked():
-                NLfilter=3
+            saveSWI = int(self.ui.checkBox_SaveSWIProc3.isChecked())
+            NLfilter = GetNLfilter()
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
-            cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;  call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%s);quit\" """ % (
+            cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;  call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%s,%d);quit\" """ % (
                 proc_header, thispath, str(input1_dir), str(input2_dir),
-                str(output_dir), str(saveRI + 4 * savePhase))
+                str(output_dir), str(saveRI + 4 * savePhase + 8*saveSWI),NLfilter)
 
             print cmd
             logging.info('Processing NLpipeline3 ' + cmd)

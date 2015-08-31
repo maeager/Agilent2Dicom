@@ -2,12 +2,13 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomQt2.ui'
 #
-# Created: Fri Aug  7 13:12:07 2015
+# Created: Mon Aug 31 14:52:33 2015
 #      by: PyQt4 UI code generator 4.6.2
 #
 # WARNING! All changes made in this file will be lost!
 
 from PyQt4 import QtCore, QtGui
+
 
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
@@ -24,10 +25,11 @@ except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1321, 800)
+        MainWindow.resize(1321, 853)
         self.centralwidget = QtGui.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtGui.QVBoxLayout(self.centralwidget)
@@ -95,7 +97,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget(self.scrollArea)
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 172, 35))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1068, 295))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_15 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_15.setObjectName("verticalLayout_15")
@@ -634,7 +636,7 @@ class Ui_MainWindow(object):
         self.scrollArea_4.setWidgetResizable(True)
         self.scrollArea_4.setObjectName("scrollArea_4")
         self.scrollAreaWidgetContents_4 = QtGui.QWidget(self.scrollArea_4)
-        self.scrollAreaWidgetContents_4.setGeometry(QtCore.QRect(0, 0, 133, 35))
+        self.scrollAreaWidgetContents_4.setGeometry(QtCore.QRect(0, 0, 1068, 284))
         self.scrollAreaWidgetContents_4.setObjectName("scrollAreaWidgetContents_4")
         self.verticalLayout_21 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents_4)
         self.verticalLayout_21.setObjectName("verticalLayout_21")
@@ -668,7 +670,7 @@ class Ui_MainWindow(object):
         self.gridLayout_3.addWidget(self.label_5, 0, 0, 1, 1)
         self.label_7 = QtGui.QLabel(self.tab_9)
         self.label_7.setObjectName("label_7")
-        self.gridLayout_3.addWidget(self.label_7, 2, 0, 1, 1)
+        self.gridLayout_3.addWidget(self.label_7, 3, 0, 1, 1)
         self.horizontalLayout_15 = QtGui.QHBoxLayout()
         self.horizontalLayout_15.setObjectName("horizontalLayout_15")
         self.lineEdit_ProcOutputfolder = QtGui.QLineEdit(self.tab_9)
@@ -677,7 +679,7 @@ class Ui_MainWindow(object):
         self.pushButton_procout = QtGui.QPushButton(self.tab_9)
         self.pushButton_procout.setObjectName("pushButton_procout")
         self.horizontalLayout_15.addWidget(self.pushButton_procout)
-        self.gridLayout_3.addLayout(self.horizontalLayout_15, 2, 1, 1, 1)
+        self.gridLayout_3.addLayout(self.horizontalLayout_15, 3, 1, 1, 1)
         self.horizontalLayout_16 = QtGui.QHBoxLayout()
         self.horizontalLayout_16.setObjectName("horizontalLayout_16")
         self.lineEdit_ProcInfolder2 = QtGui.QLineEdit(self.tab_9)
@@ -873,7 +875,7 @@ class Ui_MainWindow(object):
         self.pushButton_NLpipeline1 = QtGui.QPushButton(self.tab_10)
         self.pushButton_NLpipeline1.setObjectName("pushButton_NLpipeline1")
         self.horizontalLayout_20.addWidget(self.pushButton_NLpipeline1)
-        self.gridLayout_8.addLayout(self.horizontalLayout_20, 7, 2, 1, 1)
+        self.gridLayout_8.addLayout(self.horizontalLayout_20, 8, 2, 1, 1)
         self.horizontalLayout_23 = QtGui.QHBoxLayout()
         self.horizontalLayout_23.setObjectName("horizontalLayout_23")
         self.checkBox_NLsaveRI = QtGui.QCheckBox(self.tab_10)
@@ -882,30 +884,33 @@ class Ui_MainWindow(object):
         self.checkBox_NLsavePhase = QtGui.QCheckBox(self.tab_10)
         self.checkBox_NLsavePhase.setObjectName("checkBox_NLsavePhase")
         self.horizontalLayout_23.addWidget(self.checkBox_NLsavePhase)
+        self.checkBox_SaveSWIProc3 = QtGui.QCheckBox(self.tab_10)
+        self.checkBox_SaveSWIProc3.setObjectName("checkBox_SaveSWIProc3")
+        self.horizontalLayout_23.addWidget(self.checkBox_SaveSWIProc3)
         spacerItem30 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_23.addItem(spacerItem30)
         self.pushButton_NLpipeline3 = QtGui.QPushButton(self.tab_10)
         self.pushButton_NLpipeline3.setObjectName("pushButton_NLpipeline3")
         self.horizontalLayout_23.addWidget(self.pushButton_NLpipeline3)
-        self.gridLayout_8.addLayout(self.horizontalLayout_23, 13, 2, 1, 1)
+        self.gridLayout_8.addLayout(self.horizontalLayout_23, 14, 2, 1, 1)
         self.label_44 = QtGui.QLabel(self.tab_10)
         self.label_44.setObjectName("label_44")
-        self.gridLayout_8.addWidget(self.label_44, 6, 0, 1, 1)
+        self.gridLayout_8.addWidget(self.label_44, 7, 0, 1, 1)
         self.label_46 = QtGui.QLabel(self.tab_10)
         self.label_46.setObjectName("label_46")
-        self.gridLayout_8.addWidget(self.label_46, 6, 2, 1, 1)
+        self.gridLayout_8.addWidget(self.label_46, 7, 2, 1, 1)
         self.label_11 = QtGui.QLabel(self.tab_10)
         self.label_11.setObjectName("label_11")
-        self.gridLayout_8.addWidget(self.label_11, 9, 2, 1, 1)
+        self.gridLayout_8.addWidget(self.label_11, 10, 2, 1, 1)
         self.label_10 = QtGui.QLabel(self.tab_10)
         self.label_10.setObjectName("label_10")
-        self.gridLayout_8.addWidget(self.label_10, 9, 0, 1, 1)
+        self.gridLayout_8.addWidget(self.label_10, 10, 0, 1, 1)
         self.label_12 = QtGui.QLabel(self.tab_10)
         self.label_12.setObjectName("label_12")
-        self.gridLayout_8.addWidget(self.label_12, 12, 0, 1, 1)
+        self.gridLayout_8.addWidget(self.label_12, 13, 0, 1, 1)
         self.label_14 = QtGui.QLabel(self.tab_10)
         self.label_14.setObjectName("label_14")
-        self.gridLayout_8.addWidget(self.label_14, 12, 2, 1, 1)
+        self.gridLayout_8.addWidget(self.label_14, 13, 2, 1, 1)
         self.horizontalLayout_22 = QtGui.QHBoxLayout()
         self.horizontalLayout_22.setObjectName("horizontalLayout_22")
         spacerItem31 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
@@ -913,15 +918,7 @@ class Ui_MainWindow(object):
         self.pushButton_NLpipeline2 = QtGui.QPushButton(self.tab_10)
         self.pushButton_NLpipeline2.setObjectName("pushButton_NLpipeline2")
         self.horizontalLayout_22.addWidget(self.pushButton_NLpipeline2)
-        self.gridLayout_8.addLayout(self.horizontalLayout_22, 10, 2, 1, 1)
-        self.label_15 = QtGui.QLabel(self.tab_10)
-        self.label_15.setEnabled(False)
-        self.label_15.setObjectName("label_15")
-        self.gridLayout_8.addWidget(self.label_15, 15, 0, 1, 1)
-        self.label_18 = QtGui.QLabel(self.tab_10)
-        self.label_18.setEnabled(False)
-        self.label_18.setObjectName("label_18")
-        self.gridLayout_8.addWidget(self.label_18, 15, 2, 1, 1)
+        self.gridLayout_8.addLayout(self.horizontalLayout_22, 11, 2, 1, 1)
         self.label_28 = QtGui.QLabel(self.tab_10)
         self.label_28.setEnabled(True)
         self.label_28.setObjectName("label_28")
@@ -934,7 +931,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_25.addWidget(self.label_40)
         self.gridLayout_8.addLayout(self.horizontalLayout_25, 1, 2, 1, 1)
         spacerItem32 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
-        self.gridLayout_8.addItem(spacerItem32, 3, 0, 1, 1)
+        self.gridLayout_8.addItem(spacerItem32, 4, 0, 1, 1)
         self.label_49 = QtGui.QLabel(self.tab_10)
         self.label_49.setObjectName("label_49")
         self.gridLayout_8.addWidget(self.label_49, 2, 0, 1, 1)
@@ -952,12 +949,12 @@ class Ui_MainWindow(object):
         self.MRONLM.setChecked(True)
         self.MRONLM.setObjectName("MRONLM")
         self.horizontalLayout_31.addWidget(self.MRONLM)
-        self.ONLM = QtGui.QRadioButton(self.tab_10)
-        self.ONLM.setObjectName("ONLM")
-        self.horizontalLayout_31.addWidget(self.ONLM)
         self.AONLM = QtGui.QRadioButton(self.tab_10)
         self.AONLM.setObjectName("AONLM")
         self.horizontalLayout_31.addWidget(self.AONLM)
+        self.ONLM = QtGui.QRadioButton(self.tab_10)
+        self.ONLM.setObjectName("ONLM")
+        self.horizontalLayout_31.addWidget(self.ONLM)
         self.ODCT = QtGui.QRadioButton(self.tab_10)
         self.ODCT.setObjectName("ODCT")
         self.horizontalLayout_31.addWidget(self.ODCT)
@@ -968,25 +965,46 @@ class Ui_MainWindow(object):
         self.line_2.setFrameShape(QtGui.QFrame.HLine)
         self.line_2.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_2.setObjectName("line_2")
-        self.gridLayout_8.addWidget(self.line_2, 3, 2, 1, 1)
+        self.gridLayout_8.addWidget(self.line_2, 4, 2, 1, 1)
         self.line_3 = QtGui.QFrame(self.tab_10)
         self.line_3.setFrameShape(QtGui.QFrame.HLine)
         self.line_3.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_3.setObjectName("line_3")
-        self.gridLayout_8.addWidget(self.line_3, 8, 2, 1, 1)
+        self.gridLayout_8.addWidget(self.line_3, 9, 2, 1, 1)
         self.line_4 = QtGui.QFrame(self.tab_10)
         self.line_4.setFrameShape(QtGui.QFrame.HLine)
         self.line_4.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_4.setObjectName("line_4")
-        self.gridLayout_8.addWidget(self.line_4, 11, 2, 1, 1)
+        self.gridLayout_8.addWidget(self.line_4, 12, 2, 1, 1)
         self.line_5 = QtGui.QFrame(self.tab_10)
         self.line_5.setFrameShape(QtGui.QFrame.HLine)
         self.line_5.setFrameShadow(QtGui.QFrame.Sunken)
         self.line_5.setObjectName("line_5")
-        self.gridLayout_8.addWidget(self.line_5, 14, 2, 1, 1)
+        self.gridLayout_8.addWidget(self.line_5, 15, 2, 1, 1)
+        self.radioButton = QtGui.QRadioButton(self.tab_10)
+        self.radioButton.setObjectName("radioButton")
+        self.gridLayout_8.addWidget(self.radioButton, 3, 2, 1, 1)
         self.horizontalLayout_21.addLayout(self.gridLayout_8)
         self.tabWidget1.addTab(self.tab_10, "")
-        self.gridLayout_3.addWidget(self.tabWidget1, 3, 1, 1, 1)
+        self.gridLayout_3.addWidget(self.tabWidget1, 4, 1, 1, 1)
+        self.label_50 = QtGui.QLabel(self.tab_9)
+        self.label_50.setObjectName("label_50")
+        self.gridLayout_3.addWidget(self.label_50, 2, 0, 1, 1)
+        self.horizontalLayout_48 = QtGui.QHBoxLayout()
+        self.horizontalLayout_48.setObjectName("horizontalLayout_48")
+        self.lineEdit_CoilSens = QtGui.QLineEdit(self.tab_9)
+        self.lineEdit_CoilSens.setObjectName("lineEdit_CoilSens")
+        self.horizontalLayout_48.addWidget(self.lineEdit_CoilSens)
+        self.pushButton_CoilSensChangeDir = QtGui.QPushButton(self.tab_9)
+        self.pushButton_CoilSensChangeDir.setObjectName("pushButton_CoilSensChangeDir")
+        self.horizontalLayout_48.addWidget(self.pushButton_CoilSensChangeDir)
+        self.pushButton_CoilSensChangeFile = QtGui.QPushButton(self.tab_9)
+        self.pushButton_CoilSensChangeFile.setObjectName("pushButton_CoilSensChangeFile")
+        self.horizontalLayout_48.addWidget(self.pushButton_CoilSensChangeFile)
+        self.pushButton_CoilSensClear = QtGui.QPushButton(self.tab_9)
+        self.pushButton_CoilSensClear.setObjectName("pushButton_CoilSensClear")
+        self.horizontalLayout_48.addWidget(self.pushButton_CoilSensClear)
+        self.gridLayout_3.addLayout(self.horizontalLayout_48, 2, 1, 1, 1)
         self.horizontalLayout_12.addLayout(self.gridLayout_3)
         self.tabWidget.addTab(self.tab_9, "")
         self.verticalLayout.addWidget(self.tabWidget)
@@ -1432,6 +1450,7 @@ class Ui_MainWindow(object):
         self.pushButton_NLpipeline1.setText(QtGui.QApplication.translate("MainWindow", "Run Pipeline 1", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_NLsaveRI.setText(QtGui.QApplication.translate("MainWindow", "Save Real/Imag", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_NLsavePhase.setText(QtGui.QApplication.translate("MainWindow", "Save Phase", None, QtGui.QApplication.UnicodeUTF8))
+        self.checkBox_SaveSWIProc3.setText(QtGui.QApplication.translate("MainWindow", "Save SWI (Calc after processing)", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_NLpipeline3.setText(QtGui.QApplication.translate("MainWindow", "Run Pipeline 3", None, QtGui.QApplication.UnicodeUTF8))
         self.label_44.setText(QtGui.QApplication.translate("MainWindow", "Pipeline 1", None, QtGui.QApplication.UnicodeUTF8))
         self.label_46.setText(QtGui.QApplication.translate("MainWindow", "Magnitude  (Image 1) -> Automatic Non-local means -> Denoised Image", None, QtGui.QApplication.UnicodeUTF8))
@@ -1444,12 +1463,9 @@ class Ui_MainWindow(object):
 "Complex Image 1 -> Homodyne Filter -> X -> Noise Est (Real)-> Non-local means (Real) -> Denoised Complex Image\n"
 "Complex Image 2 -> Homodyne Filter -^     > Noise Est (Imag)-> Non-local means (Imag) -^", None, QtGui.QApplication.UnicodeUTF8))
         self.pushButton_NLpipeline2.setText(QtGui.QApplication.translate("MainWindow", "Run Pipeline 2", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_15.setText(QtGui.QApplication.translate("MainWindow", "Pipeline 4", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_18.setText(QtGui.QApplication.translate("MainWindow", "Complex Noise Estimated NLm (multiple reps required)\n"
-"Complex Image 1 -> Homodyne Filter -> Noise Est (Real/Imag)-> Non-local means (Real/Imag) -> Denoised Complex Image with LPF added\n"
-"Complex Image 2 -> Homodyne Filter -^(HPF)     Low Pass ->           ->          ->         ->          -^", None, QtGui.QApplication.UnicodeUTF8))
-        self.label_40.setText(QtGui.QApplication.translate("MainWindow", "Non-local means denoising filters using MRIdenoising package (Coupe and Manjon, Univ Bordeaux)\n"
-"\n"
+        self.label_40.setText(QtGui.QApplication.translate("MainWindow", "Non-local means denoising filters using:\n"
+"1. [In Development] Coil sensitivy Unbiased NL filter (MBI/ others)\n"
+"2. MRIdenoising package (Coupe and Manjon, Univ Bordeaux)\n"
 "MRONLM filter is the preferred filter \n"
 " Note:  Outputs are the magnitude of the NLmeans filter saved as Nifti. If two inputs are included the 2 and 3 pipelines output the average NLmeans result.", None, QtGui.QApplication.UnicodeUTF8))
         self.label_49.setText(QtGui.QApplication.translate("MainWindow", "NL Filter", None, QtGui.QApplication.UnicodeUTF8))
@@ -1470,6 +1486,37 @@ class Ui_MainWindow(object):
 "\n"
 "patchsize=1, searcharea=3, rician=1", None, QtGui.QApplication.UnicodeUTF8))
         self.MRONLM.setText(QtGui.QApplication.translate("MainWindow", "MRONLM", None, QtGui.QApplication.UnicodeUTF8))
+        self.AONLM.setToolTip(QtGui.QApplication.translate("MainWindow", "%   Description: Denoising of a 3D MR image using the AONLM filter\n"
+"%\n"
+"%\n"
+"%   Usage:      MRIDenoisingAONLM(ima, patchsize, searcharea, beta, rician, verbose)\n"
+"%\n"
+"%   ima:        3D MRI image\n"
+"%   patchsize:  radius of patch in voxel\n"
+"%   searcharea: radius of search area in voxel\n"
+"%   beta:       smoothing parameter (default 1)\n"
+"%   rician:     0: Gaussian noise 1: Rician noise \n"
+"%   verbose:    0 no display of graph\n"
+"%               1 display of graph\n"
+"%\n"
+"%                          Details on ANLM filter\n"
+"%**************************************************************************\n"
+"%* The AONLM filter is described in:                                      *\n"
+"%*                                                                        *\n"
+"%* J. V. Manjon, P. Coupe, L. Marti-Bonmati, D. L. Collins, M. Robles.    *\n"
+"%* Adaptive Non-Local Means Denoising of MR Images with Spatially         *\n"
+"%* varying Noise Levels.                                                  *\n"
+"%* Journal of Magnetic Resonance Imaging, 31(1):192-203, 2010             *\n"
+"%**************************************************************************\n"
+"%\n"
+"% Pierrick Coupe - pierrick.coupe@labri.fr\n"
+"% Jose V. Manjon - jmanjon@fis.upv.es\n"
+"%\n"
+"% Universit� de Bordeaux\n"
+"% LaBRI, UMR 5800, 33400 Talence\n"
+"%\n"
+"% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon", None, QtGui.QApplication.UnicodeUTF8))
+        self.AONLM.setText(QtGui.QApplication.translate("MainWindow", "AONLM", None, QtGui.QApplication.UnicodeUTF8))
         self.ONLM.setToolTip(QtGui.QApplication.translate("MainWindow", "\n"
 "%   Description:  Denoising of a 3D MRI image using the ONLM filter\n"
 "%               \n"
@@ -1514,37 +1561,6 @@ class Ui_MainWindow(object):
 "%\n"
 "% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon", None, QtGui.QApplication.UnicodeUTF8))
         self.ONLM.setText(QtGui.QApplication.translate("MainWindow", "ONLM", None, QtGui.QApplication.UnicodeUTF8))
-        self.AONLM.setToolTip(QtGui.QApplication.translate("MainWindow", "%   Description: Denoising of a 3D MR image using the AONLM filter\n"
-"%\n"
-"%\n"
-"%   Usage:      MRIDenoisingAONLM(ima, patchsize, searcharea, beta, rician, verbose)\n"
-"%\n"
-"%   ima:        3D MRI image\n"
-"%   patchsize:  radius of patch in voxel\n"
-"%   searcharea: radius of search area in voxel\n"
-"%   beta:       smoothing parameter (default 1)\n"
-"%   rician:     0: Gaussian noise 1: Rician noise \n"
-"%   verbose:    0 no display of graph\n"
-"%               1 display of graph\n"
-"%\n"
-"%                          Details on ANLM filter\n"
-"%**************************************************************************\n"
-"%* The AONLM filter is described in:                                      *\n"
-"%*                                                                        *\n"
-"%* J. V. Manjon, P. Coupe, L. Marti-Bonmati, D. L. Collins, M. Robles.    *\n"
-"%* Adaptive Non-Local Means Denoising of MR Images with Spatially         *\n"
-"%* varying Noise Levels.                                                  *\n"
-"%* Journal of Magnetic Resonance Imaging, 31(1):192-203, 2010             *\n"
-"%**************************************************************************\n"
-"%\n"
-"% Pierrick Coupe - pierrick.coupe@labri.fr\n"
-"% Jose V. Manjon - jmanjon@fis.upv.es\n"
-"%\n"
-"% Universit� de Bordeaux\n"
-"% LaBRI, UMR 5800, 33400 Talence\n"
-"%\n"
-"% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon", None, QtGui.QApplication.UnicodeUTF8))
-        self.AONLM.setText(QtGui.QApplication.translate("MainWindow", "AONLM", None, QtGui.QApplication.UnicodeUTF8))
         self.ODCT.setToolTip(QtGui.QApplication.translate("MainWindow", "\n"
 "%   Description: Denoising of a 3D MRI image using the ODCT filter\n"
 "%               \n"
@@ -1574,7 +1590,13 @@ class Ui_MainWindow(object):
 "%\n"
 "% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon", None, QtGui.QApplication.UnicodeUTF8))
         self.ODCT.setText(QtGui.QApplication.translate("MainWindow", "ODCT", None, QtGui.QApplication.UnicodeUTF8))
+        self.radioButton.setText(QtGui.QApplication.translate("MainWindow", "CoilSensUnbiasedNL (In development)", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget1.setTabText(self.tabWidget1.indexOf(self.tab_10), QtGui.QApplication.translate("MainWindow", "Non-local means", None, QtGui.QApplication.UnicodeUTF8))
+        self.label_50.setText(QtGui.QApplication.translate("MainWindow", "Coil Sensitivity\n"
+"or B1 image", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_CoilSensChangeDir.setText(QtGui.QApplication.translate("MainWindow", "Change Dir", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_CoilSensChangeFile.setText(QtGui.QApplication.translate("MainWindow", "Change File", None, QtGui.QApplication.UnicodeUTF8))
+        self.pushButton_CoilSensClear.setText(QtGui.QApplication.translate("MainWindow", "Clear", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_9), QtGui.QApplication.translate("MainWindow", "Processing", None, QtGui.QApplication.UnicodeUTF8))
         self.Version_tag.setText(QtGui.QApplication.translate("MainWindow", "Agilent2Dicom v2.0.1", None, QtGui.QApplication.UnicodeUTF8))
         self.bottom_tag.setText(QtGui.QApplication.translate("MainWindow", "--o--", None, QtGui.QApplication.UnicodeUTF8))

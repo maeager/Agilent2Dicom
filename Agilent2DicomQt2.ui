@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1321</width>
-    <height>800</height>
+    <height>853</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -173,8 +173,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>172</width>
-               <height>35</height>
+               <width>1068</width>
+               <height>295</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -1816,8 +1816,8 @@ The mode parameter determines how the array borders are handled, where cval is t
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>133</width>
-               <height>35</height>
+               <width>1068</width>
+               <height>284</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -1888,7 +1888,7 @@ Nifti file</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
+          <item row="3" column="0">
            <widget class="QLabel" name="label_7">
             <property name="text">
              <string>Nifti
@@ -1897,7 +1897,7 @@ Folder</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
+          <item row="3" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_15">
             <item>
              <widget class="QLineEdit" name="lineEdit_ProcOutputfolder"/>
@@ -1982,7 +1982,7 @@ Folder</string>
             </item>
            </layout>
           </item>
-          <item row="3" column="1">
+          <item row="4" column="1">
            <widget class="QTabWidget" name="tabWidget">
             <property name="currentIndex">
              <number>3</number>
@@ -2354,7 +2354,7 @@ Optimal vector difference between GM and WM.</string>
              <layout class="QHBoxLayout" name="horizontalLayout_21">
               <item>
                <layout class="QGridLayout" name="gridLayout_8">
-                <item row="7" column="2">
+                <item row="8" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_20">
                   <item>
                    <widget class="QRadioButton" name="radioButton_NLreps">
@@ -2395,7 +2395,7 @@ Optimal vector difference between GM and WM.</string>
                   </item>
                  </layout>
                 </item>
-                <item row="13" column="2">
+                <item row="14" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_23">
                   <item>
                    <widget class="QCheckBox" name="checkBox_NLsaveRI">
@@ -2408,6 +2408,13 @@ Optimal vector difference between GM and WM.</string>
                    <widget class="QCheckBox" name="checkBox_NLsavePhase">
                     <property name="text">
                      <string>Save Phase</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="checkBox_SaveSWIProc3">
+                    <property name="text">
+                     <string>Save SWI (Calc after processing)</string>
                     </property>
                    </widget>
                   </item>
@@ -2433,21 +2440,21 @@ Optimal vector difference between GM and WM.</string>
                   </item>
                  </layout>
                 </item>
-                <item row="6" column="0">
+                <item row="7" column="0">
                  <widget class="QLabel" name="label_44">
                   <property name="text">
                    <string>Pipeline 1</string>
                   </property>
                  </widget>
                 </item>
-                <item row="6" column="2">
+                <item row="7" column="2">
                  <widget class="QLabel" name="label_46">
                   <property name="text">
                    <string>Magnitude  (Image 1) -&gt; Automatic Non-local means -&gt; Denoised Image</string>
                   </property>
                  </widget>
                 </item>
-                <item row="9" column="2">
+                <item row="10" column="2">
                  <widget class="QLabel" name="label_11">
                   <property name="text">
                    <string>Noise Estimated NLm (2 reps required)
@@ -2456,21 +2463,21 @@ Magnitude (Image 2) -^</string>
                   </property>
                  </widget>
                 </item>
-                <item row="9" column="0">
+                <item row="10" column="0">
                  <widget class="QLabel" name="label_10">
                   <property name="text">
                    <string>Pipeline 2</string>
                   </property>
                  </widget>
                 </item>
-                <item row="12" column="0">
+                <item row="13" column="0">
                  <widget class="QLabel" name="label_12">
                   <property name="text">
                    <string>Pipeline 3</string>
                   </property>
                  </widget>
                 </item>
-                <item row="12" column="2">
+                <item row="13" column="2">
                  <widget class="QLabel" name="label_14">
                   <property name="text">
                    <string>Complex Noise Estimated NLm (2 complex reps required)
@@ -2479,7 +2486,7 @@ Complex Image 2 -&gt; Homodyne Filter -^     &gt; Noise Est (Imag)-&gt; Non-loca
                   </property>
                  </widget>
                 </item>
-                <item row="10" column="2">
+                <item row="11" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_22">
                   <item>
                    <spacer name="horizontalSpacer_5">
@@ -2503,28 +2510,6 @@ Complex Image 2 -&gt; Homodyne Filter -^     &gt; Noise Est (Imag)-&gt; Non-loca
                   </item>
                  </layout>
                 </item>
-                <item row="15" column="0">
-                 <widget class="QLabel" name="label_15">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <property name="text">
-                   <string>Pipeline 4</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="15" column="2">
-                 <widget class="QLabel" name="label_18">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <property name="text">
-                   <string>Complex Noise Estimated NLm (multiple reps required)
-Complex Image 1 -&gt; Homodyne Filter -&gt; Noise Est (Real/Imag)-&gt; Non-local means (Real/Imag) -&gt; Denoised Complex Image with LPF added
-Complex Image 2 -&gt; Homodyne Filter -^(HPF)     Low Pass -&gt;           -&gt;          -&gt;         -&gt;          -^</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="1" column="0">
                  <widget class="QLabel" name="label_28">
                   <property name="enabled">
@@ -2543,8 +2528,9 @@ Complex Image 2 -&gt; Homodyne Filter -^(HPF)     Low Pass -&gt;           -&gt;
                      <bool>true</bool>
                     </property>
                     <property name="text">
-                     <string>Non-local means denoising filters using MRIdenoising package (Coupe and Manjon, Univ Bordeaux)
-
+                     <string>Non-local means denoising filters using:
+1. [In Development] Coil sensitivy Unbiased NL filter (MBI/ others)
+2. MRIdenoising package (Coupe and Manjon, Univ Bordeaux)
 MRONLM filter is the preferred filter 
  Note:  Outputs are the magnitude of the NLmeans filter saved as Nifti. If two inputs are included the 2 and 3 pipelines output the average NLmeans result.</string>
                     </property>
@@ -2552,7 +2538,7 @@ MRONLM filter is the preferred filter
                   </item>
                  </layout>
                 </item>
-                <item row="3" column="0">
+                <item row="4" column="0">
                  <spacer name="verticalSpacer_12">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
@@ -2620,6 +2606,45 @@ patchsize=1, searcharea=3, rician=1</string>
                    </widget>
                   </item>
                   <item>
+                   <widget class="QRadioButton" name="AONLM">
+                    <property name="toolTip">
+                     <string>%   Description: Denoising of a 3D MR image using the AONLM filter
+%
+%
+%   Usage:      MRIDenoisingAONLM(ima, patchsize, searcharea, beta, rician, verbose)
+%
+%   ima:        3D MRI image
+%   patchsize:  radius of patch in voxel
+%   searcharea: radius of search area in voxel
+%   beta:       smoothing parameter (default 1)
+%   rician:     0: Gaussian noise 1: Rician noise 
+%   verbose:    0 no display of graph
+%               1 display of graph
+%
+%                          Details on ANLM filter
+%**************************************************************************
+%* The AONLM filter is described in:                                      *
+%*                                                                        *
+%* J. V. Manjon, P. Coupe, L. Marti-Bonmati, D. L. Collins, M. Robles.    *
+%* Adaptive Non-Local Means Denoising of MR Images with Spatially         *
+%* varying Noise Levels.                                                  *
+%* Journal of Magnetic Resonance Imaging, 31(1):192-203, 2010             *
+%**************************************************************************
+%
+% Pierrick Coupe - pierrick.coupe@labri.fr
+% Jose V. Manjon - jmanjon@fis.upv.es
+%
+% Universit� de Bordeaux
+% LaBRI, UMR 5800, 33400 Talence
+%
+% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon</string>
+                    </property>
+                    <property name="text">
+                     <string>AONLM</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <widget class="QRadioButton" name="ONLM">
                     <property name="toolTip">
                      <string>
@@ -2668,45 +2693,6 @@ patchsize=1, searcharea=3, rician=1</string>
                     </property>
                     <property name="text">
                      <string>ONLM</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="AONLM">
-                    <property name="toolTip">
-                     <string>%   Description: Denoising of a 3D MR image using the AONLM filter
-%
-%
-%   Usage:      MRIDenoisingAONLM(ima, patchsize, searcharea, beta, rician, verbose)
-%
-%   ima:        3D MRI image
-%   patchsize:  radius of patch in voxel
-%   searcharea: radius of search area in voxel
-%   beta:       smoothing parameter (default 1)
-%   rician:     0: Gaussian noise 1: Rician noise 
-%   verbose:    0 no display of graph
-%               1 display of graph
-%
-%                          Details on ANLM filter
-%**************************************************************************
-%* The AONLM filter is described in:                                      *
-%*                                                                        *
-%* J. V. Manjon, P. Coupe, L. Marti-Bonmati, D. L. Collins, M. Robles.    *
-%* Adaptive Non-Local Means Denoising of MR Images with Spatially         *
-%* varying Noise Levels.                                                  *
-%* Journal of Magnetic Resonance Imaging, 31(1):192-203, 2010             *
-%**************************************************************************
-%
-% Pierrick Coupe - pierrick.coupe@labri.fr
-% Jose V. Manjon - jmanjon@fis.upv.es
-%
-% Universit� de Bordeaux
-% LaBRI, UMR 5800, 33400 Talence
-%
-% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon</string>
-                    </property>
-                    <property name="text">
-                     <string>AONLM</string>
                     </property>
                    </widget>
                   </item>
@@ -2762,31 +2748,38 @@ patchsize=1, searcharea=3, rician=1</string>
                   </property>
                  </spacer>
                 </item>
-                <item row="3" column="2">
+                <item row="4" column="2">
                  <widget class="Line" name="line_2">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
-                <item row="8" column="2">
+                <item row="9" column="2">
                  <widget class="Line" name="line_3">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
-                <item row="11" column="2">
+                <item row="12" column="2">
                  <widget class="Line" name="line_4">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
-                <item row="14" column="2">
+                <item row="15" column="2">
                  <widget class="Line" name="line_5">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="3" column="2">
+                 <widget class="QRadioButton" name="radioButton">
+                  <property name="text">
+                   <string>CoilSensUnbiasedNL (In development)</string>
                   </property>
                  </widget>
                 </item>
@@ -2795,6 +2788,42 @@ patchsize=1, searcharea=3, rician=1</string>
              </layout>
             </widget>
            </widget>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_50">
+            <property name="text">
+             <string>Coil Sensitivity
+or B1 image</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_48">
+            <item>
+             <widget class="QLineEdit" name="lineEdit_CoilSens"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_CoilSensChangeDir">
+              <property name="text">
+               <string>Change Dir</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_CoilSensChangeFile">
+              <property name="text">
+               <string>Change File</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_CoilSensClear">
+              <property name="text">
+               <string>Clear</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
