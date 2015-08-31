@@ -281,6 +281,7 @@ def readfid(fidfolder, procpar, args):
     if args.verbose:
         print "Shifts of slices along z axis ", procpar['pss'], procpar['pss0']
     # Create FDF-like header variables
+    fid_header['sliceorder'] = np.array(procpar['pss'])
     fid_header['location'] = [-procpar['pro'], procpar['ppe'], procpar['pss0']]
     fid_header['span'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
     fid_header['roi'] = [procpar['lro'], procpar['lpe'], procpar['lpe2']]
@@ -519,9 +520,12 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
         img = np.empty([dims[0], dims[1], dims[2], fid_header['nChannels'],
                         fid_header['nEchoes']], dtype=np.complex64)  # float32
     # Setup pelist
-    if 'pelist' in procpar.keys():
-        pelist = np.array(procpar['pelist']).astype(
-            int) - int(min(procpar['pelist']))
+    if 'pelist' in procpar.keys() and len(procpar['pelist']) > 1  :
+        pelist = np.array(procpar['pelist']).astype(int) - int(min(procpar['pelist']))
+    elif 'pe2list' in procpar.keys() and len(procpar['pe2list']) > 1 
+        pelist = np.array(procpar['pe2list']).astype(int) - int(min(procpar['pe2list']))
+    elif 'sgepelist' in procpar.keys() and len(procpar['sgepelist']) > 1 
+        pelist = np.array(procpar['sgepelist']).astype(int) - int(min(procpar['sgepelist']))
     if procpar['nD'] == 2 and procpar['ni2'] == 1:
         print 'Reconstructing mode 1: 2D slices'
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
@@ -2192,6 +2196,22 @@ def SaveKspace(ksp, args):
     ksp = ksp.astype(np.complex64)
     scipy.io.savemat(outfile, mdict={'ksp': ksp}, do_compression=True)
 # end SaveSaveKspace
+
+
+## Agilent Xrecon
+    # if (spar(&d0,"apptype","im1D")) recon1D(&d0);
+
+    # else if (spar(&d0,"apptype","im2D")) recon2D(&d0);
+
+    # else if (spar(&d0,"apptype","im2Dfse")) recon2D(&d0);
+
+    # else if (spar(&d0,"apptype","im2Depi")) reconEPI(&d0);
+
+    # else if (spar(&d0,"apptype","im3D")) recon3D(&d0);
+
+    # else if (spar(&d0,"apptype","im3Dfse")) recon3D(&d0);
+
+
 
 if __name__ == "__main__":
 
