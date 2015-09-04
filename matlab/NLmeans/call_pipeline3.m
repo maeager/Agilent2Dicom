@@ -1,5 +1,4 @@
-
-function call_pipeline3(in1,in2,out,flags,NLfilter)
+function call_pipeline3(in1,in2,out,flags,NLfilter,hfinal,hfactor,searcharea,patcharea,rician)
 % Calling non-local means pipeline 3
 %
 % - (C) 2015 Michael Eager (michael.eager@monash.edu)
@@ -35,7 +34,10 @@ end
 if nargin < 5
     NLfilter=0;
 end
-
+if nargin < 6
+hfinal=[];hfactor=[];rician=[];
+searcharea=[];patcharea=[];
+end
 %% Clean input strings
 in1 = regexprep(in1,'"','');
 in2 = regexprep(in2,'"','');
@@ -121,7 +123,8 @@ end
 voxelsize=voxelsize1;
 
 display 'Calling pipeline 3'
-tic(),MRIdenoised3 = pipeline3(ksp1,ksp2,NLfilter);toc()
+tic(),MRIdenoised3 = pipeline3(ksp1,ksp2, NLfilter, hfinal, hfactor, ...
+                               searcharea, patcharea, rician);toc()
 if shifted
     MRIdenoised3 = ifftshift(MRIdenoised3);
 end

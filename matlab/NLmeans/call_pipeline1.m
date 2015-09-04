@@ -1,4 +1,4 @@
-function call_pipeline1(in,out,in2,NLfilter,hfinal)
+function call_pipeline1(in,out,in2,NLfilter,hfinal,hfactor,searcharea,patcharea)
 % Calling non-local means pipeline 1
 %  Use rician noise estimator to calculate std of noise in one MRI
 % magnitude image
@@ -20,9 +20,13 @@ run (fullfile(root_path,'../matlab/NLmeans/vlfeat/toolbox/vl_setup.m'))
 display('Calling non-local means filter pipeline 1')
 
 voxelsize=[];
-hfinal=[];
-NLfilter=[];
-
+if nargin < 4
+hfinal=[];hfactor=[];
+searcharea=[];patcharea=[];
+end
+if nargin < 3
+    NLfilter=[];
+end
 %% Clean input strings
 in = regexprep(in,'"','');
 out = regexprep(out,'"','');
@@ -92,7 +96,7 @@ end
 display 'Calling pipeline 1'
 
 tic(),MRIdenoised1=pipeline1(NormaliseImage2(img)*256,NLfilter, ...
-                             hfinal);toc()
+                             hfinal,hfactor,searcharea,patcharea);toc()
 
 if exist(out,'file')==2
     delete(out)

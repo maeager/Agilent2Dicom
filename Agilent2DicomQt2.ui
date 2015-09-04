@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>1321</width>
-    <height>853</height>
+    <height>870</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (2.0.1)</string>
+   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (2.0.2</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -174,7 +174,7 @@
                <x>0</x>
                <y>0</y>
                <width>1068</width>
-               <height>295</height>
+               <height>304</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -1817,7 +1817,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                <x>0</x>
                <y>0</y>
                <width>1068</width>
-               <height>284</height>
+               <height>301</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -2354,7 +2354,7 @@ Optimal vector difference between GM and WM.</string>
              <layout class="QHBoxLayout" name="horizontalLayout_21">
               <item>
                <layout class="QGridLayout" name="gridLayout_8">
-                <item row="8" column="2">
+                <item row="8" column="1">
                  <layout class="QHBoxLayout" name="horizontalLayout_20">
                   <item>
                    <widget class="QRadioButton" name="radioButton_NLreps">
@@ -2370,6 +2370,20 @@ Optimal vector difference between GM and WM.</string>
                    <widget class="QRadioButton" name="radioButton_NLinputRI">
                     <property name="text">
                      <string>Real and Imag (only valid for Pipeline 1)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="Line" name="line_6">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="Line" name="line_7">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
                     </property>
                    </widget>
                   </item>
@@ -2395,7 +2409,7 @@ Optimal vector difference between GM and WM.</string>
                   </item>
                  </layout>
                 </item>
-                <item row="14" column="2">
+                <item row="14" column="1">
                  <layout class="QHBoxLayout" name="horizontalLayout_23">
                   <item>
                    <widget class="QCheckBox" name="checkBox_NLsaveRI">
@@ -2447,14 +2461,14 @@ Optimal vector difference between GM and WM.</string>
                   </property>
                  </widget>
                 </item>
-                <item row="7" column="2">
+                <item row="7" column="1">
                  <widget class="QLabel" name="label_46">
                   <property name="text">
                    <string>Magnitude  (Image 1) -&gt; Automatic Non-local means -&gt; Denoised Image</string>
                   </property>
                  </widget>
                 </item>
-                <item row="10" column="2">
+                <item row="10" column="1">
                  <widget class="QLabel" name="label_11">
                   <property name="text">
                    <string>Noise Estimated NLm (2 reps required)
@@ -2477,7 +2491,7 @@ Magnitude (Image 2) -^</string>
                   </property>
                  </widget>
                 </item>
-                <item row="13" column="2">
+                <item row="13" column="1">
                  <widget class="QLabel" name="label_14">
                   <property name="text">
                    <string>Complex Noise Estimated NLm (2 complex reps required)
@@ -2486,7 +2500,7 @@ Complex Image 2 -&gt; Homodyne Filter -^     &gt; Noise Est (Imag)-&gt; Non-loca
                   </property>
                  </widget>
                 </item>
-                <item row="11" column="2">
+                <item row="11" column="1">
                  <layout class="QHBoxLayout" name="horizontalLayout_22">
                   <item>
                    <spacer name="horizontalSpacer_5">
@@ -2520,7 +2534,7 @@ Complex Image 2 -&gt; Homodyne Filter -^     &gt; Noise Est (Imag)-&gt; Non-loca
                   </property>
                  </widget>
                 </item>
-                <item row="1" column="2">
+                <item row="1" column="1">
                  <layout class="QHBoxLayout" name="horizontalLayout_25">
                   <item>
                    <widget class="QLabel" name="label_40">
@@ -2559,9 +2573,6 @@ MRONLM filter is the preferred filter
                  </widget>
                 </item>
                 <item row="2" column="1">
-                 <layout class="QHBoxLayout" name="horizontalLayout_26"/>
-                </item>
-                <item row="2" column="2">
                  <layout class="QHBoxLayout" name="horizontalLayout_31">
                   <item>
                    <widget class="QRadioButton" name="PRINLM">
@@ -2735,7 +2746,7 @@ patchsize=1, searcharea=3, rician=1</string>
                   </item>
                  </layout>
                 </item>
-                <item row="16" column="2">
+                <item row="16" column="1">
                  <spacer name="verticalSpacer_11">
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>
@@ -2748,40 +2759,192 @@ patchsize=1, searcharea=3, rician=1</string>
                   </property>
                  </spacer>
                 </item>
-                <item row="4" column="2">
+                <item row="4" column="1">
                  <widget class="Line" name="line_2">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
-                <item row="9" column="2">
+                <item row="9" column="1">
                  <widget class="Line" name="line_3">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
-                <item row="12" column="2">
+                <item row="12" column="1">
                  <widget class="Line" name="line_4">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
-                <item row="15" column="2">
+                <item row="15" column="1">
                  <widget class="Line" name="line_5">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="2">
+                <item row="3" column="1">
                  <widget class="QRadioButton" name="radioButton">
                   <property name="text">
                    <string>CoilSensUnbiasedNL (In development)</string>
                   </property>
                  </widget>
+                </item>
+                <item row="5" column="0">
+                 <widget class="QLabel" name="label_52">
+                  <property name="text">
+                   <string>Parameters</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="6" column="1">
+                 <widget class="Line" name="line_8">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="1">
+                 <layout class="QHBoxLayout" name="horizontalLayout_50">
+                  <item>
+                   <widget class="QCheckBox" name="checkBox_NLenableparams">
+                    <property name="toolTip">
+                     <string>Check enable with you want to modify NL parameters - any changes to default parameters will be ignored if you don't click this checkbox
+</string>
+                    </property>
+                    <property name="text">
+                     <string>Enable</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="Line" name="line_9">
+                    <property name="orientation">
+                     <enum>Qt::Vertical</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_15">
+                    <property name="toolTip">
+                     <string>Sigma = St. dev. of noise.
+Leave empty for calculation using NoiseEstimation in Pipeline 1 or difference between images in pipelines 2 and 3.</string>
+                    </property>
+                    <property name="text">
+                     <string>Sigma</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_NLsigma">
+                    <property name="toolTip">
+                     <string>Sigma = St. dev. of noise.
+Leave empty for calculation using NoiseEstimation in Pipeline 1 or difference between images in pipelines 2 and 3.</string>
+                    </property>
+                    <property name="text">
+                     <string/>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_23">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_51">
+                    <property name="text">
+                     <string>Sigma factor (%)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="linedit_NLsigmaratio">
+                    <property name="layoutDirection">
+                     <enum>Qt::RightToLeft</enum>
+                    </property>
+                    <property name="text">
+                     <string>100</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_25">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_53">
+                    <property name="text">
+                     <string>Search Area</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_NLsearcharea">
+                    <property name="text">
+                     <string>3</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacer_24">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="label_54">
+                    <property name="text">
+                     <string>Patch Area</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLineEdit" name="lineEdit_NLpatcharea">
+                    <property name="text">
+                     <string>1</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="checkBox_NLrician">
+                    <property name="text">
+                     <string>Rician</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                </layout>
               </item>
@@ -2839,7 +3002,7 @@ or B1 image</string>
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string>Agilent2Dicom v2.0.1</string>
+         <string>Agilent2Dicom v2.0.2</string>
         </property>
        </widget>
       </item>
