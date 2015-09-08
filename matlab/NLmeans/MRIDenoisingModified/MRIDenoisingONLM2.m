@@ -51,6 +51,27 @@ if (size(s,2)~=3)
     return
 end
 
+    if nargin < 2 || isempty(sigma) || (sigma==0)
+        sigma=1;
+    end
+    if  nargin < 3 ||  isempty(beta) || (beta==0)
+        beta=1;        
+    end
+    if nargin < 4 || isempty(patchsize) || (patchsize==0)
+        patchsize=1;
+    end
+    
+    if  nargin < 5 ||  isempty(searchsize) || (searcharea==0)
+        searcharea=3;
+    end
+    
+
+    if  nargin < 6 ||  isempty(rician) || (rician ~= 0)
+        rician=1;
+    end
+    if  nargin < 7
+        verbose=0;
+    end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Denoising each image using ORNLM
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -94,7 +115,7 @@ disp('.')
         beta=1;
     end
     
-    ORNLM=myMBONLM3Ddsingle(ima),searcharea,patchsize,sigma,rician);
+    ORNLM=myMBONLM3Dd(single(ima),searcharea,patchsize,sigma,rician);
     map = find(ORNLM<0);
     ORNLM(map) =0;
 

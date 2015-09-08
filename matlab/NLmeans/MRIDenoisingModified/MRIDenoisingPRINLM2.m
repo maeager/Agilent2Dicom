@@ -1,10 +1,12 @@
 function [ imaPRINLM] = MRIDenoisingPRINLM2(ima, sigma, patchsize, ...
-                                            searcharea, beta, rician, verbose)
+                                            searcharea, beta, rician, ...
+                                            coil, verbose)
 %
 %   Description:  Denoising of a 3D MRI image using the PRINLM filter
 %               
 %
-%   Usage:      MRIDenoisingPRINLM(ima, sigma, rician, verbose)
+%   Usage:      MRIDenoisingPRINLM(ima, sigma, patchsize,
+%                 searcharea, rician, verbose)
 %
 %   ima:        3D MR image
 %   sigma:          std of noise
@@ -37,32 +39,42 @@ if (size(s,2)~=3)
     imaPRINLM = 0;
     return
 end
+    if nargin < 2 || isempty(sigma) || (sigma==0)
+        sigma=1;
+    end
 
+    if nargin < 3 || isempty(patchsize) || (patchsize==0)
+        patchsize=1;
+    end
+    
+    if  nargin < 4 ||  isempty(searchsize) || (searcharea==0)
+        charea=3;
+    end
+    
+    if  nargin < 5 ||  isempty(beta) || (beta==0)
+        beta=1;        
+    end
+    if  nargin < 6 ||  isempty(rician) || (rician ~= 0)
+        rician=1;
+    end
+    if  nargin < 7 ||isempty(coil)
+        coil = ones(size(ima));
+    end
+    if  nargin < 8 
+        verbose=0;
+    end
+ 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Denoising using ODCT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    if (patchsize==0)
-        patchsize=1;
-    end
-    
-    if (searcharea==0)
-        searcharea=3;
-    end
-    
-    if (beta==0)
-        beta=1;
-    end
-    
-
- 
 %{    
     disp('.')
 disp('Denoising using ODCT')
 disp('.')
 
 %}
-    imaODCT=cMODCT3d(single(ima),sigma,rician);
+    imaODCT=myODCT3d(single(ima),sigma,rician);
     map = find(imaODCT<0);
     imaODCT(map) =0;
 %{
@@ -71,7 +83,7 @@ disp('Denoising using PRINLM')
 disp('.')
 
 %}
-    imaPRINLM=myRINLM3d(single(ima),searcharea,patchsize,sigma,imaODCT,rician); 
+    imaPRINLM=myRINLM3d(single(ima),searcharea,patchsize,sigma,imaODCT,rician,coil); 
     map = find(imaPRINLM<0);
     imaPRINLM(map) =0;
 

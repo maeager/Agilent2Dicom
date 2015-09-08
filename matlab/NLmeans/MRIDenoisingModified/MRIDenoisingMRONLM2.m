@@ -68,17 +68,15 @@ disp('.')
         searcharea=3;
     end
     
-    if (beta==0)
-        beta=1;
-    end
     if isempty(coil)
         %% create coil-sensitivity matrix here
+        coil = ones(size(ima));
     end
     
-    ORNLMu=myMBONLM3d(single(ima),searcharea,patchsize,sigma, ...
+    ORNLMu=myMBONLM3D(single(ima),searcharea,patchsize,sigma, ...
                     rician,coil);
     
-    ORNLMo=myMBONLM3d(single(ima),searcharea,patchsize+1,sigma, ...
+    ORNLMo=myMBONLM3D(single(ima),searcharea,patchsize+1,sigma, ...
                     rician,coil);
     
     MRORNLM = ascm(ima, ORNLMu, ORNLMo, sigma); 

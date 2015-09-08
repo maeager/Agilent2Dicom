@@ -35,6 +35,21 @@ if (size(s,2)~=3)
     imaODCT = 0;
     return
 end
+    if nargin < 2 || isempty(sigma) || (sigma==0)
+        sigma=1;
+    end
+    
+    if  nargin < 3 ||  isempty(beta) || (beta==0)
+        beta=1;        
+    end
+    if  nargin < 4 ||  isempty(rician) || (rician ~= 0)
+        rician=1;
+    end
+    if  nargin < 5
+        verbose=0;
+    end
+ 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Denoising using ODCT
