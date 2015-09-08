@@ -4,7 +4,7 @@ function MRIdenoised = pipeline3(ksp1,ksp2,NLfilter,hfinal,hfactor,searcharea,pa
 % and applies NL means to the complex average image
 %
 % - (C) Michael Eager 2015 (michael.eager@monash.edu)
-% Monash Biomedical Imaging
+% -     Monash Biomedical Imaging
 
 if nargin<3
     NLfilter = 0;
@@ -72,12 +72,8 @@ end
 beta=1;
 
 
-
-
 display(['Noise estimate (real and imag): ' num2str(est_std_real) ' ' num2str(est_std_imag)])
 display(['Noise estimate of 2-average image: ' num2str(hfinal_real) ' ' num2str(hfinal_imag)])
-
-
 
 
 switch NLfilter

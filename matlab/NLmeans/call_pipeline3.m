@@ -136,8 +136,8 @@ if exist(out,'file') == 2
     raw_file = [ a, '/raw_average.nii.gz'];						   
 else
     if ~isdir(out)
-    % if not a file or a dir, create dir
-    mkdir (out)
+        % if not a file or a dir, create dir
+        mkdir (out)
     end
     denoised_file=[out '/pipeline3_magn.nii.gz'];
     raw_file = [out, '/raw_average_magn.nii.gz'];

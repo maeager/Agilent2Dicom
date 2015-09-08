@@ -4,7 +4,7 @@ function MRIdenoised = pipeline2(img1,img2,NLfilter,hfinal,hfactor,searcharea,pa
 % and applies NL means to average image
 %
 % - (C) Michael Eager 2015 (michael.eager@monash.edu)
-% Monash Biomedical Imaging
+% -     Monash Biomedical Imaging
 
 
 if nargin<3

@@ -3,8 +3,8 @@ function MRIdenoised = pipeline1(img,NLfilter,hfinal,hfactor,searcharea,patachar
 %  Option 1 calls the automatic noise estimate before running the
 %  NLmeans filter
 %
-% - (C) Michael Eager 2015
-
+% - (C) Michael Eager 2015 (michael.eager@monash.edu)
+% -     Monash Biomedical Imaging
 
 %% parse inputs
 

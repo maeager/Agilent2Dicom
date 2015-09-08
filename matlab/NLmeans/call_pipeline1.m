@@ -1,9 +1,11 @@
-function call_pipeline1(in,out,in2,NLfilter,hfinal,hfactor,searcharea,patcharea)
+function call_pipeline1(in,out,in2,NLfilter,hfinal,hfactor,searcharea,patcharea,rician)
 % Calling non-local means pipeline 1
 %  Use rician noise estimator to calculate std of noise in one MRI
-% magnitude image
+%  magnitude image
+%
 % - (C) Michael Eager 2015 (michael.eager@monash.edu)
 % - Monash Biomedical Imaging
+
 display([' In call_pipeline1 ' in  out])
 [a,b,c] = fileparts(mfilename('fullpath')) 
 [a,b,c] = fileparts(a) ;
@@ -21,7 +23,7 @@ display('Calling non-local means filter pipeline 1')
 
 voxelsize=[];
 if nargin < 4
-hfinal=[];hfactor=[];
+hfinal=[];hfactor=[];rician=[];
 searcharea=[];patcharea=[];
 end
 if nargin < 3
@@ -95,8 +97,9 @@ end
 
 display 'Calling pipeline 1'
 
-tic(),MRIdenoised1=pipeline1(NormaliseImage2(img)*256,NLfilter, ...
-                             hfinal,hfactor,searcharea,patcharea);toc()
+tic(),MRIdenoised1 = pipeline1(NormaliseImage2(img)*256, NLfilter, ...
+                             hfinal, hfactor, searcharea, patcharea, ...
+                               rician);toc()
 
 if exist(out,'file')==2
     delete(out)
