@@ -19,11 +19,11 @@ typedef struct{
   float * means_image;
   float * ref_image;
   float * pesos;
-  float * coilsens;
+  float * coilsens_image;
   int ini;
   int fin;
-  int radioB;
-  int radioS;
+  int radiusB;
+  int radiusS;
   float sigma; 
   int order;
 }myargument;
@@ -35,7 +35,7 @@ bool rician;
 
 void* ThreadFunc( void* pArguments )
 {
-  float *ima,*fima,*medias,*pesos,*ref,sigma,w,d,hhh,hh,t1,alfa,x;
+  float *ima,*fima,*medias,*pesos,*ref,*coilsens,sigma,w,d,hhh,hh,t1,alfa,x,beta;
   int ii,jj,kk,ni,nj,nk,i,j,k,ini,fin,rows,cols,slices,v,p,p1,f,order,rc;    
   extern bool rician;
   /*extern float *table;*/
@@ -54,8 +54,8 @@ void* ThreadFunc( void* pArguments )
   ref=arg.ref_image;
   coilsens=arg.coilsens_image;
   pesos=arg.pesos;
-  v=arg.radioB;
-  f=arg.radioS;
+  v=arg.radiusB;
+  f=arg.radiusS;
   sigma=arg.sigma;
   order=arg.order;
         
@@ -109,8 +109,8 @@ void* ThreadFunc( void* pArguments )
 				  d=w*0.5 + d*0.5;
 
 				  //Coil sensitivity (B1) correction
-				  alpha = (coilsens[p]-coilsens[p1]);
-				  d*= (alpha*alpha);
+				  beta = (coilsens[p]-coilsens[p1]);
+				  d*= (beta*beta);
  
 
 				  if(d<=0) w=1.0;
@@ -183,8 +183,8 @@ void* ThreadFunc( void* pArguments )
               
 				  d=w*0.5 + d*0.5;                                                                 
 				  //Coil sensitivity (B1) correction
-				  alpha = (coilsens[p]-coilsens[p1]);
-				  d*= (alpha*alpha);
+				  beta = (coilsens[p]-coilsens[p1]);
+				  d*= (beta*beta);
 
 				  if(d<=0) w=1.0;
 				  else if(d>10) w=0;
@@ -281,7 +281,7 @@ int main(int argc, char * argv[])
             fprintf(stderr, "** missing argument for -output\n");
             return 2;
          }
-         ouputfilenamet = argv[ac];
+         outputfilename = argv[ac];
       }     else if( ! strcmp(argv[ac], "-means") ) {
          if( ++ac >= argc ) {
             fprintf(stderr, "** missing argument for -means\n");
@@ -331,7 +331,7 @@ int main(int argc, char * argv[])
          return 1;
       }
    }
-   h=sigma/3; /* this is due to the removal of part of the noise*/
+   h=sigma / 3.0f; /* this is due to the removal of part of the noise*/
 
    if( !inputfilename  ) { fprintf(stderr, "** missing option '-input'\n");  return 1; }
    if( !outputfilename ) { fprintf(stderr, "** missing option '-output'\n"); return 1; }
@@ -365,9 +365,9 @@ int main(int argc, char * argv[])
    coilsens = (float*) calloc(npixels,sizeof(float)); //(float*) coilimg->data;
    pesos = (float*) calloc(npixels,sizeof(float));
    for (int i=1; i<ndim;i++){
-     fima[i] = (float)(nimg->data[i])*(nimg->scl_slope) + nimg->scl_inter;
-     medias[i] = (float)(mimg->data[i])*(mimg->scl_slope) + mimg->scl_inter;
-     coilsens[i] = (float)(coilimg->data[i])*(coilimg->scl_slope) + coilimg->scl_inter;
+     fima[i] =( (float) nimg->data[i])*(nimg->scl_slope) + nimg->scl_inter;
+     medias[i] =( (float)mimg->data[i])*(mimg->scl_slope) + mimg->scl_inter;
+     coilsens[i] = ((float)coilimg->data[i])*(coilimg->scl_slope) + coilimg->scl_inter;
    }
 
   /* calculate means*/
@@ -439,8 +439,8 @@ int main(int argc, char * argv[])
       ThreadArgs[i].pesos=pesos;
       ThreadArgs[i].ini=ini;
       ThreadArgs[i].fin=fin;
-      ThreadArgs[i].radioB=v;
-      ThreadArgs[i].radioS=f;
+      ThreadArgs[i].radiusB=radiusB;
+      ThreadArgs[i].radiusS=radiusS;
       ThreadArgs[i].sigma=h; 
       ThreadArgs[i].order=order; 
     }
@@ -482,10 +482,9 @@ int main(int argc, char * argv[])
   nimg->scl_slope =fima_max- fima_min;
   nimg->scl_inter = fima_min;
 
-     for (int i=1; i<npixelsi++){
-     fima[i] = (float)(nimg->data[i])*(nimg->scl_slope) + nimg->scl_inter;
-     nimg->data[i] = (signed int)  
-     }
+  for (int i=1; i<npixels;i++)
+       nimg->data[i] = (signed int) ( (fima[i] - nimg->scl_inter)/ nimg->scl_slope);
+     
 
    /* assign nifti_image fname/iname pair, based on output filename
       (request to 'check' image and 'set_byte_order' here) */

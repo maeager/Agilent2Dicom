@@ -1,4 +1,5 @@
-/********************
+/*
+
   Modified NL means filter MRONLM
 
   Michael Eager
@@ -6,7 +7,8 @@
 
   Monash Biomedical Imaging
   Monash University, 2015
- *******************/
+
+ */
 
 
 
@@ -357,7 +359,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   mxArray *Mxmeans, *Mxvariances, *MxEstimate, *MxLabel;
   float *means, *variances, *Estimate, *Label;
   mxArray *pv;
-  float h,w,totalweight,wmax,d,mean,var,t1,t2,hh,epsilon,mu1,var1,label,estimate;
+  float hSigma,w,totalweight,wmax,d,mean,var,t1,t2,hh,epsilon,mu1,var1,label,estimate;
   int Ndims,i,j,k,ii,jj,kk,ni,nj,nk,radioB,radioS,ndim,indice,init,Nthreads,ini,fin,r;
   const int  *dims;
 
@@ -386,7 +388,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    mxIsDouble(prhs[0])) {
       mexErrMsgTxt("myMBONLM input1 must be full matrix of real float values.");
   }
-  ima = mxGetPr(prhs[0]);
+  ima = (float*)mxGetPr(prhs[0]);
 
   ndim = mxGetNumberOfDimensions(prhs[0]);
   dims= mxGetDimensions(prhs[0]);
@@ -414,7 +416,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    mxIsComplex(prhs[3]) ) {
       mexErrMsgTxt("myMBONLM sigma must be real value.");
   }
-  h = (float)(mxGetScalar(prhs[3]));
+  hSigma = (float)(mxGetScalar(prhs[3]));
 
   /*pv = prhs[4];*/
   if(mxIsSparse(prhs[4]) || 
@@ -424,39 +426,39 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   r = (int)(mxGetScalar(prhs[4]));
   if(r>0) rician=true;
 
-  Ndims = pow((2*f+1),ndim);
+  Ndims = (int)pow((2*radioS+1),ndim);
 
   /*Allocate memory and assign output pointer  and*/
   /*Get a pointer to the data space in our newly allocated memory*/
   plhs[0] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-  fima = mxGetPr(plhs[0]);
+  fima = (float*)mxGetPr(plhs[0]);
   if (nlhs>1){
     plhs[1] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-    means = mxGetPr(plhs[1]);
+    means = (float*)mxGetPr(plhs[1]);
   }else{
     Mxmeans = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-    means = mxGetPr(Mxmeans);
+    means = (float*)mxGetPr(Mxmeans);
   } 
   if (nlhs>2){
     plhs[2] == mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-    variances = mxGetPr(plhs[2]);
+    variances = (float*)mxGetPr(plhs[2]);
   }else{
     Mxvariances = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-    variances = mxGetPr(Mxvariances);
+    variances = (float*)mxGetPr(Mxvariances);
   }
   if (nlhs>3){
     plhs[3] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-    Estimate = mxGetPr(plhs[3]);
+    Estimate = (float*)mxGetPr(plhs[3]);
   }else{
     MxEstimate = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-    Estimate = mxGetPr(MxEstimate);
+    Estimate = (float*)mxGetPr(MxEstimate);
   }
   if (nlhs>4){
     plhs[4] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-    Label = mxGetPr(plhs[4]);
+    Label = (float*)mxGetPr(plhs[4]);
   }else{
     MxLabel = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-    Label = mxGetPr(MxLabel);
+    Label = (float*)mxGetPr(MxLabel);
   }
 
   average=(float*)malloc(Ndims*sizeof(float));
@@ -567,7 +569,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       ThreadArgs[i].fin=fin;
       ThreadArgs[i].radioB=radioB;
       ThreadArgs[i].radioS=radioS;
-      ThreadArgs[i].sigma=h;    
+      ThreadArgs[i].sigma=hSigma;    
     	
       ThreadList[i] = (HANDLE)_beginthreadex( NULL, 0, &ThreadFunc, &ThreadArgs[i] , 0, NULL );
         
@@ -599,7 +601,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       ThreadArgs[i].fin=fin;
       ThreadArgs[i].radioB=radioB;
       ThreadArgs[i].radioS=radioS;
-      ThreadArgs[i].sigma=h;  
+      ThreadArgs[i].sigma=hSigma;  
     }
     	
   for (i=0; i<Nthreads; i++)

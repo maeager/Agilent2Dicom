@@ -42,7 +42,7 @@ typedef struct{
   float * means_image;
   float * ref_image;
   float * pesos;
-  float * coilsens;
+  float * coilsens_image;
   int ini;
   int fin;
   int radioB;
@@ -55,7 +55,7 @@ bool rician;
 
 void* ThreadFunc( void* pArguments )
 {
-  float *ima,*fima,*medias,*pesos,*ref,sigma,w,d,hhh,hh,t1,alfa,x;
+  float *ima,*fima,*medias,*pesos,*ref,*coilsens, sigma,w,d,hhh,hh,t1,alfa,x,beta;
   int ii,jj,kk,ni,nj,nk,i,j,k,ini,fin,rows,cols,slices,p,p1,radioS,radioB,order,rc;    
   extern bool rician;
   /*extern float *table;*/
@@ -129,8 +129,8 @@ void* ThreadFunc( void* pArguments )
 				  d=w*0.5 + d*0.5;
 
 				  //Coil sensitivity (B1) correction
-				  alpha = (coilsens[p]-coilsens[p1]);
-				  d*= (alpha*alpha);
+				  beta = (coilsens[p]-coilsens[p1]);
+				  if (beta>0) d *= (beta*beta);
  
 
 				  if(d<=0) w=1.0;
@@ -203,8 +203,8 @@ void* ThreadFunc( void* pArguments )
               
 				  d=w*0.5 + d*0.5;                                                                 
 				  //Coil sensitivity (B1) correction
-				  alpha = (coilsens[p]-coilsens[p1]);
-				  d*= (alpha*alpha);
+				  beta = (coilsens[p]-coilsens[p1]);
+				  d*= (beta*beta);
 
 				  if(d<=0) w=1.0;
 				  else if(d>10) w=0;
@@ -271,7 +271,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
      mxIsDouble(prhs[0])) {
       mexErrMsgTxt("myMBONLM input1 must be full matrix of real float values.");
   }
-  ima = mxGetPr(prhs[0]);
+  ima = (float*)mxGetPr(prhs[0]);
   ndim = mxGetNumberOfDimensions(prhs[0]);
   dims= mxGetDimensions(prhs[0]);
 
@@ -283,7 +283,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   /*pv = prhs[3];*/
   sigma = (float)(mxGetScalar(prhs[3]));
   /*xref = prhs[4];*/
-  ref = mxGetPr(prhs[4]);
+  ref = (float*)mxGetPr(prhs[4]);
   /*pv = prhs[5];*/
   rician = (int)(mxGetScalar(prhs[5]));
     
@@ -291,31 +291,31 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if (nrhs> 6)
     {
-      coilsens = mxGetPr(prhs[6]);
+      coilsens = (float*)mxGetPr(prhs[6]);
     }
   else{
     pv = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-    coilsens = mxGetPr(pv);
+    coilsens = (float*)mxGetPr(pv);
   }
 
 
   /*Allocate memory and assign output pointer*/
 /*Get a pointer to the data space in our newly allocated memory*/
   plhs[0] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-  fima = mxGetPr(plhs[0]);
+  fima = (float*) mxGetPr(plhs[0]);
   if (nlhs>1){
   plhs[1] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-  medias = mxGetPr(Mxmedias);
+  medias = (float*) mxGetPr(Mxmedias);
   }else{
   Mxmedias = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-  medias = mxGetPr(Mxmedias);
+  medias = (float*) mxGetPr(Mxmedias);
   }
   if (nlhs>2){
     plhs[2]  = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-    pesos = mxGetPr(plhs[2]);
+    pesos = (float*) mxGetPr(plhs[2]);
   }else{
     Mxpesos = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-    pesos = mxGetPr(Mxpesos);
+    pesos = (float*) mxGetPr(Mxpesos);
   }
 
 
