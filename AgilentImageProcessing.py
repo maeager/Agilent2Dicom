@@ -1119,7 +1119,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         except ValueError:
             logging.info('ChangeProc2file error')
 
-    def ChangeProcFile1(self):
+    def ChangeCoilSensFile(self):
         """ChangeProc1path
         """
         success = 1
