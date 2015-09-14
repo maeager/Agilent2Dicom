@@ -19,7 +19,7 @@ function [pha, swi_n, swi_p, mag] = phaserecon_v1(kimg,kimgsos,a,intpl,thr)
 
 [Nfe,Npe,Npe2] = size(kimg);
 
-% creat a Gaussina LPF
+% create a Gaussian LPF
 win2 = gausswin(Nfe,a)*gausswin(Npe,a)';win3=gausswin(Npe2,a);
 win=zeros(Nfe,Npe,Npe2);
 for k=1:Npe2
