@@ -206,7 +206,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_ClearProc1.clicked.connect(self.ClearProcLine1)
         self.ui.pushButton_ClearProc2.clicked.connect(self.ClearProcLine2)
         
-        self.ui.pushButton_CoilSensChangeDir.clicked.connect(self.ClearCoilSensDir)
+        self.ui.pushButton_CoilSensChangeDir.clicked.connect(self.ChangeCoilSensDir)
         self.ui.pushButton_CoilSensChangeFile.clicked.connect(self.ChangeCoilSensFile)
         self.ui.pushButton_CoilSensClear.clicked.connect(self.ClearProcLine3)
         self.ui.pushButton_procout.clicked.connect(self.ChangeProcOutputPath)
