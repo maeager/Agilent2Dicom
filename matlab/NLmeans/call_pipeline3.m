@@ -14,6 +14,7 @@ addpath(fullfile(root_path, '../matlab/Agilent/'))
 addpath(fullfile(root_path, '../matlab/NLmeans'))
 % add recursive directories in MRI denoise package
 addpath(genpath(fullfile(root_path, '../matlab/NLmeans/MRIDenoisingPackage')))
+addpath(fullfile(root_path, '../matlab/NLmeans/MRIDenoisingModified'))
 run  (fullfile(root_path, '../matlab/NLmeans/vlfeat/toolbox/vl_setup.m'))
 
 display('Calling non-local means filter pipeline 3')

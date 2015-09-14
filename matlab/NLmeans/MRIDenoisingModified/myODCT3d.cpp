@@ -60,23 +60,292 @@ float W1,W2;
 float *tabla1,*tabla2; /* tablas de cosenos*/
 int rician;
 
+
+
+/*
+https://dst.lbl.gov/ACSSoftware/colt/
+*/
+	
+	/****************************************
+	 *    COEFFICIENTS FOR METHODS i1, i1e  *
+	 ****************************************/
+
+static double chbevl( double x, double coef[], int N ) {
+	double b0, b1, b2;
+
+	int p = 0;
+	int i;
+
+	b0 = coef[p++];
+	b1 = 0.0;
+	i = N - 1;
+
+	do {
+		b2 = b1;
+		b1 = b0;
+		b0 = x * b1  -  b2  + coef[p++];
+	} while( --i > 0);
+
+	return( 0.5*(b0-b2) );
+}
+/**
+ * Returns the modified Bessel function of order 0 of the
+ * argument.
+ * <p>
+ * The function is defined as <tt>i0(x) = j0( ix )</tt>.
+ * <p>
+ * The range is partitioned into the two intervals [0,8] and
+ * (8, infinity).  Chebyshev polynomial expansions are employed
+ * in each interval.
+ *
+ * @param x the value to compute the bessel function of.
+ */
+static  double i0(double x) {
+	double y;
+
+	 static  double A_i0[] = {
+		-4.41534164647933937950E-18,
+		 3.33079451882223809783E-17,
+		-2.43127984654795469359E-16,
+		 1.71539128555513303061E-15,
+		-1.16853328779934516808E-14,
+		 7.67618549860493561688E-14,
+		-4.85644678311192946090E-13,
+		 2.95505266312963983461E-12,
+		-1.72682629144155570723E-11,
+		 9.67580903537323691224E-11,
+		-5.18979560163526290666E-10,
+		 2.65982372468238665035E-9,
+		-1.30002500998624804212E-8,
+		 6.04699502254191894932E-8,
+		-2.67079385394061173391E-7,
+		 1.11738753912010371815E-6,
+		-4.41673835845875056359E-6,
+		 1.64484480707288970893E-5,
+		-5.75419501008210370398E-5,
+		 1.88502885095841655729E-4,
+		-5.76375574538582365885E-4,
+		 1.63947561694133579842E-3,
+		-4.32430999505057594430E-3,
+		 1.05464603945949983183E-2,
+		-2.37374148058994688156E-2,
+		 4.93052842396707084878E-2,
+		-9.49010970480476444210E-2,
+		 1.71620901522208775349E-1,
+		-3.04682672343198398683E-1,
+		 6.76795274409476084995E-1
+		};
+
+
+
+	/**
+	 * Chebyshev coefficients for exp(-x) sqrt(x) I0(x)
+	 * in the inverted interval [8,infinity].
+	 *
+	 * lim(x->inf){ exp(-x) sqrt(x) I0(x) } = 1/sqrt(2pi).
+	 */
+	 static  double B_i0[] = {
+		-7.23318048787475395456E-18,
+		-4.83050448594418207126E-18,
+		 4.46562142029675999901E-17,
+		 3.46122286769746109310E-17,
+		-2.82762398051658348494E-16,
+		-3.42548561967721913462E-16,
+		 1.77256013305652638360E-15,
+		 3.81168066935262242075E-15,
+		-9.55484669882830764870E-15,
+		-4.15056934728722208663E-14,
+		 1.54008621752140982691E-14,
+		 3.85277838274214270114E-13,
+		 7.18012445138366623367E-13,
+		-1.79417853150680611778E-12,
+		-1.32158118404477131188E-11,
+		-3.14991652796324136454E-11,
+		 1.18891471078464383424E-11,
+		 4.94060238822496958910E-10,
+		 3.39623202570838634515E-9,
+		 2.26666899049817806459E-8,
+		 2.04891858946906374183E-7,
+		 2.89137052083475648297E-6,
+		 6.88975834691682398426E-5,
+		 3.36911647825569408990E-3,
+		 8.04490411014108831608E-1
+		};
+
+
+	if( x < 0 ) x = -x;
+	if( x <= 8.0 ) {
+		y = (x/2.0) - 2.0;
+		return( exp(x) * chbevl( y, A_i0, 30 ) );
+	}
+
+	return(  exp(x) * chbevl( 32.0/x - 2.0, B_i0, 25 ) / sqrt(x) );
+}
+/**
+ * Returns the exponentially scaled modified Bessel function
+ * of order 0 of the argument.
+ * <p>
+ * The function is defined as <tt>i0e(x) = exp(-|x|) j0( ix )</tt>.
+ *
+ *
+ * @param x the value to compute the bessel function of.
+ *
+static  double i0e(double x){
+	double y;
+	
+	if( x < 0 ) x = -x;
+	if( x <= 8.0 ) {
+		y = (x/2.0) - 2.0;
+		return( chbevl( y, A_i0, 30 ) );
+	}
+
+	return( chbevl( 32.0/x - 2.0, B_i0, 25 ) / sqrt(x) );
+}*/
+/**
+ * Returns the modified Bessel function of order 1 of the
+ * argument.
+ * <p>
+ * The function is defined as <tt>i1(x) = -i j1( ix )</tt>.
+ * <p>
+ * The range is partitioned into the two intervals [0,8] and
+ * (8, infinity).  Chebyshev polynomial expansions are employed
+ * in each interval.
+ *
+ * @param x the value to compute the bessel function of.
+ */
+static  double i1(double x)  {
+	double y, z;
+	/**
+	 * Chebyshev coefficients for exp(-x) I1(x) / x
+	 * in the interval [0,8].
+	 *
+	 * lim(x->0){ exp(-x) I1(x) / x } = 1/2.
+	 */
+	 static  double A_i1[] = {
+		 2.77791411276104639959E-18,
+		-2.11142121435816608115E-17,
+		 1.55363195773620046921E-16,
+		-1.10559694773538630805E-15,
+		 7.60068429473540693410E-15,
+		-5.04218550472791168711E-14,
+		 3.22379336594557470981E-13,
+		-1.98397439776494371520E-12,
+		 1.17361862988909016308E-11,
+		-6.66348972350202774223E-11,
+		 3.62559028155211703701E-10,
+		-1.88724975172282928790E-9,
+		 9.38153738649577178388E-9,
+		-4.44505912879632808065E-8,
+		 2.00329475355213526229E-7,
+		-8.56872026469545474066E-7,
+		 3.47025130813767847674E-6,
+		-1.32731636560394358279E-5,
+		 4.78156510755005422638E-5,
+		-1.61760815825896745588E-4,
+		 5.12285956168575772895E-4,
+		-1.51357245063125314899E-3,
+		 4.15642294431288815669E-3,
+		-1.05640848946261981558E-2,
+		 2.47264490306265168283E-2,
+		-5.29459812080949914269E-2,
+		 1.02643658689847095384E-1,
+		-1.76416518357834055153E-1,
+		 2.52587186443633654823E-1
+		};
+
+	/*
+	 * Chebyshev coefficients for exp(-x) sqrt(x) I1(x)
+	 * in the inverted interval [8,infinity].
+	 *
+	 * lim(x->inf){ exp(-x) sqrt(x) I1(x) } = 1/sqrt(2pi).
+	 */
+	 static  double B_i1[] = {
+		 7.51729631084210481353E-18,
+		 4.41434832307170791151E-18,
+		-4.65030536848935832153E-17,
+		-3.20952592199342395980E-17,
+		 2.96262899764595013876E-16,
+		 3.30820231092092828324E-16,
+		-1.88035477551078244854E-15,
+		-3.81440307243700780478E-15,
+		 1.04202769841288027642E-14,
+		 4.27244001671195135429E-14,
+		-2.10154184277266431302E-14,
+		-4.08355111109219731823E-13,
+		-7.19855177624590851209E-13,
+		 2.03562854414708950722E-12,
+		 1.41258074366137813316E-11,
+		 3.25260358301548823856E-11,
+		-1.89749581235054123450E-11,
+		-5.58974346219658380687E-10,
+		-3.83538038596423702205E-9,
+		-2.63146884688951950684E-8,
+		-2.51223623787020892529E-7,
+		-3.88256480887769039346E-6,
+		-1.10588938762623716291E-4,
+		-9.76109749136146840777E-3,
+		 7.78576235018280120474E-1
+		};
+
+	z = fabs(x);
+	if( z <= 8.0 )
+		{
+		y = (z/2.0) - 2.0;
+		z = chbevl( y, A_i1, 29 ) * z * exp(z);
+		}
+	else
+		{
+		z = exp(z) * chbevl( 32.0/z - 2.0, B_i1, 25 ) / sqrt(z);
+		}
+	if( x < 0.0 )
+		z = -z;
+	return( z );
+}
+/**
+ * Returns the exponentially scaled modified Bessel function
+ * of order 1 of the argument.
+ * <p>
+ * The function is defined as <tt>i1(x) = -i exp(-|x|) j1( ix )</tt>.
+ * 
+ * @param x the value to compute the bessel function of.
+ *
+static  double i1e(double x) { 
+double y, z;
+
+z = fabs(x);
+if( z <= 8.0 )
+	{
+	y = (z/2.0) - 2.0;
+	z = chbevl( y, A_i1, 29 ) * z;
+	}
+else
+	{
+	z = chbevl( 32.0/z - 2.0, B_i1, 25 ) / sqrt(z);
+	}
+if( x < 0.0 )
+	z = -z;
+return( z );
+}*/
+
+
+
 /*Returns the modified Bessel function I0(x) for any real x.*/
 double Bessel0(double x)
 {
   double ax,ans,a;
-  double y,y1; 
+  double y; 
   if ((ax=fabs(x)) < 3.75) 
     { 
       y=x/3.75;
       y*=y;
-      y=1.0+y*(3.5156229+y*(3.0899424+y*(1.2067492+y*(0.2659732+y*(0.360768e-1+y*0.45813e-2)))));
+      ans=1.0+y*(3.5156229+y*(3.0899424+y*(1.2067492+y*(0.2659732+y*(0.360768e-1+y*0.45813e-2)))));
     } 
   else 
     {
       y=3.75/ax;
-      y1=(exp(ax)/sqrt(ax));
+      ans=(exp(ax)/sqrt(ax));
       a=y*(0.916281e-2+y*(-0.2057706e-1+y*(0.2635537e-1+y*(-0.1647633e-1+y*0.392377e-2))));
-      y=y1*(0.39894228 + y*(0.1328592e-1 +y*(0.225319e-2+y*(-0.157565e-2+a))));    
+      ans=ans*(0.39894228 + y*(0.1328592e-1 +y*(0.225319e-2+y*(-0.157565e-2+a))));    
     }
   return ans;
 }
@@ -102,7 +371,7 @@ double Bessel1(double x)
   return x < 0.0 ? -ans : ans;
 }
 
-void RicianBias(float level,int max,float * mibias,int N)
+void RicianBias(float level,int max,float * mibias, int N)
 {
   int cz,j;
   float c,z,i;          
@@ -138,15 +407,7 @@ static void dct(float *data,float * vol)
   float spec;
   extern float *tabla1;
 
-  /* do the stuff            
-     for(r=0;r<B;r++) 
-     {
-     spec= data[0]*tabla1[r*B] + data[1]*tabla1[r*B+1] + data[2]*tabla1[r*B+2] + data[3]*tabla1[r*B+3];
-     vol[r] = W2*spec;
-     if(r==0) vol[r] = W1*spec;                          
-     }*/
-  spec= data[0]*tabla1[0] + data[1]*tabla1[1] + data[2]*tabla1[2] + data[3]*tabla1[3];
-  vol[0] = W1*spec;   
+  vol[0] = W1*(data[0]*tabla1[0] + data[1]*tabla1[1] + data[2]*tabla1[2] + data[3]*tabla1[3]);   
   for(r=1;r<B;r++) 
     {
       spec= data[0]*tabla1[r*B] + data[1]*tabla1[r*B+1] + data[2]*tabla1[r*B+2] + data[3]*tabla1[r*B+3];
@@ -259,11 +520,12 @@ static void idct3(float *data,float * vol)
 
 void* ThreadFunc( void* pArguments )
 {
-  float *ima,*fima,*acu,sigma,T,z,fac,max;
-  int ind,ii,jj,kk,i,j,k,ini,fin,rows,cols,slices,p,p1;   
+  float *ima,*fima,*fimaB1,*acu,sigma,T,z,zB1,fac,max;
+  int ind,indB1,ii,jj,kk,i,j,k,ini,fin,rows,cols,slices,p,p1;   
   float b[64]; 
   float cb[64]; 
- 
+   float b3[64]; 
+  float cb3[64];
   myargument arg;
   arg=*(myargument *) pArguments;
 
@@ -274,11 +536,13 @@ void* ThreadFunc( void* pArguments )
   fin=arg.fin;
   ima=arg.in_image;
   fima=arg.out_image;
-  pdct=arg.dct_image;
   acu=arg.acu_image;    
   sigma=arg.sigma; 
             
   T=2.7*sigma;
+  /*ZC for B1 estimate*/
+  int thresholdB1 = 2; double TB1=sigma*3.5;
+  fimaB1 = arg.B1_image;
 
   for(k=ini;k<=fin;k=k+1)
     {  
@@ -292,27 +556,34 @@ void* ThreadFunc( void* pArguments )
 		  for(ii=0;ii<B;ii++)
                     {	
                       p=kk*B*B+jj*B+ii;             
-                      b[p] = ima[(k+kk)*rows*cols+(j+jj)*cols+(i+ii)];                     
+                      b[p] = ima[(k+kk)*rows*cols+(j+jj)*cols+(i+ii)];
+		      b3[p] = fimaB1[(k+kk)*rows*cols+(j+jj)*cols+(i+ii)];
                       if(b[p]>max) max=b[p];
                     }         
 	      if(max==0) continue;
                                               
 	      dct3(b,cb);
-                       
-	      ind=0;
+	      dct3(b3,cb3); 
+	      ind=0; indB1=0;
 	      for(kk=0;kk<B;kk++)
                 for(jj=0;jj<B;jj++)	
 		  for(ii=0;ii<B;ii++)
                     {
 		      p=kk*B*B+jj*B+ii;
-		      //pdct[(k+kk)*rows*cols+(j+jj)*cols+(i+ii)]=cb[p];
+		      
 		      if(abs(cb[p])<T) cb[p]=0; /* hardthreshold(cb,T);       */
-		      else ind++;                
+		      else ind++;     
+		      if(abs(cb3[p])>TB1) cb3[p]=0; 
+			 else indB1++;   /**/ 
+			/*if (kk>thresholdB1 || jj>thresholdB1 || ii<=thresholdB1 ) {
+			cb3[p]=0;
+			}else{ indB1++;} */
                     }
-	      z=1.0/(ind+1); 
+	      z=1.0/(ind+1); zB1=1.0/(indB1+1);
 
 	      idct3(cb,b);
-                                
+	      idct3(cb3,b3); 
+
 	      for(kk=0;kk<B;kk++)
                 for(jj=0;jj<B;jj++)	
 		  for(ii=0;ii<B;ii++)
@@ -320,8 +591,9 @@ void* ThreadFunc( void* pArguments )
                       p1=(k+kk)*rows*cols+(j+jj)*cols+(i+ii);                
 
                       /* agregation                  */
-		      
-                      fima[p1]+=z*b[kk*B*B+jj*B+ii];  
+		      /*fimaB1[p1] += (1.0f/(thresholdB1*thresholdB1*thresholdB1))**/
+		      fimaB1[p1] += zB1 * b3[kk*B*B+jj*B+ii];
+                      fima[p1] += z * b[kk*B*B+jj*B+ii];  
                       acu[p1]+=z;     
 
                     }  
@@ -341,16 +613,22 @@ void* ThreadFunc( void* pArguments )
 
 void* ThreadFunc2( void* pArguments )
 {
-  float *ima,*fima,*fima2,*fima3,*acu,*mibias,sigma,T,z,fac,val,v1,max;
-  int ind,ii,jj,kk,i,j,k,ini,fin,rows,cols,slices,p,p1,iii;
+  float *ima,*fima,*fima2,*fimaB1,*acu,*mibias,sigma,T,z,fac,val,v1,max;
+  int ind,indB1,ii,jj,kk,i,j,k,ini,fin,rows,cols,slices,p,p1,iii;
   float b[64]; 
   float cb[64]; 
   float b2[64]; 
   float cb2[64]; 
+  float b3[64]; 
+  float cb3[64]; 
   extern int rician;    
  
   myargument arg;
   arg=*(myargument *) pArguments;
+
+  /*ZC for B1 estimate*/
+  int thresholdB1 = 2;double TB1=sigma;
+  fimaB1 = arg.B1_image;
 
   rows=arg.rows;    
   cols=arg.cols;
@@ -368,11 +646,6 @@ void* ThreadFunc2( void* pArguments )
     
   T=sigma;
   
-  //ZC for B1 estimate
-  int thresholdB1 = 2;
-  fima3 = arg.B1_image;
-  float b3[64];
-  float cb3[64];
 
   for(k=ini;k<=fin;k=k+1)
     {  
@@ -382,14 +655,14 @@ void* ThreadFunc2( void* pArguments )
 	    {	                                   
 	      max=0; 
 	      for(kk=0;kk<B;kk++)
-	        for(jj=0;jj<B;jj++)	
+	        for(jj=0;jj<B;jj++)
 		  for(ii=0;ii<B;ii++)
 		    {	
 		      p=kk*B*B+jj*B+ii;
 		      p1=(k+kk)*rows*cols+(j+jj)*cols+(i+ii);
 		      b[p] = ima[p1];                     
 		      b2[p] = fima[p1];   
-		      b3[p] = fima3[p1];
+		      b3[p] =  ima[p1]; /*fimaB1[p1];*/
 		      if(b[p]>max) max=b[p];
 		    } 
 	      if(max==0) continue;
@@ -406,9 +679,10 @@ void* ThreadFunc2( void* pArguments )
 		  for(ii=0;ii<B;ii++)
 		    {
 		      p=kk*B*B+jj*B+ii;
-               
-		      if(abs(cb2[p])<T) cb[p]=0; /* hardthreshold(cb,T);                */
-		      else ind++;                
+		      if(abs(cb2[p])<T) cb[p]=0; /* hardthreshold(cb,T); */
+		      else ind++;  
+		      if(abs(cb3[p])<TB1) cb3[p]=0; 
+		      else indB1++; 
 		    }
 	      z=1.0/(ind+1); 
 
@@ -430,7 +704,7 @@ void* ThreadFunc2( void* pArguments )
 		    {	
 		      p1=(k+kk)*rows*cols+(j+jj)*cols+(i+ii);  
 		      p=kk*B*B+jj*B+ii;
-              
+		      /*fimaB1[p1]+=(1/(indB1+1))*b3[p]; /*ZC  thresholdB1*thresholdB1*thresholdB1*/
 		      if(rician>0)
 			{                 
 			  iii=(int)(b[p]);                 
@@ -442,7 +716,6 @@ void* ThreadFunc2( void* pArguments )
 		      else 
 			{
 			  fima2[p1]+=z*b[p];  /* agregation     */
-			  fima3[pl]+=thresholdB1*thresholdB1*thresholdB1*b3[p]; //ZC
 			}
 		      acu[p1]+=z;                                               
 		    }
@@ -525,11 +798,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {        
       fima[i]=0;    
       acu[i]=0;
+      fimaB1[i]=ima[i]; 
       if(ima[i]>max) max=ima[i];
     }					
   imax=(int)ceil(2*max);
 
-  Nthreads = 12;/*floor((float)dims[2]/(float)B);*/
+  Nthreads = 24;/*floor((float)dims[2]/(float)B);*/
 
   N=B;
   tabla1=(float*)mxMalloc(N*N*sizeof(float));

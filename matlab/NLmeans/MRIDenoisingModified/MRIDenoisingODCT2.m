@@ -85,13 +85,13 @@ disp('**************************************************************************
         
        
             subplot(1,3,1)
-            imagesc(ima(:,:,floor(s(3)/2)),[mini maxi-0.25*maxi])
+            imagesc(ima(:,:,floor(s(3)/2)))%,[mini maxi-0.25*maxi])
             axis image;
             axis off;
             tit = sprintf('Noisy Image');
             title(tit)
             subplot(1,3,2)
-            imagesc(imaODCT(:,:,floor(s(3)/2)),[mini maxi-0.25*maxi])
+            imagesc(imaODCT(:,:,floor(s(3)/2)))%,[mini maxi-0.25*maxi])
             axis image;
             axis off;
             tit = sprintf('Denoised Image');
