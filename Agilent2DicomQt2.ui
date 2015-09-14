@@ -7,11 +7,11 @@
     <x>0</x>
     <y>0</y>
     <width>1321</width>
-    <height>870</height>
+    <height>872</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (2.0.2</string>
+   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (2.0.3</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -174,7 +174,7 @@
                <x>0</x>
                <y>0</y>
                <width>1068</width>
-               <height>304</height>
+               <height>305</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -1817,7 +1817,7 @@ The mode parameter determines how the array borders are handled, where cval is t
                <x>0</x>
                <y>0</y>
                <width>1068</width>
-               <height>301</height>
+               <height>303</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -2357,16 +2357,6 @@ Optimal vector difference between GM and WM.</string>
                 <item row="8" column="1">
                  <layout class="QHBoxLayout" name="horizontalLayout_20">
                   <item>
-                   <widget class="QRadioButton" name="radioButton_NLreps">
-                    <property name="text">
-                     <string>Repetitions</string>
-                    </property>
-                    <property name="checked">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
                    <widget class="QRadioButton" name="radioButton_NLinputRI">
                     <property name="text">
                      <string>Real and Imag (only valid for Pipeline 1)</string>
@@ -2787,13 +2777,6 @@ patchsize=1, searcharea=3, rician=1</string>
                   </property>
                  </widget>
                 </item>
-                <item row="3" column="1">
-                 <widget class="QRadioButton" name="radioButton">
-                  <property name="text">
-                   <string>CoilSensUnbiasedNL (In development)</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="5" column="0">
                  <widget class="QLabel" name="label_52">
                   <property name="text">
@@ -2946,6 +2929,45 @@ Leave empty for calculation using NoiseEstimation in Pipeline 1 or difference be
                   </item>
                  </layout>
                 </item>
+                <item row="3" column="1">
+                 <layout class="QGridLayout" name="gridLayout_16">
+                  <item row="0" column="0">
+                   <widget class="QRadioButton" name="radioButton">
+                    <property name="text">
+                     <string>CoilSensUnbiasedNL (In development)</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2">
+                   <widget class="QRadioButton" name="MRONLM2">
+                    <property name="text">
+                     <string>MRONLM2</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QRadioButton" name="PRINLM2">
+                    <property name="text">
+                     <string>PRINLM2</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="4">
+                   <widget class="QRadioButton" name="ODCT2">
+                    <property name="text">
+                     <string>ODCT2</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="3">
+                   <widget class="QRadioButton" name="AONLM2">
+                    <property name="text">
+                     <string>AONLM2</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
                </layout>
               </item>
              </layout>
@@ -3002,7 +3024,7 @@ or B1 image</string>
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string>Agilent2Dicom v2.0.2</string>
+         <string>Agilent2Dicom v2.0.3</string>
         </property>
        </widget>
       </item>
