@@ -60,8 +60,8 @@ typedef struct{
   float * label;    
   int ini;
   int fin;
-  int radioB;
-  int radioS;
+  int radiusB;
+  int radiusS;
   float sigma; 
 }myargument;
 
@@ -227,7 +227,7 @@ float distance(float* ima,int x,int y,int z,int nx,int ny,int nz,int f,int sx,in
 void* ThreadFunc( void* pArguments )
 {
   float bias,*Estimate,*Label,*ima,*means,*variances,*average,sigma,epsilon,mu1,var1,totalweight,wmax,t1,t2,d,w,h,hh;
-  int rows,cols,slices,ini,fin,radioB,radioS,init,i,j,k,rc,ii,jj,kk,ni,nj,nk,Ndims;
+  int rows,cols,slices,ini,fin,radiusB,radiusS,init,i,j,k,rc,ii,jj,kk,ni,nj,nk,Ndims;
     
   myargument arg;
   arg=*(myargument *) pArguments;
@@ -242,8 +242,8 @@ void* ThreadFunc( void* pArguments )
   variances=arg.var_image;     
   Estimate=arg.estimate;
   Label=arg.label;    
-  radioB=arg.radioB;
-  radioS=arg.radioS;
+  radiusB=arg.radiusB;
+  radiusS=arg.radiusS;
   sigma=arg.sigma;
                
   h=sigma;
@@ -257,7 +257,7 @@ void* ThreadFunc( void* pArguments )
   init = 0;
   rc=rows*cols;
 
-  Ndims = (2*radioS+1)*(2*radioS+1)*(2*radioS+1);
+  Ndims = (2*radiusS+1)*(2*radiusS+1)*(2*radiusS+1);
 
   average=(float*)malloc(Ndims*sizeof(float));
 
@@ -275,11 +275,11 @@ void* ThreadFunc( void* pArguments )
 	    {
 	      wmax=0.0;
 				
-	      for(kk=-radioB;kk<=radioB;kk++)
+	      for(kk=-radiusB;kk<=radiusB;kk++)
 		{
-		  for(jj=-radioB;jj<=radioB;jj++)
+		  for(jj=-radiusB;jj<=radiusB;jj++)
 		    {
-		      for(ii=-radioB;ii<=radioB;ii++)
+		      for(ii=-radiusB;ii<=radiusB;ii++)
 			{
 			  ni=i+ii;
 			  nj=j+jj;
@@ -299,13 +299,13 @@ void* ThreadFunc( void* pArguments )
 				  if(t1>mu1 && t1<(1/mu1) && t2>var1 && t2<(1/var1))
 				    {                 
 										
-				      d=distance(ima,i,j,k,ni,nj,nk,radioS,cols,rows,slices);
+				      d=distance(ima,i,j,k,ni,nj,nk,radiusS,cols,rows,slices);
 	
 				      w = exp(-d/(hh));
 	
 				      if(w>wmax) wmax = w;
 										
-				      Average_block(ima,ni,nj,nk,radioS,average,w,cols,rows,slices);
+				      Average_block(ima,ni,nj,nk,radiusS,average,w,cols,rows,slices);
 										
 									
 				      totalweight = totalweight + w;
@@ -322,24 +322,24 @@ void* ThreadFunc( void* pArguments )
 				
 	      if(wmax==0.0) wmax=1.0;
 						
-	      Average_block(ima,i,j,k,radioS,average,wmax,cols,rows,slices);
+	      Average_block(ima,i,j,k,radiusS,average,wmax,cols,rows,slices);
 					
 	      totalweight = totalweight + wmax;
 					
 					 
 	      if(totalweight != 0.0)
-		Value_block(Estimate,Label,i,j,k,radioS,average,totalweight,cols,rows,slices,bias);
+		Value_block(Estimate,Label,i,j,k,radiusS,average,totalweight,cols,rows,slices,bias);
 				
 	    }
 	  else 
             {           
               wmax=1.0;  
-	      Average_block(ima,i,j,k,radioS,average,wmax,cols,rows,slices);	
+	      Average_block(ima,i,j,k,radiusS,average,wmax,cols,rows,slices);	
               totalweight = totalweight + wmax;
-	      Value_block(Estimate,Label,i,j,k,radioS,average,totalweight,cols,rows,slices,bias);
+	      Value_block(Estimate,Label,i,j,k,radiusS,average,totalweight,cols,rows,slices,bias);
             }
             
-	  /*Average_block(ima,i,j,k,radioS,average,wmax,cols,rows,slices);		*/
+	  /*Average_block(ima,i,j,k,radiusS,average,wmax,cols,rows,slices);		*/
 	}
 #ifdef _WIN32
   _endthreadex(0);    
@@ -355,13 +355,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
   /*Declarations*/
   mxArray *xData;
-  float *ima, *fima,*average;
-  mxArray *Mxmeans, *Mxvariances, *MxEstimate, *MxLabel;
+  float *ima, *fima,*average,*coil;
+  mxArray *Mxmeans, *Mxvariances, *MxEstimate, *MxLabel,*MxCoil;
   float *means, *variances, *Estimate, *Label;
   mxArray *pv;
   float hSigma,w,totalweight,wmax,d,mean,var,t1,t2,hh,epsilon,mu1,var1,label,estimate;
-  int Ndims,i,j,k,ii,jj,kk,ni,nj,nk,radioB,radioS,ndim,indice,init,Nthreads,ini,fin,r;
-  const int  *dims;
+  int Ndims,i,j,k,ii,jj,kk,ni,nj,nk,radiusB,radiusS,ndim,indice,init,Nthreads,ini,fin,r;
+  const int  *dims,*coildims;
 
   myargument *ThreadArgs;  
 
@@ -371,65 +371,83 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   pthread_t * ThreadList;
 #endif
 
-  if(nrhs != 7)
+  if(nrhs < 5 || nrhs > 6)
     {
       mexPrintf("myMBONLM3D: Not enough arguments \n");
-      mexPrintf( "Usage: OutputImage=myMBONLM3D(InputImage,searcharea,patcharea,sigma,ODCTImage,rician,CoilSensitivityImage) ");
-      exit(1);
+      mexPrintf( "Usage: OutputImage=myMBONLM3D(InputImage,searcharea,patcharea,sigma,rician,[Coilsens]) ");
+      return;
     }
 
-
   /*Copy input pointer x*/
-  /*xData = prhs[0];*/
 
   /*Get matrix x*/
-  if(mxIsSparse(prhs[0]) || 
-   mxIsComplex(prhs[0]) || 
-   mxIsDouble(prhs[0])) {
+  if ( mxIsSparse(prhs[0]) || 
+       mxIsComplex(prhs[0]) || 
+       mxIsDouble(prhs[0])  ||
+       mxGetNumberOfElements(prhs[0]) == 1 ||
+       mxGetNumberOfDimensions(prhs[0]) != 3) {
       mexErrMsgTxt("myMBONLM input1 must be full matrix of real float values.");
+      return;
   }
-  ima = (float*)mxGetPr(prhs[0]);
+  ima = (float*) mxGetPr(prhs[0]);
 
   ndim = mxGetNumberOfDimensions(prhs[0]);
-  dims= mxGetDimensions(prhs[0]);
+  dims = mxGetDimensions(prhs[0]);
 
-  /*Copy input parameters*/
-  /*pv = prhs[1];*/
-  /*Get the Integer*/
-  if(mxIsSparse(prhs[1]) || 
-   mxIsComplex(prhs[1]) || 
-   mxIsDouble(prhs[1]) ||  mxIsSingle(prhs[1])) {
+  /*Get the patch area, search area and sigma*/
+  if ( mxIsComplex(prhs[1]) || 
+       mxGetNumberOfElements(prhs[1]) != 1) {
+      mexErrMsgTxt("myMBONLM patch area must be an integer.");
+      return ;
+  }
+  radiusB = (int)(mxGetScalar(prhs[1]));
+
+  if ( mxIsComplex(prhs[2]) || 
+       mxGetNumberOfElements(prhs[2]) != 1) {
       mexErrMsgTxt("myMBONLM search area must be an integer.");
   }
-  radioB = (int)(mxGetScalar(prhs[1]));
-
-  /*pv = prhs[2];*/
-  if(mxIsSparse(prhs[2]) || 
-   mxIsComplex(prhs[2]) || 
-   mxIsDouble(prhs[2]) ||  mxIsSingle(prhs[2])) {
-      mexErrMsgTxt("myMBONLM patch area must be an integer.");
-  }
-  radioS = (int)(mxGetScalar(prhs[2]));
-
-  /*pv = prhs[3];*/
-  if(mxIsSparse(prhs[3]) || 
-   mxIsComplex(prhs[3]) ) {
+  radiusS = (int)(mxGetScalar(prhs[2]));
+  
+  if ( mxIsSparse(prhs[3]) || 
+       mxIsComplex(prhs[3]) ||
+       mxGetNumberOfElements(prhs[3]) != 1) {
       mexErrMsgTxt("myMBONLM sigma must be real value.");
   }
   hSigma = (float)(mxGetScalar(prhs[3]));
-
-  /*pv = prhs[4];*/
-  if(mxIsSparse(prhs[4]) || 
-   mxIsComplex(prhs[4]) ) {
-      mexErrMsgTxt("myMBONLM sigma must be real value or bool.");
+  
+  if ( mxIsSparse(prhs[4]) || 
+       mxIsComplex(prhs[4])||
+       mxGetNumberOfElements(prhs[4]) != 1 ) {
+      mexErrMsgTxt("myMBONLM rician must be real value or bool.");
   }
   r = (int)(mxGetScalar(prhs[4]));
   if(r>0) rician=true;
 
-  Ndims = (int)pow((2*radioS+1),ndim);
+  if (nrhs == 6){
+     if ( mxIsSparse(prhs[5]) || 
+       mxIsComplex(prhs[5]) || 
+       mxIsDouble(prhs[5])  ||
+       mxGetNumberOfElements(prhs[5]) == 1 ||
+       mxGetNumberOfDimensions(prhs[5]) != 3) {
+      mexErrMsgTxt("myMBONLM coil sens must be full matrix of real float values.");
+      return;
+     }     
+     coildims = mxGetDimensions(prhs[5]);
+     if (coildims[0]!=dims[0] || coildims[1]!=dims[1] || coildims[2]!=dims[2] ){
+       mexErrMsgTxt("myMBONLM coil dims must equal input image dims.");
+      return;
+     }     
+     coil = (float*)mxGetPr(prhs[5]);
+  }else{
+    MxCoil = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
+    coil = (float*) mxGetPr(MxCoil);
+  }
 
-  /*Allocate memory and assign output pointer  and*/
-  /*Get a pointer to the data space in our newly allocated memory*/
+
+  Ndims = (int)pow((2*radiusS+1),ndim);
+
+  /* Allocate memory and assign output pointer  and */
+  /* Get a pointer to the data space in our newly allocated memory */
   plhs[0] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
   fima = (float*)mxGetPr(plhs[0]);
   if (nlhs>1){
@@ -462,9 +480,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   }
 
   average=(float*)malloc(Ndims*sizeof(float));
-
-
-
 
   for (i = 0; i < dims[2] *dims[1] * dims[0];i++)
     {
@@ -567,8 +582,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       ThreadArgs[i].label=Label;    
       ThreadArgs[i].ini=ini;
       ThreadArgs[i].fin=fin;
-      ThreadArgs[i].radioB=radioB;
-      ThreadArgs[i].radioS=radioS;
+      ThreadArgs[i].radiusB=radiusB;
+      ThreadArgs[i].radiusS=radiusS;
       ThreadArgs[i].sigma=hSigma;    
     	
       ThreadList[i] = (HANDLE)_beginthreadex( NULL, 0, &ThreadFunc, &ThreadArgs[i] , 0, NULL );
@@ -599,8 +614,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       ThreadArgs[i].label=Label;    
       ThreadArgs[i].ini=ini;
       ThreadArgs[i].fin=fin;
-      ThreadArgs[i].radioB=radioB;
-      ThreadArgs[i].radioS=radioS;
+      ThreadArgs[i].radiusB=radiusB;
+      ThreadArgs[i].radiusS=radiusS;
       ThreadArgs[i].sigma=hSigma;  
     }
     	
@@ -650,9 +665,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
     }
  
-
-
-
   return;
 
 }

@@ -30,8 +30,12 @@ Monash University, 2015
 #include "matrix.h"
 
 /* Multithreading stuff*/
+#ifdef _WIN32
+#include <windows.h>
+#include <process.h>
+#else
 #include <pthread.h>
-
+#endif
 
 typedef struct{
   int rows;
@@ -55,7 +59,7 @@ bool rician;
 
 void* ThreadFunc( void* pArguments )
 {
-  float *ima,*fima,*medias,*pesos,*ref,*coilsens, sigma,w,d,hhh,hh,t1,alfa,x,beta;
+  float *ima,*fima,*medias,*pesos,*ref,*coilsens, sigma,w,d,hhh,hh,t1,alfa,x,betaCoil;
   int ii,jj,kk,ni,nj,nk,i,j,k,ini,fin,rows,cols,slices,p,p1,radioS,radioB,order,rc;    
   extern bool rician;
   /*extern float *table;*/
@@ -129,8 +133,8 @@ void* ThreadFunc( void* pArguments )
 				  d=w*0.5 + d*0.5;
 
 				  //Coil sensitivity (B1) correction
-				  beta = (coilsens[p]-coilsens[p1]);
-				  if (beta>0) d *= (beta*beta);
+				  //betaCoil = (coilsens[p]-coilsens[p1]);
+				  //if (betaCoil>0) d *= (betaCoil*betaCoil);
  
 
 				  if(d<=0) w=1.0;
@@ -203,8 +207,8 @@ void* ThreadFunc( void* pArguments )
               
 				  d=w*0.5 + d*0.5;                                                                 
 				  //Coil sensitivity (B1) correction
-				  beta = (coilsens[p]-coilsens[p1]);
-				  d*= (beta*beta);
+				  //betaCoil = (coilsens[p]-coilsens[p1]);
+				  //if (betaCoil!=0) d*= (betaCoil*betaCoil);
 
 				  if(d<=0) w=1.0;
 				  else if(d>10) w=0;
@@ -235,7 +239,11 @@ void* ThreadFunc( void* pArguments )
 	}
     }
 
+#ifdef _WIN32
+  _endthreadex(0);    
+#else
   pthread_exit(0);    
+#endif
 
   return 0;
 } 
@@ -243,16 +251,20 @@ void* ThreadFunc( void* pArguments )
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
   /*Declarations*/
-  mxArray *xData,*pv,*Mxmedias,*Mxpesos,*xref;
+  mxArray *xData,*pv,*Mxmedias,*Mxpesos,*xref,*MxCoil;
   float *ima, *fima,*lista,*pesos,*ref,*medias,*coilsens;
   float sigma,vr,R,h,w,average,totalweight,wmax,d,media,var,th,hh,hhh,wm,t1,t2,alfa;
-  int inc,i,j,k,ii,jj,kk,ni,nj,nk,radioB,radioS,ndim,indice,Nthreads,ini,fin,order;
-  const int  *dims;
+  int Ndims,inc,i,j,k,ii,jj,kk,ni,nj,nk,radioB,radioS,ndim,indice,Nthreads,ini,fin,order;
+  const int  *dims,*coildims;
 
   myargument *ThreadArgs;  
 
+#ifdef _WIN32
+  HANDLE *ThreadList; /* Handles to the worker threads*/
+#else
   pthread_t * ThreadList;
-
+#endif
+ mexPrintf("myRINLM: Start mex function \n");
   if(nrhs != 7)
     {
       mexPrintf("myRINLM3D: Not enough arguments \n");
@@ -260,64 +272,114 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       exit(1);
     }
 
-
-
   /*Copy input pointer x*/
-  /*xData = prhs[0];*/
-
-  /*Get matrix x*/ 
-  if(mxIsSparse(prhs[0]) || 
-     mxIsComplex(prhs[0]) || 
-     mxIsDouble(prhs[0])) {
-      mexErrMsgTxt("myMBONLM input1 must be full matrix of real float values.");
+   mexPrintf("myRINLM: Get input image \n");
+  /*Get matrix x*/
+  if ( mxIsSparse(prhs[0]) || 
+       mxIsComplex(prhs[0]) || 
+       mxIsDouble(prhs[0])  ||
+       mxGetNumberOfElements(prhs[0]) == 1 ||
+       mxGetNumberOfDimensions(prhs[0]) != 3) {
+      mexErrMsgTxt("myRINLM3d input1 must be full matrix of real float values.");
+      exit(1);
   }
   ima = (float*)mxGetPr(prhs[0]);
   ndim = mxGetNumberOfDimensions(prhs[0]);
   dims= mxGetDimensions(prhs[0]);
-
+ mexPrintf("myRINLM: Get params \n");
   /*Copy input parameters*/
-  /*pv = prhs[1];*/
+  /*Get the search area*/
+  if ( mxIsComplex(prhs[1]) || 
+       mxGetNumberOfElements(prhs[1]) != 1) {
+      mexErrMsgTxt("myRINLM3d search area must be an integer.");
+      exit(1) ;
+  }
   radioS = (int)(mxGetScalar(prhs[1]));
-  /*pv = prhs[2];*/
+
+  if ( mxIsComplex(prhs[2]) || 
+       mxGetNumberOfElements(prhs[2]) != 1) {
+      mexErrMsgTxt("myRINLM3d patch area must be an integer.");
+  }
   radioB = (int)(mxGetScalar(prhs[2]));
-  /*pv = prhs[3];*/
+
+  if ( mxIsSparse(prhs[3]) || 
+       mxIsComplex(prhs[3]) ||
+       mxGetNumberOfElements(prhs[3]) != 1) {
+      mexErrMsgTxt("myRINLM3d sigma must be real value.");
+  }
   sigma = (float)(mxGetScalar(prhs[3]));
-  /*xref = prhs[4];*/
+
+  if ( mxIsSparse(prhs[4]) || 
+       mxIsComplex(prhs[4]) || 
+       mxIsDouble(prhs[4])  ||
+       mxGetNumberOfElements(prhs[4]) == 1 ||
+       mxGetNumberOfDimensions(prhs[4]) != 3) {
+      mexErrMsgTxt("myRINLM3d ref must be full matrix of real float values.");
+      exit(1);
+  }
   ref = (float*)mxGetPr(prhs[4]);
-  /*pv = prhs[5];*/
+
+  if ( mxIsSparse(prhs[5]) || 
+       mxIsComplex(prhs[5])||
+       mxGetNumberOfElements(prhs[5]) != 1 ) {
+      mexErrMsgTxt("myRINLM3d rician must be real value or bool.");
+  }
   rician = (int)(mxGetScalar(prhs[5]));
     
-  h=sigma/3; /* this is due to the removal of part of the noise*/
-
-  if (nrhs> 6)
-    {
+  h = sigma/3.0f; /* this is due to the removal of part of the noise*/
+  mexPrintf("myRINLM: H %f\n",h);
+  if (nrhs == 7)
+    {   
+      if ( mxIsSparse(prhs[6]) || 
+	   mxIsComplex(prhs[6]) || 
+	   mxIsDouble(prhs[6])  ||
+	   mxGetNumberOfElements(prhs[6]) == 1 ||
+	   mxGetNumberOfDimensions(prhs[6]) != 3) {
+	mexErrMsgTxt("myRINLM3d coil sens must be full matrix of real float values.");
+	exit(1);
+      }     
+      coildims = mxGetDimensions(prhs[6]);  
+      if (coildims[0]!=dims[0] || coildims[1]!=dims[1] || coildims[2]!=dims[2] )
+	{
+	  mexErrMsgTxt("myMBONLM coil dims must equal input image dims.");
+	  exit(1);
+	}
       coilsens = (float*)mxGetPr(prhs[6]);
     }
-  else{
-    pv = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-    coilsens = (float*)mxGetPr(pv);
-  }
+  else 
+    {
+      pv = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
+      coilsens = (float*)mxGetPr(pv);
+      for(k=0;k<dims[2]*dims[1]*dims[0];k++)
+	coilsens[i]=1.0;
+    }
+  mexPrintf("myRINLM: Creating output matricies \n");
 
-
-  /*Allocate memory and assign output pointer*/
-/*Get a pointer to the data space in our newly allocated memory*/
+  /* Allocate memory and assign output pointer */
+  /* Get a pointer to the data space in our newly allocated memory */
   plhs[0] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
   fima = (float*) mxGetPr(plhs[0]);
-  if (nlhs>1){
-  plhs[1] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-  medias = (float*) mxGetPr(Mxmedias);
-  }else{
-  Mxmedias = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-  medias = (float*) mxGetPr(Mxmedias);
-  }
-  if (nlhs>2){
-    plhs[2]  = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-    pesos = (float*) mxGetPr(plhs[2]);
-  }else{
-    Mxpesos = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
-    pesos = (float*) mxGetPr(Mxpesos);
-  }
-
+  if (nlhs > 1)
+    {
+      plhs[1] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
+      medias = (float*) mxGetPr(plhs[1]);
+    }
+  else
+    {
+      Mxmedias = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
+      medias = (float*) mxGetPr(Mxmedias);
+    }
+  if (nlhs > 2)
+    {
+      plhs[2]  = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
+      pesos = (float*) mxGetPr(plhs[2]);
+    }
+  else
+    {
+      Mxpesos = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
+      pesos = (float*) mxGetPr(Mxpesos);
+    }
+  mexPrintf("myRINLM: Calculating means \n");
 
   /* calculate means*/
 
@@ -363,10 +425,47 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       pesos[k]=1.0;
     }
 
-  Nthreads = dims[2]<8?dims[2]:12;
-  if(Nthreads<1) Nthreads=1;
+  Nthreads = dims[2]<8?dims[2]:8;
+  if ( Nthreads < 1 ) Nthreads = 1;
+#ifdef _WIN32
 
- mexPrintf("myRINLM3D: Pthreading \n");
+  /* Reserve room for handles of threads in ThreadList*/
+  ThreadList = (HANDLE*)malloc(Nthreads* sizeof( HANDLE ));
+  ThreadArgs = (myargument*) malloc( Nthreads*sizeof(myargument));
+
+  order=-1;
+  for (i=0; i<Nthreads; i++)
+    {         
+      /* Make Thread Structure*/
+      order=-order;
+      ini=(i*dims[2])/Nthreads;
+      fin=((i+1)*dims[2])/Nthreads;            
+      ThreadArgs[i].cols=dims[0];
+      ThreadArgs[i].rows=dims[1];
+      ThreadArgs[i].slices=dims[2];
+      ThreadArgs[i].in_image=ima;
+      ThreadArgs[i].out_image=fima;
+      ThreadArgs[i].ref_image=ref;
+      ThreadArgs[i].means_image=medias;
+      ThreadArgs[i].pesos=pesos;
+      ThreadArgs[i].ini=ini;
+      ThreadArgs[i].fin=fin;
+      ThreadArgs[i].radioB=radioB;
+      ThreadArgs[i].radioS=radioS;
+      ThreadArgs[i].sigma=h; 
+      ThreadArgs[i].order=order; 
+    	
+      ThreadList[i] = (HANDLE)_beginthreadex( NULL, 0, &ThreadFunc, &ThreadArgs[i] , 0, NULL );
+        
+    }
+    
+  for (i=0; i<Nthreads; i++) { WaitForSingleObject(ThreadList[i], INFINITE); }
+  for (i=0; i<Nthreads; i++) { CloseHandle( ThreadList[i] ); }
+    
+
+#else
+
+  mexPrintf("myRINLM3D: Pthreading %d\n",Nthreads);
   /* Reserve room for handles of threads in ThreadList*/
   ThreadList = (pthread_t *) calloc(Nthreads,sizeof(pthread_t));
   ThreadArgs = (myargument*) calloc( Nthreads,sizeof(myargument));
@@ -393,7 +492,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       ThreadArgs[i].sigma=h; 
       ThreadArgs[i].order=order; 
     }
-    	
+  mexPrintf("myRINLM: Starting threads \n");
   for (i=0; i<Nthreads; i++)
     {
       if(pthread_create(&ThreadList[i], NULL, ThreadFunc,&ThreadArgs[i]))
@@ -407,8 +506,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
       pthread_join(ThreadList[i],NULL);
     }
-
-
+#endif
+  mexPrintf("myRINLM: Threads completed \n");
 
   free(ThreadArgs); 
   free(ThreadList);
@@ -426,7 +525,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
       else fima[k]/=pesos[k];
     }
- mexPrintf("myRINLM3D: done \n");
+  mexPrintf("myRINLM3D: done \n");
   return;
 
 }

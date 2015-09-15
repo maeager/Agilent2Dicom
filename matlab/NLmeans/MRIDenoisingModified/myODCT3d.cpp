@@ -53,7 +53,7 @@ typedef struct{
   int ini;
   int fin;    
   float sigma;
-  float * mibias;
+  double * mibias;
 }myargument;
 
 float W1,W2; 
@@ -332,7 +332,7 @@ return( z );
 /*Returns the modified Bessel function I0(x) for any real x.*/
 double Bessel0(double x)
 {
-  double ax,ans,a;
+  /*  double ax,ans,a;
   double y; 
   if ((ax=fabs(x)) < 3.75) 
     { 
@@ -348,11 +348,14 @@ double Bessel0(double x)
       ans=ans*(0.39894228 + y*(0.1328592e-1 +y*(0.225319e-2+y*(-0.157565e-2+a))));    
     }
   return ans;
+  */
+  return i0(x);
 }
 
 /*Returns the modified Bessel function I1(x) for any real x.*/
 double Bessel1(double x)
 {
+  /*
   double ax,ans;
   double y; 
   if ((ax=fabs(x)) < 3.75)
@@ -369,12 +372,15 @@ double Bessel1(double x)
       ans *= (exp(ax)/sqrt(ax));
     }
   return x < 0.0 ? -ans : ans;
+  */
+  return i1(x);
 }
 
-void RicianBias(float level,int max,float * mibias, int N)
+void RicianBias(float level,int max,double * mibias, int N)
 {
   int cz,j;
-  float c,z,i;          
+  double c;
+  float z,i;          
     
   for(i=0;i<max*N;i=i+1) 
     {
@@ -383,8 +389,8 @@ void RicianBias(float level,int max,float * mibias, int N)
     
   for(i=0;i<max;i=i+0.1)
     {      
-      c=(i*i)/(level*level);
-      z=(PI/2)*exp(-(c/2.0f))*((1+c/2.0f)*Bessel0(c/4.0f)+(c/2.0f)*Bessel1(c/4.0f))*((1+c/2.0f)*Bessel0(c/4.0f)+(c/2.0f)*Bessel1(c/4.0f));
+      c=double((i*i))/(double((level*level)));
+      z=(float) ((PI/2.0f)*exp(-(c/2.0f))*((1+c/2.0f)*Bessel0(c/4.0f)+(c/2.0f)*Bessel1(c/4.0f))*((1+c/2.0f)*Bessel0(c/4.0f)+(c/2.0f)*Bessel1(c/4.0f)));
       z=(sqrt(z*(level*level)));
       cz=(int)z;
       if(cz<=0) cz=(int)i;
@@ -541,7 +547,8 @@ void* ThreadFunc( void* pArguments )
             
   T=2.7*sigma;
   /*ZC for B1 estimate*/
-  int thresholdB1 = 2; double TB1=sigma*3.5;
+  int thresholdB1 = 2; 
+  float TB1=sigma*3.5;
   fimaB1 = arg.B1_image;
 
   for(k=ini;k<=fin;k=k+1)
@@ -573,11 +580,12 @@ void* ThreadFunc( void* pArguments )
 		      
 		      if(abs(cb[p])<T) cb[p]=0; /* hardthreshold(cb,T);       */
 		      else ind++;     
-		      if(abs(cb3[p])>TB1) cb3[p]=0; 
-			 else indB1++;   /**/ 
-			/*if (kk>thresholdB1 || jj>thresholdB1 || ii<=thresholdB1 ) {
+		    /*  if(abs(cb3[p])>TB1) cb3[p]=0; 
+		 	 else indB1++;  
+		      else */
+		      if (kk>thresholdB1 && jj>thresholdB1 && ii>thresholdB1 ) {
 			cb3[p]=0;
-			}else{ indB1++;} */
+		      }else{ indB1++;} 
                     }
 	      z=1.0/(ind+1); zB1=1.0/(indB1+1);
 
@@ -592,7 +600,7 @@ void* ThreadFunc( void* pArguments )
 
                       /* agregation                  */
 		      /*fimaB1[p1] += (1.0f/(thresholdB1*thresholdB1*thresholdB1))**/
-		      fimaB1[p1] += zB1 * b3[kk*B*B+jj*B+ii];
+		      fimaB1[p1] += zB1 * cb3[kk*B*B+jj*B+ii];
                       fima[p1] += z * b[kk*B*B+jj*B+ii];  
                       acu[p1]+=z;     
 
@@ -613,7 +621,8 @@ void* ThreadFunc( void* pArguments )
 
 void* ThreadFunc2( void* pArguments )
 {
-  float *ima,*fima,*fima2,*fimaB1,*acu,*mibias,sigma,T,z,fac,val,v1,max;
+  double *mibias;
+  float *ima,*fima,*fima2,*fimaB1,*acu,sigma,T,z,fac,val,v1,max;
   int ind,indB1,ii,jj,kk,i,j,k,ini,fin,rows,cols,slices,p,p1,iii;
   float b[64]; 
   float cb[64]; 
@@ -627,7 +636,7 @@ void* ThreadFunc2( void* pArguments )
   arg=*(myargument *) pArguments;
 
   /*ZC for B1 estimate*/
-  int thresholdB1 = 2;double TB1=sigma;
+  int thresholdB1 = 2;float TB1=sigma;
   fimaB1 = arg.B1_image;
 
   rows=arg.rows;    
@@ -662,15 +671,15 @@ void* ThreadFunc2( void* pArguments )
 		      p1=(k+kk)*rows*cols+(j+jj)*cols+(i+ii);
 		      b[p] = ima[p1];                     
 		      b2[p] = fima[p1];   
-		      b3[p] =  ima[p1]; /*fimaB1[p1];*/
+		      b3[p] = fima[p1];
 		      if(b[p]>max) max=b[p];
 		    } 
 	      if(max==0) continue;
             
 	      dct3(b,cb);                                                                               
 	      dct3(b2,cb2);
-	      dct3(b3,cb3); //ZC
-            
+	     /* dct3(b3,cb3); ZC*/
+
 	      /*/////////////////////////////////////////////////*/
                        
 	      ind=0;           
@@ -686,7 +695,7 @@ void* ThreadFunc2( void* pArguments )
 		    }
 	      z=1.0/(ind+1); 
 
-	      //ZC DCT threshold at rank 2 for B1
+	      /*ZC DCT threshold at rank 2 for B1*/
 	      for(kk=thresholdB1+1;kk<B;kk++)
 	        for(jj=thresholdB1+1;jj<B;jj++)	
 		  for(ii=thresholdB1+1;ii<B;ii++)
@@ -696,7 +705,7 @@ void* ThreadFunc2( void* pArguments )
 		    }
 	      
 	      idct3(cb,b);
-	      idct3(cb3,b3);
+	      /*idct3(cb3,b3); ZC*/
                                   
 	      for(kk=0;kk<B;kk++)
 	        for(jj=0;jj<B;jj++)	
@@ -737,7 +746,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
   /*Declarations*/
   mxArray *xData,*pv;
-  float *ima,*fima,*fima2,*acu,*mibias,*fimaB1;
+  double *mibias;
+  float *ima,*fima,*fima2,*acu,*fimaB1;
   float sigma,val,v1,max;
   int i,ndim,Nthreads,ini,fin,N,r,k,ind,imax;
   const int *dims;
@@ -753,45 +763,75 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #endif
 
   mexPrintf("cM_ODCT3D: \n");
-
-
-  /*Copy input pointer x*/
-  /*xData = prhs[0];*/
+  if(nrhs != 3) {
+    mexErrMsgIdAndTxt("MyODCT3d:nrhs",
+                      "Two inputs required.");
+    return;
+  }
+  if(nlhs != 1) {
+    mexErrMsgIdAndTxt("MyODCT3d:nlhs",
+                      "One output required.");
+    return;
+  }
+  /* Parse input args */
+  /* make sure the first input argument is a matrix */
+  if ( mxIsSparse(prhs[0]) || 
+       mxIsDouble(prhs[0]) || 
+       mxIsComplex(prhs[0]) ||
+       mxGetNumberOfElements(prhs[0]) == 1 ||
+       mxGetNumberOfDimensions(prhs[0]) != 3) {
+    mexErrMsgIdAndTxt("MyODCT3d:not3DImage",
+                      "Input image must be a float matrix with 3 dimensions.");
+  } 
+  
   ima = (float*)mxGetPr(prhs[0]);
   ndim = mxGetNumberOfDimensions(prhs[0]);
   dims= mxGetDimensions(prhs[0]);
+  
   mexPrintf("cM_ODCT3D: ndims %d\n",ndim);
 
-  /*Copy input parameters*/
-  /*pv = prhs[1];*/
+  /* Copy input parameters */
+  if( mxIsComplex(prhs[1]) ||
+      mxGetNumberOfElements(prhs[1]) != 1 ) {
+    mexErrMsgIdAndTxt("MyODCT3d:notScalar",
+                      "Input sigma must be a scalar.");
+  }  
   sigma = (float)(mxGetScalar(prhs[1]));
   mexPrintf("cM_ODCT3D: sigma %f\n",sigma);
-  /*pv = prhs[2];*/
+  
+
+  if( mxIsComplex(prhs[2]) ||
+      mxGetNumberOfElements(prhs[2]) != 1 ) {
+    mexErrMsgIdAndTxt("MyODCT3d:notIntScalar",
+                      "Input rician must be a scalar integer.");
+  } 
   rician = (int)(mxGetScalar(prhs[2]));
   mexPrintf("cM_ODCT3D: rician %d\n",rician);
-  /*Allocate memory and assign output pointer*/
-  plhs[0] = mxCreateNumericArray(ndim,dims,mxDOUBLE_CLASS, mxREAL);
-  fima = (float*)mxGetPr(plhs[0]);
+  
+
+  /* Allocate memory and assign output pointer */
+  plhs[0] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
+  fima = (float*) mxGetPr(plhs[0]);
   if (nlhs > 1) { 
     plhs[1] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-    fimaB1 = (float*)mxGetPr(plhs[1]); 
+    fimaB1 = (float*) mxGetPr(plhs[1]); 
   }else{
     xData = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-    fimaB1 = (float*)mxGetPr(xData);
+    fimaB1 = (float*) mxGetPr(xData);
   }
   if (nlhs > 2) {
     plhs[2] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-    acu = (float*)mxGetPr(plhs[2]);
+    acu = (float*) mxGetPr(plhs[2]);
   }else{
     xData = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-    acu = (float*)mxGetPr(xData);
+    acu = (float*) mxGetPr(xData);
   }
   if (nlhs > 3) {
     plhs[3] = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-    fima2 = (float*)mxGetPr( plhs[3]);
+    fima2 = (float*) mxGetPr( plhs[3]);
   }else{
     xData = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-    fima2 = (float*)mxGetPr(xData);
+    fima2 = (float*) mxGetPr(xData);
   }
   max=0;
   for(i=0;i<dims[0]*dims[1]*dims[2];i++)
@@ -803,7 +843,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }					
   imax=(int)ceil(2*max);
 
-  Nthreads = 24;/*floor((float)dims[2]/(float)B);*/
+  Nthreads = 16;/*floor((float)dims[2]/(float)B);*/
 
   N=B;
   tabla1=(float*)mxMalloc(N*N*sizeof(float));
@@ -819,11 +859,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   bdims[0] = 1;
   bdims[1] = imax*Nthreads;
   if (nlhs > 4){
-    plhs[4] = mxCreateNumericArray (2, bdims, mxSINGLE_CLASS, mxREAL);
-    mibias = (float*)mxGetPr(plhs[4]);
+    plhs[4] = mxCreateNumericArray (2, bdims, mxDOUBLE_CLASS, mxREAL);
+    mibias = (double*)mxGetPr(plhs[4]);
   }else{
-    pv = mxCreateNumericArray (2, bdims, mxSINGLE_CLASS, mxREAL);
-    mibias = (float*)mxGetPr(pv);
+    pv = mxCreateNumericArray (2, bdims, mxDOUBLE_CLASS, mxREAL);
+    mibias = (double*)mxGetPr(pv);
   }
   mexPrintf("cM_ODCT3D: Rician Bias \n");
 
