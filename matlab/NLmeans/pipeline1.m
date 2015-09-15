@@ -1,4 +1,4 @@
-function MRIdenoised = pipeline1(img,NLfilter,hfinal,hfactor,searcharea,patacharea,rician)
+function [MRIdenoised,sigma, filtername] = pipeline1(img,NLfilter,hfinal,hfactor,searcharea,patcharea,rician)
 %% Non-local means denoising Option 1
 %  Option 1 calls the automatic noise estimate before running the
 %  NLmeans filter
@@ -27,38 +27,73 @@ end
 if nargin < 7 || isempty(rician)
     rician=1;
 end
-beta=1;
+beta_=1;
 
 %% run filter
 display(['Noise estimate: ' num2str(hfinal)])
 
+sigma=hfinal;
+filtername='';
+
 switch NLfilter
-  case 0 
-    display('Processing denoised image - MRONLM')
-    tic(),MRIdenoised = MRIDenoisingMRONLM(ima1, hfinal, beta, ...
-                                           patcharea, searcharea, ...
-                                           rician, 0);toc()
-  case 1
-    display('Processing denoised image - PRINLM')
-    tic(),MRIdenoised = MRIDenoisingPRINLM(ima1, hfinal, beta, ...
-                                           rician, 0);toc()
-  case 2
-    display('Processing denoised image - AONLM')
-    tic(),MRIdenoised = MRIDenoisingAONLM(ima1, beta, patcharea, ...
-                                          searcharea, rician, 0);toc()
-  case 3
-    display('Processing denoised image - ONLM ')
-    tic(),MRIdenoised = MRIDenoisingONLM(ima1, hfinal, ...
-                                         beta, patcharea, searcharea, ...
-                                         rician , 0);toc()  
-  case 4
-    display('Processing denoised image - ODCT ')
-    tic(),MRIdenoised = MRIDenoisingODCT(ima1, ...
-                                         hfinal, ...
-                                         beta,rician,0);toc()   
-  otherwise
-    display('Processing Real denoised image - MRONLM')
-    tic(),MRIdenoised = MRIDenoisingMRONLM(ima1,hfinal,...
-                                           beta, patcharea, searcharea, ...
-                                           rician,0);toc()
+ case 0 
+ display('Processing denoised image - MRONLM')
+ tic(),MRIdenoised = MRIDenoisingMRONLM(ima1, hfinal, beta_,patcharea, searcharea, rician, 0); toc()
+					filtername='MRONLM';  
+ case 1
+ display('Processing denoised image - PRINLM')
+ tic(),MRIdenoised = MRIDenoisingPRINLM(ima1, hfinal, beta_,...
+					rician, 0);toc()
+					filtername='PRINLM';
+ case 2
+ display('Processing denoised image - AONLM')
+ tic(),MRIdenoised = MRIDenoisingAONLM(ima1, beta_, patcharea, ...
+				       searcharea, rician, 0);toc()
+				       filtername='AONLM';
+ case 3
+ display('Processing denoised image - ONLM ')
+ tic(),MRIdenoised = MRIDenoisingONLM(ima1, hfinal, ...
+				      beta_, patcharea, searcharea, ...
+				      rician , 0);toc()  
+				      filtername='ONLM';
+ case 4
+ display('Processing denoised image - ODCT ')
+ tic(),MRIdenoised = MRIDenoisingODCT(ima1, ...
+				      hfinal, ...
+				      beta_,rician,0);toc()   
+				      filtername='ODCT';  
+ case -5 
+ display('Processing denoised image - MRONLM2')
+ tic(),MRIdenoised = MRIDenoisingMRONLM2(ima1, hfinal, ...
+					 patcharea, searcharea, ...
+					 rician, 0);toc() 
+					 filtername='MRONLM2';
+ case -1
+ display('Processing denoised image - PRINLM2')
+ tic(),MRIdenoised = MRIDenoisingPRINLM2(ima1, hfinal,  ...
+					 rician, 0);toc()
+					 filtername='PRINLM2';
+ case -2
+ display('Processing denoised image - AONLM2')
+ tic(),MRIdenoised = MRIDenoisingAONLM2(ima1, patcharea, ...
+					searcharea, rician, 0);toc()
+					filtername='AONLM2';
+ case -3
+ display('Processing denoised image - ONLM2 ')
+ tic(),MRIdenoised = MRIDenoisingONLM2(ima1, hfinal, ...
+				       patcharea, searcharea, ...
+				       rician , 0);toc()  
+				       filtername='ONLM2';
+ case -4
+ display('Processing denoised image - ODCT2 ')
+ tic(),MRIdenoised = MRIDenoisingODCT2(ima1, ...
+				       hfinal, ...
+				       rician,0);toc()   
+				       filtername='ODCT2';
+otherwise
+display('Processing Real denoised image - MRONLM')
+tic(),MRIdenoised = MRIDenoisingMRONLM(ima1,hfinal,...
+				       beta_, patcharea, searcharea, ...
+				       rician,0);toc()
+				       filtername='MRONLM';
 end
