@@ -1038,7 +1038,7 @@ class Ui_MainWindow(object):
         self.gridLayout_16 = QtGui.QGridLayout()
         self.gridLayout_16.setObjectName("gridLayout_16")
         self.CoilSensUnbiasedNL = QtGui.QRadioButton(self.tab_10)
-        self.CoilSensUnbiasedNL.setObjectName("radioButton")
+        self.CoilSensUnbiasedNL.setObjectName("CoilSensUnbiasedNL")
         self.gridLayout_16.addWidget(self.radioButton, 0, 0, 1, 1)
         self.MRONLM2 = QtGui.QRadioButton(self.tab_10)
         self.MRONLM2.setObjectName("MRONLM2")
