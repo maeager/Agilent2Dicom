@@ -1,14 +1,12 @@
-function [ MRORNLM] = MRIDenoisingMRONLM2(ima, sigma, patchsize, ...
-                                         searcharea, rician, coil, verbose)
+function [ MRORNLM] = MRIDenoisingMRONLM2(ima, sigma, patchsize, searcharea, rician, coil, verbose)
 %
 %   Description: Denoising of a 3D MRI image using the multiresolution ONLM
 %   filter
 %         
-%   Usage:      MRIDenoisingMRONLM(ima, sigma, beta, patchsize, searcharea, rician, verbose)
+%   Usage:      MRIDenoisingMRONLM(ima, sigma, patchsize, searcharea, rician, verbose)
 %
 %   ima:        3D MR image
 %   sigma:          std of noise
-%   beta:       smooting parameter (default 1)
 %   patchsize:  radius of patch in voxel
 %   searcharea: radius of search area in voxel
 %   rician:     0: Gaussian noise 1: Rician noise 
@@ -70,14 +68,12 @@ disp('.')
     
     if isempty(coil)
         %% create coil-sensitivity matrix here
-        coil = ones(size(ima));
+        coil = single(ones(size(ima)));
     end
     
-    ORNLMu=myMBONLM3D(single(ima),searcharea,patchsize,sigma, ...
-                    rician,coil);
+    ORNLMu=myMBONLM3D(single(ima),searcharea,patchsize,single(sigma),rician,coil);
     
-    ORNLMo=myMBONLM3D(single(ima),searcharea,patchsize+1,sigma, ...
-                    rician,coil);
+    ORNLMo=myMBONLM3D(single(ima),searcharea,patchsize+1,single(sigma),rician,coil);
     
     MRORNLM = ascm(ima, ORNLMu, ORNLMo, sigma); 
     map = find(MRORNLM<0);

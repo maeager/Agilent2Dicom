@@ -1,16 +1,15 @@
-function [ imaPRINLM] = MRIDenoisingPRINLM2(ima, sigma, patchsize, ...
-                                            searcharea, beta, rician, ...
-                                            coil, verbose)
+function [ imaPRINLM,imaODCT, coil] = MRIDenoisingPRINLM2(ima, sigma, patchsize, searcharea, rician, coil, verbose)
 %
-%   Description:  Denoising of a 3D MRI image using the PRINLM filter
+%   Description:  Denoising of a 3D MRI image using the PRINLM filter and coil sensitivity weighting 
 %               
 %
 %   Usage:      MRIDenoisingPRINLM(ima, sigma, patchsize,
-%                 searcharea, rician, verbose)
+%                 searcharea, rician, coil, verbose)
 %
 %   ima:        3D MR image
 %   sigma:          std of noise
 %   rician:     0: Gaussian noise 1: Rician noise
+%   coil:       Coil sensitivity (B1 correction) image
 %   verbose:    0 no display of graph
 %               1 display of graph
 %
@@ -42,25 +41,22 @@ end
     if nargin < 2 || isempty(sigma) || (sigma==0)
         sigma=1;
     end
-
+    sigma=single(sigma);
     if nargin < 3 || isempty(patchsize) || (patchsize==0)
         patchsize=1;
     end
     
-    if  nargin < 4 ||  isempty(searchsize) || (searcharea==0)
-        charea=3;
+    if  nargin < 4 ||  isempty(searcharea) || (searcharea==0)
+        searcharea=3;
     end
-    
-    if  nargin < 5 ||  isempty(beta) || (beta==0)
-        beta=1;        
-    end
-    if  nargin < 6 ||  isempty(rician) || (rician ~= 0)
+    if  nargin < 5 ||  isempty(rician) || (rician ~= 0)
         rician=1;
     end
-    if  nargin < 7 ||isempty(coil)
+    if  nargin < 6 ||isempty(coil)
         coil = ones(size(ima));
     end
-    if  nargin < 8 
+    coil=single(coil);
+    if  nargin < 7 
         verbose=0;
     end
  
@@ -72,18 +68,19 @@ end
     disp('.')
 disp('Denoising using ODCT')
 disp('.')
-
 %}
-    imaODCT=myODCT3d(single(ima),sigma,rician);
+
+    imaODCT=myODCT3d(single(ima),single(sigma),rician);
     map = find(imaODCT<0);
     imaODCT(map) =0;
+
 %{
     disp('.')
 disp('Denoising using PRINLM')
 disp('.')
-
 %}
-    imaPRINLM=myRINLM3d(single(ima),searcharea,patchsize,sigma,imaODCT,rician,coil); 
+
+    imaPRINLM=myRINLM3d(single(ima),searcharea,patchsize,single(sigma),single(imaODCT),rician,single(coil)); 
     map = find(imaPRINLM<0);
     imaPRINLM(map) =0;
 
@@ -129,11 +126,6 @@ disp('**************************************************************************
             drawnow
         
     end
-
-    
-
-
-
 
 end
 

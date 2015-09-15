@@ -1,14 +1,12 @@
-function [ MRORNLM] = MRIDenoisingAONLM2(ima, patchsize, ...
-                                         searcharea, rician, coil, verbose)
+function [ AORNLM] = MRIDenoisingAONLM2(ima, sigma, patchsize, searcharea, rician, coil, verbose)
 %
 %   Description: Denoising of a 3D MRI image using the multiresolution AONLM
 %   filter.. Using HSM wavelet mixing
 %         
-%   Usage:      MRIDenoisingAONLM(ima, sigma, beta, patchsize, searcharea, rician, verbose)
+  %   Usage:      MRIDenoisingAONLM(ima, sigma, patchsize, searcharea, rician, coil, verbose)
 %
 %   ima:        3D MR image
 %   sigma:          std of noise
-%   beta:       smooting parameter (default 1)
 %   patchsize:  radius of patch in voxel
 %   searcharea: radius of search area in voxel
 %   rician:     0: Gaussian noise 1: Rician noise 
@@ -68,31 +66,29 @@ disp('* Journal of Magnetic Resonance Imaging, 31(1):192-203, 2010             *
 disp('**************************************************************************')
 disp('.')
   %}  
-    if nargin < 2 || isempty(patchsize) || (patchsize==0)
+    if nargin < 3 || isempty(patchsize) || (patchsize==0)
         patchsize=1;
     end
     
-    if  nargin < 3 ||  isempty(searchsize) || (searcharea==0)
+    if  nargin < 4 ||  isempty(searcharea) || (searcharea==0)
         searcharea=3;
     end
  
-    if  nargin < 4 ||  isempty(rician) || (rician ~= 0)
+    if  nargin < 5 ||  isempty(rician) || (rician ~= 0)
         rician=1;
     end
-    if  nargin < 5 || isempty(coil)
-        %% create coil-sensitivity matrix here
-        coil = ones(size(ima));
+    if  nargin < 6 || isempty(coil)
+    %% create coil-sensitivity matrix here
+    coil = single(ones(size(ima)));
     end
-    if  nargin < 6 
+    if  nargin < 7 
         verbose=0;
     end
     
     
-    ORNLMu=myMBONLM3d(single(ima),searcharea,patchsize,sigma, ...
-                    rician,coil);
+    ORNLMu=myMBONLM3D(single(ima),searcharea,patchsize,single(sigma),rician,coil);
     
-    ORNLMo=myMBONLM3d(single(ima),searcharea,patchsize+1,sigma, ...
-                    rician,coil);
+    ORNLMo=myMBONLM3D(single(ima),searcharea,patchsize+1,single(sigma),rician,coil);
     
     AORNLM = hsm(ORNLMu, ORNLMo); 
     map = find(AORNLM<0);

@@ -1,5 +1,4 @@
-function [ imaPRINLM] = MRIDenoisingPRINLMCmplx(cmplxima, sigma, patchsize, ...
-                                                searcharea, beta, rician,coil, verbose)
+function [ imaPRINLM, imaODCT, coil] = MRIDenoisingPRINLMCmplx(cmplxima, sigma, patchsize, searcharea, rician,coil, verbose)
 %
 %   Description:  Denoising of a 3D MRI image using the PRINLM filter
 %               
@@ -50,14 +49,11 @@ if  nargin < 4 ||  isempty(searchsize) || (searcharea==0)
     searcharea=3;
 end
 
-if  nargin < 5 ||  isempty(beta) || (beta==0)
-    beta=1;        
-end
 if  nargin < 6 ||  isempty(rician) || (rician ~= 0)
     rician=1;
 end
-if  nargin < 7 ||isempty(coil)
-    coil = ones(size(ima));
+if  nargin < 7 || isempty(coil)
+coil = single(ones(size(ima)));
 end
 if  nargin < 8 
     verbose=0;
@@ -66,18 +62,16 @@ end
 % Denoising using ODCT
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-
-
 %{    
     disp('.')
     disp('Denoising using ODCT')
     disp('.')
 
 %}
+
     imaODCTr=myODCT3d(single(real(cmplxima)),sigma,rician); 
     if ~isreal(cmplxima))
-        imaODCTi=myODCT3d(single(imag(cmplxima)),sigma,rician);
+    imaODCTi=myODCT3d(single(imag(cmplxima)),single(sigma),rician);
 
     else
         imaODCTi=imaODCTr*0;
@@ -91,8 +85,8 @@ end
     disp('.')
 
 %}
-    imaPRINLM=myRINLM3d(single(abs(cmplxima)),searcharea,patchsize, ...
-                        sigma,imaODCT,rician, coil); 
+
+imaPRINLM=myRINLM3d(single(abs(cmplxima)),searcharea,patchsize,single(sigma),single(imaODCT),rician, single(coil)); 
     map = find(imaPRINLM<0);
     imaPRINLM(map) = 0;
 
