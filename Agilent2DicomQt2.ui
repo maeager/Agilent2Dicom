@@ -173,8 +173,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>1068</width>
-               <height>305</height>
+               <width>172</width>
+               <height>35</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -1816,8 +1816,8 @@ The mode parameter determines how the array borders are handled, where cval is t
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>1068</width>
-               <height>303</height>
+               <width>133</width>
+               <height>35</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -2586,6 +2586,43 @@ Medical Image Analysis, 16(1):18-27, 2012
                    </widget>
                   </item>
                   <item>
+                   <widget class="QRadioButton" name="ODCT">
+                    <property name="toolTip">
+                     <string>
+%   Description: Denoising of a 3D MRI image using the ODCT filter
+%               
+%   Usage:      MRIDenoisingODCT(ima, h, rician, verbose)
+%
+%   ima:        3D MR image
+%   h:          std of noise
+%   rician:     0: Gaussian noise 1: Rician noise 
+%   verbose:    0 no display of graph
+%               1 display of graph
+%
+%                          Details on ODCT filter
+%**************************************************************************
+%* The ODCT filter is described in:                                       *
+%*                                                                        *
+%* JV Manjon, P. Coupe, A Buades, DL Collins, M. Robles                   *
+%* New methods for MRI denoising based on sparseness and self-similarity. * 
+%* Medical Image Analysis, 16(1):18-27                                    *
+%* 2012                                                                   *
+%**************************************************************************
+%
+% Pierrick Coupe - pierrick.coupe@labri.fr
+% Jose V. Manjon - jmanjon@fis.upv.es
+%
+% Universite de Bordeaux
+% LaBRI, UMR 5800, 33400 Talence
+%
+% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon</string>
+                    </property>
+                    <property name="text">
+                     <string>ODCT</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
                    <widget class="QRadioButton" name="MRONLM">
                     <property name="toolTip">
                      <string> The MRONLM filter is described in:    
@@ -2694,43 +2731,6 @@ patchsize=1, searcharea=3, rician=1</string>
                     </property>
                     <property name="text">
                      <string>ONLM</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <widget class="QRadioButton" name="ODCT">
-                    <property name="toolTip">
-                     <string>
-%   Description: Denoising of a 3D MRI image using the ODCT filter
-%               
-%   Usage:      MRIDenoisingODCT(ima, h, rician, verbose)
-%
-%   ima:        3D MR image
-%   h:          std of noise
-%   rician:     0: Gaussian noise 1: Rician noise 
-%   verbose:    0 no display of graph
-%               1 display of graph
-%
-%                          Details on ODCT filter
-%**************************************************************************
-%* The ODCT filter is described in:                                       *
-%*                                                                        *
-%* JV Manjon, P. Coupe, A Buades, DL Collins, M. Robles                   *
-%* New methods for MRI denoising based on sparseness and self-similarity. * 
-%* Medical Image Analysis, 16(1):18-27                                    *
-%* 2012                                                                   *
-%**************************************************************************
-%
-% Pierrick Coupe - pierrick.coupe@labri.fr
-% Jose V. Manjon - jmanjon@fis.upv.es
-%
-% Universite de Bordeaux
-% LaBRI, UMR 5800, 33400 Talence
-%
-% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon</string>
-                    </property>
-                    <property name="text">
-                     <string>ODCT</string>
                     </property>
                    </widget>
                   </item>
@@ -2938,7 +2938,7 @@ Leave empty for calculation using NoiseEstimation in Pipeline 1 or difference be
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="2">
+                  <item row="0" column="3">
                    <widget class="QRadioButton" name="MRONLM2">
                     <property name="text">
                      <string>MRONLM2</string>
@@ -2953,16 +2953,23 @@ Leave empty for calculation using NoiseEstimation in Pipeline 1 or difference be
                    </widget>
                   </item>
                   <item row="0" column="4">
+                   <widget class="QRadioButton" name="AONLM2">
+                    <property name="text">
+                     <string>AONLM2</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="2">
                    <widget class="QRadioButton" name="ODCT2">
                     <property name="text">
                      <string>ODCT2</string>
                     </property>
                    </widget>
                   </item>
-                  <item row="0" column="3">
-                   <widget class="QRadioButton" name="AONLM2">
+                  <item row="0" column="5">
+                   <widget class="QRadioButton" name="ONLM2">
                     <property name="text">
-                     <string>AONLM2</string>
+                     <string>ONLM2</string>
                     </property>
                    </widget>
                   </item>

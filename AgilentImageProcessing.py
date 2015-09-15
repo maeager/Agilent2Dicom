@@ -1322,7 +1322,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         print 'ProcMEE completed.'
         logging.info('ProcMEE done')
 
-    def GetNLfilter():
+    def GetNLfilter(self):
         """GetNLfilter select which NL filter is to be used
         """
         if self.ui.MRONLM.isChecked():
@@ -1341,8 +1341,8 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             return -1
         elif self.ui.AONLM2.isChecked():
             return -2
-        elif self.ui.ONLM2.isChecked():
-            return -3
+#        elif self.ui.ONLM2.isChecked():
+#            return -3
         elif self.ui.ODCT2.isChecked():
             return -4
         else:
@@ -1388,10 +1388,10 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
 
 #            radioButton_NLreps
             inputRI = int(self.ui.radioButton_NLinputRI.isChecked())
-            NLfilter = GetNLfilter()
+            NLfilter = self.GetNLfilter()
             
             if self.ui.checkBox_NLenableparams.isChecked():
-                (sigma,factor,search,patch,rician)=GetNLparams()
+                (sigma,factor,search,patch,rician)=self.GetNLparams()
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%s,%s,%s,%s,%s);quit\" """ % (
                     proc_header, thispath, str(input1_dir), output_dir, NLfilter,str(sigma),str(sigmaratio),str(searcharea),str(patcharea),str(rician))
             else:
@@ -1431,13 +1431,13 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
-            NLfilter = GetNLfilter()
+            NLfilter = self.GetNLfilter()
             
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
             if self.ui.checkBox_NLenableparams.isChecked():
-                (sigma,factor,search,patch,rician)=GetNLparams()
+                (sigma,factor,search,patch,rician)=self.GetNLparams()
 
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%s,%s,%s,%s,%s);quit\" """ % (
                     proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir),NLfilter,str(sigma),str(sigmaratio),str(searcharea),str(patcharea),str(rician))
@@ -1480,12 +1480,12 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             saveRI = int(self.ui.checkBox_NLsaveRI.isChecked())
             savePhase = int(self.ui.checkBox_NLsavePhase.isChecked())
             saveSWI = int(self.ui.checkBox_SaveSWIProc3.isChecked())
-            NLfilter = GetNLfilter()
+            NLfilter = self.GetNLfilter()
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
             if self.ui.checkBox_NLenableparams.isChecked():
-                (sigma,factor,search,patch,rician)=GetNLparams()
+                (sigma,factor,search,patch,rician)=self.GetNLparams()
 
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;  call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%d,%s,%s,%s,%s,%s);quit\" """ % (
                     proc_header, thispath, str(input1_dir), str(input2_dir),

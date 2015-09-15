@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'Agilent2DicomQt2.ui'
 #
-# Created: Mon Sep 14 11:19:56 2015
+# Created: Tue Sep 15 16:30:25 2015
 #      by: PyQt4 UI code generator 4.6.2
 #
 # WARNING! All changes made in this file will be lost!
@@ -22,6 +22,7 @@ try:
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -94,7 +95,7 @@ class Ui_MainWindow(object):
         self.scrollArea.setWidgetResizable(True)
         self.scrollArea.setObjectName("scrollArea")
         self.scrollAreaWidgetContents = QtGui.QWidget(self.scrollArea)
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 1068, 305))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 172, 35))
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.verticalLayout_15 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents)
         self.verticalLayout_15.setObjectName("verticalLayout_15")
@@ -633,7 +634,7 @@ class Ui_MainWindow(object):
         self.scrollArea_4.setWidgetResizable(True)
         self.scrollArea_4.setObjectName("scrollArea_4")
         self.scrollAreaWidgetContents_4 = QtGui.QWidget(self.scrollArea_4)
-        self.scrollAreaWidgetContents_4.setGeometry(QtCore.QRect(0, 0, 1068, 303))
+        self.scrollAreaWidgetContents_4.setGeometry(QtCore.QRect(0, 0, 133, 35))
         self.scrollAreaWidgetContents_4.setObjectName("scrollAreaWidgetContents_4")
         self.verticalLayout_21 = QtGui.QVBoxLayout(self.scrollAreaWidgetContents_4)
         self.verticalLayout_21.setObjectName("verticalLayout_21")
@@ -945,6 +946,9 @@ class Ui_MainWindow(object):
         self.PRINLM.setCheckable(False)
         self.PRINLM.setObjectName("PRINLM")
         self.horizontalLayout_31.addWidget(self.PRINLM)
+        self.ODCT = QtGui.QRadioButton(self.tab_10)
+        self.ODCT.setObjectName("ODCT")
+        self.horizontalLayout_31.addWidget(self.ODCT)
         self.MRONLM = QtGui.QRadioButton(self.tab_10)
         self.MRONLM.setChecked(True)
         self.MRONLM.setObjectName("MRONLM")
@@ -955,9 +959,6 @@ class Ui_MainWindow(object):
         self.ONLM = QtGui.QRadioButton(self.tab_10)
         self.ONLM.setObjectName("ONLM")
         self.horizontalLayout_31.addWidget(self.ONLM)
-        self.ODCT = QtGui.QRadioButton(self.tab_10)
-        self.ODCT.setObjectName("ODCT")
-        self.horizontalLayout_31.addWidget(self.ODCT)
         self.gridLayout_8.addLayout(self.horizontalLayout_31, 2, 1, 1, 1)
         spacerItem33 = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
         self.gridLayout_8.addItem(spacerItem33, 16, 1, 1, 1)
@@ -1042,16 +1043,19 @@ class Ui_MainWindow(object):
         self.gridLayout_16.addWidget(self.CoilSensUnbiasedNL, 0, 0, 1, 1)
         self.MRONLM2 = QtGui.QRadioButton(self.tab_10)
         self.MRONLM2.setObjectName("MRONLM2")
-        self.gridLayout_16.addWidget(self.MRONLM2, 0, 2, 1, 1)
+        self.gridLayout_16.addWidget(self.MRONLM2, 0, 3, 1, 1)
         self.PRINLM2 = QtGui.QRadioButton(self.tab_10)
         self.PRINLM2.setObjectName("PRINLM2")
         self.gridLayout_16.addWidget(self.PRINLM2, 0, 1, 1, 1)
-        self.ODCT2 = QtGui.QRadioButton(self.tab_10)
-        self.ODCT2.setObjectName("ODCT2")
-        self.gridLayout_16.addWidget(self.ODCT2, 0, 4, 1, 1)
         self.AONLM2 = QtGui.QRadioButton(self.tab_10)
         self.AONLM2.setObjectName("AONLM2")
-        self.gridLayout_16.addWidget(self.AONLM2, 0, 3, 1, 1)
+        self.gridLayout_16.addWidget(self.AONLM2, 0, 4, 1, 1)
+        self.ODCT2 = QtGui.QRadioButton(self.tab_10)
+        self.ODCT2.setObjectName("ODCT2")
+        self.gridLayout_16.addWidget(self.ODCT2, 0, 2, 1, 1)
+        self.ONLM2 = QtGui.QRadioButton(self.tab_10)
+        self.ONLM2.setObjectName("ONLM2")
+        self.gridLayout_16.addWidget(self.ONLM2, 0, 5, 1, 1)
         self.gridLayout_8.addLayout(self.gridLayout_16, 3, 1, 1, 1)
         self.horizontalLayout_21.addLayout(self.gridLayout_8)
         self.tabWidget1.addTab(self.tab_10, "")
@@ -1544,6 +1548,35 @@ class Ui_MainWindow(object):
 "\n"
 " [ imaPRINLM] = MRIDenoisingPRINLM(ima, h, beta=1, rician=1, verbose)", None, QtGui.QApplication.UnicodeUTF8))
         self.PRINLM.setText(QtGui.QApplication.translate("MainWindow", "PRINLM", None, QtGui.QApplication.UnicodeUTF8))
+        self.ODCT.setToolTip(QtGui.QApplication.translate("MainWindow", "\n"
+"%   Description: Denoising of a 3D MRI image using the ODCT filter\n"
+"%               \n"
+"%   Usage:      MRIDenoisingODCT(ima, h, rician, verbose)\n"
+"%\n"
+"%   ima:        3D MR image\n"
+"%   h:          std of noise\n"
+"%   rician:     0: Gaussian noise 1: Rician noise \n"
+"%   verbose:    0 no display of graph\n"
+"%               1 display of graph\n"
+"%\n"
+"%                          Details on ODCT filter\n"
+"%**************************************************************************\n"
+"%* The ODCT filter is described in:                                       *\n"
+"%*                                                                        *\n"
+"%* JV Manjon, P. Coupe, A Buades, DL Collins, M. Robles                   *\n"
+"%* New methods for MRI denoising based on sparseness and self-similarity. * \n"
+"%* Medical Image Analysis, 16(1):18-27                                    *\n"
+"%* 2012                                                                   *\n"
+"%**************************************************************************\n"
+"%\n"
+"% Pierrick Coupe - pierrick.coupe@labri.fr\n"
+"% Jose V. Manjon - jmanjon@fis.upv.es\n"
+"%\n"
+"% Universite de Bordeaux\n"
+"% LaBRI, UMR 5800, 33400 Talence\n"
+"%\n"
+"% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon", None, QtGui.QApplication.UnicodeUTF8))
+        self.ODCT.setText(QtGui.QApplication.translate("MainWindow", "ODCT", None, QtGui.QApplication.UnicodeUTF8))
         self.MRONLM.setToolTip(QtGui.QApplication.translate("MainWindow", " The MRONLM filter is described in:    \n"
 "\n"
 "P. Coupe, J.V. Manjon, R. Robles, D.L. Collins    \n"
@@ -1629,35 +1662,6 @@ class Ui_MainWindow(object):
 "%\n"
 "% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon", None, QtGui.QApplication.UnicodeUTF8))
         self.ONLM.setText(QtGui.QApplication.translate("MainWindow", "ONLM", None, QtGui.QApplication.UnicodeUTF8))
-        self.ODCT.setToolTip(QtGui.QApplication.translate("MainWindow", "\n"
-"%   Description: Denoising of a 3D MRI image using the ODCT filter\n"
-"%               \n"
-"%   Usage:      MRIDenoisingODCT(ima, h, rician, verbose)\n"
-"%\n"
-"%   ima:        3D MR image\n"
-"%   h:          std of noise\n"
-"%   rician:     0: Gaussian noise 1: Rician noise \n"
-"%   verbose:    0 no display of graph\n"
-"%               1 display of graph\n"
-"%\n"
-"%                          Details on ODCT filter\n"
-"%**************************************************************************\n"
-"%* The ODCT filter is described in:                                       *\n"
-"%*                                                                        *\n"
-"%* JV Manjon, P. Coupe, A Buades, DL Collins, M. Robles                   *\n"
-"%* New methods for MRI denoising based on sparseness and self-similarity. * \n"
-"%* Medical Image Analysis, 16(1):18-27                                    *\n"
-"%* 2012                                                                   *\n"
-"%**************************************************************************\n"
-"%\n"
-"% Pierrick Coupe - pierrick.coupe@labri.fr\n"
-"% Jose V. Manjon - jmanjon@fis.upv.es\n"
-"%\n"
-"% Universite de Bordeaux\n"
-"% LaBRI, UMR 5800, 33400 Talence\n"
-"%\n"
-"% Copyright (C) 2011 Pierrick Coupe and Jose V. Manjon", None, QtGui.QApplication.UnicodeUTF8))
-        self.ODCT.setText(QtGui.QApplication.translate("MainWindow", "ODCT", None, QtGui.QApplication.UnicodeUTF8))
         self.label_52.setText(QtGui.QApplication.translate("MainWindow", "Parameters", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_NLenableparams.setToolTip(QtGui.QApplication.translate("MainWindow", "Check enable with you want to modify NL parameters - any changes to default parameters will be ignored if you don\'t click this checkbox\n"
 "", None, QtGui.QApplication.UnicodeUTF8))
@@ -1677,8 +1681,9 @@ class Ui_MainWindow(object):
         self.CoilSensUnbiasedNL.setText(QtGui.QApplication.translate("MainWindow", "CoilSensUnbiasedNL (In development)", None, QtGui.QApplication.UnicodeUTF8))
         self.MRONLM2.setText(QtGui.QApplication.translate("MainWindow", "MRONLM2", None, QtGui.QApplication.UnicodeUTF8))
         self.PRINLM2.setText(QtGui.QApplication.translate("MainWindow", "PRINLM2", None, QtGui.QApplication.UnicodeUTF8))
-        self.ODCT2.setText(QtGui.QApplication.translate("MainWindow", "ODCT2", None, QtGui.QApplication.UnicodeUTF8))
         self.AONLM2.setText(QtGui.QApplication.translate("MainWindow", "AONLM2", None, QtGui.QApplication.UnicodeUTF8))
+        self.ODCT2.setText(QtGui.QApplication.translate("MainWindow", "ODCT2", None, QtGui.QApplication.UnicodeUTF8))
+        self.ONLM2.setText(QtGui.QApplication.translate("MainWindow", "ONLM2", None, QtGui.QApplication.UnicodeUTF8))
         self.tabWidget1.setTabText(self.tabWidget1.indexOf(self.tab_10), QtGui.QApplication.translate("MainWindow", "Non-local means", None, QtGui.QApplication.UnicodeUTF8))
         self.label_50.setText(QtGui.QApplication.translate("MainWindow", "Coil Sensitivity\n"
 "or B1 image", None, QtGui.QApplication.UnicodeUTF8))

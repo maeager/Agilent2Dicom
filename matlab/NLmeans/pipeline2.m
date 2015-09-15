@@ -1,4 +1,4 @@
-function [MRIdenoised,sigma,filtername] = pipeline2(img1,img2,NLfilter,hfinal,hfactor,searcharea,patacharea,rician)
+function [MRIdenoised,sigma,filtername] = pipeline2(img1,img2,NLfilter,hfinal,hfactor,searcharea,patcharea,rician)
 %% Non-local means denoising Option 2
 % this method calculates the noise estimate from two images 
 % and applies NL means to average image

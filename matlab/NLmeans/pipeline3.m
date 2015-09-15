@@ -1,4 +1,4 @@
-function [MRIdenoised,sigma,filtername] = pipeline3(ksp1,ksp2,NLfilter,hfinal,hfactor,searcharea,patacharea,rician)
+function [MRIdenoised,sigma,filtername] = pipeline3(ksp1,ksp2,NLfilter,hfinal,hfactor,searcharea,patcharea,rician)
 %%  Non-local means denoising Option 3
 % this method calculates the noise estimate from two images 
 % and applies NL means to the complex average image
@@ -56,7 +56,9 @@ else
 end
 if nargin < 5 || isempty(hfactor)
     hfactor=100;
-end
+end    
+hfinal_real = est_std_real/sqrt(2);
+hfinal_imag = est_std_imag/sqrt(2);
 hfinal_real = hfinal_real * (hfactor/100)
 hfinal_imag = hfinal_imag * (hfactor/100)
 
@@ -120,29 +122,21 @@ switch NLfilter
 					 filtername='ONLM';
   case 4
     display('Processing Real denoised image - ODCT')
-    tic(),MRIdenoised_real = MRIDenoisingODCT(avg_real,hfinal_real,...
-                                         beta_, rician, 0);toc()
+    tic(),MRIdenoised_real = MRIDenoisingODCT(avg_real,hfinal_real, beta_, rician, 0);toc()
     display('Processing Imag denoised image - ODCT')
-    MRIdenoised_imag = MRIDenoisingODCT(avg_imag,hfinal_imag,...
-                                         beta_, rician, 0);toc()
+    MRIdenoised_imag = MRIDenoisingODCT(avg_imag,hfinal_imag, beta_, rician, 0);toc()
 					 filtername='ODCT';
   case -5
     display('Processing Real denoised image - MRONLM2')
-    tic(),MRIdenoised_real = MRIDenoisingMRONLM2(avg_real, hfinal_real,beta_, ...
-                                           patcharea, searcharea, ...
-                                           rician);toc()
+    tic(),MRIdenoised_real = MRIDenoisingMRONLM2(avg_real, hfinal_real,beta_, patcharea, searcharea,rician);toc()
     display('Processing Imag denoised image - MRONLM2')
-    MRIdenoised_imag = MRIDenoisingMRONLM2(avg_imag, hfinal_imag, beta_, ...
-                                           patcharea, searcharea, ...
-                                           rician);toc()
+    MRIdenoised_imag = MRIDenoisingMRONLM2(avg_imag, hfinal_imag, beta_,  patcharea, searcharea, rician);toc()
     filtername='MRONLM2';
   case -1
     display('Processing Real denoised image - PRINLM2')
-    tic(),MRIdenoised_real = MRIDenoisingPRINLM2(avg_real,hfinal_real, ...
-                                           rician);toc()
+    tic(),MRIdenoised_real = MRIDenoisingPRINLM2(avg_real,hfinal_real, rician);toc()
     display('Processing Imag denoised image - PRINLM2')
-    MRIdenoised_imag = MRIDenoisingPRINLM2(avg_imag,hfinal_imag, ...
-                                           rician);toc()
+    MRIdenoised_imag = MRIDenoisingPRINLM2(avg_imag,hfinal_imag, rician);toc()
     filtername='PRINLM2';
   case -2
     display('Processing Real denoised image - AONLM2')

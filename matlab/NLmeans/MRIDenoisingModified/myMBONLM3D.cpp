@@ -425,24 +425,27 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
   if (nrhs == 6){
      if ( mxIsSparse(prhs[5]) || 
-       mxIsComplex(prhs[5]) || 
-       mxIsDouble(prhs[5])  ||
-       mxGetNumberOfElements(prhs[5]) == 1 ||
-       mxGetNumberOfDimensions(prhs[5]) != 3) {
-      mexErrMsgTxt("myMBONLM coil sens must be full matrix of real float values.");
-      return;
-     }     
+	  mxIsComplex(prhs[5]) || 
+	  mxIsDouble(prhs[5])  ||
+	  mxGetNumberOfElements(prhs[5]) == 1 ||
+	  mxGetNumberOfDimensions(prhs[5]) != 3) 
+       {
+	 mexErrMsgTxt("myMBONLM coil sens must be full matrix of real float values.");
+	 return;
+       }     
      coildims = mxGetDimensions(prhs[5]);
-     if (coildims[0]!=dims[0] || coildims[1]!=dims[1] || coildims[2]!=dims[2] ){
-       mexErrMsgTxt("myMBONLM coil dims must equal input image dims.");
-      return;
-     }     
-     coil = (float*)mxGetPr(prhs[5]);
+     if (coildims[0]!=dims[0] || coildims[1]!=dims[1] || coildims[2]!=dims[2] )
+       {
+	 mexErrMsgTxt("myMBONLM coil dims must equal input image dims.");
+	 return;
+       }     
+     coil = (float*) mxGetPr(prhs[5]);
   }else{
     MxCoil = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
     coil = (float*) mxGetPr(MxCoil);
+    for (i = 0; i < dims[2] *dims[1] * dims[0];i++)
+      coil[i]=1.0;
   }
-
 
   Ndims = (int)pow((2*radiusS+1),ndim);
 
