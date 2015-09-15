@@ -124,25 +124,30 @@ end
 voxelsize=voxelsize1;
 
 display 'Calling pipeline 3'
-tic(),MRIdenoised3 = pipeline3(ksp1,ksp2, NLfilter, hfinal, hfactor, ...
+tic(),[MRIdenoised3,sigma, filtername] = pipeline3(ksp1,ksp2, NLfilter, hfinal, hfactor, ...
                                searcharea, patcharea, rician);toc()
 if shifted
     MRIdenoised3 = ifftshift(MRIdenoised3);
 end
 
+
+
+%% Save image to nifti
+
+filter_line = ['filter' filtername '_sigmaR' num2str(sigma(1)) '_sigmaI' num2str(sigma(2))]
+
 if exist(out,'file') == 2
-    delete(out)
-    denoised_file=out
-    [a,b,c] = fileparts(out) ;
-    raw_file = [ a, '/raw_average.nii.gz'];						   
+  delete(out)
+  denoised_file = [ out(1:end-8) '_' filter_line out(end-7:end)];
+  [a,b,c] = fileparts(out) ;
+  raw_file = [ a, '/raw_average.nii.gz'];						   
 else
     if ~isdir(out)
         % if not a file or a dir, create dir
         mkdir (out)
     end
-    denoised_file=[out '/pipeline3_magn.nii.gz'];
+    denoised_file=[out '/pipeline3_magn_' filter_line '.nii.gz'];
     raw_file = [out, '/raw_average_magn.nii.gz'];
-
 end
 
 if exist(raw_file,'file')
