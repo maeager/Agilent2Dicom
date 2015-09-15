@@ -1674,11 +1674,7 @@ class Ui_MainWindow(object):
         self.label_54.setText(QtGui.QApplication.translate("MainWindow", "Patch Area", None, QtGui.QApplication.UnicodeUTF8))
         self.lineEdit_NLpatcharea.setText(QtGui.QApplication.translate("MainWindow", "1", None, QtGui.QApplication.UnicodeUTF8))
         self.checkBox_NLrician.setText(QtGui.QApplication.translate("MainWindow", "Rician", None, QtGui.QApplication.UnicodeUTF8))
-<<<<<<< HEAD
-        self.radioButton.setText(QtGui.QApplication.translate("MainWindow", "CoilSensUnbiasedNL (In development)", None, QtGui.QApplication.UnicodeUTF8))
-=======
         self.CoilSensUnbiasedNL.setText(QtGui.QApplication.translate("MainWindow", "CoilSensUnbiasedNL (In development)", None, QtGui.QApplication.UnicodeUTF8))
->>>>>>> 0eb61f27f21692e48531cf99a4ee1da355200d0a
         self.MRONLM2.setText(QtGui.QApplication.translate("MainWindow", "MRONLM2", None, QtGui.QApplication.UnicodeUTF8))
         self.PRINLM2.setText(QtGui.QApplication.translate("MainWindow", "PRINLM2", None, QtGui.QApplication.UnicodeUTF8))
         self.ODCT2.setText(QtGui.QApplication.translate("MainWindow", "ODCT2", None, QtGui.QApplication.UnicodeUTF8))
