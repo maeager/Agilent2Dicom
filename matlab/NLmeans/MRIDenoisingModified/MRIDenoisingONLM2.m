@@ -1,13 +1,12 @@
-function [ ORNLM] = MRIDenoisingONLM2(ima, sigma, beta, patchsize, searcharea, rician, verbose)
+function [ ORNLM] = MRIDenoisingONLM2(ima, sigma, patchsize, searcharea, rician, verbose)
 %
 %   Description:  Denoising of a 3D MRI image using the ONLM filter
 %               
 %
-%   Usage:      MRIDenoisingONLM(ima, h, beta, patchsize, searcharea, rician, verbose)
+%   Usage:      MRIDenoisingONLM(ima, h, patchsize, searcharea, rician, verbose)
 %
 %   ima:        3D MR image
 %   sigma:          std of rician noise
-%   beta:       smoothing parameter (default 1)
 %   patchsize:  radius of patch in voxel
 %   searcharea: radius of search area in voxel
 %   rician:     0: Gaussian noise 1: Rician noise 
@@ -54,22 +53,20 @@ end
     if nargin < 2 || isempty(sigma) || (sigma==0)
         sigma=1;
     end
-    if  nargin < 3 ||  isempty(beta) || (beta==0)
-        beta=1;        
-    end
-    if nargin < 4 || isempty(patchsize) || (patchsize==0)
+
+    if nargin < 3 || isempty(patchsize) || (patchsize==0)
         patchsize=1;
     end
     
-    if  nargin < 5 ||  isempty(searchsize) || (searcharea==0)
+    if  nargin < 4 ||  isempty(searcharea) || (searcharea==0)
         searcharea=3;
     end
     
 
-    if  nargin < 6 ||  isempty(rician) || (rician ~= 0)
+    if  nargin < 5 ||  isempty(rician) || (rician ~= 0)
         rician=1;
     end
-    if  nargin < 7
+    if  nargin < 6
         verbose=0;
     end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -103,19 +100,13 @@ disp('* Pages 171-179, New York, Etats-Unis, Septembre 2008                    *
 disp('**************************************************************************')
 disp('.')
 %}  
-    if (patchsize==0)
-        patchsize=1;
-    end
+
+%        if isempty(coil)
+        %% create coil-sensitivity matrix here
+        coil = single(ones(size(ima)));
+%    end
     
-    if (searcharea==0)
-        searcharea=3;
-    end
-    
-    if (beta==0)
-        beta=1;
-    end
-    
-    ORNLM=myMBONLM3Dd(single(ima),searcharea,patchsize,sigma,rician);
+    ORNLM=myMBONLM3D(single(ima),searcharea,patchsize,single(sigma),rician,coil);
     map = find(ORNLM<0);
     ORNLM(map) =0;
 

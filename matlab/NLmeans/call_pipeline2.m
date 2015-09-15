@@ -106,23 +106,28 @@ end
 voxelsize=voxelsize1;
 
 display('Calling pipeline 2')
-tic(),MRIdenoised2 = pipeline2(img1, img2, NLfilter,...
+tic(),[MRIdenoised2,sigma,filtername] = pipeline2(img1, img2, NLfilter,...
                              hfinal, hfactor, searcharea, patcharea, ...
                                rician);toc()
 
 
+%% Save image to nifti
+
+filter_line = ['filter' filtername '_sigma' num2str(sigma) ];
+
+
 if exist(out,'file') == 2
     delete(out)
-    denoised_file = out
+    denoised_file = [ out(1:end-8) '_' filter_line out(end-7:end)];
     [a,b,c] = fileparts(out) ;
     raw_file = [ a, '/raw_average.nii.gz'];						   
 else
     if isdir(out)
-        denoised_file = [out, '/pipeline2.nii.gz'];
+        denoised_file = [out, '/pipeline2_' filter_line '.nii.gz'];
 raw_file = [out, '/raw_average.nii.gz'];
     else
         mkdir(out)
-        denoised_file = [out, '/pipeline2.nii.gz'];
+        denoised_file = [out, '/pipeline2_' filter_line '.nii.gz'];
         raw_file = [out, '/raw_average.nii.gz'];
     end
 end

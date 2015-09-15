@@ -29,7 +29,7 @@ hfinal=[];hfactor=[];rician=[];
 searcharea=[];patcharea=[];
 end
 if nargin < 3
-    NLfilter=[];
+    NLfilter=0;
 end
 %% Clean input strings
 in = regexprep(in,'"','');
@@ -99,25 +99,31 @@ end
 
 display 'Calling pipeline 1'
 
-tic(),MRIdenoised1 = pipeline1(NormaliseImage2(img)*256, NLfilter, ...
-                             hfinal, hfactor, searcharea, patcharea, ...
-                               rician);toc()
+tic()
+[MRIdenoised1,sigma,filtername] = pipeline1(NormaliseImage2(img)*256, NLfilter,...
+					    hfinal, hfactor, searcharea, patcharea,...
+					    rician);
+toc()
+
+%% Save image to nifti
+
+filter_line = ['filter' filtername '_sigma' num2str(sigma) ];
 
 if exist(out,'file')==2
     delete(out)
-    denoised_file = out
+    denoised_file = [ out(1:end-8) '_' filter_line out(end-7:end)];
     [a,b,c] = fileparts(out) ;
     raw_file = [ a, '/raw_average.nii.gz'];	
 else
    if ~isdir(out) 
       mkdir(out)
    end
-   denoised_file = [out '/pipeline1.nii.gz'];
+   denoised_file = [out '/pipeline1_' filter_line '.nii.gz'];
    raw_file = [out, '/raw_average.nii.gz'];
 end
 % Save raw input image average if not already saved
 if exist(raw_file,'file') ~= 2
     save_nii(make_nii(img,voxelsize,[],16),raw_file)
 end
-%Save the denoised image
+% Save the denoised image
 save_nii(make_nii(MRIdenoised1,voxelsize,[],16),denoised_file)

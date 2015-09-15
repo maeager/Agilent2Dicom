@@ -2932,7 +2932,7 @@ Leave empty for calculation using NoiseEstimation in Pipeline 1 or difference be
                 <item row="3" column="1">
                  <layout class="QGridLayout" name="gridLayout_16">
                   <item row="0" column="0">
-                   <widget class="QRadioButton" name="radioButton">
+                   <widget class="QRadioButton" name="CoilSensUnbiasedNL">
                     <property name="text">
                      <string>CoilSensUnbiasedNL (In development)</string>
                     </property>

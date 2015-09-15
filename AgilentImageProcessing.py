@@ -1335,6 +1335,16 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             return 3
         elif self.ui.ODCT.isChecked():
             return 4
+        elif self.ui.MRONLM2.isChecked():
+            return -5
+        elif self.ui.PRINLM2.isChecked():
+            return -1
+        elif self.ui.AONLM2.isChecked():
+            return -2
+        elif self.ui.ONLM2.isChecked():
+            return -3
+        elif self.ui.ODCT2.isChecked():
+            return -4
         else:
             return 0
 
