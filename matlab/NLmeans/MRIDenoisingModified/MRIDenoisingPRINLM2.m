@@ -9,7 +9,7 @@ function [ imaPRINLM,imaODCT, coil] = MRIDenoisingPRINLM2(ima, sigma, patchsize,
 %   ima:        3D MR image
 %   sigma:          std of noise
 %   rician:     0: Gaussian noise 1: Rician noise
-%   coil:       Coil sensitivity (B1 correction) image
+  %   coil:       Coil sensitivity (B1 correction) image, if not 3D image, ODCT will create B1 correction image.
 %   verbose:    0 no display of graph
 %               1 display of graph
 %
@@ -69,8 +69,12 @@ end
 disp('Denoising using ODCT')
 disp('.')
 %}
-
+if numel(coil) ~= numel(ima)
+    [imaODCT,coil] = myODCT3d(single(ima),single(sigma),rician);
+    coil=single(coil);
+else
     imaODCT=myODCT3d(single(ima),single(sigma),rician);
+end
     map = find(imaODCT<0);
     imaODCT(map) =0;
 

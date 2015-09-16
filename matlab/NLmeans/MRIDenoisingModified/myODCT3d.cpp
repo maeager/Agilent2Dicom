@@ -56,8 +56,8 @@ typedef struct{
   double * mibias;
 }myargument;
 
-float W1,W2; 
-float *tabla1,*tabla2; /* tablas de cosenos*/
+double W1,W2; 
+double *tabla1,*tabla2; /* tablas de cosenos*/
 int rician;
 
 
@@ -410,14 +410,14 @@ void RicianBias(float level,int max,double * mibias, int N)
 static void dct(float *data,float * vol)
 {
   int r,k;
-  float spec;
-  extern float *tabla1;
+  double spec;
+  extern double *tabla1;
 
-  vol[0] = W1*(data[0]*tabla1[0] + data[1]*tabla1[1] + data[2]*tabla1[2] + data[3]*tabla1[3]);   
+  vol[0] = (float) (W1*((double)data[0]*tabla1[0] + (double)data[1]*tabla1[1] + (double)data[2]*tabla1[2] + (double)data[3]*tabla1[3]));   
   for(r=1;r<B;r++) 
     {
-      spec= data[0]*tabla1[r*B] + data[1]*tabla1[r*B+1] + data[2]*tabla1[r*B+2] + data[3]*tabla1[r*B+3];
-      vol[r] = W2*spec;
+      spec= (double)data[0]*tabla1[r*B] + (double)data[1]*tabla1[r*B+1] + (double)data[2]*tabla1[r*B+2] + data[3]*tabla1[r*B+3];
+      vol[r] = (float)(W2*spec);
     }
 }
 
@@ -469,13 +469,13 @@ static void dct3(float *data,float * vol)
 static void idct(float *data,float * vol)
 {
   int r,k;
-  float spec;
-  extern float *tabla2;
+  double spec;
+  extern double *tabla2;
 
   /* do the stuff         */
   for(r=0;r<B;r++) 
     {
-      vol[r] = W1*data[0]*tabla2[r*B] + W2*data[1]*tabla2[r*B+1] + W2*data[2]*tabla2[r*B+2] + W2*data[3]*tabla2[r*B+3];                   
+      vol[r] = (float)( W1*(double)data[0]*tabla2[r*B] + W2*(double)data[1]*tabla2[r*B+1] + W2*(double)data[2]*tabla2[r*B+2] + W2*(double)data[3]*tabla2[r*B+3] );                   
     }
 }
 
@@ -547,8 +547,8 @@ void* ThreadFunc( void* pArguments )
             
   T=2.7*sigma;
   /*ZC for B1 estimate*/
-  int thresholdB1 = 2; 
-  float TB1=sigma*3.5;
+  int thresholdB1 = 1; 
+  float TB1 = sigma*0.15;
   fimaB1 = arg.B1_image;
 
   for(k=ini;k<=fin;k=k+1)
@@ -580,12 +580,12 @@ void* ThreadFunc( void* pArguments )
 		      
 		      if(abs(cb[p])<T) cb[p]=0; /* hardthreshold(cb,T);       */
 		      else ind++;     
-		    /*  if(abs(cb3[p])>TB1) cb3[p]=0; 
-		 	 else indB1++;  
-		      else */
-		      if (kk>thresholdB1 && jj>thresholdB1 && ii>thresholdB1 ) {
+		      if(abs(cb3[p])<TB1) cb3[p]=0; 
+		      else indB1++;  
+		      
+		      /*if (kk>thresholdB1 || jj>thresholdB1 || ii>thresholdB1 ) {
 			cb3[p]=0;
-		      }else{ indB1++;} 
+			}else{ indB1++;}*/ 
                     }
 	      z=1.0/(ind+1); zB1=1.0/(indB1+1);
 
@@ -636,7 +636,7 @@ void* ThreadFunc2( void* pArguments )
   arg=*(myargument *) pArguments;
 
   /*ZC for B1 estimate*/
-  int thresholdB1 = 2;float TB1=sigma;
+  int thresholdB1 = 1;float TB1=0.5*sigma;
   fimaB1 = arg.B1_image;
 
   rows=arg.rows;    
@@ -671,14 +671,14 @@ void* ThreadFunc2( void* pArguments )
 		      p1=(k+kk)*rows*cols+(j+jj)*cols+(i+ii);
 		      b[p] = ima[p1];                     
 		      b2[p] = fima[p1];   
-		      b3[p] = fima[p1];
+		      b3[p] = fimaB1[p1];
 		      if(b[p]>max) max=b[p];
 		    } 
 	      if(max==0) continue;
             
-	      dct3(b,cb);                                                                               
+	      dct3(b,cb);
 	      dct3(b2,cb2);
-	     /* dct3(b3,cb3); ZC*/
+	      dct3(b3,cb3); /*ZC*/
 
 	      /*/////////////////////////////////////////////////*/
                        
@@ -696,16 +696,16 @@ void* ThreadFunc2( void* pArguments )
 	      z=1.0/(ind+1); 
 
 	      /*ZC DCT threshold at rank 2 for B1*/
-	      for(kk=thresholdB1+1;kk<B;kk++)
+	      /*for(kk=thresholdB1+1;kk<B;kk++)
 	        for(jj=thresholdB1+1;jj<B;jj++)	
 		  for(ii=thresholdB1+1;ii<B;ii++)
 		    {
 		      p=kk*B*B+jj*B+ii;              
 		      cb3[p]=0;                
 		    }
-	      
+	      */
 	      idct3(cb,b);
-	      /*idct3(cb3,b3); ZC*/
+	      idct3(cb3,b3); /*ZC*/
                                   
 	      for(kk=0;kk<B;kk++)
 	        for(jj=0;jj<B;jj++)	
@@ -713,7 +713,7 @@ void* ThreadFunc2( void* pArguments )
 		    {	
 		      p1=(k+kk)*rows*cols+(j+jj)*cols+(i+ii);  
 		      p=kk*B*B+jj*B+ii;
-		      /*fimaB1[p1]+=(1/(indB1+1))*b3[p]; /*ZC  thresholdB1*thresholdB1*thresholdB1*/
+		      /*		      fimaB1[p1]+=(1/(indB1+1))*b3[p]; /*ZC  thresholdB1*thresholdB1*thresholdB1*/
 		      if(rician>0)
 			{                 
 			  iii=(int)(b[p]);                 
@@ -763,14 +763,14 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #endif
 
   mexPrintf("cM_ODCT3D: \n");
-  if(nrhs != 3) {
+  if (nrhs != 3) {
     mexErrMsgIdAndTxt("MyODCT3d:nrhs",
                       "Two inputs required.");
     return;
   }
-  if(nlhs != 1) {
+  if (nlhs > 5 || nlhs < 1) {
     mexErrMsgIdAndTxt("MyODCT3d:nlhs",
-                      "One output required.");
+                      "One to Five outputs required.");
     return;
   }
   /* Parse input args */
@@ -846,12 +846,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   Nthreads = 16;/*floor((float)dims[2]/(float)B);*/
 
   N=B;
-  tabla1=(float*)mxMalloc(N*N*sizeof(float));
-  tabla2=(float*)mxMalloc(N*N*sizeof(float));
-  for(r=0;r<N;r++) for(k=0;k<N;k++) tabla1[r*N+k]=cos((PI*(2*k+1)*r)/(2*N));               
-  for(r=0;r<N;r++) for(k=0;k<N;k++) tabla2[r*N+k]=cos((PI*(2*r+1)*k)/(2*N));      
-  W1=sqrt(1/(float)N);
-  W2=sqrt(2/(float)N);	
+  tabla1=(double*)mxMalloc(N*N*sizeof(double));
+  tabla2=(double*)mxMalloc(N*N*sizeof(double));
+
+  for(r=0;r<N;r++) for(k=0;k<N;k++) tabla1[r*N+k]=cos((double)(PI*(2*k+1)*r)/(double)(2*N));               
+  for(r=0;r<N;r++) for(k=0;k<N;k++) tabla2[r*N+k]=cos((double)(PI*(2*r+1)*k)/(double)(2*N));      
+  W1=sqrt(1/(double)N);
+  W2=sqrt(2/(double)N);	
 
 
   /*mibias=mxMalloc(max*sizeof(float));*/
