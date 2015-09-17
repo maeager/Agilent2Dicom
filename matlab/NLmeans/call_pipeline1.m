@@ -63,7 +63,7 @@ else
     return
 end
 
-if nargin == 3 && ~isempty(in2)
+if nargin >= 3 && ~isempty(in2)
     display('Pipeline 1 with real and imag')
     if exist(in2,'file') && ~isempty(strfind(in2,'.nii')) 
         nii2_in=load_nii(in2);

@@ -1341,8 +1341,8 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             return -1
         elif self.ui.AONLM2.isChecked():
             return -2
-#        elif self.ui.ONLM2.isChecked():
-#            return -3
+        elif self.ui.ONLM2.isChecked():
+            return -3
         elif self.ui.ODCT2.isChecked():
             return -4
         else:
@@ -1394,6 +1394,10 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
 #            radioButton_NLreps
             inputRI = int(self.ui.radioButton_NLinputRI.isChecked())
             NLfilter = self.GetNLfilter()
+
+            if not input2_dir and inputRI:
+                input2_dir='[]'
+
             
             if self.ui.checkBox_NLenableparams.isChecked():
                 (sigma,sigmaratio,searcharea,patcharea,rician)=self.GetNLparams()
