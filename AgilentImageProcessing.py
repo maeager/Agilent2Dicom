@@ -1387,18 +1387,14 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             # print 'this path: %s' % thispath
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
-            if not input2_dir:
-                input2_dir='[]'
-            output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
-
-#            radioButton_NLreps
             inputRI = int(self.ui.radioButton_NLinputRI.isChecked())
+            output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
             NLfilter = self.GetNLfilter()
 
-            if not input2_dir and inputRI:
+            if not input2_dir or inputRI:
                 input2_dir='[]'
+                inputRI=0
 
-            
             if self.ui.checkBox_NLenableparams.isChecked():
                 (sigma,sigmaratio,searcharea,patcharea,rician)=self.GetNLparams()
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%s,%s,%s,%s,%s);quit\" """ % (
@@ -1433,13 +1429,13 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         print 'ProcNLpipeline1 completed.'
         logging.info('ProcNLpipeline1 done')
 
+
     def ProcNLpipeline2(self):
         """Process NLpipeline2
         """
         try:
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
-            input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
-            
+            input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())            
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
             NLfilter = self.GetNLfilter()
             
@@ -1479,6 +1475,8 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         self.UpdateGUI()
         print 'ProcNLpipeline2 completed.'
         logging.info('ProcNLpipeline2 done')
+
+
 
     def ProcNLpipeline3(self):
         """Process NLpipeline3
