@@ -1349,30 +1349,33 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             return 0
 
     def GetNLparams(self):
-        sigmatext = str(self.ui.lineEdit_NLsigma)
-        if re.search('[0-9]', sigmatext[0]):
+        sigmatext = str(self.ui.lineEdit_NLsigma.text())
+        print sigmatext
+        if sigmatext and re.search('[0-9]', sigmatext[0]):
             sigma=float(sigmatext)
         else:
-            sigma='[]'
-        sigmaratiotext = str(self.ui.lineEdit_NLsigmaratio)
-        if re.search('[0-9]', sigmatext[0]):
+            sigma='[]' 
+
+        sigmaratiotext = str(self.ui.linedit_NLsigmaratio.text())
+        print sigmaratiotext        
+        if sigmaratiotext and re.search('[0-9]', sigmaratiotext[0]):
             sigmaratio=float(sigmaratiotext)
         else:
             sigmaratio='[]'
-        searchtext = str(self.ui.lineEdit_NLsearcharea)
-        if re.search('[0-9]', sigmatext[0]):
+        searchtext = str(self.ui.lineEdit_NLsearcharea.text())
+        if searchtext and re.search('[0-9]', searchtext[0]):
             searcharea=float(searchtext)
         else:
             searcharea='[]'
-        patchtext = str(self.ui.lineEdit_NLpatcharea)
-        if re.patch('[0-9]', sigmatext[0]):
+        patchtext = str(self.ui.lineEdit_NLpatcharea.text())
+        if patchtext and re.search('[0-9]', patchtext[0]):
             patcharea=float(patchtext)
         else:
             patcharea='[]'
         rician=1
         if not self.ui.checkBox_NLrician.isChecked():
             rician=0
-        return (sigma,sigmaratio,searcharea,patacharea,rician)
+        return (sigma,sigmaratio,searcharea,patcharea,rician)
             
     def ProcNLpipeline1(self):
         """Process NLpipeline1
@@ -1383,7 +1386,9 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
                 os.path.realpath(os.path.abspath(__file__)))
             # print 'this path: %s' % thispath
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
-            # input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
+            input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
+            if not input2_dir:
+                input2_dir='[]'
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
 
 #            radioButton_NLreps
@@ -1391,12 +1396,12 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             NLfilter = self.GetNLfilter()
             
             if self.ui.checkBox_NLenableparams.isChecked():
-                (sigma,factor,search,patch,rician)=self.GetNLparams()
-                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%s,%s,%s,%s,%s);quit\" """ % (
-                    proc_header, thispath, str(input1_dir), output_dir, NLfilter,str(sigma),str(sigmaratio),str(searcharea),str(patcharea),str(rician))
+                (sigma,sigmaratio,searcharea,patcharea,rician)=self.GetNLparams()
+                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%s,%s,%s,%s,%s);quit\" """ % (
+                    proc_header, thispath, str(input1_dir), output_dir, str(input2_dir), NLfilter,str(sigma),str(sigmaratio),str(searcharea),str(patcharea),str(rician))
             else:
-                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d);quit\" """ % (
-                proc_header, thispath, str(input1_dir), output_dir, NLfilter)
+                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,[],[],[],[],1);quit\" """ % (
+                proc_header, thispath, str(input1_dir), output_dir, str(input2_dir), NLfilter)
             print cmd
 
             # print cmd
@@ -1430,6 +1435,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         try:
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
+            
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
             NLfilter = self.GetNLfilter()
             
@@ -1437,7 +1443,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
             if self.ui.checkBox_NLenableparams.isChecked():
-                (sigma,factor,search,patch,rician)=self.GetNLparams()
+                (sigma,sigmaratio,searcharea,patcharea,rician)=self.GetNLparams()
 
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%s,%s,%s,%s,%s);quit\" """ % (
                     proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir),NLfilter,str(sigma),str(sigmaratio),str(searcharea),str(patcharea),str(rician))
@@ -1485,7 +1491,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
             if self.ui.checkBox_NLenableparams.isChecked():
-                (sigma,factor,search,patch,rician)=self.GetNLparams()
+                (sigma,sigmaratio,searcharea,patcharea,rician)=self.GetNLparams()
 
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;  call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%d,%s,%s,%s,%s,%s);quit\" """ % (
                     proc_header, thispath, str(input1_dir), str(input2_dir),
