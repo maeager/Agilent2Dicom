@@ -458,7 +458,7 @@ def Cardiac_ASL_recon(procpar, fid_header, dims, ksp_data_real, ksp_data_imag,  
 
 
     """
-    #procpar, fid_header, dims, ksp_data_real, ksp_data_imag = readfid(
+    # procpar, fid_header, dims, ksp_data_real, ksp_data_imag = readfid(
     #    fidfolder, procpar, args)
     FID = np.complex(ksp_data_real, ksp_data_imag)
     ns = procpar['ns']
@@ -469,16 +469,17 @@ def Cardiac_ASL_recon(procpar, fid_header, dims, ksp_data_real, ksp_data_imag,  
     ASL = 2
     numb = ASL * frames
     # pelist = [-63,  -31,    1,   33,   -62,  -30,    2,    34,   -61,   -29,     3,  35,  -60, -28,    4,   36,  -59, -27,     5,    37,  -58,   -26,   6,	38, - 57,  -25,   7,  39, -56,  -24, 8,    40,   -55,   -23,   9,   41, -54,   -22,   10,  42,  -53,  -21,   11,   43,  -52,  -20,	12, 44,  -51, -19, 13,    45, -50, -18,    14,   46,  -49,  -17,  15,    47,   -48,   -16,              16, 48, -47, -15,  17,    49,   -46,	-14,  18,   50,   -45, -13,    19,   51, -44,  -12,  20,   52,  -43,  -11,   21,   53,   -42,   -10,  22,    54, -41,  -9,  23,  55, -40,  -8,   24,   56,  -39,   -7,    25,   57,  -38,   -6,   26, 58, -37,   -5, 27,  59, -36,   -4,    28,    60, -35,   -3, 29,	61,  -34,    -2,   30,   62,  -33,   -1,   31,  63,  -32,   0,   32,  64]
-    for step in xrange(0,pe/4.0):
-        #pelist[(step*4+1):(step*4+4)]= step-63:pe/4.0:pe/2.0
-        pelist[(step*4 +1):(step*4+5)]= np.arange((step-int(pe/2.0-1)),int(pe/2.0)+1,int(pe/4.0))
-    #Check pelist with procpar
+    for step in xrange(0, pe / 4.0):
+        # pelist[(step*4+1):(step*4+4)]= step-63:pe/4.0:pe/2.0
+        pelist[(step * 4 + 1):(step * 4 + 5)] = np.arange((step -
+                                                           int(pe / 2.0 - 1)), int(pe / 2.0) + 1, int(pe / 4.0))
+    # Check pelist with procpar
     if 'pelist' in procpar.keys() and len(procpar['pelist']) == pe:
-        pediff = np.sum(np.array(pelist)-np.array(procpar['pelist']))
+        pediff = np.sum(np.array(pelist) - np.array(procpar['pelist']))
         if pediff != 0:
             print 'Procpar pelist does not match ASL recon list'
             print 'Using calculated version instead of procpar.'
-        
+
     fidtmp = np.reshape(FID, [ro, seg, ns, pe / seg * numb])
     ksp = np.zeros(ro, pe, numb, ns)
     for ll in xrange(1, ns):
@@ -520,12 +521,15 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
         img = np.empty([dims[0], dims[1], dims[2], fid_header['nChannels'],
                         fid_header['nEchoes']], dtype=np.complex64)  # float32
     # Setup pelist
-    if 'pelist' in procpar.keys() and len(procpar['pelist']) > 1  :
-        pelist = np.array(procpar['pelist']).astype(int) - int(min(procpar['pelist']))
-    elif 'pe2list' in procpar.keys() and len(procpar['pe2list']) > 1 
-        pelist = np.array(procpar['pe2list']).astype(int) - int(min(procpar['pe2list']))
-    elif 'sgepelist' in procpar.keys() and len(procpar['sgepelist']) > 1 
-        pelist = np.array(procpar['sgepelist']).astype(int) - int(min(procpar['sgepelist']))
+    if 'pelist' in procpar.keys() and len(procpar['pelist']) > 1:
+        pelist = np.array(procpar['pelist']).astype(
+            int) - int(min(procpar['pelist']))
+    elif 'pe2list' in procpar.keys() and len(procpar['pe2list']) > 1
+        pelist = np.array(procpar['pe2list']).astype(
+            int) - int(min(procpar['pe2list']))
+    elif 'sgepelist' in procpar.keys() and len(procpar['sgepelist']) > 1
+        pelist = np.array(procpar['sgepelist']).astype(
+            int) - int(min(procpar['sgepelist']))
     if procpar['nD'] == 2 and procpar['ni2'] == 1:
         print 'Reconstructing mode 1: 2D slices'
         if fid_header['nEchoes'] == 1 and fid_header['nChannels'] == 1:
@@ -1285,11 +1289,11 @@ typedef enum {
         fdf_properties['array_index']
         ds.FrameAcquisitionNumber = fdf_properties['array_index']
         loc = numpy.array(fdf_properties['location'], dtype='|S9')
-        ds.ImagePositionPatient = [loc[0], loc[1],loc[2]]
+        ds.ImagePositionPatient = [loc[0], loc[1], loc[2]]
         orient = numpy.array(fdf_properties['orientation'], dtype='|S9')
         ds.ImageOrientationPatient = [orient[0], orient[1], orient[2],
                                       orient[3], orient[4], orient[5],
-                                      orient[6], orient[7], orient[8]]    
+                                      orient[6], orient[7], orient[8]]
     else:
         ds.AcquisitionNumber = BValueSortIdx[diffusion_idx]
 
@@ -1772,7 +1776,8 @@ def ParseFID(ds, fid_properties, procpar, args):
     DimOrgSeq = Dataset()
     #ds.add_new((0x0020,0x9164), 'UI', DimensionOrganizationUID)
 
-    if (ds.ImageType[2] == "MULTIECHO") or (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):  # or SEQUENCE == "Diffusion":
+    # or SEQUENCE == "Diffusion":
+    if (ds.ImageType[2] == "MULTIECHO") or (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):
         DimensionOrganizationUID = [ProcparToDicomMap.CreateUID(A2D.UID_Type_DimensionIndex1,
                                                                 [], [], args.verbose),
                                     ProcparToDicomMap.CreateUID(A2D.UID_Type_DimensionIndex2,
@@ -1810,7 +1815,7 @@ def ParseFID(ds, fid_properties, procpar, args):
             (0x0020, 0x9164), 'UI', DimOrgSeq.DimensionOrganizationUID[1])
         DimIndexSeq2.DimensionDescriptionLabel = 'Fourth dimension (multiecho)'
         ds.DimensionIndexSequence = Sequence([DimIndexSeq2, DimIndexSeq1])
-           
+
     elif (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):
         DimIndexSeq1 = Dataset()
         # Image position patient 20,32 or 20,12
@@ -1824,7 +1829,8 @@ def ParseFID(ds, fid_properties, procpar, args):
         DimIndexSeq1.DimensionDescriptionLabel = 'Third Spatial dimension'
 
         DimIndexSeq2 = Dataset()
-        DimIndexSeq2.DimensionIndexPointer = (0x0018, 0x9087) # Diffusion b-value
+        DimIndexSeq2.DimensionIndexPointer = (
+            0x0018, 0x9087)  # Diffusion b-value
         # DimIndexSeq2.DimensionIndexPrivateCreator=
         # DimIndexSeq2.FunctionalGroupPointer=
         # DimIndexSeq2.FunctionalGroupPrivateCreator=
@@ -2198,7 +2204,7 @@ def SaveKspace(ksp, args):
 # end SaveSaveKspace
 
 
-## Agilent Xrecon
+# Agilent Xrecon
     # if (spar(&d0,"apptype","im1D")) recon1D(&d0);
 
     # else if (spar(&d0,"apptype","im2D")) recon2D(&d0);
@@ -2210,7 +2216,6 @@ def SaveKspace(ksp, args):
     # else if (spar(&d0,"apptype","im3D")) recon3D(&d0);
 
     # else if (spar(&d0,"apptype","im3Dfse")) recon3D(&d0);
-
 
 
 if __name__ == "__main__":

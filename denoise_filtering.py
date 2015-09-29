@@ -232,13 +232,13 @@ if __name__ == "__main__":
     pp, hdr, dims, data_real, data_imag=readfid(args.inputdir,
                                                   procpar, args)
     print "Echoes: ", hdr['nEchoes'], " Channels: ", hdr['nChannels']
-    affine = np.eye(4)
+    affine=np.eye(4)
     # # affine[:3, :3]= np.arange(9).reshape((3, 3))
     # raw_data = nib.Nifti1Image(normalise(image_data_real), affine)
     # nib.save(raw_data, 'raw_data.nii.gz')
 
     print "Computing Original image (reconstruction)"
-    image, ksp = recon(pp, dims, hdr,
+    image, ksp=recon(pp, dims, hdr,
                        data_real,
                        data_imag, args)
     del data_real, data_imag
