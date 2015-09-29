@@ -61,7 +61,7 @@ typedef struct {
     float * in_image;
     float * means_image;
     float * var_image;
-    float * coilsens;
+    float * coilsens_image;
     float * estimate;
     float * label;
     int ini;
@@ -185,7 +185,7 @@ float distance(float* ima, int x, int y, int z, int nx, int ny, int nz, int f, i
 
     float d, acu, distancetotal, inc;
     int i, j, k, ni1, nj1, ni2, nj2, nk1, nk2, kk, sxy;
-
+    
     sxy = sx * sy;
 
     acu = 0;
@@ -234,8 +234,10 @@ void* ThreadFunc(void* pArguments)
 {
   float  *Estimate, *Label, *ima, *means, *coilsens,*variances, *average;
   float bias,sigma, gamma,epsilon, mu1, var1, totalweight, wmax, t1, t2, d, w, h, hh;
-  int rows, cols, slices, ini, fin, radiusB, radiusS, init, i, j, k, rc, ii, jj, kk, ni, nj, nk, Ndims;
-
+  int rows, cols, slices, ini, fin, radiusB, radiusS, init,Ndims; //constants
+  int i, j, k, rc, ii, jj, kk, ni, nj, nk; //loop variables
+  int p1,p2; //pixel index one and two
+  
     myargument arg;
     arg = *(myargument *) pArguments;
 
@@ -278,7 +280,9 @@ void* ThreadFunc(void* pArguments)
 
                 /*average=0;*/
                 totalweight = 0.0;
-                if ((means[k * rc + (j * cols) + i]) > epsilon && (variances[k * rc + (j * cols) + i] > epsilon))
+		p1=k * rc + (j * cols) + i;
+		
+                if ((means[p1]) > epsilon && (variances[p1] > epsilon))
                 {
                     wmax = 0.0;
                     for (kk = -radiusB; kk <= radiusB; kk++)
@@ -295,10 +299,12 @@ void* ThreadFunc(void* pArguments)
 
                                 if (ni >= 0 && nj >= 0 && nk >= 0 && ni < cols && nj < rows && nk < slices)
                                 {
-                                    if ((means[nk * (rc) + (nj * cols) + ni]) > epsilon && (variances[nk * rc + (nj * cols) + ni] > epsilon))
+				  p2= nk * (rc) + (nj * cols) + ni;
+				  
+                                    if ((means[p2]) > epsilon && (variances[p2] > epsilon))
                                     {
-                                        t1 = (means[k * rc + (j * cols) + i]) / (means[nk * rc + (nj * cols) + ni]);
-                                        t2 = (variances[k * rc + (j * cols) + i]) / (variances[nk * rc + (nj * cols) + ni]);
+                                        t1 = (means[p1]) / (means[p2]);
+                                        t2 = (variances[p1]) / (variances[p2]);
 
                                         if (t1 > mu1 && t1 < (1 / mu1) && t2 > var1 && t2 < (1 / var1))
                                         {
@@ -306,7 +312,7 @@ void* ThreadFunc(void* pArguments)
                                             d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
 					    //Eager Ammendment
 					    // add coil sensitivty B1 correction factor to weight
-					    gamma = max(coilsens[p],coilsens[p1])/ min(coilsens[p],coilsens[p1]);
+					    gamma = max(coilsens[p1],coilsens[p2])/ min(coilsens[p1],coilsens[p2]);
 					    if (gamma>0) d *= (gamma*gamma);
 
                                             w = exp(-d / (hh));
