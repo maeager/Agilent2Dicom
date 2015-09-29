@@ -90,7 +90,8 @@ switch NLfilter
 				       hfinal, ...
 				       rician,0);toc()   
 				       filtername='ODCT2';
-otherwise
+
+ otherwise
 display('Processing Real denoised image - MRONLM')
 tic(),MRIdenoised = MRIDenoisingMRONLM(ima1,hfinal,...
 				       beta_, patcharea, searcharea, ...
