@@ -1,7 +1,5 @@
 # README #
 
-## Quick summary ##
-
 The *Agilent2Dicom* package is a series of bash and python scripts to
 convert FDF (Vnmrj reconstruction) and FID (raw k-sapce) images from
 the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into
@@ -12,14 +10,15 @@ Homepage: [Project's MBI intranet homepage](https://confluence-vre.its.monash.ed
 
 Source code: 
 
-[https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom](https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom)
+[https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom](https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom) [Public]
 
+[https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom](https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom) [DEVELOPMENT]
 
 [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom) [DEPRECIATED]
 
+Version: Agilent2Dicom is at version 2.0.3
 
-Version: Agilent2Dicom is at version 2.0.1
-
+[TOC]
 
 ## Basic overview ##
 
