@@ -59,6 +59,7 @@ if nargin < 5 || isempty(hfactor)
 end    
 hfinal_real = est_std_real/sqrt(2);
 hfinal_imag = est_std_imag/sqrt(2);
+
 hfinal_real = hfinal_real * (hfactor/100)
 hfinal_imag = hfinal_imag * (hfactor/100)
 
@@ -174,8 +175,8 @@ switch NLfilter
     filtername='MRONLM';
 end
 
-
-MRIdenoised = complex(MRIdenoised_real, MRIdenoised_imag+ min_imag);
+% Re-apply imaginary magnitude
+MRIdenoised = complex(MRIdenoised_real, MRIdenoised_imag + min_imag);
 
 
 

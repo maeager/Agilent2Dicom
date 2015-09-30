@@ -6,7 +6,7 @@
 
   Monash Biomedical Imaging
   Monash University, 2015
- *******************/
+*******************/
 
 /***************************************************************************                  
 /* Jose V. Manjon - jmanjon@fis.upv.es                                     */
@@ -49,7 +49,7 @@ typedef struct{
   float * out_image;
   float * out_image2;
   float * acu_image;
- float * B1_image;
+  float * B1_image;
   int ini;
   int fin;    
   float sigma;
@@ -63,30 +63,30 @@ int rician;
 
 
 /*
-https://dst.lbl.gov/ACSSoftware/colt/
+  https://dst.lbl.gov/ACSSoftware/colt/
 */
 	
-	/****************************************
-	 *    COEFFICIENTS FOR METHODS i1, i1e  *
-	 ****************************************/
+/****************************************
+ *    COEFFICIENTS FOR METHODS i1, i1e  *
+ ****************************************/
 
 static double chbevl( double x, double coef[], int N ) {
-	double b0, b1, b2;
+  double b0, b1, b2;
 
-	int p = 0;
-	int i;
+  int p = 0;
+  int i;
 
-	b0 = coef[p++];
-	b1 = 0.0;
-	i = N - 1;
+  b0 = coef[p++];
+  b1 = 0.0;
+  i = N - 1;
 
-	do {
-		b2 = b1;
-		b1 = b0;
-		b0 = x * b1  -  b2  + coef[p++];
-	} while( --i > 0);
+  do {
+    b2 = b1;
+    b1 = b0;
+    b0 = x * b1  -  b2  + coef[p++];
+  } while( --i > 0);
 
-	return( 0.5*(b0-b2) );
+  return( 0.5*(b0-b2) );
 }
 /**
  * Returns the modified Bessel function of order 0 of the
@@ -101,85 +101,85 @@ static double chbevl( double x, double coef[], int N ) {
  * @param x the value to compute the bessel function of.
  */
 static  double i0(double x) {
-	double y;
+  double y;
 
-	 static  double A_i0[] = {
-		-4.41534164647933937950E-18,
-		 3.33079451882223809783E-17,
-		-2.43127984654795469359E-16,
-		 1.71539128555513303061E-15,
-		-1.16853328779934516808E-14,
-		 7.67618549860493561688E-14,
-		-4.85644678311192946090E-13,
-		 2.95505266312963983461E-12,
-		-1.72682629144155570723E-11,
-		 9.67580903537323691224E-11,
-		-5.18979560163526290666E-10,
-		 2.65982372468238665035E-9,
-		-1.30002500998624804212E-8,
-		 6.04699502254191894932E-8,
-		-2.67079385394061173391E-7,
-		 1.11738753912010371815E-6,
-		-4.41673835845875056359E-6,
-		 1.64484480707288970893E-5,
-		-5.75419501008210370398E-5,
-		 1.88502885095841655729E-4,
-		-5.76375574538582365885E-4,
-		 1.63947561694133579842E-3,
-		-4.32430999505057594430E-3,
-		 1.05464603945949983183E-2,
-		-2.37374148058994688156E-2,
-		 4.93052842396707084878E-2,
-		-9.49010970480476444210E-2,
-		 1.71620901522208775349E-1,
-		-3.04682672343198398683E-1,
-		 6.76795274409476084995E-1
-		};
-
-
-
-	/**
-	 * Chebyshev coefficients for exp(-x) sqrt(x) I0(x)
-	 * in the inverted interval [8,infinity].
-	 *
-	 * lim(x->inf){ exp(-x) sqrt(x) I0(x) } = 1/sqrt(2pi).
-	 */
-	 static  double B_i0[] = {
-		-7.23318048787475395456E-18,
-		-4.83050448594418207126E-18,
-		 4.46562142029675999901E-17,
-		 3.46122286769746109310E-17,
-		-2.82762398051658348494E-16,
-		-3.42548561967721913462E-16,
-		 1.77256013305652638360E-15,
-		 3.81168066935262242075E-15,
-		-9.55484669882830764870E-15,
-		-4.15056934728722208663E-14,
-		 1.54008621752140982691E-14,
-		 3.85277838274214270114E-13,
-		 7.18012445138366623367E-13,
-		-1.79417853150680611778E-12,
-		-1.32158118404477131188E-11,
-		-3.14991652796324136454E-11,
-		 1.18891471078464383424E-11,
-		 4.94060238822496958910E-10,
-		 3.39623202570838634515E-9,
-		 2.26666899049817806459E-8,
-		 2.04891858946906374183E-7,
-		 2.89137052083475648297E-6,
-		 6.88975834691682398426E-5,
-		 3.36911647825569408990E-3,
-		 8.04490411014108831608E-1
-		};
+  static  double A_i0[] = {
+    -4.41534164647933937950E-18,
+    3.33079451882223809783E-17,
+    -2.43127984654795469359E-16,
+    1.71539128555513303061E-15,
+    -1.16853328779934516808E-14,
+    7.67618549860493561688E-14,
+    -4.85644678311192946090E-13,
+    2.95505266312963983461E-12,
+    -1.72682629144155570723E-11,
+    9.67580903537323691224E-11,
+    -5.18979560163526290666E-10,
+    2.65982372468238665035E-9,
+    -1.30002500998624804212E-8,
+    6.04699502254191894932E-8,
+    -2.67079385394061173391E-7,
+    1.11738753912010371815E-6,
+    -4.41673835845875056359E-6,
+    1.64484480707288970893E-5,
+    -5.75419501008210370398E-5,
+    1.88502885095841655729E-4,
+    -5.76375574538582365885E-4,
+    1.63947561694133579842E-3,
+    -4.32430999505057594430E-3,
+    1.05464603945949983183E-2,
+    -2.37374148058994688156E-2,
+    4.93052842396707084878E-2,
+    -9.49010970480476444210E-2,
+    1.71620901522208775349E-1,
+    -3.04682672343198398683E-1,
+    6.76795274409476084995E-1
+  };
 
 
-	if( x < 0 ) x = -x;
-	if( x <= 8.0 ) {
-		y = (x/2.0) - 2.0;
-		return( exp(x) * chbevl( y, A_i0, 30 ) );
-	}
 
-	return(  exp(x) * chbevl( 32.0/x - 2.0, B_i0, 25 ) / sqrt(x) );
+  /**
+   * Chebyshev coefficients for exp(-x) sqrt(x) I0(x)
+   * in the inverted interval [8,infinity].
+   *
+   * lim(x->inf){ exp(-x) sqrt(x) I0(x) } = 1/sqrt(2pi).
+   */
+  static  double B_i0[] = {
+    -7.23318048787475395456E-18,
+    -4.83050448594418207126E-18,
+    4.46562142029675999901E-17,
+    3.46122286769746109310E-17,
+    -2.82762398051658348494E-16,
+    -3.42548561967721913462E-16,
+    1.77256013305652638360E-15,
+    3.81168066935262242075E-15,
+    -9.55484669882830764870E-15,
+    -4.15056934728722208663E-14,
+    1.54008621752140982691E-14,
+    3.85277838274214270114E-13,
+    7.18012445138366623367E-13,
+    -1.79417853150680611778E-12,
+    -1.32158118404477131188E-11,
+    -3.14991652796324136454E-11,
+    1.18891471078464383424E-11,
+    4.94060238822496958910E-10,
+    3.39623202570838634515E-9,
+    2.26666899049817806459E-8,
+    2.04891858946906374183E-7,
+    2.89137052083475648297E-6,
+    6.88975834691682398426E-5,
+    3.36911647825569408990E-3,
+    8.04490411014108831608E-1
+  };
+
+
+  if( x < 0 ) x = -x;
+  if( x <= 8.0 ) {
+    y = (x/2.0) - 2.0;
+    return( exp(x) * chbevl( y, A_i0, 30 ) );
+  }
+
+  return(  exp(x) * chbevl( 32.0/x - 2.0, B_i0, 25 ) / sqrt(x) );
 }
 /**
  * Returns the exponentially scaled modified Bessel function
@@ -190,17 +190,17 @@ static  double i0(double x) {
  *
  * @param x the value to compute the bessel function of.
  *
-static  double i0e(double x){
-	double y;
+ static  double i0e(double x){
+ double y;
 	
-	if( x < 0 ) x = -x;
-	if( x <= 8.0 ) {
-		y = (x/2.0) - 2.0;
-		return( chbevl( y, A_i0, 30 ) );
-	}
+ if( x < 0 ) x = -x;
+ if( x <= 8.0 ) {
+ y = (x/2.0) - 2.0;
+ return( chbevl( y, A_i0, 30 ) );
+ }
 
-	return( chbevl( 32.0/x - 2.0, B_i0, 25 ) / sqrt(x) );
-}*/
+ return( chbevl( 32.0/x - 2.0, B_i0, 25 ) / sqrt(x) );
+ }*/
 /**
  * Returns the modified Bessel function of order 1 of the
  * argument.
@@ -214,92 +214,92 @@ static  double i0e(double x){
  * @param x the value to compute the bessel function of.
  */
 static  double i1(double x)  {
-	double y, z;
-	/**
-	 * Chebyshev coefficients for exp(-x) I1(x) / x
-	 * in the interval [0,8].
-	 *
-	 * lim(x->0){ exp(-x) I1(x) / x } = 1/2.
-	 */
-	 static  double A_i1[] = {
-		 2.77791411276104639959E-18,
-		-2.11142121435816608115E-17,
-		 1.55363195773620046921E-16,
-		-1.10559694773538630805E-15,
-		 7.60068429473540693410E-15,
-		-5.04218550472791168711E-14,
-		 3.22379336594557470981E-13,
-		-1.98397439776494371520E-12,
-		 1.17361862988909016308E-11,
-		-6.66348972350202774223E-11,
-		 3.62559028155211703701E-10,
-		-1.88724975172282928790E-9,
-		 9.38153738649577178388E-9,
-		-4.44505912879632808065E-8,
-		 2.00329475355213526229E-7,
-		-8.56872026469545474066E-7,
-		 3.47025130813767847674E-6,
-		-1.32731636560394358279E-5,
-		 4.78156510755005422638E-5,
-		-1.61760815825896745588E-4,
-		 5.12285956168575772895E-4,
-		-1.51357245063125314899E-3,
-		 4.15642294431288815669E-3,
-		-1.05640848946261981558E-2,
-		 2.47264490306265168283E-2,
-		-5.29459812080949914269E-2,
-		 1.02643658689847095384E-1,
-		-1.76416518357834055153E-1,
-		 2.52587186443633654823E-1
-		};
+  double y, z;
+  /**
+   * Chebyshev coefficients for exp(-x) I1(x) / x
+   * in the interval [0,8].
+   *
+   * lim(x->0){ exp(-x) I1(x) / x } = 1/2.
+   */
+  static  double A_i1[] = {
+    2.77791411276104639959E-18,
+    -2.11142121435816608115E-17,
+    1.55363195773620046921E-16,
+    -1.10559694773538630805E-15,
+    7.60068429473540693410E-15,
+    -5.04218550472791168711E-14,
+    3.22379336594557470981E-13,
+    -1.98397439776494371520E-12,
+    1.17361862988909016308E-11,
+    -6.66348972350202774223E-11,
+    3.62559028155211703701E-10,
+    -1.88724975172282928790E-9,
+    9.38153738649577178388E-9,
+    -4.44505912879632808065E-8,
+    2.00329475355213526229E-7,
+    -8.56872026469545474066E-7,
+    3.47025130813767847674E-6,
+    -1.32731636560394358279E-5,
+    4.78156510755005422638E-5,
+    -1.61760815825896745588E-4,
+    5.12285956168575772895E-4,
+    -1.51357245063125314899E-3,
+    4.15642294431288815669E-3,
+    -1.05640848946261981558E-2,
+    2.47264490306265168283E-2,
+    -5.29459812080949914269E-2,
+    1.02643658689847095384E-1,
+    -1.76416518357834055153E-1,
+    2.52587186443633654823E-1
+  };
 
-	/*
-	 * Chebyshev coefficients for exp(-x) sqrt(x) I1(x)
-	 * in the inverted interval [8,infinity].
-	 *
-	 * lim(x->inf){ exp(-x) sqrt(x) I1(x) } = 1/sqrt(2pi).
-	 */
-	 static  double B_i1[] = {
-		 7.51729631084210481353E-18,
-		 4.41434832307170791151E-18,
-		-4.65030536848935832153E-17,
-		-3.20952592199342395980E-17,
-		 2.96262899764595013876E-16,
-		 3.30820231092092828324E-16,
-		-1.88035477551078244854E-15,
-		-3.81440307243700780478E-15,
-		 1.04202769841288027642E-14,
-		 4.27244001671195135429E-14,
-		-2.10154184277266431302E-14,
-		-4.08355111109219731823E-13,
-		-7.19855177624590851209E-13,
-		 2.03562854414708950722E-12,
-		 1.41258074366137813316E-11,
-		 3.25260358301548823856E-11,
-		-1.89749581235054123450E-11,
-		-5.58974346219658380687E-10,
-		-3.83538038596423702205E-9,
-		-2.63146884688951950684E-8,
-		-2.51223623787020892529E-7,
-		-3.88256480887769039346E-6,
-		-1.10588938762623716291E-4,
-		-9.76109749136146840777E-3,
-		 7.78576235018280120474E-1
-		};
+  /*
+   * Chebyshev coefficients for exp(-x) sqrt(x) I1(x)
+   * in the inverted interval [8,infinity].
+   *
+   * lim(x->inf){ exp(-x) sqrt(x) I1(x) } = 1/sqrt(2pi).
+   */
+  static  double B_i1[] = {
+    7.51729631084210481353E-18,
+    4.41434832307170791151E-18,
+    -4.65030536848935832153E-17,
+    -3.20952592199342395980E-17,
+    2.96262899764595013876E-16,
+    3.30820231092092828324E-16,
+    -1.88035477551078244854E-15,
+    -3.81440307243700780478E-15,
+    1.04202769841288027642E-14,
+    4.27244001671195135429E-14,
+    -2.10154184277266431302E-14,
+    -4.08355111109219731823E-13,
+    -7.19855177624590851209E-13,
+    2.03562854414708950722E-12,
+    1.41258074366137813316E-11,
+    3.25260358301548823856E-11,
+    -1.89749581235054123450E-11,
+    -5.58974346219658380687E-10,
+    -3.83538038596423702205E-9,
+    -2.63146884688951950684E-8,
+    -2.51223623787020892529E-7,
+    -3.88256480887769039346E-6,
+    -1.10588938762623716291E-4,
+    -9.76109749136146840777E-3,
+    7.78576235018280120474E-1
+  };
 
-	z = fabs(x);
-	if( z <= 8.0 )
-		{
-		y = (z/2.0) - 2.0;
-		z = chbevl( y, A_i1, 29 ) * z * exp(z);
-		}
-	else
-		{
-		z = exp(z) * chbevl( 32.0/z - 2.0, B_i1, 25 ) / sqrt(z);
-		}
-	if( x < 0.0 )
-		z = -z;
-	return( z );
+  z = fabs(x);
+  if( z <= 8.0 )
+    {
+      y = (z/2.0) - 2.0;
+      z = chbevl( y, A_i1, 29 ) * z * exp(z);
+    }
+  else
+    {
+      z = exp(z) * chbevl( 32.0/z - 2.0, B_i1, 25 ) / sqrt(z);
+    }
+  if( x < 0.0 )
+    z = -z;
+  return( z );
 }
 /**
  * Returns the exponentially scaled modified Bessel function
@@ -309,23 +309,23 @@ static  double i1(double x)  {
  * 
  * @param x the value to compute the bessel function of.
  *
-static  double i1e(double x) { 
-double y, z;
+ static  double i1e(double x) { 
+ double y, z;
 
-z = fabs(x);
-if( z <= 8.0 )
-	{
-	y = (z/2.0) - 2.0;
-	z = chbevl( y, A_i1, 29 ) * z;
-	}
-else
-	{
-	z = chbevl( 32.0/z - 2.0, B_i1, 25 ) / sqrt(z);
-	}
-if( x < 0.0 )
-	z = -z;
-return( z );
-}*/
+ z = fabs(x);
+ if( z <= 8.0 )
+ {
+ y = (z/2.0) - 2.0;
+ z = chbevl( y, A_i1, 29 ) * z;
+ }
+ else
+ {
+ z = chbevl( 32.0/z - 2.0, B_i1, 25 ) / sqrt(z);
+ }
+ if( x < 0.0 )
+ z = -z;
+ return( z );
+ }*/
 
 
 
@@ -333,21 +333,21 @@ return( z );
 double Bessel0(double x)
 {
   /*  double ax,ans,a;
-  double y; 
-  if ((ax=fabs(x)) < 3.75) 
-    { 
+      double y; 
+      if ((ax=fabs(x)) < 3.75) 
+      { 
       y=x/3.75;
       y*=y;
       ans=1.0+y*(3.5156229+y*(3.0899424+y*(1.2067492+y*(0.2659732+y*(0.360768e-1+y*0.45813e-2)))));
-    } 
-  else 
-    {
+      } 
+      else 
+      {
       y=3.75/ax;
       ans=(exp(ax)/sqrt(ax));
       a=y*(0.916281e-2+y*(-0.2057706e-1+y*(0.2635537e-1+y*(-0.1647633e-1+y*0.392377e-2))));
       ans=ans*(0.39894228 + y*(0.1328592e-1 +y*(0.225319e-2+y*(-0.157565e-2+a))));    
-    }
-  return ans;
+      }
+      return ans;
   */
   return i0(x);
 }
@@ -356,22 +356,22 @@ double Bessel0(double x)
 double Bessel1(double x)
 {
   /*
-  double ax,ans;
-  double y; 
-  if ((ax=fabs(x)) < 3.75)
+    double ax,ans;
+    double y; 
+    if ((ax=fabs(x)) < 3.75)
     { 
-      y=x/3.75;
-      y*=y;
-      ans=ax*(0.5+y*(0.87890594+y*(0.51498869+y*(0.15084934+y*(0.2658733e-1+y*(0.301532e-2+y*0.32411e-3))))));
+    y=x/3.75;
+    y*=y;
+    ans=ax*(0.5+y*(0.87890594+y*(0.51498869+y*(0.15084934+y*(0.2658733e-1+y*(0.301532e-2+y*0.32411e-3))))));
     } 
-  else 
+    else 
     {
-      y=3.75/ax;
-      ans=0.2282967e-1+y*(-0.2895312e-1+y*(0.1787654e-1-y*0.420059e-2));
-      ans=0.39894228+y*(-0.3988024e-1+y*(-0.362018e-2+y*(0.163801e-2+y*(-0.1031555e-1+y*ans))));
-      ans *= (exp(ax)/sqrt(ax));
+    y=3.75/ax;
+    ans=0.2282967e-1+y*(-0.2895312e-1+y*(0.1787654e-1-y*0.420059e-2));
+    ans=0.39894228+y*(-0.3988024e-1+y*(-0.362018e-2+y*(0.163801e-2+y*(-0.1031555e-1+y*ans))));
+    ans *= (exp(ax)/sqrt(ax));
     }
-  return x < 0.0 ? -ans : ans;
+    return x < 0.0 ? -ans : ans;
   */
   return i1(x);
 }
@@ -406,6 +406,130 @@ void RicianBias(float level,int max,double * mibias, int N)
 	}
     }
 }
+
+
+
+/*http://epubs.siam.org/doi/pdf/10.1137/070693370*/
+void FastDCT3D(float *in, float *out, int dim)
+{
+  float opa[BLK][MAX2][MAX2][MAX2]; float opb[BLK][MAX2][MAX2][MAX2];
+  float h1,h2,h3,h4,h5,h6,h7,h8; float h1a,h2a,h3a,h4a,h5a,h6a,h7a,h8a;
+  float h1b,h2b,h3b,h4b,h5b,h6b,h7b,h8b;
+  register int i,j,k,l; register int dim2 = dim/2; register int index=dim/4-1;
+  if (dim==2)
+    {
+      h1 = *(in); h2 = *(in+hc1); h3 = *(in+hc2); h4 = *(in+hc3);
+      h5 = *(in+hc4); h6 = *(in+hc5); h7 = *(in+hc6); h8 = *(in+hc7);
+      h1a=h1+h2; h2a=h1-h2; h3a=h3+h4; h4a=h3-h4;
+      h5a=h5+h6; h6a=h5-h6; h7a=h7+h8; h8a=h7-h8;
+      h1b=h1a+h3a; h2b=h2a+h4a; h3b=h1a-h3a; h4b=h2a-h4a;
+      h5b=h5a+h7a; h6b=h6a+h8a; h7b=h5a-h7a; h8b=h6a-h8a;
+      *(out+ad0) = (h1b+h5b); *(out+ad1) = (h2b+h6b)*C14a;
+      *(out+ad2) = (h3b+h7b)*C14a; *(out+ad3) = (h4b+h8b)*C14b;
+      *(out+ad4) = (h1b-h5b)*C14a; *(out+ad5) = (h2b-h6b)*C14b;
+      *(out+ad6) = (h3b-h7b)*C14b; *(out+ad7) = (h4b-h8b)*C14c;
+      return ;
+    }
+  for (i=0;i<dim2;i++)
+    for (j=0;j<dim2;j++)
+      for (k=0;k<dim2;k++)
+	for (l=0;l<BLK;l++)
+	  opa[l][i][j][k] = *(in+adrev[index][l][i][j][k]);
+  for (i=0;i<dim2;i++)
+    for (j=0;j<dim2;j++)
+      for (k=0;k<dim2;k++)
+	{
+	  h1a=opa[0][i][j][k]+opa[1][i][j][k]; h2a=opa[0][i][j][k]-opa[1][i][j][k];
+	  h3a=opa[2][i][j][k]+opa[3][i][j][k]; h4a=opa[2][i][j][k]-opa[3][i][j][k];
+	  h5a=opa[4][i][j][k]+opa[5][i][j][k]; h6a=opa[4][i][j][k]-opa[5][i][j][k];
+	  h7a=opa[6][i][j][k]+opa[7][i][j][k]; h8a=opa[6][i][j][k]-opa[7][i][j][k];
+	  h1b=h1a+h3a; h2b=h2a+h4a;h3b=h1a-h3a;
+	  h4b=h2a-h4a; h5b=h5a+h7a;h6b=h6a+h8a; h7b=h5a-h7a; h8b=h6a-h8a;
+	  opb[0][i][j][k] = h1b+h5b; opb[1][i][j][k] = h2b+h6b;
+	  opb[2][i][j][k] = h3b+h7b; opb[3][i][j][k] = h4b+h8b;
+	  opb[4][i][j][k] = h1b-h5b; opb[5][i][j][k] = h2b-h6b;
+	  opb[6][i][j][k] = h3b-h7b; opb[7][i][j][k] = h4b-h8b;
+	}
+  for (i=0;i<dim2;i++)
+    for (j=0;j<dim2;j++)
+      for (k=0;k<dim2;k++)
+	{
+	  opa[0][i][j][k]=opb[0][i][j][k];
+	  for (l=1;l<BLK;l++)
+	    opa[l][i][j][k]=opb[l][i][j][k]*cosmul[index][l][i][j][k];
+	}
+  for (l=0;l<BLK;l++)
+    DCT3(&opa[l][0][0][0],&opb[l][0][0][0],dim2);
+  for (i=0;i<dim2;i++)
+    for (j=0;j<dim2;j++)
+      for (k=0;k<dim2;k++)
+	{
+	  opa[0][i][j][k]=opb[0][i][j][k];
+	  if (k<dim2-1)
+	    opa[1][i][j][k]=opb[1][i][j][k]+opb[1][i][j][k+1];
+	  else
+	    opa[1][i][j][k]=opb[1][i][j][k];
+	  if (j<dim2-1)
+	    opa[2][i][j][k]=opb[2][i][j][k]+opb[2][i][j+1][k];
+	  else
+	    opa[2][i][j][k]=opb[2][i][j][k];
+	  if (j<dim2-1 && k<dim2-1)
+	    opa[3][i][j][k]=opb[3][i][j][k]+opb[3][i][j][k+1]+
+	      opb[3][i][j+1][k]+opb[3][i][j+1][k+1];}
+  else if (j<dim2-1 && k==dim2-1)
+    opa[3][i][j][k]=opb[3][i][j][k]+opb[3][i][j+1][k];
+  else if (j==dim2-1 && k<dim2-1)
+    opa[3][i][j][k]=opb[3][i][j][k]+opb[3][i][j][k+1];
+  else
+    opa[3][i][j][k]=opb[3][i][j][k];
+  if (i<dim2-1)
+    opa[4][i][j][k]=opb[4][i][j][k]+opb[4][i+1][j][k];
+  else
+    opa[4][i][j][k]=opb[4][i][j][k];
+  if (i<dim2-1 && k<dim2-1)
+    opa[5][i][j][k]=opb[5][i][j][k]+opb[5][i][j][k+1]+
+      opb[5][i+1][j][k]+opb[5][i+1][j][k+1];
+  else if (i<dim2-1 && k==dim2-1)
+    opa[5][i][j][k]=opb[5][i][j][k]+opb[5][i+1][j][k];
+  else if (i==dim2-1 && k<dim2-1)
+    opa[5][i][j][k]=opb[5][i][j][k]+opb[5][i][j][k+1];
+  else
+    opa[5][i][j][k]=opb[5][i][j][k];
+  if (i<dim2-1 && j<dim2-1)
+    opa[6][i][j][k]=opb[6][i][j][k]+opb[6][i][j+1][k]+
+      opb[6][i+1][j][k]+opb[6][i+1][j+1][k];
+  else if (i<dim2-1 && j==dim2-1)
+    opa[6][i][j][k]=opb[6][i][j][k]+opb[6][i+1][j][k];
+  else if (i==dim2-1 && j<dim2-1)
+    opa[6][i][j][k]=opb[6][i][j][k]+opb[6][i][j+1][k];
+  else
+    opa[6][i][j][k]=opb[6][i][j][k];
+  if (i<dim2-1 && j<dim2-1 && k<dim2-1)
+    opa[7][i][j][k]=opb[7][i][j][k]+opb[7][i][j][k+1]+opb[7][i][j+1][k]+opb[7][i][j+
+										  1][k+1]+opb[7][i+1][j][k]+opb[7][i+1][j][k+1]+opb[7][i+1][j+1][k]+opb[7][i+1][j+1][k+1];
+  else if (i<dim2-1 && j<dim2-1 && k==dim2-1)
+    opa[7][i][j][k]=opb[7][i][j][k]+opb[7][i][j+1][k]+opb[7][i+1][j][k]+opb[7][i+1][j+1][k];
+  else if (i<dim2-1 && j==dim2-1 && k<dim2-1)
+    opa[7][i][j][k]=opb[7][i][j][k]+opb[7][i][j][k+1]+opb[7][i+1][j][k]+opb[7][i+1][j][k+1];
+  else if (i<dim2-1&&j==dim2-1 && k==dim2-1)
+    opa[7][i][j][k]=opb[7][i][j][k]+opb[7][i+1][j][k];
+  else if (i==dim2-1 && j<dim2-1 && k<dim2-1)
+    opa[7][i][j][k]=opb[7][i][j][k]+opb[7][i][j][k+1]+opb[7][i][j+1][k]+opb[7][i][j+1][k+1];
+  else if (i==dim2-1 && j<dim2-1 && k==dim2-1)
+    opa[7][i][j][k]=opb[7][i][j][k]+opb[7][i][j+1][k];
+  else if (i==dim2-1 && j==dim2-1 && k<dim2-1)
+    opa[7][i][j][k]=opb[7][i][j][k]+opb[7][i][j][k+1];
+  else
+    opa[7][i][j][k]=opb[7][i][j][k];
+}
+for (i=0;i<dim2;i++)
+  for (j=0;j<dim2;j++)
+    for (k=0;k<dim2;k++)
+      for (l=0;l<BLK;l++)
+	*(out+admul[index][l][i][j][k])=opa[l][i][j][k];
+}
+
+
 
 static void dct(float *data,float * vol)
 {
@@ -475,7 +599,7 @@ static void idct(float *data,float * vol)
   /* do the stuff         */
   for(r=0;r<B;r++) 
     {
-      vol[r] = (float)( W1*(double)data[0]*tabla2[r*B] + W2*(double)data[1]*tabla2[r*B+1] + W2*(double)data[2]*tabla2[r*B+2] + W2*(double)data[3]*tabla2[r*B+3] );                   
+      vol[r] = (float)( W1*(double)data[0]*tabla2[r*B] + W2*(double)data[1]*tabla2[r*B+1] + W2*(double)data[2]*tabla2[r*B+2] + W2*(double)data[3]*tabla2[r*B+3] );                  
     }
 }
 
@@ -530,7 +654,7 @@ void* ThreadFunc( void* pArguments )
   int ind,indB1,ii,jj,kk,i,j,k,ini,fin,rows,cols,slices,p,p1;   
   float b[64]; 
   float cb[64]; 
-   float b3[64]; 
+  float b3[64]; 
   float cb3[64];
   myargument arg;
   arg=*(myargument *) pArguments;
@@ -582,8 +706,8 @@ void* ThreadFunc( void* pArguments )
 		      else ind++;     
 		      if(abs(cb3[p])<TB1) cb3[p]=0; 
 		      else indB1++;  
-		      
-		      /*if (kk>thresholdB1 || jj>thresholdB1 || ii>thresholdB1 ) {
+		      /*
+			if (kk>thresholdB1 || jj>thresholdB1 || ii>thresholdB1 ) {
 			cb3[p]=0;
 			}else{ indB1++;}*/ 
                     }
@@ -601,7 +725,7 @@ void* ThreadFunc( void* pArguments )
                       /* agregation                  */
 		      /*fimaB1[p1] += (1.0f/(thresholdB1*thresholdB1*thresholdB1))**/
 		      fimaB1[p1] += zB1 * cb3[kk*B*B+jj*B+ii];
-                      fima[p1] += z * b[kk*B*B+jj*B+ii];  
+                      fima[p1] += zB1 * b3[kk*B*B+jj*B+ii];  
                       acu[p1]+=z;     
 
                     }  
@@ -698,11 +822,11 @@ void* ThreadFunc2( void* pArguments )
 	      /*ZC DCT threshold at rank 2 for B1*/
 	      /*for(kk=thresholdB1+1;kk<B;kk++)
 	        for(jj=thresholdB1+1;jj<B;jj++)	
-		  for(ii=thresholdB1+1;ii<B;ii++)
-		    {
-		      p=kk*B*B+jj*B+ii;              
-		      cb3[p]=0;                
-		    }
+		for(ii=thresholdB1+1;ii<B;ii++)
+		{
+		p=kk*B*B+jj*B+ii;              
+		cb3[p]=0;                
+		}
 	      */
 	      idct3(cb,b);
 	      idct3(cb3,b3); /*ZC*/
@@ -846,11 +970,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   Nthreads = 16;/*floor((float)dims[2]/(float)B);*/
 
   N=B;
-  tabla1=(double*)mxMalloc(N*N*sizeof(double));
-  tabla2=(double*)mxMalloc(N*N*sizeof(double));
+  tabla1 = (double*) mxMalloc(N*N*sizeof(double));
+  tabla2 = (double*) mxMalloc(N*N*sizeof(double));
 
-  for(r=0;r<N;r++) for(k=0;k<N;k++) tabla1[r*N+k]=cos((double)(PI*(2*k+1)*r)/(double)(2*N));               
-  for(r=0;r<N;r++) for(k=0;k<N;k++) tabla2[r*N+k]=cos((double)(PI*(2*r+1)*k)/(double)(2*N));      
+  for(r=0;r<N;r++) 
+    for(k=0;k<N;k++) 
+      tabla1[r*N + k] = cos((double)(PI*(2*k+1)*r)/(double)(2*N));               
+  for(r=0;r<N;r++) 
+    for(k=0;k<N;k++) 
+      tabla2[r*N + k] = cos((double)(PI*(2*r+1)*k)/(double)(2*N));      
   W1=sqrt(1/(double)N);
   W2=sqrt(2/(double)N);	
 
@@ -947,8 +1075,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   mexPrintf("cM_ODCT3D: Pthreading \n");
 
   /* 
-   Reserve room for handles of threads in ThreadList
-   */
+     Reserve room for handles of threads in ThreadList
+  */
   ThreadList = (pthread_t *) calloc(Nthreads,sizeof(pthread_t));
   ThreadArgs = (myargument*) calloc( Nthreads,sizeof(myargument));
   ThreadIndex = (int *)malloc(Nthreads* sizeof( int ));
@@ -956,8 +1084,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   for (i=0; i<Nthreads; i++)
     {       
       /* 
-        Make Thread Structure 
-       */
+	 Make Thread Structure 
+      */
       ini=ceil((i*(dims[2]-B))/Nthreads);
       if(i==Nthreads-1) fin=floor(((i+1)*(dims[2]-B))/Nthreads);
       else fin=floor(((i+1)*(dims[2]-B))/Nthreads)-1;   

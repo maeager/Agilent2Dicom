@@ -171,3 +171,15 @@ index e75593c..a2f3bb3 100644
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
  %
  %   kmeans image segmentation
+
+
+* New modifications of the CoupeDemo code
+
+http://personales.upv.es/jmanjon/denoising/prinlm.html
+
+ - Create mex routines for float (single) matricies, with double floats in Bessel/Rician calls.
+ - Allow multiple outputs of state variables
+ - Implement complex pipeline
+ - Implement B1
+
+

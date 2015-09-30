@@ -69,26 +69,25 @@ end
 
 %}
 
-    imaODCTr=myODCT3d(single(real(cmplxima)),sigma,rician); 
-    if ~isreal(cmplxima))
+imaODCTr=myODCT3d(single(real(cmplxima)),sigma,rician); 
+if ~isreal(cmplxima))
     imaODCTi=myODCT3d(single(imag(cmplxima)),single(sigma),rician);
+else
+    imaODCTi=imaODCTr*0;
+end
+imaODCT = abs(complex(imaODCTr,imaODCTi))
+map = find(imaODCT<0);
+imaODCT(map) =0; 
 
-    else
-        imaODCTi=imaODCTr*0;
-    end
-    imaODCT = abs(complex(imaODCTr,imaODCTi))
-    map = find(imaODCT<0);
-    imaODCT(map) =0; 
 %{
-    disp('.')
-    disp('Denoising using PRINLM')
-    disp('.')
-
+disp('.')
+disp('Denoising using PRINLM')
+disp('.')
 %}
 
 imaPRINLM=myRINLM3d(single(abs(cmplxima)),searcharea,patchsize,single(sigma),single(imaODCT),rician, single(coil)); 
-    map = find(imaPRINLM<0);
-    imaPRINLM(map) = 0;
+map = find(imaPRINLM<0);
+imaPRINLM(map) = 0;
 
 %{
     disp('                     Please cite')

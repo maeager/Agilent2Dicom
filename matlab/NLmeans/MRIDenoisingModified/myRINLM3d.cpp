@@ -27,6 +27,7 @@ Monash University, 2015
 #include "math.h"
 #include "mex.h"
 #include <stdlib.h>
+#include <stdio.h>
 #include "matrix.h"
 
 /* Multithreading stuff*/
@@ -53,13 +54,14 @@ typedef struct{
   int radioS;
   float sigma; 
   int order;
-}myargument;
+} myargument;
 
 bool rician;
 
 void* ThreadFunc( void* pArguments )
 {
-  float *ima,*fima,*medias,*pesos,*ref,*coilsens, sigma,w,d,hhh,hh,t1,alfa,x,betaCoil;
+  float *ima,*fima,*medias,*pesos,*ref,*coilsens, sigma,w,d,hhh,hh,t1,alfa,x;
+  float betaCoil=0.0;
   int ii,jj,kk,ni,nj,nk,i,j,k,ini,fin,rows,cols,slices,p,p1,radioS,radioB,order,rc;    
   extern bool rician;
   /*extern float *table;*/
@@ -67,21 +69,21 @@ void* ThreadFunc( void* pArguments )
   myargument arg;
   arg=*(myargument *) pArguments;
 
-  rows=arg.rows;    
-  cols=arg.cols;
-  slices=arg.slices;
-  ini=arg.ini;    
-  fin=arg.fin;
-  ima=arg.in_image;
-  fima=arg.out_image;
-  medias=arg.means_image;
-  ref=arg.ref_image;
-  coilsens=arg.coilsens_image;
-  pesos=arg.pesos;
-  radioB=arg.radioB;
-  radioS=arg.radioS;
-  sigma=arg.sigma;
-  order=arg.order;
+  rows = arg.rows;    
+  cols = arg.cols;
+  slices = arg.slices;
+  ini = arg.ini;    
+  fin = arg.fin;
+  ima = arg.in_image;
+  fima = arg.out_image;
+  medias = arg.means_image;
+  ref = arg.ref_image;
+  coilsens = arg.coilsens_image;
+  pesos = arg.pesos;
+  radioB = arg.radioB;
+  radioS = arg.radioS;
+  sigma = arg.sigma;
+  order = arg.order;
         
   hh=2*sigma*sigma;
   alfa=0.5;
@@ -133,13 +135,20 @@ void* ThreadFunc( void* pArguments )
 				  d=w*0.5 + d*0.5;
 
 				  //Coil sensitivity (B1) correction
-				  //betaCoil = (coilsens[p]-coilsens[p1]);
-				  //if (betaCoil>0) d *= (betaCoil*betaCoil);
- 
-
-				  if(d<=0) w=1.0;
-				  else if(d>10)w=0;
-				  else w = exp(-d);
+				  /*				  
+				     betaCoil = (coilsens[p] - coilsens[p1]);
+				   */
+				  if (betaCoil>0) {
+				    d *= (betaCoil*betaCoil);
+				  } 
+				  
+				  if(d<=0) {
+				    w=1.0;
+				  } else if(d>10) {
+				    w=0;
+				  } else {
+				    w = exp(-d);
+				  }
                                                               
 				  if(rician>0)
 				    {
@@ -197,7 +206,7 @@ void* ThreadFunc( void* pArguments )
               
 				  if(t1>sigma) continue;
 
-				  w = (ref[p]-ref[p1]);
+				  w = (ref[p] - ref[p1]);
                      
 				  w=(w*w)/hh-1;                     
 				  d = (t1*t1)/hhh-1;
@@ -207,13 +216,22 @@ void* ThreadFunc( void* pArguments )
               
 				  d=w*0.5 + d*0.5;                                                                 
 				  //Coil sensitivity (B1) correction
-				  //betaCoil = (coilsens[p]-coilsens[p1]);
-				  //if (betaCoil!=0) d*= (betaCoil*betaCoil);
-
-				  if(d<=0) w=1.0;
-				  else if(d>10) w=0;
-				  else w = exp(-d);
-                                        
+				  //mexPrintf("Beta %f",coilsens[p]);
+				  
+				  /*
+				    betaCoil = (coilsens[p]-coilsens[p1]);
+				   */
+				      if (betaCoil!=0) {
+				      d*= (betaCoil*betaCoil);
+				      }
+				  
+				  if(d<=0) {
+				    w=1.0;
+				  }else if(d>10) {
+				    w=0;
+				  }else {
+				    w = exp(-d);
+				  }
 				  if(rician>0)
 				    {
 				      fima[p] += w*ima[p1]*ima[p1];
@@ -264,48 +282,57 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #else
   pthread_t * ThreadList;
 #endif
- mexPrintf("myRINLM: Start mex function \n");
+  mexPrintf("myRINLM: Start mex function \n"); 
+  mexEvalString("drawnow");
   if(nrhs != 7)
     {
       mexPrintf("myRINLM3D: Not enough arguments \n");
-      mexPrintf( "Usage: OutputImage=myRINLM3D(InputImage,searcharea,patcharea,sigma,ODCTImage,rician,CoilSensitivityImage) ");
-      exit(1);
+      mexPrintf( "Usage: OutputImage=myRINLM3D(InputImage,searcharea,patcharea,sigma,ODCTImage,rician,B1CoilSensitivityImage) "); 
+      mexEvalString("drawnow");
+      return;
     }
 
   /*Copy input pointer x*/
-   mexPrintf("myRINLM: Get input image \n");
+   mexPrintf("myRINLM: Get input image \n"); 
+   mexEvalString("drawnow");
   /*Get matrix x*/
   if ( mxIsSparse(prhs[0]) || 
        mxIsComplex(prhs[0]) || 
        mxIsDouble(prhs[0])  ||
        mxGetNumberOfElements(prhs[0]) == 1 ||
-       mxGetNumberOfDimensions(prhs[0]) != 3) {
-      mexErrMsgTxt("myRINLM3d input1 must be full matrix of real float values.");
-      exit(1);
-  }
+       mxGetNumberOfDimensions(prhs[0]) != 3) 
+    { 
+      mexErrMsgTxt("myRINLM3d input1 must be full matrix of real float values."); 
+      mexEvalString("drawnow");
+      return;
+    }
   ima = (float*)mxGetPr(prhs[0]);
   ndim = mxGetNumberOfDimensions(prhs[0]);
   dims= mxGetDimensions(prhs[0]);
- mexPrintf("myRINLM: Get params \n");
+  mexPrintf("myRINLM: Get params \n"); 
+  mexEvalString("drawnow");
   /*Copy input parameters*/
   /*Get the search area*/
   if ( mxIsComplex(prhs[1]) || 
        mxGetNumberOfElements(prhs[1]) != 1) {
-      mexErrMsgTxt("myRINLM3d search area must be an integer.");
-      exit(1) ;
+      mexErrMsgTxt("myRINLM3d search area must be an integer."); 
+      mexEvalString("drawnow");
+      return ;
   }
   radioS = (int)(mxGetScalar(prhs[1]));
 
   if ( mxIsComplex(prhs[2]) || 
        mxGetNumberOfElements(prhs[2]) != 1) {
-      mexErrMsgTxt("myRINLM3d patch area must be an integer.");
+      mexErrMsgTxt("myRINLM3d patch area must be an integer."); 
+      mexEvalString("drawnow");
   }
   radioB = (int)(mxGetScalar(prhs[2]));
 
   if ( mxIsSparse(prhs[3]) || 
        mxIsComplex(prhs[3]) ||
        mxGetNumberOfElements(prhs[3]) != 1) {
-      mexErrMsgTxt("myRINLM3d sigma must be real value.");
+      mexErrMsgTxt("myRINLM3d sigma must be real value."); 
+      mexEvalString("drawnow");
   }
   sigma = (float)(mxGetScalar(prhs[3]));
 
@@ -314,21 +341,33 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
        mxIsDouble(prhs[4])  ||
        mxGetNumberOfElements(prhs[4]) == 1 ||
        mxGetNumberOfDimensions(prhs[4]) != 3) {
-      mexErrMsgTxt("myRINLM3d ref must be full matrix of real float values.");
-      exit(1);
+      mexErrMsgTxt("myRINLM3d ref image must be full matrix of real float values.");
+      return;
   }
   ref = (float*)mxGetPr(prhs[4]);
 
   if ( mxIsSparse(prhs[5]) || 
        mxIsComplex(prhs[5])||
        mxGetNumberOfElements(prhs[5]) != 1 ) {
-      mexErrMsgTxt("myRINLM3d rician must be real value or bool.");
+      mexErrMsgTxt("myRINLM3d rician must be real value or bool."); 
+      mexEvalString("drawnow");
   }
   rician = (int)(mxGetScalar(prhs[5]));
     
   h = sigma/3.0f; /* this is due to the removal of part of the noise*/
-  mexPrintf("myRINLM: H %f\n",h);
-  if (nrhs == 7)
+  mexPrintf("myRINLM: H %f\n",h); 
+  mexEvalString("drawnow");
+  if (nrhs < 6)
+    {
+      mexPrintf("myRINLM: Creating neutral B1 correction \n"); 
+      mexEvalString("drawnow");
+
+      pv = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
+      coilsens = (float*)mxGetPr(pv);
+      for(k=0;k<dims[2]*dims[1]*dims[0];k++)
+	coilsens[k]=1.0;
+    }
+  else 
     {   
       if ( mxIsSparse(prhs[6]) || 
 	   mxIsComplex(prhs[6]) || 
@@ -336,24 +375,24 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	   mxGetNumberOfElements(prhs[6]) == 1 ||
 	   mxGetNumberOfDimensions(prhs[6]) != 3) {
 	mexErrMsgTxt("myRINLM3d coil sens must be full matrix of real float values.");
-	exit(1);
+	return;
       }     
       coildims = mxGetDimensions(prhs[6]);  
       if (coildims[0]!=dims[0] || coildims[1]!=dims[1] || coildims[2]!=dims[2] )
 	{
 	  mexErrMsgTxt("myMBONLM coil dims must equal input image dims.");
-	  exit(1);
+	  return;
+	}
+      else
+	{ 
+	  mexPrintf("myRINLM3d B1 coil sensitivity image correct dimensions.");
 	}
       coilsens = (float*)mxGetPr(prhs[6]);
+      for(k=0;k<dims[2]*dims[1]*dims[0];k=k+dims[1]*dims[0])
+	mexPrintf("%f\t",coilsens[k]); 
     }
-  else 
-    {
-      pv = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL);
-      coilsens = (float*)mxGetPr(pv);
-      for(k=0;k<dims[2]*dims[1]*dims[0];k++)
-	coilsens[i]=1.0;
-    }
-  mexPrintf("myRINLM: Creating output matricies \n");
+  mexPrintf("myRINLM: Creating output matricies \n"); 
+  mexEvalString("drawnow");
 
   /* Allocate memory and assign output pointer */
   /* Get a pointer to the data space in our newly allocated memory */
@@ -379,7 +418,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       Mxpesos = mxCreateNumericArray(ndim,dims,mxSINGLE_CLASS, mxREAL); 
       pesos = (float*) mxGetPr(Mxpesos);
     }
-  mexPrintf("myRINLM: Calculating means \n");
+  mexPrintf("myRINLM: Calculating means \n"); 
+  mexEvalString("drawnow");
 
   /* calculate means*/
 
@@ -438,16 +478,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {         
       /* Make Thread Structure*/
       order=-order;
-      ini=(i*dims[2])/Nthreads;
-      fin=((i+1)*dims[2])/Nthreads;            
-      ThreadArgs[i].cols=dims[0];
-      ThreadArgs[i].rows=dims[1];
-      ThreadArgs[i].slices=dims[2];
-      ThreadArgs[i].in_image=ima;
-      ThreadArgs[i].out_image=fima;
-      ThreadArgs[i].ref_image=ref;
-      ThreadArgs[i].means_image=medias;
-      ThreadArgs[i].pesos=pesos;
+      ini = (i*dims[2])/Nthreads;
+      fin = ((i+1)*dims[2])/Nthreads;            
+      ThreadArgs[i].cols = dims[0];
+      ThreadArgs[i].rows = dims[1];
+      ThreadArgs[i].slices = dims[2];
+      ThreadArgs[i].in_image = ima;
+      ThreadArgs[i].out_image = fima;
+      ThreadArgs[i].ref_image = ref;
+      ThreadArgs[i].means_image = medias;
+      ThreadArgs[i].pesos = pesos;
+      ThreadArgs[i].coilsens_image = coilsens;
       ThreadArgs[i].ini=ini;
       ThreadArgs[i].fin=fin;
       ThreadArgs[i].radioB=radioB;
@@ -461,11 +502,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     
   for (i=0; i<Nthreads; i++) { WaitForSingleObject(ThreadList[i], INFINITE); }
   for (i=0; i<Nthreads; i++) { CloseHandle( ThreadList[i] ); }
-    
 
 #else
 
-  mexPrintf("myRINLM3D: Pthreading %d\n",Nthreads);
+  mexPrintf("myRINLM3D: Pthreading %d\n",Nthreads); 
+  mexEvalString("drawnow;");
   /* Reserve room for handles of threads in ThreadList*/
   ThreadList = (pthread_t *) calloc(Nthreads,sizeof(pthread_t));
   ThreadArgs = (myargument*) calloc( Nthreads,sizeof(myargument));
@@ -492,13 +533,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       ThreadArgs[i].sigma=h; 
       ThreadArgs[i].order=order; 
     }
-  mexPrintf("myRINLM: Starting threads \n");
+  mexPrintf("myRINLM: Starting threads \n"); 
+  mexEvalString("drawnow");
   for (i=0; i<Nthreads; i++)
     {
       if(pthread_create(&ThreadList[i], NULL, ThreadFunc,&ThreadArgs[i]))
 	{
-	  printf("Threads cannot be created\n");
-	  exit(1);
+	  printf("Threads cannot be created\n"); 
+	  mexEvalString("drawnow");
+	  return;
 	}        
     }
    
@@ -507,11 +550,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
       pthread_join(ThreadList[i],NULL);
     }
 #endif
-  mexPrintf("myRINLM: Threads completed \n");
+  mexPrintf("myRINLM: Threads completed \n"); 
+  mexEvalString("drawnow");
 
   free(ThreadArgs); 
   free(ThreadList);
-
 
   sigma=2*sigma*sigma;
   for(k=0;k<dims[2]*dims[1]*dims[0];k++) 
@@ -525,7 +568,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
       else fima[k]/=pesos[k];
     }
-  mexPrintf("myRINLM3D: done \n");
+  mexPrintf("myRINLM3D: done \n"); 
+  mexEvalString("drawnow");
   return;
 
 }
