@@ -310,13 +310,14 @@ void* ThreadFunc(void* pArguments)
                                         {
 
                                             d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
-					    //Eager Ammendment
+					    // Eager Ammendment
 					    // add coil sensitivty B1 correction factor to weight
 					    gamma = max(coilsens[p1],coilsens[p2])/ min(coilsens[p1],coilsens[p2]);
-					    if (gamma>0) d *= (gamma*gamma);
-
-                                            w = exp(-d / (hh));
-
+					    if (gamma>0){ 
+					      w = exp( -(gamma*gamma)*d/hh);}
+					    else{
+					      w = exp( -d / (hh) );
+					    }
                                             if (w > wmax) wmax = w;
 
                                             Average_block(ima, ni, nj, nk, radiusS, average, w, cols, rows, slices);

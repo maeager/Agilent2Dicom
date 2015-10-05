@@ -1,4 +1,4 @@
-function img = NormaliseImage2(img,Range)
+function [img, Range] = NormaliseImage2(img,Range)
 %% Simple normalisation of N-dimensional image
 %  
 %
@@ -6,7 +6,7 @@ function img = NormaliseImage2(img,Range)
 %   - (c) 2012, Monash Biomedical Imaging, Monash University, Australia
 
 if nargin == 1
-  Range(1)= min(img(:));
+  Range(1) = min(img(:));
   Range(2) = max(img(:));
 else
 if length(Range) ~= 2 || Range(2) <= Range(1)

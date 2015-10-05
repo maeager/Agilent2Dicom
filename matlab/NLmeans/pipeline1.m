@@ -11,7 +11,7 @@ function [MRIdenoised,sigma, filtername] = pipeline1(img,NLfilter,hfinal,hfactor
 ima1 = NormaliseImage2(abs(img))*256.0;
 
 if nargin < 3 || isempty(hfinal)
-   [hfinal, ho, SNRo, hbg, SNRbg] = MRINoiseEstimation(ima1,1,1)
+   [hfinal, ho, SNRo, hbg, SNRbg] = MRINoiseEstimation(ima1,1,0)
 end
 if nargin < 4 || isempty(hfactor)
     hfactor=100;
@@ -38,11 +38,11 @@ filtername='';
 switch NLfilter
  case 0 
  display('Processing denoised image - MRONLM')
- tic(),MRIdenoised = MRIDenoisingMRONLM(ima1, hfinal, beta_,patcharea, searcharea, rician, 0); toc()
+ tic(),MRIdenoised = MRIDenoisingMRONLM(ima1, sigma, beta_,patcharea, searcharea, rician, 0); toc()
 					filtername='MRONLM';  
  case 1
  display('Processing denoised image - PRINLM')
- tic(),MRIdenoised = MRIDenoisingPRINLM(ima1, hfinal, beta_,...
+ tic(),MRIdenoised = MRIDenoisingPRINLM(ima1, sigma, beta_,...
 					rician, 0);toc()
 					filtername='PRINLM';
  case 2
@@ -52,25 +52,25 @@ switch NLfilter
 				       filtername='AONLM';
  case 3
  display('Processing denoised image - ONLM ')
- tic(),MRIdenoised = MRIDenoisingONLM(ima1, hfinal, ...
+ tic(),MRIdenoised = MRIDenoisingONLM(ima1, sigma, ...
 				      beta_, patcharea, searcharea, ...
 				      rician , 0);toc()  
 				      filtername='ONLM';
  case 4
  display('Processing denoised image - ODCT ')
  tic(),MRIdenoised = MRIDenoisingODCT(ima1, ...
-				      hfinal, ...
+				      sigma, ...
 				      beta_,rician,0);toc()   
 				      filtername='ODCT';  
  case -5 
  display('Processing denoised image - MRONLM2')
- tic(),MRIdenoised = MRIDenoisingMRONLM2(ima1, hfinal, ...
+ tic(),MRIdenoised = MRIDenoisingMRONLM2(ima1, sigma, ...
 					 patcharea, searcharea, ...
 					 rician, 0);toc() 
 					 filtername='MRONLM2';
  case -1
  display('Processing denoised image - PRINLM2')
- tic(),MRIdenoised = MRIDenoisingPRINLM2(ima1, hfinal,  ...
+ tic(),MRIdenoised = MRIDenoisingPRINLM2(ima1, sigma,  ...
 					 rician, 0);toc()
 					 filtername='PRINLM2';
  case -2
@@ -80,20 +80,20 @@ switch NLfilter
 					filtername='AONLM2';
  case -3
  display('Processing denoised image - ONLM2 ')
- tic(),MRIdenoised = MRIDenoisingONLM2(ima1, hfinal, ...
+ tic(),MRIdenoised = MRIDenoisingONLM2(ima1, sigma, ...
 				       patcharea, searcharea, ...
 				       rician , 0);toc()  
 				       filtername='ONLM2';
  case -4
  display('Processing denoised image - ODCT2 ')
  tic(),MRIdenoised = MRIDenoisingODCT2(ima1, ...
-				       hfinal, ...
+				       sigma, ...
 				       rician,0);toc()   
 				       filtername='ODCT2';
 
  otherwise
 display('Processing Real denoised image - MRONLM')
-tic(),MRIdenoised = MRIDenoisingMRONLM(ima1,hfinal,...
+tic(),MRIdenoised = MRIDenoisingMRONLM(ima1,sigma,...
 				       beta_, patcharea, searcharea, ...
 				       rician,0);toc()
 				       filtername='MRONLM';

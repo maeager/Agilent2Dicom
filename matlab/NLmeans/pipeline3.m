@@ -78,12 +78,17 @@ beta_=1;
 display(['Noise estimate (real and imag): ' num2str(est_std_real) ' ' num2str(est_std_imag)])
 display(['Noise estimate of 2-average image: ' num2str(hfinal_real) ' ' num2str(hfinal_imag)])
 
-sigma= [ hfinal_real, hfinal_imag];
+  sigma= [ hfinal_real, hfinal_imag];
   filtername='';
   
- min_imag = min(avg_imag(:));
- avg_imag = avg_imag - min_imag;
-  
+  min_imag = min(avg_imag(:));
+  avg_imag = avg_imag - min_imag;
+
+  [norm_real,realRange] = NormaliseImage2(real(cmplxima))*256;
+  [norm_imag,imagRange] = NormaliseImage2(imag(cmplxima))*256;
+
+ 
+ 
 switch NLfilter
   case 0
     display('Processing Real denoised image - MRONLM')

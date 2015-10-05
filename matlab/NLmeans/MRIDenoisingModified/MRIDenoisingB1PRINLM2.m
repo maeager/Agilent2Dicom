@@ -63,8 +63,9 @@ if  nargin < 6 ||  isempty(searchsize) || (searcharea==0)
 end
 
 if  nargin < 7 ||  isempty(rician) || (rician ~= 0)
-    rician=1;
+    rician = 0;
 end
+
 if  nargin < 8 
     verbose=0;
 end
@@ -78,7 +79,11 @@ end
     disp('.')
 
 %}
+ 
  min_imag=0;
+  [norm_real,realRange] = NormaliseImage2(real(cmplxima));
+  [norm_imag,imagRange] = NormaliseImage2(imag(cmplxima));
+
 
 
 imaODCTr=myODCT3d(single(real_ima),single(real_sigma),rician); 
