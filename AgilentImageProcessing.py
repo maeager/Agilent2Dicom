@@ -205,9 +205,11 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_ChangeNifti2.clicked.connect(self.ChangeProcFile2)
         self.ui.pushButton_ClearProc1.clicked.connect(self.ClearProcLine1)
         self.ui.pushButton_ClearProc2.clicked.connect(self.ClearProcLine2)
-        
-        self.ui.pushButton_CoilSensChangeDir.clicked.connect(self.ChangeCoilSensDir)
-        self.ui.pushButton_CoilSensChangeFile.clicked.connect(self.ChangeCoilSensFile)
+
+        self.ui.pushButton_CoilSensChangeDir.clicked.connect(
+            self.ChangeCoilSensDir)
+        self.ui.pushButton_CoilSensChangeFile.clicked.connect(
+            self.ChangeCoilSensFile)
         self.ui.pushButton_CoilSensClear.clicked.connect(self.ClearProcLine3)
         self.ui.pushButton_procout.clicked.connect(self.ChangeProcOutputPath)
 
@@ -391,7 +393,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             if self.ui.checkBox_debugging.isChecked():
                 cmd1 += ' -v '
             print cmd1
-            cmd = cmd_header + cmd1 
+            cmd = cmd_header + cmd1
             logging.info('Convert FDF :' + cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                                    executable="/bin/bash").stdout.read()
@@ -499,7 +501,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                 os.path.realpath(os.path.abspath(__file__)))
             cmd1 = 'mrinfo ' + output_dir
             print cmd1
-            cmd = cmd_header + cmd1 
+            cmd = cmd_header + cmd1
             logging.info('CheckFDF ' + cmd)
             print subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True,
                                    executable="/bin/bash").stdout.read()
@@ -706,7 +708,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
             cmd1 = cmd1 + ' -v ' + self.getCommandArgs()
             cmd1 = cmd1 + ' -i ' + str(input_dir) + ' -o ' + str(output_dir)
             print cmd1
-            cmd = cmd_header + cmd1 
+            cmd = cmd_header + cmd1
             # print cmd
             logging.info('ConvertFID ' + cmd)
         except ValueError:
@@ -760,7 +762,7 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
                     cmd1 = os.path.join(
                         thispath, 'dcheck.sh') + ' -o ' + str(dcmpath)
                     # print cmd1
-                    # cmd = cmd_header + cmd1 
+                    # cmd = cmd_header + cmd1
                     # print cmd
                     print subprocess.Popen(cmd1,
                                            stdout=subprocess.PIPE, shell=True,
@@ -1203,7 +1205,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             # cmd1 = cmd1 + ' -v '
             # cmd1 = cmd1 + ' -i ' + str(input1_dir) + ' -o ' + str(output_dir)
             # print cmd1
-            # cmd = cmd_header + cmd1 
+            # cmd = cmd_header + cmd1
             cmd = """%s matlab -nodesktop -nosplash -r "addpath ./matlab;call_swi('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%d,%d,%d,%d);quit"  """ % (
                 proc_header, str(input1_dir), str(input2_dir), str(output_dir), swiorder, preprocess, saveRI, swineg, swipos)
 
@@ -1244,7 +1246,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             cmd = """%s matlab -nodesktop -nosplash -r "addpath ./matlab;call_mci('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%d);quit"  """ % (
                 proc_header, str(input1_dir), str(input2_dir), str(output_dir), saveRI)
             # print cmd1
-            # cmd = cmd_header + cmd1 
+            # cmd = cmd_header + cmd1
             print cmd
             logging.info('Processing MCI ' + cmd)
         except ValueError:
@@ -1352,36 +1354,36 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         sigmatext = str(self.ui.lineEdit_NLsigma.text())
         print sigmatext
         if sigmatext and re.search('[0-9]', sigmatext[0]):
-            sigma=float(sigmatext)
+            sigma = float(sigmatext)
         else:
-            sigma='[]' 
+            sigma = '[]'
 
         sigmaratiotext = str(self.ui.linedit_NLsigmaratio.text())
-        print sigmaratiotext        
+        print sigmaratiotext
         if sigmaratiotext and re.search('[0-9]', sigmaratiotext[0]):
-            sigmaratio=float(sigmaratiotext)
+            sigmaratio = float(sigmaratiotext)
         else:
-            sigmaratio='[]'
+            sigmaratio = '[]'
         searchtext = str(self.ui.lineEdit_NLsearcharea.text())
         if searchtext and re.search('[0-9]', searchtext[0]):
-            searcharea=float(searchtext)
+            searcharea = float(searchtext)
         else:
-            searcharea='[]'
+            searcharea = '[]'
         patchtext = str(self.ui.lineEdit_NLpatcharea.text())
         if patchtext and re.search('[0-9]', patchtext[0]):
-            patcharea=float(patchtext)
+            patcharea = float(patchtext)
         else:
-            patcharea='[]'
-        rician=1
+            patcharea = '[]'
+        rician = 1
         if not self.ui.checkBox_NLrician.isChecked():
-            rician=0
-        return (sigma,sigmaratio,searcharea,patcharea,rician)
-            
+            rician = 0
+        return (sigma, sigmaratio, searcharea, patcharea, rician)
+
     def ProcNLpipeline1(self):
         """Process NLpipeline1
         """
         try:
-            
+
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             # print 'this path: %s' % thispath
@@ -1392,16 +1394,17 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             NLfilter = self.GetNLfilter()
 
             if not input2_dir or inputRI:
-                input2_dir='[]'
-                inputRI=0
+                input2_dir = '[]'
+                inputRI = 0
 
             if self.ui.checkBox_NLenableparams.isChecked():
-                (sigma,sigmaratio,searcharea,patcharea,rician)=self.GetNLparams()
+                (sigma, sigmaratio, searcharea,
+                 patcharea, rician) = self.GetNLparams()
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%s,%s,%s,%s,%s);quit\" """ % (
-                    proc_header, thispath, str(input1_dir), output_dir, str(input2_dir), NLfilter,str(sigma),str(sigmaratio),str(searcharea),str(patcharea),str(rician))
+                    proc_header, thispath, str(input1_dir), output_dir, str(input2_dir), NLfilter, str(sigma), str(sigmaratio), str(searcharea), str(patcharea), str(rician))
             else:
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline1('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,[],[],[],[],1);quit\" """ % (
-                proc_header, thispath, str(input1_dir), output_dir, str(input2_dir), NLfilter)
+                    proc_header, thispath, str(input1_dir), output_dir, str(input2_dir), NLfilter)
             print cmd
 
             # print cmd
@@ -1429,27 +1432,27 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         print 'ProcNLpipeline1 completed.'
         logging.info('ProcNLpipeline1 done')
 
-
     def ProcNLpipeline2(self):
         """Process NLpipeline2
         """
         try:
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
-            input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())            
+            input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
             NLfilter = self.GetNLfilter()
-            
+
             thispath = os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
             if self.ui.checkBox_NLenableparams.isChecked():
-                (sigma,sigmaratio,searcharea,patcharea,rician)=self.GetNLparams()
+                (sigma, sigmaratio, searcharea,
+                 patcharea, rician) = self.GetNLparams()
 
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%s,%s,%s,%s,%s);quit\" """ % (
-                    proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir),NLfilter,str(sigma),str(sigmaratio),str(searcharea),str(patcharea),str(rician))
+                    proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir), NLfilter, str(sigma), str(sigmaratio), str(searcharea), str(patcharea), str(rician))
             else:
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d);quit\" """ % (
-                    proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir),NLfilter)
+                    proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir), NLfilter)
 
             print cmd
             logging.info('Processing NLpipeline2 ' + cmd)
@@ -1476,8 +1479,6 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         print 'ProcNLpipeline2 completed.'
         logging.info('ProcNLpipeline2 done')
 
-
-
     def ProcNLpipeline3(self):
         """Process NLpipeline3
         """
@@ -1493,16 +1494,18 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
             if self.ui.checkBox_NLenableparams.isChecked():
-                (sigma,sigmaratio,searcharea,patcharea,rician)=self.GetNLparams()
+                (sigma, sigmaratio, searcharea,
+                 patcharea, rician) = self.GetNLparams()
 
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;  call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%d,%s,%s,%s,%s,%s);quit\" """ % (
                     proc_header, thispath, str(input1_dir), str(input2_dir),
-                    str(output_dir), saveRI + 4 * savePhase + 8*saveSWI,NLfilter, str(sigma),
-                    str(sigmaratio),str(searcharea),str(patcharea),str(rician))
+                    str(output_dir), saveRI + 4 * savePhase +
+                    8 * saveSWI, NLfilter, str(sigma),
+                    str(sigmaratio), str(searcharea), str(patcharea), str(rician))
             else:
                 cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;  call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%s,%d);quit\" """ % (
                     proc_header, thispath, str(input1_dir), str(input2_dir),
-                    str(output_dir), str(saveRI + 4 * savePhase + 8*saveSWI),NLfilter)
+                    str(output_dir), str(saveRI + 4 * savePhase + 8 * saveSWI), NLfilter)
 
             print cmd
             logging.info('Processing NLpipeline3 ' + cmd)

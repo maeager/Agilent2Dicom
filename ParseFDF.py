@@ -107,11 +107,11 @@ def ParseDiffusionFDF(ds, procpar, fdf_properties, args):
         ds.AcquisitionNumber = fdf_properties['array_index']
         ds.FrameAcquisitionNumber = fdf_properties['array_index']
         loc = numpy.array(fdf_properties['location'], dtype='|S9')
-        ds.ImagePositionPatient = [loc[0], loc[1],loc[2]]
+        ds.ImagePositionPatient = [loc[0], loc[1], loc[2]]
         orient = numpy.array(fdf_properties['orientation'], dtype='|S9')
         ds.ImageOrientationPatient = [orient[0], orient[1], orient[2],
                                       orient[3], orient[4], orient[5],
-                                      orient[6], orient[7], orient[8]]        
+                                      orient[6], orient[7], orient[8]]
     else:
         ds.AcquisitionNumber = bvaluesortidx[diffusion_idx]
 
@@ -583,7 +583,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
     else:
         ds.ImagesInAcquisition = 1
 
-    # if len(ds.ImageType) >= 3 and 
+    # if len(ds.ImageType) >= 3 and
     if ds.ImageType[2] == 'DIFFUSION':
         ds = ParseDiffusionFDF(ds, procpar, fdf_properties, args)
 
@@ -631,7 +631,7 @@ def ParseFDF(ds, fdf_properties, procpar, args):
             (0x0020, 0x9164), 'UI', DimOrgSeq.DimensionOrganizationUID[1])
         DimIndexSeq2.DimensionDescriptionLabel = 'Fourth dimension (multiecho)'
         ds.DimensionIndexSequence = Sequence([DimIndexSeq2, DimIndexSeq1])
-        
+
     elif (ds.ImageType[2] == "DIFFUSION" and ds.AcquisitionNumber == 1):
         DimIndexSeq1 = Dataset()
         # Image position patient 20,32 or 20,12
@@ -645,7 +645,8 @@ def ParseFDF(ds, fdf_properties, procpar, args):
         DimIndexSeq1.DimensionDescriptionLabel = 'Third Spatial dimension'
 
         DimIndexSeq2 = Dataset()
-        DimIndexSeq2.DimensionIndexPointer = (0x0018, 0x9087) # Diffusion b-value
+        DimIndexSeq2.DimensionIndexPointer = (
+            0x0018, 0x9087)  # Diffusion b-value
         # DimIndexSeq2.DimensionIndexPrivateCreator=
         # DimIndexSeq2.FunctionalGroupPointer=
         # DimIndexSeq2.FunctionalGroupPrivateCreator=

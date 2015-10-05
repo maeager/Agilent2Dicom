@@ -353,14 +353,15 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
     ds, matsize, tmatrix = FID.ParseFID(ds, hdr, procpar, args)
     logging.info('ParseFID complete')
 
-    Recon_comment=''
+    Recon_comment = ''
     if args.cardiac_ASL_recon:
         tic()
-        ksp, image_data, procpar, fid_header = FID.Cardiac_ASL_recon(procpar, fid_header, dims, ksp_data_real, ksp_data_imag,  args)
+        ksp, image_data, procpar, fid_header = FID.Cardiac_ASL_recon(
+            procpar, fid_header, dims, ksp_data_real, ksp_data_imag,  args)
         logging.info('FID.Cardiac_ASL_recon complete ' + toc())
         if args.verbose:
             print 'Image shape:', str(ksp.shape)
-        Recon_comment='Reconstructed using Cardiac ASL method from UCL.'
+        Recon_comment = 'Reconstructed using Cardiac ASL method from UCL.'
     else:
         tic()
         ksp = FID.convksp(procpar, dims, hdr, data_real,
@@ -384,14 +385,14 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
                 image_data = FID.simpleifft(procpar, dims, hdr, ksp, args)
                 # fftshift(ifftn(ifftshift(ksp)))
                 logging.info('IFFT recon complete ' + toc())
-                Recon_comment='Basic reconstruction of unfiltered k-space data.'
+                Recon_comment = 'Basic reconstruction of unfiltered k-space data.'
     ds.DerivationDescription = '''%s\n
     Agilent2Dicom Version: %s \nVCS Stamp: %s\n
     Scipy version: %s\n
     Reconstructed using : %s \n
     ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
            scipy.__version__, Recon_comment)
-    
+
     FID.SaveFIDtoDicom(ds, procpar, image_data, hdr, tmatrix, args, outdir)
     logging.info('Image saved to DICOM.')
     if args.nifti:
@@ -434,7 +435,8 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         Reconstructed using : %s\n
         Complex Gaussian filter: sigma=%s order=%d mode=%s.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION, DVCS_STAMP,
-               scipy.__version__, Recon_comment, str(sigma), args.gaussian_order,
+               scipy.__version__, Recon_comment, str(
+                   sigma), args.gaussian_order,
                args.gaussian_mode)
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
@@ -498,7 +500,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         Reconstructed using : %s \n
         Complex Median filter: window size=%s.
         ''' % (Derivation_Description, AGILENT2DICOM_VERSION,
-               DVCS_STAMP, scipy.__version__,Recon_comment,
+               DVCS_STAMP, scipy.__version__, Recon_comment,
                str(args.window_size))
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
@@ -559,7 +561,7 @@ also be saved as a MATLAB mat file (-k). Save images as NIFTI using -N.
         Complex Std dev filter: window size=%s.
         ''' % (Derivation_Description,
                AGILENT2DICOM_VERSION, DVCS_STAMP,
-               scipy.__version__,Recon_comment, str(args.window_size))
+               scipy.__version__, Recon_comment, str(args.window_size))
         FID.SaveFIDtoDicom(ds, procpar, image_filtered, hdr,
                            tmatrix, args,
                            re.sub('.dcm', '-stdev.dcm', outdir))

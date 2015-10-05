@@ -36,8 +36,8 @@ if nargin < 5
     NLfilter=0;
 end
 if nargin < 6
-hfinal=[];hfactor=[];rician=[];
-searcharea=[];patcharea=[];
+    hfinal=[];hfactor=[];rician=[];
+    searcharea=[];patcharea=[];
 end
 %% Clean input strings
 in1 = regexprep(in1,'"','');
@@ -46,7 +46,7 @@ out = regexprep(out,'"','');
 
 voxelsize=[];
 shifted=0;
-if exist(in1,'file')==2 && ~isempty(strfind(in1,'.nii')) 
+if exist(in1,'file')==2 && ~isempty(strfind(in1,'.nii'))
     nii1_in=load_nii(in1);
     img1=nii1_in.img;
     ksp1=fftshift(fftn(img1));shifted=1;
@@ -66,22 +66,9 @@ else
     return
 end
 
-
 ksp1=squeeze(ksp1);img1=squeeze(img1);
 
-if length(size(ksp1)) == 4
-    display 'Reducing 4D image down to 3D'
-  ksp1=ksp1(:,:,:,1);img1=img1(:,:,:,1);
-elseif length(size(ksp1)) == 5
-    display 'Reducing 5D image down to 3D'
-    ksp1=ksp1(:,:,:,1,1);img1=img1(:,:,:,1,1);
-elseif length(size(ksp1)) > 5
-    display 'Unable to process images greater than 5D'
-    return
-end
-
-
-if exist(in2,'file')==2 && ~isempty(strfind(in2,'.nii')) 
+if exist(in2,'file')==2 && ~isempty(strfind(in2,'.nii'))
     nii2_in=load_nii(in2);
     img2 = nii2_in.img;
     ksp2 = fftshift(fftn(img2));shifted=1;
@@ -103,32 +90,51 @@ end
 
 ksp2=squeeze(ksp2);img2=squeeze(img2);
 
-if length(size(ksp2)) == 4
-    display 'Reducing 4D image down to 3D'
-    ksp2=ksp2(:,:,:,1); img2=img2(:,:,:,1);
-elseif length(size(ksp2)) == 5
-    display 'Reducing 5D image down to 3D'
-    ksp2=ksp2(:,:,:,1,1); img2=img2(:,:,:,1,1);
-elseif length(size(ksp2)) > 5
-    display 'Unable to process images greater than 5D'
-    return
-end
-
-
-
 if sum(voxelsize1) ~= sum(voxelsize2)
-  display(['Voxelsizes don''t match: ' str2num(voxelsize1) ' ' ...
-           str2num(voxelsize2)])
-  return
+    display(['Voxelsizes don''t match: ' str2num(voxelsize1) ' ' ...
+        str2num(voxelsize2)])
+    return
 end
 voxelsize=voxelsize1;
 
-display 'Calling pipeline 3'
-tic(),[MRIdenoised3,sigma, filtername] = pipeline3(ksp1,ksp2, NLfilter, hfinal, hfactor, ...
-                               searcharea, patcharea, rician);toc()
-if shifted
-    MRIdenoised3 = ifftshift(MRIdenoised3);
+
+if length(size(img)) == 3
+    display 'Calling pipeline 3'
+    tic(),[MRIdenoised3,sigma, filtername] = pipeline3(ksp1,ksp2, NLfilter, hfinal, hfactor, ...
+        searcharea, patcharea, rician);toc()
+    if shifted
+        MRIdenoised3 = ifftshift(MRIdenoised3);
+    end
+elseif length(size(img)) == 4
+    
+    display 'Processing 4D image'
+    for vol=1:size(img,4)
+        display (['Calling pipeline 3 on vol ' num2str(vol)])
+        tic(),[MRIdenoised3(:,:,:,vol),sigma, filtername] = pipeline3(ksp1(:,:,:,vol),ksp2(:,:,:,vol), NLfilter, hfinal, hfactor, ...
+            searcharea, patcharea, rician);toc()
+        if shifted
+            MRIdenoised3(:,:,:,vol) = ifftshift(MRIdenoised3(:,:,:,vol));
+        end
+    end
+    
+elseif length(size(img)) == 5
+    display 'Processing 5D image'
+    for echo=1:size(img,5)
+        for vol=1:size(img,4)
+            display(['Calling pipeline 2 on volume ' num2str(vol) ' echo ' num2str(echo)])
+            tic(),[MRIdenoised3(:,:,:,vol,echo),sigma, filtername] = pipeline3(ksp1(:,:,:,vol,echo),ksp2(:,:,:,vol,echo), NLfilter, hfinal, hfactor, ...
+                searcharea, patcharea, rician);toc()
+            if shifted
+                MRIdenoised3(:,:,:,vol,echo) = ifftshift(MRIdenoised3(:,:,:,vol,echo));
+            end
+        end
+    end
+elseif length(size(img)) > 5
+    display 'Unable to process images greater than 5D'
+    return
+    
 end
+
 
 
 
@@ -137,10 +143,10 @@ end
 filter_line = ['filter' filtername '_sigmaR' num2str(sigma(1)) '_sigmaI' num2str(sigma(2))]
 
 if exist(out,'file') == 2
-  delete(out)
-  denoised_file = [ out(1:end-8) '_' filter_line out(end-7:end)];
-  [a,b,c] = fileparts(out) ;
-  raw_file = [ a, '/raw_average.nii.gz'];						   
+    delete(out)
+    denoised_file = [ out(1:end-8) '_' filter_line out(end-7:end)];
+    [a,b,c] = fileparts(out) ;
+    raw_file = [ a, '/raw_average.nii.gz'];
 else
     if ~isdir(out)
         % if not a file or a dir, create dir
@@ -166,8 +172,8 @@ save_nii(make_nii(abs(MRIdenoised3),voxelsize,[],16),denoised_file)
 if savePhase
     denoised_phase_file = regexprep(denoised_file,'magn','pha');
     if exist(denoised_phase_file,'file')
-      display(['Deleting ' denoised_phase_file ])
-      delete(denoised_phase_file)
+        display(['Deleting ' denoised_phase_file ])
+        delete(denoised_phase_file)
     end
     display(['Saving ' denoised_phase_file ])
     save_nii(make_nii(angle(MRIdenoised3),voxelsize,[],16),denoised_phase_file)
@@ -175,8 +181,8 @@ end
 if saveSWI
     denoised_swi_file = regexprep(denoised_file,'magn','real');
     if exist(denoised_swi_file,'file')
-      display(['Deleting ' denoised_swi_file ])
-      delete(denoised_swi_file)
+        display(['Deleting ' denoised_swi_file ])
+        delete(denoised_swi_file)
     end
     display(['Saving ' denoised_swi_file ])
     pha = angle(MRIdenoised3);
@@ -191,15 +197,15 @@ if saveRI
     denoised_real_file = regexprep(denoised_file,'magn','real');
     denoised_imag_file = regexprep(denoised_file,'magn','imag')
     if exist(denoised_real_file,'file')
-       display(['Deleting ' denoised_real_file ])
-       delete(denoised_real_file)
+        display(['Deleting ' denoised_real_file ])
+        delete(denoised_real_file)
     end
     if exist(denoised_imag_file,'file')
-       display(['Deleting ' denoised_imag_file ])
-       delete(denoised_imag_file)
+        display(['Deleting ' denoised_imag_file ])
+        delete(denoised_imag_file)
     end
     display(['Saving ' denoised_real_file ])
     save_nii(make_nii(real(MRIdenoised3),voxelsize,[],16),denoised_real_file)
     display(['Saving ' denoised_imag_file ])
     save_nii(make_nii(imag(MRIdenoised3),voxelsize,[],16),denoised_imag_file)
-end    
+end
