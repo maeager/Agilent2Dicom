@@ -43,21 +43,21 @@ Monash University, 2015
 
 
 typedef struct {
-  int rows;
-  int cols;
-  int slices;
-  float * in_image;
-  float * out_image;
-  float * means_image;
-  float * ref_image;
-  float * pesos;  //spanish for pound or weight
-  float * coilsens_image;
-  int ini;
-  int fin;
-  int radioB; //radius of patch area
-  int radioS; //radius of search area
-  float sigma;
-  int order;
+    int rows;
+    int cols;
+    int slices;
+    float * in_image;
+    float * out_image;
+    float * means_image;
+    float * ref_image;
+    float * pesos;  //spanish for pound or weight
+    float * coilsens_image;
+    int ini;
+    int fin;
+    int radioB; //radius of patch area
+    int radioS; //radius of search area
+    float sigma;
+    int order;
 
 } myargument;
 
@@ -139,18 +139,18 @@ void* ThreadFunc(void* pArguments)
                                     d = w * 0.5 + d * 0.5;
 
                                     // Eager ammendment:
-				    // Coil sensitivity (B1) correction
-				    // adjust weight factor d by beta^2, where
-				    // beta is the difference between approx.
-				    // B1 values at p and p1. Coil sensitivity
-				    // gives the approx B1 image.
-				    //                                    gamma = (coilsens[p]-coilsens[p1]);
-				    gamma = max(coilsens[p],coilsens[p1])/ min(coilsens[p],coilsens[p1]);
-                                    if (gamma>0) d *= (gamma*gamma);
-				    //
+                                    // Coil sensitivity (B1) correction
+                                    // adjust weight factor d by beta^2, where
+                                    // beta is the difference between approx.
+                                    // B1 values at p and p1. Coil sensitivity
+                                    // gives the approx B1 image.
+                                    //                                    gamma = (coilsens[p]-coilsens[p1]);
+                                    gamma = max(coilsens[p], coilsens[p1]) / min(coilsens[p], coilsens[p1]);
+                                    if (gamma > 0) d *= 1 / (gamma * gamma);
+                                    //
 
                                     if (d <= 0) w = 1.0;
-                                    else if (d > 10) w = 0;
+                                    //else if (d > 10) w = 0;
                                     else w = exp(-d);
 
                                     if (rician > 0)
@@ -220,13 +220,13 @@ void* ThreadFunc(void* pArguments)
 
                                     d = w * 0.5 + d * 0.5;
                                     //Coil sensitivity (B1) correction
-                                    gamma = max(coilsens[p],coilsens[p1])/ min(coilsens[p],coilsens[p1]);
+                                    gamma = max(coilsens[p], coilsens[p1]) / min(coilsens[p], coilsens[p1]);
 
                                     //gamma = (coilsens[p]-coilsens[p1]);
-                                    if (gamma!=0) d*= (gamma*gamma);
+                                    if (gamma != 0) d *= 1 / (gamma * gamma);
 
                                     if (d <= 0) w = 1.0;
-                                    else if (d > 10) w = 0;
+                                    //else if (d > 10) w = 0;
                                     else w = exp(-d);
 
                                     if (rician > 0)
@@ -279,7 +279,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 #else
     pthread_t * ThreadList;
 #endif
-    mexPrintf("myRINLM: Start mex function \n"); 
+    mexPrintf("myRINLM: Start mex function \n");
     mexEvalString("drawnow");
     if (nrhs != 7)
     {
@@ -406,8 +406,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         {
             for (i = 0; i < dims[0]; i++)
             {
-	      indx=k * (dims[0] * dims[1]) + (j * dims[0]) + i;
-	      media = ref[indx];
+                indx = k * (dims[0] * dims[1]) + (j * dims[0]) + i;
+                media = ref[indx];
                 for (ii = -1; ii <= 1; ii++)
                 {
                     ni = i + ii;
@@ -425,8 +425,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                             if (nk >= dims[2]) nk = 2 * dims[2] - nk - 1;
 
                             if (sqrt(ii * ii + jj * jj + kk * kk) > 1)continue;
-			    indx = nk * (dims[0] * dims[1]) + (nj * dims[0]) + ni ;
-			    media = media + ref[indx];
+                            indx = nk * (dims[0] * dims[1]) + (nj * dims[0]) + ni ;
+                            media = media + ref[indx];
                         }
                     }
                 }
@@ -435,7 +435,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             }
         }
     }
-    
+
     for (k = 0; k < dims[2]*dims[1]*dims[0]; k++)
     {
         if (rician > 0) fima[k] = ima[k] * ima[k];
@@ -507,7 +507,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         ThreadArgs[i].out_image = fima;
         ThreadArgs[i].ref_image = ref;
         ThreadArgs[i].means_image = medias;
-	ThreadArgs[i].coilsens_image = coilsens;
+        ThreadArgs[i].coilsens_image = coilsens;
         ThreadArgs[i].pesos = pesos;
         ThreadArgs[i].ini = ini;
         ThreadArgs[i].fin = fin;
