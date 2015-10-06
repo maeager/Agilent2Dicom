@@ -63,6 +63,7 @@ typedef struct {
     float * var_image;
     float * coilsens_image;
     float * estimate;
+    float * weight;
     float * label;
     int ini;
     int fin;
@@ -185,7 +186,7 @@ float distance(float* ima, int x, int y, int z, int nx, int ny, int nz, int f, i
 
     float d, acu, distancetotal, inc;
     int i, j, k, ni1, nj1, ni2, nj2, nk1, nk2, kk, sxy;
-    
+
     sxy = sx * sy;
 
     acu = 0;
@@ -223,7 +224,6 @@ float distance(float* ima, int x, int y, int z, int nx, int ny, int nz, int f, i
             }
         }
     }
-
     d = distancetotal / acu;
 
     return d;
@@ -232,12 +232,12 @@ float distance(float* ima, int x, int y, int z, int nx, int ny, int nz, int f, i
 
 void* ThreadFunc(void* pArguments)
 {
-  float  *Estimate, *Label, *ima, *means, *coilsens,*variances, *average;
-  float bias,sigma, gamma,epsilon, mu1, var1, totalweight, wmax, t1, t2, d, w, h, hh;
-  int rows, cols, slices, ini, fin, radiusB, radiusS, init,Ndims; //constants
-  int i, j, k, rc, ii, jj, kk, ni, nj, nk; //loop variables
-  int p1,p2; //pixel index one and two
-  
+    float  *Estimate, *Label, *Weight, *ima, *means, *coilsens, *variances, *average;
+    float bias, sigma, gamma, epsilon, mu1, var1, totalweight, wmax, t1, t2, d, w, h, hh;
+    int rows, cols, slices, ini, fin, radiusB, radiusS, init, Ndims; //constants
+    int i, j, k, rc, ii, jj, kk, ni, nj, nk; //loop variables
+    int p1, p2; //pixel index one and two
+
     myargument arg;
     arg = *(myargument *) pArguments;
 
@@ -251,6 +251,7 @@ void* ThreadFunc(void* pArguments)
     coilsens = arg.coilsens_image;
     variances = arg.var_image;
     Estimate = arg.estimate;
+    Weight = arg.weight;
     Label = arg.label;
     radiusB = arg.radiusB;
     radiusS = arg.radiusS;
@@ -275,13 +276,13 @@ void* ThreadFunc(void* pArguments)
         for (j = 0; j < rows; j += 2)
             for (i = 0; i < cols; i += 2)
             {
-                for (init = 0 ; init < Ndims; init++) 
-		  average[init] = 0.0;
+                for (init = 0 ; init < Ndims; init++)
+                    average[init] = 0.0;
 
                 /*average=0;*/
                 totalweight = 0.0;
-		p1=k * rc + (j * cols) + i;
-		
+                p1 = k * rc + (j * cols) + i;
+
                 if ((means[p1]) > epsilon && (variances[p1] > epsilon))
                 {
                     wmax = 0.0;
@@ -299,8 +300,8 @@ void* ThreadFunc(void* pArguments)
 
                                 if (ni >= 0 && nj >= 0 && nk >= 0 && ni < cols && nj < rows && nk < slices)
                                 {
-				  p2= nk * (rc) + (nj * cols) + ni;
-				  
+                                    p2 = nk * (rc) + (nj * cols) + ni;
+
                                     if ((means[p2]) > epsilon && (variances[p2] > epsilon))
                                     {
                                         t1 = (means[p1]) / (means[p2]);
@@ -310,14 +311,15 @@ void* ThreadFunc(void* pArguments)
                                         {
 
                                             d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
-					    // Eager Ammendment
-					    // add coil sensitivty B1 correction factor to weight
-					    gamma = max(coilsens[p1],coilsens[p2])/ min(coilsens[p1],coilsens[p2]);
-					    if (gamma>0){ 
-					      w = exp( -(gamma*gamma)*d/hh);}
-					    else{
-					      w = exp( -d / (hh) );
-					    }
+                                            // Eager Ammendment
+                                            // add coil sensitivty B1 correction factor to weight
+                                            gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1], coilsens[p2]);
+                                            if (gamma > 0) {
+                                                w = exp(-(1 / (gamma)) * d / hh);
+                                            }
+                                            else {
+                                                w = exp(-d / (hh));
+                                            }
                                             if (w > wmax) wmax = w;
 
                                             Average_block(ima, ni, nj, nk, radiusS, average, w, cols, rows, slices);
@@ -352,8 +354,9 @@ void* ThreadFunc(void* pArguments)
                     Average_block(ima, i, j, k, radiusS, average, wmax, cols, rows, slices);
                     totalweight = totalweight + wmax;
                     Value_block(Estimate, Label, i, j, k, radiusS, average, totalweight, cols, rows, slices, bias);
-                }
 
+                }
+                Weight[ p1 ] = totalweight;
                 /*Average_block(ima,i,j,k,radiusS,average,wmax,cols,rows,slices);     */
             }
 #ifdef _WIN32
@@ -371,8 +374,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /*Declarations*/
     mxArray *xData;
     float *ima, *fima, *average, *coilsens;
-    mxArray *Mxmeans, *Mxvariances, *MxEstimate, *MxLabel, *MxCoil;
-    float *means, *variances, *Estimate, *Label;
+    mxArray *Mxmeans, *Mxvariances, *Mxweight, *MxEstimate, *MxLabel, *MxCoil;
+    float *means, *variances, *Estimate, *Label, *weight;
     mxArray *pv;
     float hSigma, w, totalweight, wmax, d, mean, var, t1, t2, hh, epsilon, mu1, var1, label, estimate;
     int Ndims, i, j, k, ii, jj, kk, ni, nj, nk, radiusB, radiusS, ndim, indice, init, Nthreads, ini, fin, r;
@@ -471,31 +474,40 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     fima = (float*)mxGetPr(plhs[0]);
     if (nlhs > 1) {
         plhs[1] = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
-        means = (float*)mxGetPr(plhs[1]);
+        weight = (float*)mxGetPr(plhs[1]);
+    }
+    else {
+        Mxweight = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
+        weight = (float*) mxGetPr(Mxweight);
+    }
+
+    if (nlhs > 2) {
+        plhs[2] = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
+        means = (float*) mxGetPr(plhs[2]);
     }
     else {
         Mxmeans = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
-        means = (float*)mxGetPr(Mxmeans);
+        means = (float*) mxGetPr(Mxmeans);
     }
-    if (nlhs > 2) {
-        plhs[2] == mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
-        variances = (float*)mxGetPr(plhs[2]);
+    if (nlhs > 3) {
+        plhs[3] == mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
+        variances = (float*)mxGetPr(plhs[3]);
     }
     else {
         Mxvariances = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
-        variances = (float*)mxGetPr(Mxvariances);
-    }
-    if (nlhs > 3) {
-        plhs[3] = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
-        Estimate = (float*)mxGetPr(plhs[3]);
-    }
-    else {
-        MxEstimate = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
-        Estimate = (float*)mxGetPr(MxEstimate);
+        variances = (float*) mxGetPr(Mxvariances);
     }
     if (nlhs > 4) {
         plhs[4] = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
-        Label = (float*)mxGetPr(plhs[4]);
+        Estimate = (float*) mxGetPr(plhs[4]);
+    }
+    else {
+        MxEstimate = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
+        Estimate = (float*) mxGetPr(MxEstimate);
+    }
+    if (nlhs > 5) {
+        plhs[5] = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
+        Label = (float*) mxGetPr(plhs[5]);
     }
     else {
         MxLabel = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
@@ -603,6 +615,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         ThreadArgs[i].means_image = means;
         ThreadArgs[i].coilsens_image = coilsens;
         ThreadArgs[i].estimate = Estimate;
+        ThreadArgs[i].weight = weight;
         ThreadArgs[i].label = Label;
         ThreadArgs[i].ini = ini;
         ThreadArgs[i].fin = fin;
@@ -639,6 +652,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         ThreadArgs[i].var_image = variances;
         ThreadArgs[i].means_image = means;
         ThreadArgs[i].coilsens_image = coilsens;
+        ThreadArgs[i].weight = weight;
         ThreadArgs[i].estimate = Estimate;
         ThreadArgs[i].label = Label;
         ThreadArgs[i].ini = ini;
