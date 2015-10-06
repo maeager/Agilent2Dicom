@@ -10,7 +10,7 @@ function b1=B1correction(img,verbose)
 for slice = 1:size(img,3)
     dcts = dct2(img(:,:,slice)); 
     dctt = zeros(size(dcts)); 
-    nn=9; 
+    nn=5; 
     dctt(1:nn,1:nn) = dcts(1:nn,1:nn); 
     b1(:,:,slice) = idct2(dctt); 
 end
