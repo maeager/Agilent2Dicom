@@ -443,49 +443,49 @@ void RicianBias(float level, int max, double * mibias, int N)
   for (i=0;i<dim2;i++)
     for (j=0;j<dim2;j++)
       for (k=0;k<dim2;k++)
-	for (l=0;l<BLK;l++)
-	  opa[l][i][j][k] = *(in+adrev[index][l][i][j][k]);
+    for (l=0;l<BLK;l++)
+      opa[l][i][j][k] = *(in+adrev[index][l][i][j][k]);
   for (i=0;i<dim2;i++)
     for (j=0;j<dim2;j++)
       for (k=0;k<dim2;k++)
-	{
-	  h1a=opa[0][i][j][k]+opa[1][i][j][k]; h2a=opa[0][i][j][k]-opa[1][i][j][k];
-	  h3a=opa[2][i][j][k]+opa[3][i][j][k]; h4a=opa[2][i][j][k]-opa[3][i][j][k];
-	  h5a=opa[4][i][j][k]+opa[5][i][j][k]; h6a=opa[4][i][j][k]-opa[5][i][j][k];
-	  h7a=opa[6][i][j][k]+opa[7][i][j][k]; h8a=opa[6][i][j][k]-opa[7][i][j][k];
-	  h1b=h1a+h3a; h2b=h2a+h4a;h3b=h1a-h3a;
-	  h4b=h2a-h4a; h5b=h5a+h7a;h6b=h6a+h8a; h7b=h5a-h7a; h8b=h6a-h8a;
-	  opb[0][i][j][k] = h1b+h5b; opb[1][i][j][k] = h2b+h6b;
-	  opb[2][i][j][k] = h3b+h7b; opb[3][i][j][k] = h4b+h8b;
-	  opb[4][i][j][k] = h1b-h5b; opb[5][i][j][k] = h2b-h6b;
-	  opb[6][i][j][k] = h3b-h7b; opb[7][i][j][k] = h4b-h8b;
-	}
+    {
+      h1a=opa[0][i][j][k]+opa[1][i][j][k]; h2a=opa[0][i][j][k]-opa[1][i][j][k];
+      h3a=opa[2][i][j][k]+opa[3][i][j][k]; h4a=opa[2][i][j][k]-opa[3][i][j][k];
+      h5a=opa[4][i][j][k]+opa[5][i][j][k]; h6a=opa[4][i][j][k]-opa[5][i][j][k];
+      h7a=opa[6][i][j][k]+opa[7][i][j][k]; h8a=opa[6][i][j][k]-opa[7][i][j][k];
+      h1b=h1a+h3a; h2b=h2a+h4a;h3b=h1a-h3a;
+      h4b=h2a-h4a; h5b=h5a+h7a;h6b=h6a+h8a; h7b=h5a-h7a; h8b=h6a-h8a;
+      opb[0][i][j][k] = h1b+h5b; opb[1][i][j][k] = h2b+h6b;
+      opb[2][i][j][k] = h3b+h7b; opb[3][i][j][k] = h4b+h8b;
+      opb[4][i][j][k] = h1b-h5b; opb[5][i][j][k] = h2b-h6b;
+      opb[6][i][j][k] = h3b-h7b; opb[7][i][j][k] = h4b-h8b;
+    }
   for (i=0;i<dim2;i++)
     for (j=0;j<dim2;j++)
       for (k=0;k<dim2;k++)
-	{
-	  opa[0][i][j][k]=opb[0][i][j][k];
-	  for (l=1;l<BLK;l++)
-	    opa[l][i][j][k]=opb[l][i][j][k]*cosmul[index][l][i][j][k];
-	}
+    {
+      opa[0][i][j][k]=opb[0][i][j][k];
+      for (l=1;l<BLK;l++)
+        opa[l][i][j][k]=opb[l][i][j][k]*cosmul[index][l][i][j][k];
+    }
   for (l=0;l<BLK;l++)
     DCT3(&opa[l][0][0][0],&opb[l][0][0][0],dim2);
   for (i=0;i<dim2;i++)
     for (j=0;j<dim2;j++)
       for (k=0;k<dim2;k++)
-	{
-	  opa[0][i][j][k]=opb[0][i][j][k];
-	  if (k<dim2-1)
-	    opa[1][i][j][k]=opb[1][i][j][k]+opb[1][i][j][k+1];
-	  else
-	    opa[1][i][j][k]=opb[1][i][j][k];
-	  if (j<dim2-1)
-	    opa[2][i][j][k]=opb[2][i][j][k]+opb[2][i][j+1][k];
-	  else
-	    opa[2][i][j][k]=opb[2][i][j][k];
-	  if (j<dim2-1 && k<dim2-1)
-	    opa[3][i][j][k]=opb[3][i][j][k]+opb[3][i][j][k+1]+
-	      opb[3][i][j+1][k]+opb[3][i][j+1][k+1];}
+    {
+      opa[0][i][j][k]=opb[0][i][j][k];
+      if (k<dim2-1)
+        opa[1][i][j][k]=opb[1][i][j][k]+opb[1][i][j][k+1];
+      else
+        opa[1][i][j][k]=opb[1][i][j][k];
+      if (j<dim2-1)
+        opa[2][i][j][k]=opb[2][i][j][k]+opb[2][i][j+1][k];
+      else
+        opa[2][i][j][k]=opb[2][i][j][k];
+      if (j<dim2-1 && k<dim2-1)
+        opa[3][i][j][k]=opb[3][i][j][k]+opb[3][i][j][k+1]+
+          opb[3][i][j+1][k]+opb[3][i][j+1][k+1];}
   else if (j<dim2-1 && k==dim2-1)
     opa[3][i][j][k]=opb[3][i][j][k]+opb[3][i][j+1][k];
   else if (j==dim2-1 && k<dim2-1)
@@ -516,7 +516,7 @@ void RicianBias(float level, int max, double * mibias, int N)
     opa[6][i][j][k]=opb[6][i][j][k];
   if (i<dim2-1 && j<dim2-1 && k<dim2-1)
     opa[7][i][j][k]=opb[7][i][j][k]+opb[7][i][j][k+1]+opb[7][i][j+1][k]+opb[7][i][j+
-										  1][k+1]+opb[7][i+1][j][k]+opb[7][i+1][j][k+1]+opb[7][i+1][j+1][k]+opb[7][i+1][j+1][k+1];
+                                          1][k+1]+opb[7][i+1][j][k]+opb[7][i+1][j][k+1]+opb[7][i+1][j+1][k]+opb[7][i+1][j+1][k+1];
   else if (i<dim2-1 && j<dim2-1 && k==dim2-1)
     opa[7][i][j][k]=opb[7][i][j][k]+opb[7][i][j+1][k]+opb[7][i+1][j][k]+opb[7][i+1][j+1][k];
   else if (i<dim2-1 && j==dim2-1 && k<dim2-1)
@@ -536,7 +536,7 @@ for (i=0;i<dim2;i++)
   for (j=0;j<dim2;j++)
     for (k=0;k<dim2;k++)
       for (l=0;l<BLK;l++)
-	*(out+admul[index][l][i][j][k])=opa[l][i][j][k];
+    *(out+admul[index][l][i][j][k])=opa[l][i][j][k];
 }
 
 */
@@ -724,10 +724,10 @@ void* ThreadFunc(void* pArguments)
                             }
                             else {
                                 indB1++;
-				}*/
+                            }*/
                         }
                 z = 1.0 / (ind + 1);
-		//zB1 = 1.0 / (indB1 + 1);
+                //zB1 = 1.0 / (indB1 + 1);
 
                 idct3(cb, b);
                 //idct3(cb3, b3);
@@ -741,7 +741,7 @@ void* ThreadFunc(void* pArguments)
                             /* agregation                  */
                             /*fimaB1[p1] += (1.0f/(thresholdB1*thresholdB1*thresholdB1))
                             fimaB1[p1] += cb3[kk * B * B + jj * B + ii];
-			    */
+                            */
                             fima[p1] += z * b[kk * B * B + jj * B + ii];
                             acu[p1] += z;
 
@@ -813,14 +813,14 @@ void* ThreadFunc2(void* pArguments)
                             p1 = (k + kk) * rows * cols + (j + jj) * cols + (i + ii);
                             b[p] = ima[p1];
                             b2[p] = fima[p1];
-			    //            b3[p] = fimaB1[p1];
+                            //            b3[p] = fimaB1[p1];
                             if (b[p] > max) max = b[p];
                         }
                 if (max == 0) continue;
 
                 dct3(b, cb);
                 dct3(b2, cb2);
-		//                dct3(b3, cb3); /*ZC*/
+                //                dct3(b3, cb3); /*ZC*/
 
                 /*/////////////////////////////////////////////////*/
 
@@ -832,9 +832,9 @@ void* ThreadFunc2(void* pArguments)
                             p = kk * B * B + jj * B + ii;
                             if (abs(cb2[p]) < T) cb[p] = 0; /* hardthreshold(cb,T); */
                             else ind++;
-			    /*          if (abs(cb3[p]) < TB1) cb3[p] = 0;
-                            else indB1++;
-			    */
+                            /*          if (abs(cb3[p]) < TB1) cb3[p] = 0;
+                                        else indB1++;
+                            */
                         }
                 z = 1.0 / (ind + 1);
 
@@ -848,7 +848,7 @@ void* ThreadFunc2(void* pArguments)
                   }
                 */
                 idct3(cb, b);
-		//                idct3(cb3, b3); /*ZC*/
+                //                idct3(cb3, b3); /*ZC*/
 
                 for (kk = 0; kk < B; kk++)
                     for (jj = 0; jj < B; jj++)
