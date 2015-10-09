@@ -906,7 +906,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     int *ThreadIndex;
 #endif
 
-    mexPrintf("cM_ODCT3D: \n");
+    mexPrintf("cM_ODCT3D: \n"); mexEvalString("drawnow");
     if (nrhs != 3) {
         mexErrMsgIdAndTxt("MyODCT3d:nrhs",
                           "Two inputs required.");
@@ -932,7 +932,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     ndim = mxGetNumberOfDimensions(prhs[0]);
     dims = mxGetDimensions(prhs[0]);
 
-    mexPrintf("cM_ODCT3D: ndims %d\n", ndim);
+    mexPrintf("cM_ODCT3D: ndims %d\n", ndim); mexEvalString("drawnow");
 
     /* Copy input parameters */
     if (mxIsComplex(prhs[1]) ||
@@ -941,7 +941,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                           "Input sigma must be a scalar.");
     }
     sigma = (float)(mxGetScalar(prhs[1]));
-    mexPrintf("cM_ODCT3D: sigma %f\n", sigma);
+    mexPrintf("cM_ODCT3D: sigma %f\n", sigma); mexEvalString("drawnow");
 
 
     if (mxIsComplex(prhs[2]) ||
@@ -950,7 +950,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                           "Input rician must be a scalar integer.");
     }
     rician = (int)(mxGetScalar(prhs[2]));
-    mexPrintf("cM_ODCT3D: rician %d\n", rician);
+    mexPrintf("cM_ODCT3D: rician %d\n", rician); mexEvalString("drawnow");
 
 
     /* Allocate memory and assign output pointer */
@@ -1014,7 +1014,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         pv = mxCreateNumericArray(2, bdims, mxDOUBLE_CLASS, mxREAL);
         mibias = (double*)mxGetPr(pv);
     }
-    mexPrintf("cM_ODCT3D: Rician Bias \n");
+    mexPrintf("cM_ODCT3D: Rician Bias \n"); mexEvalString("drawnow");
 
     if (rician > 0) RicianBias(sigma, imax, mibias, Nthreads);
 
@@ -1101,7 +1101,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 
 #else
-    mexPrintf("cM_ODCT3D: Pthreading \n");
+    mexPrintf("cM_ODCT3D: Pthreading \n"); mexEvalString("drawnow");
 
     /*
      Reserve room for handles of threads in ThreadList
@@ -1156,7 +1156,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /*//////////////////////////////////////////////*/
     /* second pass*/
     /*//////////////////////////////////////////////*/
-    mexPrintf("cM_ODCT3D: Second pass \n");
+    mexPrintf("cM_ODCT3D: Second pass \n"); mexEvalString("drawnow");
     for (i = 0; i < dims[0]*dims[1]*dims[2]; i++)
     {
         fima2[i] = 0;
@@ -1199,7 +1199,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         pthread_join(ThreadList[i], NULL);
     }
 
-    mexPrintf("cM_ODCT3D: Threads Done \n");
+    mexPrintf("cM_ODCT3D: Threads Done \n"); mexEvalString("drawnow");
 #endif
 
 
@@ -1209,11 +1209,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         fima[i] = fima2[i] / acu[i];
         if (rician) if (fima[i] < 0) fima[i] = 0; /* background*/
     }
-    mexPrintf("cM_ODCT3D: arrays \n");
+    mexPrintf("cM_ODCT3D: arrays \n"); mexEvalString("drawnow");
     mxFree(tabla1);
     mxFree(tabla2);
     mxFree(bdims);
-    mexPrintf("cM_ODCT3D: Freeing threads \n");
+    mexPrintf("cM_ODCT3D: Freeing threads \n"); mexEvalString("drawnow");
 
 
 
@@ -1225,7 +1225,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     free(ThreadList);
 
 #endif
-    mexPrintf("cM_ODCT3D: Done \n");
+    mexPrintf("cM_ODCT3D: Done \n"); mexEvalString("drawnow");
 
     return;
 

@@ -79,7 +79,7 @@ void Average_block(float *ima, int x, int y, int z, int neighborhoodsize, float 
 {
     int x_pos, y_pos, z_pos;
     bool is_outside;
-    int a, b, c, ns, sxy, count;
+    int a, b, c, ns, sxy, count, p1, p2;
 
     ns = 2 * neighborhoodsize + 1;
     sxy = sx * sy;
@@ -88,45 +88,33 @@ void Average_block(float *ima, int x, int y, int z, int neighborhoodsize, float 
 
     for (c = 0; c < ns; c++)
     {
+        z_pos = z + c - neighborhoodsize;
+        if ((z_pos < 0) || (z_pos > sz - 1)) z_pos = z;
         for (b = 0; b < ns; b++)
         {
+            y_pos = y + b - neighborhoodsize;
+            if ((y_pos < 0) || (y_pos > sy - 1)) y_pos = y;
             for (a = 0; a < ns; a++)
             {
-
-                is_outside = false;
                 x_pos = x + a - neighborhoodsize;
-                y_pos = y + b - neighborhoodsize;
-                z_pos = z + c - neighborhoodsize;
-
-                if ((z_pos < 0) || (z_pos > sz - 1)) is_outside = true;
-                if ((y_pos < 0) || (y_pos > sy - 1)) is_outside = true;
-                if ((x_pos < 0) || (x_pos > sx - 1)) is_outside = true;
-
+                if ((x_pos < 0) || (x_pos > sx - 1)) x_pos = x;
+                p2 = z_pos * (sxy) + (y_pos * sx) + x_pos;
                 if (rician)
-                {
-                    if (is_outside)
-                        average[count] = average[count] + ima[z * (sxy) + (y * sx) + x] * ima[z * (sxy) + (y * sx) + x] * weight;
-                    else
-                        average[count] = average[count] + ima[z_pos * (sxy) + (y_pos * sx) + x_pos] * ima[z_pos * (sxy) + (y_pos * sx) + x_pos] * weight;
-                }
+                    average[count] = average[count] + ima[p2] * ima[p2] * weight;
                 else
-                {
-                    if (is_outside)
-                        average[count] = average[count] + ima[z * (sxy) + (y * sx) + x] * weight;
-                    else
-                        average[count] = average[count] + ima[z_pos * (sxy) + (y_pos * sx) + x_pos] * weight;
-                }
+                    average[count] = average[count] + ima[p2] * weight;
 
                 count++;
             }
         }
     }
+
 }
 
 /* Function which computes the value assigned to each voxel */
 void Value_block(float *Estimate, float *Label, int x, int y, int z, int neighborhoodsize, float *average, float global_sum, int sx, int sy, int sz, float bias)
 {
-    int x_pos, y_pos, z_pos;
+    int x_pos, y_pos, z_pos, p1;
     int ret;
     bool is_outside;
     float value = 0.0;
@@ -143,40 +131,42 @@ void Value_block(float *Estimate, float *Label, int x, int y, int z, int neighbo
 
     for (c = 0; c < ns; c++)
     {
-        for (b = 0; b < ns; b++)
-        {
-            for (a = 0; a < ns; a++)
+        z_pos = z + c - neighborhoodsize;
+        if (!((z_pos < 0) || (z_pos > sz - 1)))
+            for (b = 0; b < ns; b++)
             {
-                is_outside = false;
-                x_pos = x + a - neighborhoodsize;
                 y_pos = y + b - neighborhoodsize;
-                z_pos = z + c - neighborhoodsize;
-
-                if ((z_pos < 0) || (z_pos > sz - 1)) is_outside = true;
-                if ((y_pos < 0) || (y_pos > sy - 1)) is_outside = true;
-                if ((x_pos < 0) || (x_pos > sx - 1)) is_outside = true;
-                if (!is_outside)
-                {
-
-                    value = Estimate[z_pos * (sxy) + (y_pos * sx) + x_pos];
-
-                    if (rician)
+                if (!((y_pos < 0) || (y_pos > sy - 1)))
+                    for (a = 0; a < ns; a++)
                     {
-                        denoised_value  = (average[count] / global_sum) - bias;
-                        if (denoised_value > 0)
-                            denoised_value = sqrt(denoised_value);
-                        else denoised_value = 0.0;
-                        value = value + denoised_value;
-                    }
-                    else value = value + (average[count] / global_sum);
+                        x_pos = x + a - neighborhoodsize;
+                        if (!((x_pos < 0) || (x_pos > sx - 1))) 
+                        {
+                            p1 = z_pos * (sxy) + (y_pos * sx) + x_pos;
 
-                    label = Label[(x_pos + y_pos * sx + z_pos * sxy)];
-                    Estimate[z_pos * (sxy) + (y_pos * sx) + x_pos] = value;
-                    Label[(x_pos + y_pos * sx + z_pos * sxy)] = label + 1;
-                }
-                count++;
+                            value = Estimate[p1];
+
+                            if (rician)
+                            {
+                                denoised_value  = (average[count] / global_sum) - bias;
+                                if (denoised_value > 0)
+                                    denoised_value = sqrt(denoised_value);
+                                else {
+				  denoised_value = 0.0;
+				}
+                                value = value + denoised_value;
+                            }
+                            else { 
+			      value = value + (average[count] / global_sum);
+			    }
+
+                            //label = Label[p1];
+                            Estimate[p1] = value;
+                            Label[p1] += 1;
+                        }
+                        count++;
+                    }
             }
-        }
     }
 }
 
@@ -185,7 +175,7 @@ float distance(float* ima, int x, int y, int z, int nx, int ny, int nz, int f, i
 {
 
     float d, acu, distancetotal, inc;
-    int i, j, k, ni1, nj1, ni2, nj2, nk1, nk2, kk, sxy;
+    int i, j, k, ni1, nj1, ni2, nj2, nk1, nk2, kk, sxy, p1, p2;
 
     sxy = sx * sy;
 
@@ -194,32 +184,32 @@ float distance(float* ima, int x, int y, int z, int nx, int ny, int nz, int f, i
 
     for (k = -f; k <= f; k++)
     {
+        nk1 = z + k;
+        nk2 = nz + k;
+        if (nk1 < 0) nk1 = -nk1;
+        if (nk2 < 0) nk2 = -nk2;
+        if (nk1 >= sz) nk1 = 2 * sz - nk1 - 1;
+        if (nk2 >= sz) nk2 = 2 * sz - nk2 - 1;
         for (j = -f; j <= f; j++)
         {
+            nj1 = y + j;
+            nj2 = ny + j;
+            if (nj1 < 0) nj1 = -nj1;
+            if (nj2 < 0) nj2 = -nj2;
+            if (nj1 >= sy) nj1 = 2 * sy - nj1 - 1;
+            if (nj2 >= sy) nj2 = 2 * sy - nj2 - 1;
             for (i = -f; i <= f; i++)
             {
                 ni1 = x + i;
-                nj1 = y + j;
-                nk1 = z + k;
                 ni2 = nx + i;
-                nj2 = ny + j;
-                nk2 = nz + k;
-
                 if (ni1 < 0) ni1 = -ni1;
-                if (nj1 < 0) nj1 = -nj1;
                 if (ni2 < 0) ni2 = -ni2;
-                if (nj2 < 0) nj2 = -nj2;
-                if (nk1 < 0) nk1 = -nk1;
-                if (nk2 < 0) nk2 = -nk2;
-
                 if (ni1 >= sx) ni1 = 2 * sx - ni1 - 1;
-                if (nj1 >= sy) nj1 = 2 * sy - nj1 - 1;
-                if (nk1 >= sz) nk1 = 2 * sz - nk1 - 1;
                 if (ni2 >= sx) ni2 = 2 * sx - ni2 - 1;
-                if (nj2 >= sy) nj2 = 2 * sy - nj2 - 1;
-                if (nk2 >= sz) nk2 = 2 * sz - nk2 - 1;
 
-                distancetotal = distancetotal + ((ima[nk1 * (sxy) + (nj1 * sx) + ni1] - ima[nk2 * (sxy) + (nj2 * sx) + ni2]) * (ima[nk1 * (sxy) + (nj1 * sx) + ni1] - ima[nk2 * (sxy) + (nj2 * sx) + ni2]));
+                p1 = nk1 * (sxy) + (nj1 * sx) + ni1;
+                p2 = nk2 * (sxy) + (nj2 * sx) + ni2;
+                distancetotal = distancetotal + ((ima[p1] - ima[p2]) * (ima[p1] - ima[p2]));
                 acu = acu + 1;
             }
         }
@@ -229,6 +219,87 @@ float distance(float* ima, int x, int y, int z, int nx, int ny, int nz, int f, i
     return d;
 
 }
+
+float distanceB1(float* ima, float* coilsens, int x, int y, int z, int nx, int ny, int nz, int f, int sx, int sy, int sz)
+{
+
+    float d, acu, distancetotal, inc;
+    int i, j, k, ni1, nj1, ni2, nj2, nk1, nk2, kk, sxy, p1, p2;
+
+    sxy = sx * sy;
+
+    acu = 0;
+    distancetotal = 0;
+
+    for (k = -f; k <= f; k++)
+    {
+        nk1 = z + k;
+        nk2 = nz + k;
+        if (nk1 < 0) nk1 = -nk1;
+        if (nk2 < 0) nk2 = -nk2;
+        if (nk1 >= sz) nk1 = 2 * sz - nk1 - 1;
+        if (nk2 >= sz) nk2 = 2 * sz - nk2 - 1;
+        for (j = -f; j <= f; j++)
+        {
+            nj1 = y + j;
+            nj2 = ny + j;
+            if (nj1 < 0) nj1 = -nj1;
+            if (nj2 < 0) nj2 = -nj2;
+            if (nj1 >= sy) nj1 = 2 * sy - nj1 - 1;
+            if (nj2 >= sy) nj2 = 2 * sy - nj2 - 1;
+            for (i = -f; i <= f; i++)
+            {
+                ni1 = x + i;
+                ni2 = nx + i;
+                if (ni1 < 0) ni1 = -ni1;
+                if (ni2 < 0) ni2 = -ni2;
+                if (ni1 >= sx) ni1 = 2 * sx - ni1 - 1;
+                if (ni2 >= sx) ni2 = 2 * sx - ni2 - 1;
+
+                p1 = nk1 * (sxy) + (nj1 * sx) + ni1;
+                p2 = nk2 * (sxy) + (nj2 * sx) + ni2;
+                distancetotal = distancetotal + ((ima[p1]/ coilsens[p1] - ima[p2] / coilsens[p2]) * (ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]));
+                acu = acu + 1;
+            }
+        }
+    }
+    d = distancetotal / acu;
+
+    return d;
+
+}
+
+
+/*calculate gamma */
+float gammac(float* coilsens, int ni1, int nj1, int nk1, int ni2, int nj2, int nk2, int sx, int sy, int sz)
+{
+
+    float gamma;
+    int sxy, p1, p2;
+
+    sxy = sx * sy;
+    /*
+    if (ni1 < 0) ni1 = -ni1;
+    if (nj1 < 0) nj1 = -nj1;
+    if (ni2 < 0) ni2 = -ni2;
+    if (nj2 < 0) nj2 = -nj2;
+    if (nk1 < 0) nk1 = -nk1;
+    if (nk2 < 0) nk2 = -nk2;
+
+    if (ni1 >= sx) ni1 = 2 * sx - ni1 - 1;
+    if (nj1 >= sy) nj1 = 2 * sy - nj1 - 1;
+    if (nk1 >= sz) nk1 = 2 * sz - nk1 - 1;
+    if (ni2 >= sx) ni2 = 2 * sx - ni2 - 1;
+    if (nj2 >= sy) nj2 = 2 * sy - nj2 - 1;
+    if (nk2 >= sz) nk2 = 2 * sz - nk2 - 1;
+    */
+    p1 = nk1 * (sxy) + (nj1 * sx) + ni1;
+    p2 = nk2 * (sxy) + (nj2 * sx) + ni2;
+    gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1] , coilsens[p2]);
+
+    return gamma;
+}
+
 
 void* ThreadFunc(void* pArguments)
 {
@@ -270,10 +341,12 @@ void* ThreadFunc(void* pArguments)
 
     Ndims = (2 * radiusS + 1) * (2 * radiusS + 1) * (2 * radiusS + 1);
 
-    average = (float*)malloc(Ndims * sizeof(float));
+    average = (float *) malloc(Ndims * sizeof(float));
 
     for (k = ini; k < fin; k += 2)
+    {
         for (j = 0; j < rows; j += 2)
+        {
             for (i = 0; i < cols; i += 2)
             {
                 for (init = 0 ; init < Ndims; init++)
@@ -288,61 +361,56 @@ void* ThreadFunc(void* pArguments)
                     wmax = 0.0;
                     for (kk = -radiusB; kk <= radiusB; kk++)
                     {
-                        for (jj = -radiusB; jj <= radiusB; jj++)
-                        {
-                            for (ii = -radiusB; ii <= radiusB; ii++)
+                        nk = k + kk;
+                        if (nk >= 0 && nk < slices)
+                            for (jj = -radiusB; jj <= radiusB; jj++)
                             {
-                                ni = i + ii;
                                 nj = j + jj;
-                                nk = k + kk;
-
-                                if (ii == 0 && jj == 0 && kk == 0) continue;
-
-                                if (ni >= 0 && nj >= 0 && nk >= 0 && ni < cols && nj < rows && nk < slices)
-                                {
-                                    p2 = nk * (rc) + (nj * cols) + ni;
-
-                                    if ((means[p2]) > epsilon && (variances[p2] > epsilon))
+                                if (nj >= 0 && nj < rows)
+                                    for (ii = -radiusB; ii <= radiusB; ii++)
                                     {
-                                        t1 = (means[p1]) / (means[p2]);
-                                        t2 = (variances[p1]) / (variances[p2]);
+                                        ni = i + ii;
+                                        if (ii == 0 && jj == 0 && kk == 0) continue;
 
-                                        if (t1 > mu1 && t1 < (1 / mu1) && t2 > var1 && t2 < (1 / var1))
+                                        if (ni >= 0 && ni < cols)
                                         {
+                                            p2 = nk * (rc) + (nj * cols) + ni;
 
-                                            d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
-                                            // Eager Ammendment
-                                            // add coil sensitivty B1 correction factor to weight
-                                            gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1], coilsens[p2]);
-                                            if (gamma > 0) {
-                                                w = exp(-(1 / (gamma)) * d / hh);
+                                            if ((means[p2]) > epsilon && (variances[p2] > epsilon))
+                                            {
+                                                t1 = (means[p1]) / (means[p2]);
+                                                t2 = (variances[p1]) / (variances[p2]);
+
+                                                if (t1 > mu1 && t1 < (1 / mu1) && t2 > var1 && t2 < (1 / var1))
+                                                {
+                                                    d = distanceB1(ima, coilsens, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
+                                                    ///d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
+                                                    // Eager Ammendment
+                                                    // add coil sensitivty B1 correction factor to weight
+						    //  gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1], coilsens[p2]);
+                                                    gamma =1;// gammac(coilsens, i, j, k, ni, nj, nk, cols, rows, slices);
+                                                    if (gamma > epsilon) {
+                                                        w = exp(-(1/(gamma * gamma)) * d / hh);
+                                                    }
+                                                    else {
+                                                        w = exp(-d / (hh));
+                                                    }
+                                                    if (w > wmax) wmax = w;
+
+                                                    Average_block(ima, ni, nj, nk, radiusS, average, w, cols, rows, slices);
+
+                                                    totalweight = totalweight + w;
+                                                }
                                             }
-                                            else {
-                                                w = exp(-d / (hh));
-                                            }
-                                            if (w > wmax) wmax = w;
-
-                                            Average_block(ima, ni, nj, nk, radiusS, average, w, cols, rows, slices);
-
-
-                                            totalweight = totalweight + w;
                                         }
                                     }
-
-
-
-                                }
                             }
-                        }
-
                     }
-
                     if (wmax == 0.0) wmax = 1.0;
 
                     Average_block(ima, i, j, k, radiusS, average, wmax, cols, rows, slices);
 
                     totalweight = totalweight + wmax;
-
 
                     if (totalweight != 0.0)
                         Value_block(Estimate, Label, i, j, k, radiusS, average, totalweight, cols, rows, slices, bias);
@@ -359,6 +427,8 @@ void* ThreadFunc(void* pArguments)
                 Weight[ p1 ] = totalweight;
                 /*Average_block(ima,i,j,k,radiusS,average,wmax,cols,rows,slices);     */
             }
+        }
+    }
 #ifdef _WIN32
     _endthreadex(0);
 #else
@@ -378,7 +448,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     float *means, *variances, *Estimate, *Label, *weight;
     mxArray *pv;
     float hSigma, w, totalweight, wmax, d, mean, var, t1, t2, hh, epsilon, mu1, var1, label, estimate;
-    int Ndims, i, j, k, ii, jj, kk, ni, nj, nk, radiusB, radiusS, ndim, indice, init, Nthreads, ini, fin, r;
+    int Ndims, i, j, k, ii, jj, kk, ni, nj, nk, p1, radiusB, radiusS, ndim, indice, init, Nthreads, ini, fin, r;
     const int  *dims, *coildims;
 
     myargument *ThreadArgs;
@@ -392,7 +462,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (nrhs < 5 || nrhs > 6)
     {
         mexPrintf("myMBONLM3D: Not enough arguments \n");
-        mexPrintf("Usage: OutputImage=myMBONLM3D(InputImage,searcharea,patcharea,sigma,rician,[Coilsens]) ");
+        mexPrintf("Usage: OutputImage=myMBONLM3D(InputImage,searcharea,patcharea,sigma,rician,[Coilsens])\n ");
+        mexEvalString("drawnow");
         return;
     }
 
@@ -411,6 +482,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
     ndim = mxGetNumberOfDimensions(prhs[0]);
     dims = mxGetDimensions(prhs[0]);
+    mexPrintf("myMBONLM3D: Starting\n");  mexEvalString("drawnow");
+
 
     /*Get the patch area, search area and sigma*/
     if (mxIsComplex(prhs[1]) ||
@@ -474,7 +547,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     fima = (float*)mxGetPr(plhs[0]);
     if (nlhs > 1) {
         plhs[1] = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
-        weight = (float*)mxGetPr(plhs[1]);
+        weight = (float*) mxGetPr(plhs[1]);
     }
     else {
         Mxweight = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
@@ -490,8 +563,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         means = (float*) mxGetPr(Mxmeans);
     }
     if (nlhs > 3) {
-        plhs[3] == mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
-        variances = (float*)mxGetPr(plhs[3]);
+        plhs[3] = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
+        variances = (float*) mxGetPr(plhs[3]);
     }
     else {
         Mxvariances = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
@@ -511,10 +584,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     else {
         MxLabel = mxCreateNumericArray(ndim, dims, mxSINGLE_CLASS, mxREAL);
-        Label = (float*)mxGetPr(MxLabel);
+        Label = (float*) mxGetPr(MxLabel);
     }
 
-    average = (float*)malloc(Ndims * sizeof(float));
+    average = (float*) malloc(Ndims * sizeof(float));
 
     for (i = 0; i < dims[2] *dims[1] * dims[0]; i++)
     {
@@ -522,6 +595,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         Label[i] = 0.0;
         fima[i] = 0.0;
     }
+    mexPrintf("  myMBONLM3D: Arguments parsed \n");  mexEvalString("drawnow");
 
 
     for (k = 0; k < dims[2]; k++)
@@ -534,22 +608,19 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 indice = 0;
                 for (ii = -1; ii <= 1; ii++)
                 {
+                    ni = i + ii;
+                    if (ni < 0) ni = -ni;
+                    if (ni >= dims[1]) ni = 2 * dims[1] - ni - 1;
                     for (jj = -1; jj <= 1; jj++)
                     {
+                        nj = j + jj;
+                        if (nj < 0) nj = -nj;
+                        if (nj >= dims[0]) nj = 2 * dims[0] - nj - 1;
                         for (kk = -1; kk <= 1; kk++)
                         {
-                            ni = i + ii;
-                            nj = j + jj;
                             nk = k + kk;
-
-                            if (ni < 0) ni = -ni;
-                            if (nj < 0) nj = -nj;
                             if (nk < 0) nk = -nk;
-                            if (ni >= dims[1]) ni = 2 * dims[1] - ni - 1;
-                            if (nj >= dims[0]) nj = 2 * dims[0] - nj - 1;
                             if (nk >= dims[2]) nk = 2 * dims[2] - nk - 1;
-
-
                             mean = mean + ima[nk * (dims[0] * dims[1]) + (ni * dims[0]) + nj];
                             indice = indice + 1;
 
@@ -572,20 +643,22 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 indice = 0;
                 for (ii = -1; ii <= 1; ii++)
                 {
-                    for (jj = -1; jj <= 1; jj++)
-                    {
-                        for (kk = -1; kk <= 1; kk++)
+                    ni = i + ii;
+                    if (ni >= 0 &&  ni < dims[1])
+                        for (jj = -1; jj <= 1; jj++)
                         {
-                            ni = i + ii;
                             nj = j + jj;
-                            nk = k + kk;
-                            if (ni >= 0 && nj >= 0 && nk > 0 && ni < dims[1] && nj < dims[0] && nk < dims[2])
-                            {
-                                var = var + (ima[nk * (dims[0] * dims[1]) + (ni * dims[0]) + nj] - means[k * (dims[0] * dims[1]) + (i * dims[0]) + j]) * (ima[nk * (dims[0] * dims[1]) + (ni * dims[0]) + nj] - means[k * (dims[0] * dims[1]) + (i * dims[0]) + j]);
-                                indice = indice + 1;
-                            }
+                            if (nj >= 0 &&  nj < dims[0])
+                                for (kk = -1; kk <= 1; kk++)
+                                {
+                                    nk = k + kk;
+                                    if (nk > 0 &&  nk < dims[2])
+                                    {
+                                        var = var + (ima[nk * (dims[0] * dims[1]) + (ni * dims[0]) + nj] - means[k * (dims[0] * dims[1]) + (i * dims[0]) + j]) * (ima[nk * (dims[0] * dims[1]) + (ni * dims[0]) + nj] - means[k * (dims[0] * dims[1]) + (i * dims[0]) + j]);
+                                        indice = indice + 1;
+                                    }
+                                }
                         }
-                    }
                 }
                 var = var / (indice - 1);
                 variances[k * (dims[0]*dims[1]) + (i * dims[0]) + j] = var;
@@ -593,8 +666,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         }
     }
 
-    Nthreads = 8;
-
+    Nthreads = 24;
+    mexPrintf("  myMBONLM3D: Starting threads\n");  mexEvalString("drawnow");
 
 #ifdef _WIN32
 
@@ -677,10 +750,15 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
 
 #endif
+    mexPrintf("  myMBONLM3D: Threads finished\n");  mexEvalString("drawnow");
 
+#ifdef _WIN32
+    mxFree(ThreadArgs);
+    mxFree(ThreadList);
+#else
     free(ThreadArgs);
     free(ThreadList);
-
+#endif
 
     label = 0.0;
     estimate = 0.0;
@@ -691,23 +769,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         {
             for (j = 0; j < dims[0]; j++)
             {
-                label = Label[k * (dims[0] * dims[1]) + (i * dims[0]) + j];
+                p1 = k * (dims[0] * dims[1]) + (i * dims[0]) + j;
+                label = Label[p1];
                 if (label == 0.0)
-                {
-                    fima[k * (dims[0]*dims[1]) + (i * dims[1]) + j] = ima[k * (dims[0] * dims[1]) + (i * dims[0]) + j];
-
-                }
+                    fima[p1] = ima[p1];
                 else
-                {
-                    estimate = Estimate[k * (dims[0] * dims[1]) + (i * dims[0]) + j];
-                    estimate = (estimate / label);
-                    fima[k * (dims[0]*dims[1]) + (i * dims[0]) + j] = estimate;
-
-                }
+                    fima[p1] = Estimate[p1] / label;
             }
         }
     }
-
+    mexPrintf("myMBONLM3D: Completed.\n");
     return;
 
 }
