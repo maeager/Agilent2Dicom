@@ -1,0 +1,16 @@
+# -*- mode: org -*-
+#README for matlab scripts#
+
+
+* Copy of NIFTI package (mathworks)
+        cd matlab
+	zip_path=`curl http://www.mathworks.com.au/matlabcentral/fileexchange/8797-tools-for-nifti-and-analyze-image?download=true`
+	zip_path=` echo $zip_path | sed 's#<html><body>You are being <a href="\(.*\)">redirected</a>.</body></html>#\1#'`
+	wget $zip_path
+	mkdir NIFTI
+	cd NIFTI
+	unzip ../NIFTI*.zip
+
+* Copy of Agilent package (local derived)
+
+
