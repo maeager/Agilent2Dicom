@@ -101,16 +101,14 @@ disp('**************************************************************************
 disp('.')
 %}  
 
-%        if isempty(coil)
-        %% create coil-sensitivity matrix here
+    if isempty(coil) || numel(coil)==1
+        % create default coil-sensitivity matrix 
         coil = single(ones(size(ima)));
-%    end
+    end
     
     ORNLM=myMBONLM3D(single(ima),searcharea,patchsize,single(sigma),rician,coil);
     map = find(ORNLM<0);
     ORNLM(map) =0;
-
-   
     
     if(verbose==1)
        figure;
@@ -140,11 +138,5 @@ disp('.')
             drawnow
         
     end
-
-    
-
-
-
-
 end
 

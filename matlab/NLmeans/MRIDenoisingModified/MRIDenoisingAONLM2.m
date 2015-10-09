@@ -77,9 +77,9 @@ disp('.')
     if  nargin < 5 ||  isempty(rician) || (rician ~= 0)
         rician=1;
     end
-    if  nargin < 6 || isempty(coil)
-    %% create coil-sensitivity matrix here
-    coil = single(ones(size(ima)));
+    if  nargin < 6 || isempty(coil) || numel(coil) ~= numel(ima)
+        % create default coil-sensitivity matrix 
+        coil = single(ones(size(ima)));
     end
     if  nargin < 7 
         verbose=0;

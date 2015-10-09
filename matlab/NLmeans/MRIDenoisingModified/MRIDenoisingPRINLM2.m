@@ -52,7 +52,7 @@ end
     if  nargin < 5 ||  isempty(rician) || (rician ~= 0)
         rician=1;
     end
-    if  nargin < 6 || isempty(coil)
+    if  nargin < 6 || isempty(coil) || numel(coil) ~= numel(ima)
         coil = ones(size(ima));
     end
     coil=single(coil);
