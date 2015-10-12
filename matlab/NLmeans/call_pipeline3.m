@@ -40,9 +40,10 @@ if nargin < 6
     searcharea=[];patcharea=[];
 end
 %% Clean input strings
-in1 = regexprep(in1,'"','');
-in2 = regexprep(in2,'"','');
-out = regexprep(out,'"','');
+in1 = regexprep(in1,'["\[\]]','');
+out = regexprep(out,'["\[\]]','');
+in2 = regexprep(in2,'["\[\]]','');
+
 
 voxelsize=[];
 shifted=0;
@@ -99,17 +100,18 @@ voxelsize=voxelsize1;
 
 
 if length(size(img)) == 3
-    display 'Calling pipeline 3'
+    display 'Calling pipeline 3 for 3D image'
     tic(),[MRIdenoised3,sigma, filtername] = pipeline3(ksp1,ksp2, NLfilter, hfinal, hfactor, ...
         searcharea, patcharea, rician);toc()
     if shifted
         MRIdenoised3 = ifftshift(MRIdenoised3);
     end
+
 elseif length(size(img)) == 4
     
     display 'Processing 4D image'
     for vol=1:size(img,4)
-        display (['Calling pipeline 3 on vol ' num2str(vol)])
+        display (['Calling pipeline 3 on 4D vol ' num2str(vol)])
         tic(),[MRIdenoised3(:,:,:,vol),sigma, filtername] = pipeline3(ksp1(:,:,:,vol),ksp2(:,:,:,vol), NLfilter, hfinal, hfactor, ...
             searcharea, patcharea, rician);toc()
         if shifted
@@ -121,7 +123,7 @@ elseif length(size(img)) == 5
     display 'Processing 5D image'
     for echo=1:size(img,5)
         for vol=1:size(img,4)
-            display(['Calling pipeline 2 on volume ' num2str(vol) ' echo ' num2str(echo)])
+            display(['Calling pipeline 3 on 5D volume ' num2str(vol) ' echo ' num2str(echo)])
             tic(),[MRIdenoised3(:,:,:,vol,echo),sigma, filtername] = pipeline3(ksp1(:,:,:,vol,echo),ksp2(:,:,:,vol,echo), NLfilter, hfinal, hfactor, ...
                 searcharea, patcharea, rician);toc()
             if shifted

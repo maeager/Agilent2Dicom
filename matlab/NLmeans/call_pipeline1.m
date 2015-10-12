@@ -37,6 +37,8 @@ out = regexprep(out,'"','');
 if nargin >= 3
     if isstr(in2)
         in2 = regexprep(in2,'"','');
+in2 = regexprep(in2,'[','');
+in2 = regexprep(in2,']','');
     else
         in2=[];
     end
@@ -78,7 +80,7 @@ if nargin >= 3 && ~isempty(in2)
         %    voxelsize2=hdr.FOVcm*10/size(img);
         voxelsize2 = hdr.voxelmm;
     else
-        display(['Cannot find ' in2])
+        display(['Cannot find second arg: ' in2])
         return
     end
     img = abs(complex(img,img2))

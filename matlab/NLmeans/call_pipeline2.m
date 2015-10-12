@@ -27,9 +27,9 @@ if nargin < 5
     searcharea=[];patcharea=[];
 end
 %% Clean input strings
-in1 = regexprep(in1,'"','');
-out = regexprep(out,'"','');
-in2 = regexprep(in2,'"','');
+in1 = regexprep(in1,'["\[\]]','');
+out = regexprep(out,'["\[\]]','');
+in2 = regexprep(in2,'["\[\]]','');
 
 
 
