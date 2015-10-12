@@ -383,12 +383,12 @@ void* ThreadFunc(void* pArguments)
 
                                                 if (t1 > mu1 && t1 < (1 / mu1) && t2 > var1 && t2 < (1 / var1))
                                                 {
-                                                    d = distanceB1(ima, coilsens, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
-                                                    ///d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
+						    // d = distanceB1(ima, coilsens, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
+                                                    d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
                                                     // Eager Ammendment
                                                     // add coil sensitivty B1 correction factor to weight
 						    //  gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1], coilsens[p2]);
-                                                    gamma =1;// gammac(coilsens, i, j, k, ni, nj, nk, cols, rows, slices);
+                                                    gamma = gammac(coilsens, i, j, k, ni, nj, nk, cols, rows, slices);
                                                     if (gamma > epsilon) {
                                                         w = exp(-(1/(gamma * gamma)) * d / hh);
                                                     }
