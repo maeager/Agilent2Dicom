@@ -95,7 +95,7 @@ if length(size(img)) == 3
     [MRIdenoised1,sigma,filtername] = pipeline1(img, NLfilter,...
         hfinal, hfactor, searcharea, patcharea, rician);
     toc()
-end
+
 
 elseif length(size(img)) == 4
     display 'Processing 4D image'
@@ -108,7 +108,7 @@ elseif length(size(img)) == 4
     end
     
     
-    elseif length(size(img)) == 5
+elseif length(size(img)) == 5
         display 'Processing 5D image'
         for echo=1:size(img,5)
             for vol=1:size(img,4)
@@ -120,7 +120,7 @@ elseif length(size(img)) == 4
             end
         end
         
-        elseif length(size(img)) > 5
+elseif length(size(img)) > 5
             display 'Unable to process images greater than 5D'
             return
 end
