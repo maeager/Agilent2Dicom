@@ -1,4 +1,4 @@
-function [ ORNLM] = MRIDenoisingONLM2(ima, sigma, patchsize, searcharea, rician, verbose)
+function [ ORNLM] = MRIDenoisingONLM2(ima, sigma, patchsize, searcharea, rician, coil,verbose)
 %
 %   Description:  Denoising of a 3D MRI image using the ONLM filter
 %               
@@ -66,7 +66,13 @@ end
     if  nargin < 5 ||  isempty(rician) || (rician ~= 0)
         rician=1;
     end
-    if  nargin < 6
+    if nargin < 6 || isempty(coil) || numel(coil) ~= numel(ima)
+        % create default coil-sensitivity matrix 
+        coil = single(ones(size(ima)));
+    end
+    coil = single(coil);
+    
+    if  nargin < 7
         verbose=0;
     end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -101,12 +107,8 @@ disp('**************************************************************************
 disp('.')
 %}  
 
-    if isempty(coil) || numel(coil)==1
-        % create default coil-sensitivity matrix 
-        coil = single(ones(size(ima)));
-    end
-    
-    ORNLM=myMBONLM3D(single(ima),searcharea,patchsize,single(sigma),rician,coil);
+        
+    ORNLM=myMBONLM3D(single(ima),searcharea,patchsize,single(sigma),rician,single(coil));
     map = find(ORNLM<0);
     ORNLM(map) =0;
     
