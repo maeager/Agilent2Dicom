@@ -1438,20 +1438,29 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
         try:
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
+            if input2_dir=='':
+                pp2_msg = "Pipeline 2 requires two input images. Click Ok to continue. "
+                reply = QtGui.QMessageBox.question(self, 'Message', pp2_msg,
+                                                   QtGui.QMessageBox.Ok,
+                                                   QtGui.QMessageBox.Cancel)
+                return
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
             NLfilter = self.GetNLfilter()
 
-            thispath = os.path.dirname(
+            thispath =os.path.dirname(
                 os.path.realpath(os.path.abspath(__file__)))
             print 'this path: %s' % thispath
             if self.ui.checkBox_NLenableparams.isChecked():
                 (sigma, sigmaratio, searcharea,
                  patcharea, rician) = self.GetNLparams()
 
-                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%s,%s,%s,%s,%s);quit\" """ % (
-                    proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir), NLfilter, str(sigma), str(sigmaratio), str(searcharea), str(patcharea), str(rician))
+                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;
+                call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%s,%s,%s,%s,%s);quit\" """ % (
+                    proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir),
+                    NLfilter, str(sigma), str(sigmaratio), str(searcharea), str(patcharea), str(rician))
             else:
-                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans; call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d);quit\" """ % (
+                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;
+                call_pipeline2('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d);quit\" """ % (
                     proc_header, thispath, str(input1_dir), str(input2_dir), str(output_dir), NLfilter)
 
             print cmd
@@ -1496,14 +1505,29 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             if self.ui.checkBox_NLenableparams.isChecked():
                 (sigma, sigmaratio, searcharea,
                  patcharea, rician) = self.GetNLparams()
-
-                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;  call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%d,%s,%s,%s,%s,%s);quit\" """ % (
+                if rician == 1:
+                    pp3_msg = """Pipeline 3 uses complex images and the rician variable should ideally be set to zero.
+                    Click Yes to continue with Rician=1.
+                    Click No to set Rician to zero then continue pipeline.
+                    Click Cancel to stop pipeline. """
+                    reply = QtGui.QMessageBox.question(self, 'Message', pp3_msg,
+                                                       QtGui.QMessageBox.Yes,
+                                                       QtGui.QMessageBox.No, QtGui.QMessageBox.Cancel)
+                    if reply == QtGui.QMessageBox.No:
+                    #                    event.accept()
+                        rician=0
+                        self.ui.checkBox_NLmeansrician.setChecked(False)
+                    elif reply == QtGui.QMessageBox.Cancel:
+                        return
+                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;
+                call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%d,%d,%s,%s,%s,%s,%s);quit\" """ % (
                     proc_header, thispath, str(input1_dir), str(input2_dir),
                     str(output_dir), saveRI + 4 * savePhase +
                     8 * saveSWI, NLfilter, str(sigma),
                     str(sigmaratio), str(searcharea), str(patcharea), str(rician))
             else:
-                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;  call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%s,%d);quit\" """ % (
+                cmd = """ %s matlab -nodesktop -nosplash -r \"addpath %s/matlab/NLmeans;
+                call_pipeline3('\"'\"'%s'\"'\"','\"'\"'%s'\"'\"','\"'\"'%s'\"'\"',%s,%d);quit\" """ % (
                     proc_header, thispath, str(input1_dir), str(input2_dir),
                     str(output_dir), str(saveRI + 4 * savePhase + 8 * saveSWI), NLfilter)
 
