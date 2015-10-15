@@ -32,13 +32,11 @@ if nargin < 3
     NLfilter=0;
 end
 %% Clean input strings
-in = regexprep(in,'"','');
-out = regexprep(out,'"','');
+in = regexprep(in,'["\[\]]','');
+out = regexprep(out,'["\[\]]','');
 if nargin >= 3
     if isstr(in2)
-        in2 = regexprep(in2,'"','');
-in2 = regexprep(in2,'[','');
-in2 = regexprep(in2,']','');
+        in2 = regexprep(in2,'["\[\]]','');
     else
         in2=[];
     end
@@ -87,7 +85,8 @@ if nargin >= 3 && ~isempty(in2)
 end
 
 % Squeeze and normalise image
-img = NormaliseImage2(squeeze(img))*256.0;
+[img,Range] = NormaliseImage2(squeeze(img));
+img = img*256.0;
 
 
 if length(size(img)) == 3

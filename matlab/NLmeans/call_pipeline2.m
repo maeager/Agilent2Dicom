@@ -32,8 +32,6 @@ out = regexprep(out,'["\[\]]','');
 in2 = regexprep(in2,'["\[\]]','');
 
 
-
-
 if exist(in1,'file')==2 && ~isempty(strfind(in1,'.nii'))
     nii1_in=load_nii(in1);
     img1=nii1_in.img;
@@ -83,10 +81,21 @@ if sum(voxelsize1) ~= sum(voxelsize2)
 end
 voxelsize=voxelsize1;
 
+% Normalise images
+
+[img1,Range] = NormaliseImage2(squeeze(img1));
+img1 = img1*256.0;
+img2 = (img2 - Range(1))/(Range(2)-Range(1));
+min_img2=min(img2(:));
+if min_img2 < 0
+  img2=img2-min_img2;
+  img1=img1-min_img2;
+end
+
 
 if length(size(img)) == 3
     
-    display('Calling pipeline 2')
+    display('Calling pipeline 2 on 3D volume')
     tic(),[MRIdenoised2,sigma,filtername] = pipeline2(img1, img2, NLfilter,...
         hfinal, hfactor, searcharea, patcharea, ...
         rician);toc()
@@ -96,7 +105,7 @@ elseif length(size(img)) == 4
     display 'Processing 4D image'
     %    img=img(:,:,:,1);
     for vol=1:size(img,4)
-        display(['Calling pipeline 2 on volume ' num2str(vol)])
+        display(['Calling pipeline 2 on 4D volume ' num2str(vol)])
         tic()
         [MRIdenoised2(:,:,:,vol), sigma, filtername] = pipeline2(img1(:,:,:,vol), img2(:,:,:,vol), NLfilter,...
             hfinal, hfactor, searcharea, patcharea, ...
@@ -109,7 +118,7 @@ elseif length(size(img)) == 5
     %    img=img(:,:,:,1,1);
     for echo=1:size(img,5)
         for vol=1:size(img,4)
-            display(['Calling pipeline 2 on volume ' num2str(vol) ' echo ' num2str(echo)])
+            display(['Calling pipeline 2 on 5Dvolume ' num2str(vol) ' echo ' num2str(echo)])
             tic()
             [MRIdenoised2(:,:,:,vol,echo),sigma,filtername] = pipeline2(img1(:,:,:,vol,echo), img2(:,:,:,vol,echo), NLfilter,...
                 hfinal, hfactor, searcharea, patcharea, rician);

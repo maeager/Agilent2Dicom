@@ -11,17 +11,17 @@ if nargin<3
     NLfilter = 0;
 end
 
-ima1=NormaliseImage2(abs(img1))*256.0;
-ima2=NormaliseImage2(abs(img2))*256.0;
+%ima1=NormaliseImage2(abs(img1))*256.0;
+%ima2=NormaliseImage2(abs(img2))*256.0;
 
-avg=(ima1+ima2)/2;
+avg=(img1+img2)/2;
 if nargin < 4 || isempty(hfinal)
-diffima=(ima1-ima2);
-%est_mean = mean(diffima(:));
-est_std = std(diffima(:))/sqrt(2);
-hfinal = est_std/sqrt(2);
+  diffimg=(img1-img2);
+				%est_mean = mean(diffimg(:));
+  est_std = std(diffimg(:))/sqrt(2);
+  hfinal = est_std/sqrt(2);
 else
-est_std = hfinal*sqrt(2);
+  est_std = hfinal*sqrt(2);
 end
 if nargin < 5 || isempty(hfactor)
     hfactor=100;
@@ -29,7 +29,11 @@ end
 hfinal = hfinal * (hfactor/100)
 
 if nargin < 6 || isempty(searcharea)
+  if NLfilter == -5 || NLfilter == 0 
     searcharea=3;
+  else
+    searcharea=5;
+  end
 end
 if nargin < 7 || isempty(patcharea)
     patcharea=1;
