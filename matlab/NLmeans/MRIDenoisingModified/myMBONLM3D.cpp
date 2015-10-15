@@ -295,8 +295,13 @@ float gammac(float* coilsens, int ni1, int nj1, int nk1, int ni2, int nj2, int n
     */
     p1 = nk1 * (sxy) + (nj1 * sx) + ni1;
     p2 = nk2 * (sxy) + (nj2 * sx) + ni2;
+    
+    // Max-min method
     gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1] , coilsens[p2]);
-
+    // Exponential DR method
+    // gamma = exp(fabs(coilsens[p1]- coilsens[p2]));
+    // DR method
+    // gamma = (1+(fabs(coilsens[p1]- coilsens[p2])));
     return gamma;
 }
 
@@ -383,14 +388,14 @@ void* ThreadFunc(void* pArguments)
 
                                                 if (t1 > mu1 && t1 < (1 / mu1) && t2 > var1 && t2 < (1 / var1))
                                                 {
-						    // d = distanceB1(ima, coilsens, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
-                                                    d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
+						  //d = distanceB1(ima, coilsens, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
+						     d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
                                                     // Eager Ammendment
                                                     // add coil sensitivty B1 correction factor to weight
-						    //  gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1], coilsens[p2]);
-                                                    gamma = gammac(coilsens, i, j, k, ni, nj, nk, cols, rows, slices);
-                                                    if (gamma > epsilon) {
-                                                        w = exp(-(1/(gamma * gamma)) * d / hh);
+						     // gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1], coilsens[p2]);
+						     gamma = gammac(coilsens, i, j, k, ni, nj, nk, cols, rows, slices);
+						     if (gamma > epsilon) {
+                                                        w = exp(-(1/(gamma *gamma)) * d / hh);
                                                     }
                                                     else {
                                                         w = exp(-d / (hh));
