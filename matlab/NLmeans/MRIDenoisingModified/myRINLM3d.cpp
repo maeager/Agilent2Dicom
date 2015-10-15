@@ -150,7 +150,7 @@ void* ThreadFunc(void* pArguments)
                                     //
 
                                     if (d <= 0) w = 1.0;
-                                    //else if (d > 10) w = 0;
+                                    else if (d > 10) w = 0;
                                     else w = exp(-d);
 
                                     if (rician > 0)
@@ -226,7 +226,7 @@ void* ThreadFunc(void* pArguments)
                                     if (gamma != 0) d *= 1 / (gamma * gamma);
 
                                     if (d <= 0) w = 1.0;
-                                    //else if (d > 10) w = 0;
+                                    else if (d > 10) w = 0;
                                     else w = exp(-d);
 
                                     if (rician > 0)
@@ -269,7 +269,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mxArray *xData, *pv, *Mxmedias, *Mxpesos, *xref, *MxCoil;
     float *ima, *fima, *lista, *pesos, *ref, *medias, *coilsens;
     float sigma, vr, R, h, w, average, totalweight, wmax, d, media, var, th, hh, hhh, wm, t1, t2, alfa;
-    int Ndims, inc, i, j, k, ii, jj, kk, ni, nj, nk, radioB, radioS, ndim, indice, Nthreads, ini, fin, order;
+    int Ndims, inc, i, j, k, ii, jj, kk, ni, nj, nk, radioB, radioS,  indice, Nthreads, ini, fin, order;
+    int ndim;
     const int  *dims, *coildims;
 
     myargument *ThreadArgs;
