@@ -15,5 +15,5 @@ for slice = 1:size(img,3)
     b1(:,:,slice) = idct2(dctt); 
 end
 if (nargin == 2)
-figure; imagesc(b1)
+    figure; imagesc(b1)
 end

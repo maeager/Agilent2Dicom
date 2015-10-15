@@ -26,65 +26,65 @@
 #---- Some sequence modes ----*/
 #-----------------------------*/
 # For 1D */
-IM1D =   100
+IM1D = 100
 # For 2D multislice 200 < seqmode < 300 */
-IM2D =      200
-IM2DCC =    201  # seqcon = "*ccnn" */
-IM2DCS =    202  # seqcon = "*csnn" */
-IM2DSC =    203  # seqcon = "*scnn" */
-IM2DSS =    204  # seqcon = "*ssnn" */
-IM2DCCFSE = 205  # apptype = "im2Dfse", seqcon = "nccnn" 
-IM2DCSFSE = 206  # apptype = "im2Dfse", seqcon = "ncsnn" 
-IM2DSCFSE = 207  # apptype = "im2Dfse", seqcon = "nscnn" 
-IM2DSSFSE = 208  #* apptype = "im2Dfse", seqcon = "nssnn" 
-IM2DEPI =   209  # apptype = "im2Depi" 
-# For 3D 300 < seqmode < 400 
-IM3D =      300
-IM3DCC =    301  # seqcon = "**ccn" 
-IM3DCS =    302  # seqcon = "**csn" 
-IM3DSC =    303  # seqcon = "**scn" 
-IM3DSS =    304  # seqcon = "**ssn" 
-IM3DCFSE =  305  # apptype = "im3Dfse", seqcon = "ncccn" 
-IM3DSFSE =  306  # apptype = "im3Dfse", seqcon = "nccsn" 
-# For 4D 
-IM4D   =   400
+IM2D = 200
+IM2DCC = 201  # seqcon = "*ccnn" */
+IM2DCS = 202  # seqcon = "*csnn" */
+IM2DSC = 203  # seqcon = "*scnn" */
+IM2DSS = 204  # seqcon = "*ssnn" */
+IM2DCCFSE = 205  # apptype = "im2Dfse", seqcon = "nccnn"
+IM2DCSFSE = 206  # apptype = "im2Dfse", seqcon = "ncsnn"
+IM2DSCFSE = 207  # apptype = "im2Dfse", seqcon = "nscnn"
+IM2DSSFSE = 208  # * apptype = "im2Dfse", seqcon = "nssnn"
+IM2DEPI = 209  # apptype = "im2Depi"
+# For 3D 300 < seqmode < 400
+IM3D = 300
+IM3DCC = 301  # seqcon = "**ccn"
+IM3DCS = 302  # seqcon = "**csn"
+IM3DSC = 303  # seqcon = "**scn"
+IM3DSS = 304  # seqcon = "**ssn"
+IM3DCFSE = 305  # apptype = "im3Dfse", seqcon = "ncccn"
+IM3DSFSE = 306  # apptype = "im3Dfse", seqcon = "nccsn"
+# For 4D
+IM4D = 400
 
 # Knoisefraction: Fraction of k-space FOV to use to sample noise #
-Knoisefraction=0.05
+Knoisefraction = 0.05
 
 # IMnoisefraction: Fraction of image space FOV to use to sample noise #
-IMnoisefraction=0.05
-procpar=dict()
-fid_header=dict()
+IMnoisefraction = 0.05
+procpar = dict()
+fid_header = dict()
 
 
 OFF = 0
 POINTWISE = 1
 TRIPLE = 2
 SCALED_TRIPLE = 3
-  
 
-def sliceorder(dim,par):
+
+def sliceorder(dim, par):
 
   tic()
-  #sprocpar['ns']
+  # sprocpar['ns']
   # Set dimorder=-1 if par is not found #
-  standardorder=True
+  standardorder = True
   if par not in procpar.keys():
-      dimorder[0]=-1
+      dimorder[0] = -1
   else:
     # Take a copy of the starting slice order #
     pss = procpar[par]
 
     # Sort slice positions into ascending order #
     pss_sorted = np.sort(pss)
-    
+
     # Fill dimorder with an index of where successive slices are #
 
-    for i in xrange(0,dim):
-        for j in xrange(0,dim):
+    for i in xrange(0, dim):
+        for j in xrange(0, dim):
             if pss[i] == pss[j]:
-                dimorder[i]=j
+                dimorder[i] = j
                 break
     # If any slices have equal positions their dimorder index will be equal #
     # Adjust any duplicate values appropriately #
@@ -192,9 +192,9 @@ def defaultEPI(procpar,fid_header):
   refEPI=False
   refSGE=False
   getscaleref=False
-  #double oversample
-  #struct data ref1,ref2,ref3,ref4,ref5,ref6
-  #struct segscale scale1,scale2
+  # double oversample
+  # struct data ref1,ref2,ref3,ref4,ref5,ref6
+  # struct segscale scale1,scale2
 
 
 
@@ -293,10 +293,10 @@ def defaultEPI(procpar,fid_header):
         wnifti(d,VJ,FLT32,DISCARD)
           
       elif procpar["image"][fid_header["curvol"]] == -1:  # Inverted Readout Reference, phase-encode #
-#ifdef DEBUG
+# ifdef DEBUG
         print "  Processing reference -1 data ...\n"
         
-#endif
+# endif
         setblockEPI(d);                     # Set block for 2D data (fid_header["nv"] > 1) and navigators #
         if (refEPI):
           w2Dfdfs(d,VJ,FLT32,fid_header["vol"]); # Output raw data for the volume, requested #
@@ -329,10 +329,10 @@ def defaultEPI(procpar,fid_header):
           wnifti(d,VJ,FLT32,DISCARD)
           
       elif    procpar["image"][fid_header["curvol"]] ==  -2:  # Inverted Readout Reference, phase-encode #
-#ifdef DEBUG
+# ifdef DEBUG
         fprintf(stdout,"  Processing reference -2 data ...\n")
         fflush(stdout)
-#endif
+# endif
         setblockEPI(d);                     # Set block for 2D data (fid_header["nv"] > 1) and navigators #
         if refEPI:
           w2Dfdfs(d,VJ,FLT32,fid_header["vol"])
@@ -366,10 +366,10 @@ def defaultEPI(procpar,fid_header):
           wnifti(d,VJ,FLT32,DISCARD)
           break
       elif procpar["image"][fid_header["curvol"]] ==  1:   # Regular image #
-#ifdef DEBUG
+# ifdef DEBUG
         fprintf(stdout,"  Processing image 1 data ...\n")
         fflush(stdout)
-#endif
+# endif
         setblockEPI(d);                     # Set block for 2D data (fid_header["nv"] > 1) and navigators #
         if fid_header["outvol"]>=fid_header["startvol"]:
           w2Dfdfs(d,VJ,FLT32,fid_header["vol"]);       # Output raw data for the volume, requested #

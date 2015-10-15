@@ -17,6 +17,7 @@
 #                new tab
 # Version 2.0.1: Non-local means options and allows use of FDF/FID and nifti
 # Version 2.0.2: Non-local means parameters and better source code package
+# Version 2.0.3: B1 bias and coil sensitivity correction implementation
 #
 # Copyright 2015 Michael Eager
 #
