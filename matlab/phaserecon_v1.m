@@ -1,4 +1,4 @@
-function [pha, swi_n, swi_p, mag] = phaserecon_v1(kimg,kimgsos,a,intpl,thr)
+function [pha, swi_n, swi_p, mag] = phaserecon_v1(kimg,kimgsos,a,intpl,thr,order)
 % Usage: calculate phase images from complex inputs
 % Inputs: 
 %        kimg -- reconstructed kspace signals
@@ -16,8 +16,14 @@ function [pha, swi_n, swi_p, mag] = phaserecon_v1(kimg,kimgsos,a,intpl,thr)
 % log            12-05-09 SWI part fixed 
 % -------------------------------------------
 
+if nargin <6
+    order=4
+end
 
 [Nfe,Npe,Npe2] = size(kimg);
+if isempty(kimgsos)
+    kimgsos=kimg;
+end
 
 multi_dim=0;
 if Npe2 ~= size(kimg,3)
@@ -97,6 +103,6 @@ phasemask_p = (pi-pha)./pi;
 [x] = find(pha<=0);
 phasemask_p(x) = 1;
 
-swi_n = phasemask_n.^4.*mag;
-swi_p = phasemask_p.^4.*mag;
+swi_n = phasemask_n.^order.*mag;
+swi_p = phasemask_p.^order.*mag;
 

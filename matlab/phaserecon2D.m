@@ -23,6 +23,9 @@ function [pha, swi_n, swi_p, mag] = phaserecon2D(kimg,kimgsos,a,intpl,thr)
 
 [Nfe,Npe,Npe2] = size(kimg);
 
+if isempty(kimgsos)
+    kimgsos=kimg;
+end
 
 
 % create a Gaussian LPF
