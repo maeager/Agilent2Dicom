@@ -173,8 +173,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>172</width>
-               <height>35</height>
+               <width>1068</width>
+               <height>305</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -1816,8 +1816,8 @@ The mode parameter determines how the array borders are handled, where cval is t
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>133</width>
-               <height>35</height>
+               <width>1068</width>
+               <height>303</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -2878,6 +2878,13 @@ Leave empty for calculation using NoiseEstimation in Pipeline 1 or difference be
                   </item>
                   <item>
                    <widget class="QLabel" name="label_53">
+                    <property name="toolTip">
+                     <string>Search area radius
+Default values:
+     MRONLM/AONLM = 3
+     PRINML/ONLM = 5
+     ODCT = N/A</string>
+                    </property>
                     <property name="text">
                      <string>Search Area</string>
                     </property>
@@ -2885,6 +2892,13 @@ Leave empty for calculation using NoiseEstimation in Pipeline 1 or difference be
                   </item>
                   <item>
                    <widget class="QLineEdit" name="lineEdit_NLsearcharea">
+                    <property name="toolTip">
+                     <string>Search area radius
+Default values:
+     MRONLM/AONLM = 3
+     PRINML/ONLM = 5
+     ODCT = N/A</string>
+                    </property>
                     <property name="text">
                      <string>3</string>
                     </property>
@@ -2912,6 +2926,10 @@ Leave empty for calculation using NoiseEstimation in Pipeline 1 or difference be
                   </item>
                   <item>
                    <widget class="QLineEdit" name="lineEdit_NLpatcharea">
+                    <property name="toolTip">
+                     <string>Use patch size = 1 for all NL filters
+</string>
+                    </property>
                     <property name="text">
                      <string>1</string>
                     </property>
@@ -2919,6 +2937,10 @@ Leave empty for calculation using NoiseEstimation in Pipeline 1 or difference be
                   </item>
                   <item>
                    <widget class="QCheckBox" name="checkBox_NLrician">
+                    <property name="toolTip">
+                     <string>Rician noise enabled for standard magnitude images.
+Disable when using complex images.</string>
+                    </property>
                     <property name="text">
                      <string>Rician</string>
                     </property>
