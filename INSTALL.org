@@ -36,7 +36,8 @@ sudo pip install pydicom argparse
 Pull the stable version from the MBI repository, using:
 #+begin_src sh
 # hg clone ssh://hg@bitbucket.org/mbi-image/agilent2dicom Agilent2Dicom
-git clone ssh://carbon2.mbi.monash.edu.au:mbi-image/agilent2dicom Agilent2Dicom
+# git clone ssh://carbon2.mbi.monash.edu.au:mbi-image/agilent2dicom Agilent2Dicom
+git clone git@gitlab.erc.monash.edu.au:mbi-image/Agilent2Dicom.git 
 #+end_src
 
 On the Agilent 9.4T MR console, download the tar zipped bundle of the
@@ -48,7 +49,8 @@ path in the bash user config file).
 # wget https://bitbucket.org/mbi-image/agilent2dicom/get/default.tar.gz
 # mkdir Agilent2Dicom
 # tar zxvf default.tar.gz Agilent2Dicom/ 
-wget https://carbon2.mbi.monash.edu.au/mbi-image/Agilent2Dicom/repository/archive.zip
+# wget https://carbon2.mbi.monash.edu.au/mbi-image/Agilent2Dicom/repository/archive.zip
+wget https://gitlab.erc.monash.edu.au/mbi-image/Agilent2Dicom/repository/archive.zip
 unzip archive.zip
 cd Agilent2Dicom.git
 echo "export PATH=`pwd`:${PATH}" >> ~/.bashrc
@@ -195,6 +197,20 @@ python2.7 ./build
    cd vlfeat
    make
 #+END_SRC
+
+Modified version of the MRIDenoising package are in =matlab/NLmeans/MRIDenoisingModified=.
+
+To compile the mex files, run:
+#+BEGIN_SRC sh
+
+matlab -nodesktop -nosplash -r "cd matlab/NLmeans/MRIDenoisingModified;
+mex -v -compatibleArrayDims COMPFLAGS='$COMPFLAGS -Ofast'  myODCT3d.cpp;
+mex -v -compatibleArrayDims COMPFLAGS='$COMPFLAGS -Ofast'  myMBONLM3D.cpp;
+mex -v -compatibleArrayDims COMPFLAGS='$COMPFLAGS -Ofast' myRINLM3d.cpp;
+"
+
+#+END_SRC
+
 
 ** Copy of NIFTI package (mathworks)
 

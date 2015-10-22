@@ -1,5 +1,6 @@
 # -*- mode: org -*-
-#README for matlab scripts#
+
+*README for matlab scripts*
 
 
 * Copy of NIFTI package (mathworks)
@@ -13,4 +14,8 @@
 
 * Copy of Agilent package (local derived)
 
+#+BEGIN_SRC sh
+
+git clone git@gitlab.erc.monash.edu.au:mbi-image/mbi_image_functions.git
+#+END_SRC
 

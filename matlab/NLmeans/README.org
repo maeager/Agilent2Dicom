@@ -27,7 +27,7 @@ images are then recombined.
 
 
 
-* Clone vlfeat 
+* Install vlfeat 
 
 MASSIVE install:
 
@@ -45,12 +45,11 @@ make
 * Clone the SS-DDLS repo
 
 This code has an old version of vlfeat and the MRIdenoisepackage.
-
-git clone https://github.com/UB-TFG-TFM-1415/SS-DDLS.git
+#+BEGIN_SRC sh
+  git clone https://github.com/UB-TFG-TFM-1415/SS-DDLS.git
+#+END_SRC
 
 Make the fixes to the m files below.
-
-## Fixes
 
 [eagerm@m2009 SS-DDLS]$ git diff
 diff --git a/Code/Utils/MRIDenoisingPackage/MRIDenoisingPRINLM.m b/Code/Utils/MRIDenoisingPackage/MRIDenoisingPRINLM.m
@@ -183,16 +182,33 @@ http://personales.upv.es/jmanjon/denoising/prinlm.html
  - Implement B1 correction in NLmeans kernels
 
 
+Modified version of the MRIDenoising package are in =matlab/NLmeans/MRIDenoisingModified=.
 
+To compile the mex files, run:
+#+BEGIN_SRC sh
+
+matlab -nodesktop -nosplash -r "cd matlab/NLmeans/MRIDenoisingModified;
+mex -v -compatibleArrayDims COMPFLAGS='$COMPFLAGS -Ofast'  myODCT3d.cpp;
+mex -v -compatibleArrayDims COMPFLAGS='$COMPFLAGS -Ofast'  myMBONLM3D.cpp;
+mex -v -compatibleArrayDims COMPFLAGS='$COMPFLAGS -Ofast' myRINLM3d.cpp;
+"
+
+#+END_SRC
 
 
 * ITK N4Bias correction
 
-B1 bias estimator using ITK's N4biascorrection
+B1 bias estimator using ITK's N4biascorrection.
 
+On MASSIVE, the ants module (v 1.9.4) contains the compiled N4Bias example.
+
+#+BEGIN_SRC sh
 module load ants
 
-[eagerm@m2007 Data]$ N4BiasFieldCorrection 
+N4BiasFieldCorrection -h
+#+END_SRC
+
+#+BEGIN_EXAMPLE
 
 COMMAND: 
      N4BiasFieldCorrection
@@ -272,6 +288,8 @@ OPTIONS:
      --help 
           Print the help menu. 
           <VALUES>: 0
+#+END_EXAMPLE
 
-
-$ N4BiasFieldCorrection --input-image 11_t1_mprage_sag_p2_iso_1mmbw980NOPS.nii.gz --output [mprage11correctedImage.nii.gz, mpragen4B1biasfield.nii.gz]
+#+BEGIN_SRC sh
+ N4BiasFieldCorrection --input-image 11_t1_mprage_sag_p2_iso_1mmbw980NOPS.nii.gz --output [mprage11correctedImage.nii.gz, mpragen4B1biasfield.nii.gz]
+#+END_SRC

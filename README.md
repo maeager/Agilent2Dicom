@@ -10,9 +10,9 @@ Homepage: [Project's MBI intranet homepage](https://confluence-vre.its.monash.ed
 
 Source code: 
 
-[https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom](https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom) [Public]
+[https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom](https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom) 
 
-[https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom](https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom) [DEVELOPMENT]
+[https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom](https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom) [DEPRICIATED]
 
 [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom) [DEPRECIATED]
 
