@@ -80,12 +80,13 @@ end
 
 %}
  
- min_imag=0;
+ 
+ % Step (1): Scale real and imag
   [norm_real,realRange] = NormaliseImage2(real(cmplxima));
   [norm_imag,imagRange] = NormaliseImage2(imag(cmplxima));
 
 
-
+ 
 imaODCTr=myODCT3d(single(real_ima),single(real_sigma),rician); 
 if ~isempty(imag_ima)
     min_imag = min(imag_ima(:));
@@ -98,7 +99,7 @@ imaODCT = abs(complex(imaODCTr,imaODCTi+min_imag));
 map = find(imaODCT<0);
 imaODCT(map) =0; 
 
-B1 = B1correction(imaODCT);
+
 
 %{
 disp('.')
@@ -110,8 +111,9 @@ disp('.')
 % map = find(imaPRINLM<0);
 % imaPRINLM(map) = 0;
 
-imaPRINLMr=myRINLM3d(single(real_ima),searcharea,patchsize,single(real_sigma),single(imaODCT), rician, single(B1)); 
-imaPRINLMi=myRINLM3d(single(imag_ima),searcharea,patchsize,single(imag_sigma),single(imaODCT), rician, single(B1)); 
+imaPRINLMr=myRINLM3d(single(real_ima),searcharea,patchsize,single(real_sigma),single(imaODCT), rician, single(coil)); 
+display 'Starting imaginary RINLM3D'
+imaPRINLMi=myRINLM3d(single(imag_ima),searcharea,patchsize,single(imag_sigma),single(imaODCT), rician, single(coil)); 
 
 imaPRINLMc=complex(imaPRINLMr,imaPRINLMi+min_imag);
 

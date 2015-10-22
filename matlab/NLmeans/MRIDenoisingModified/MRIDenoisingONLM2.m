@@ -59,7 +59,7 @@ end
     end
     
     if  nargin < 4 ||  isempty(searcharea) || (searcharea==0)
-        searcharea=3;
+        searcharea=5;
     end
     
 

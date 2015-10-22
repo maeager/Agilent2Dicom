@@ -76,7 +76,7 @@ disp('.')
     end
 
     ORNLMu = myMBONLM3D(single(ima),searcharea,patchsize,single(sigma),rician,coil); 
-    
+    display 'Starting patchsize+1'
     ORNLMo = myMBONLM3D(single(ima),searcharea,patchsize+1,single(sigma),rician,coil); 
     
     MRORNLM = ascm(ima, ORNLMu, ORNLMo, sigma); 
