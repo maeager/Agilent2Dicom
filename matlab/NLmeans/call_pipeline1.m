@@ -1,4 +1,4 @@
-function call_pipeline1(in,out,in2,NLfilter,hfinal,hfactor,searcharea,patcharea,rician)
+function call_pipeline1(in,out,in2,NLfilter,inputRI,hfinal,hfactor,searcharea,patcharea,rician)
 % Calling non-local means pipeline 1
 %  Use rician noise estimator to calculate std of noise in one MRI
 %  magnitude image
@@ -24,9 +24,12 @@ run (fullfile(root_path,'../matlab/NLmeans/vlfeat/toolbox/vl_setup.m'))
 display('Calling non-local means filter pipeline 1')
 
 voxelsize=[];
-if nargin < 4
+if nargin < 5
     hfinal=[];hfactor=[];rician=[];
     searcharea=[];patcharea=[];
+end
+if nargin < 4
+    inputRI=0;
 end
 if nargin < 3
     NLfilter=0;
@@ -41,7 +44,6 @@ if nargin >= 3
         in2=[];
     end
 end
-
 
 
 if exist(in,'file')==2 && ~isempty(strfind(in,'.nii'))
@@ -81,11 +83,25 @@ if nargin >= 3 && ~isempty(in2)
         display(['Cannot find second arg: ' in2])
         return
     end
-    img = abs(complex(img,img2))
+    if inputRI==1
+        real_img = img;
+        imag_img = img2;
+        img = complex(img,img2);
+        mag = abs(img);phase=angle(img);
+    else
+        phase_range = [min(img2(:)) max(img2(:))];
+        phase = img2*pi/(max(abs(phase_range)));
+        mag=img;
+        img = mag.*exp(1i*phase);
+        real_img = real(img);
+        imag_img = imag(img);
+    end
 end
 
+
+if inputRI == 0
 % Squeeze and normalise image
-[img,Range] = NormaliseImage2(squeeze(img));
+[img,Range] = NormaliseImage2(squeeze(abs(img)));
 img = img*256.0;
 
 
@@ -148,3 +164,59 @@ if exist(raw_file,'file') ~= 2
 end
 % Save the denoised image
 save_nii(make_nii(MRIdenoised1,voxelsize,[],16),denoised_file)
+
+
+else % inputRI
+     % Step (2): Scale real and imag
+
+  [norm_real_img,realRange] = NormaliseImage2(real_img);
+  [norm_imag_img,imagRange] = NormaliseImage2(imag_img);
+
+  norm_real_img=norm_real_img*256.0;
+  norm_imag_img=norm_imag_img*256.0;
+  
+  % Step (3): denoise
+    display(['Calling pipeline 1'])
+    tic()
+    [MRIdenoisedReal,sigma_real,filtername] = pipeline1(norm_real_img, NLfilter,...
+        hfinal, hfactor, searcharea, patcharea, 0);
+    toc()
+    
+    display(['Calling pipeline 1'])
+    tic()
+    [MRIdenoisedImag,sigma_imag,filtername] = pipeline1(norm_imag_img, NLfilter,...
+        hfinal, hfactor, searcharea, patcharea, 0);
+    toc()
+  
+    % Step (4) rescale
+    MRIdenoisedReal=MRIdenoisedReal*(realRange(2)-realRange(1))/256.0;
+    MRIdenoisedImag=MRIdenoisedImag*(imagRange(2)-imagRange(1))/256.0
+    denoised_img = complex(MRIdenoisedReal,MRIdenoisedImag);
+    % Step (5) Save denoised images
+    
+    filter_line = ['filter' filtername '_sigma' num2str(sigma) ];
+    denoised_file = [ out(1:end-8) '_' filter_line out(end-7:end)];
+    denoised_file = [out '/denoised_mag_' filter_line '.nii.gz'];
+    save_nii(make_nii(abs(denoised_img),voxelsize,[],16),denoised_file)
+    save_nii(make_nii(angle(denoised_img),voxelsize,[],16), ...
+             regexprep('mag','pha',denoised_file))
+    
+    % Save original SWI
+    [pha1, swi_n, swi_p1, mag1] = phaserecon_v1(fftn(img),[],0.4,1,0.05);
+    save_nii(make_nii(swi_n,voxelsize,[],16), ...
+             regexprep('denoised_mag','OriginalSWI',denoised_file))
+    [pha1, swi_n, swi_p1, mag1] = phaserecon_v1(fftn(denoised_img),[],0.4,1,0.05);
+    hdyne1 = mag1.*exp(-1i*pha1);
+    save_nii(make_nii(swi_n,voxelsize,[],16), ...
+             regexprep('mag','swi_DenoisePhase',denoised_file))
+    % Save SWI using orig phase
+    [x] = find(phase>=0);
+    phasemask_n = (phase+pi)./pi;phasemask_n(x) = 1;
+
+    save_nii(make_nii(abs(denoised_img).*(phasemask_n.^4),voxelsize,[],16), ...
+             regexprep('mag','swi_OrigPhase',denoised_file))
+    
+    
+    
+    
+end
