@@ -444,7 +444,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         pesos[k] = 1.0;
     }
 
-    Nthreads = dims[2] < 8 ? dims[2] : 8;
+    Nthreads = dims[2] < 24 ? dims[2] : 24;
     if (Nthreads < 1) Nthreads = 1;
 #ifdef _WIN32
 

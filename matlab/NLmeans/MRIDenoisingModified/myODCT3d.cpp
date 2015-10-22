@@ -990,7 +990,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     imax = (int)ceil(2 * max);
 
-    Nthreads = 16;/*floor((float)dims[2]/(float)B);*/
+    Nthreads = 24;/*floor((float)dims[2]/(float)B);*/
 
     N = B;
     tabla1 = (double*)mxMalloc(N * N * sizeof(double));
