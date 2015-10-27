@@ -1,4 +1,4 @@
-function [swi_n,swi_p]=swi_nohdyne(mag,pha,order,thr)
+function [swi_n,swi_p,phasemask_p]=swi_nohdyne(mag,pha,order,thr)
 %%SWI_NOHDYNE suseptibility weighted imaging, without homedyne filter
 %
 %
