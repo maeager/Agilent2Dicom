@@ -1136,8 +1136,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         if (ThreadIndex[i] = pthread_create(&ThreadList[i], NULL, ThreadFunc, (void*) &ThreadArgs[i]))
             /*pthread_create( &ThreadList[i], NULL, ThreadFunc, (void*) &ThreadArgs[i]);*/
         {
-            printf("Threads cannot be created\n");
-            exit(1);
+	  mexErrMsgIdAndTxt("myODCT3d:ThreadErr"," Threads cannot be created\n");
         }
 
     }
@@ -1189,8 +1188,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
         if (ThreadIndex[i] = pthread_create(&ThreadList[i], NULL, ThreadFunc2, &ThreadArgs[i]))
         {
-            printf("Threads cannot be created\n");
-            exit(1);
+	  mexErrMsgIdAndTxt("myODCT3d:ThreadErr"," Threads cannot be created\n");
         }
     }
 
@@ -1226,8 +1224,6 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 #endif
     mexPrintf("cM_ODCT3D: Done \n"); mexEvalString("drawnow");
-
     return;
-
 }
 

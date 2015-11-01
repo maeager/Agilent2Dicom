@@ -284,9 +284,9 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     mexEvalString("drawnow");
     if (nrhs != 7)
     {
-        mexPrintf("myRINLM3D: Not enough arguments \n");
-        mexPrintf("Usage: OutputImage=myRINLM3D(InputImage,searcharea,patcharea,sigma,ODCTImage,rician,CoilSensitivityImage) ");
-        exit(1);
+      mexErrMsgIdAndTxt("myRINLM3D: Not enough arguments \n",
+        "Usage: OutputImage=myRINLM3D(InputImage,searcharea,patcharea,sigma,ODCTImage,rician,CoilSensitivityImage) ");
+        // exit MEX-file
     }
 
     /*Copy input pointer x*/
@@ -297,8 +297,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mxIsDouble(prhs[0])  ||
             mxGetNumberOfElements(prhs[0]) == 1 ||
             mxGetNumberOfDimensions(prhs[0]) != 3) {
-        mexErrMsgTxt("myRINLM3d input1 must be full matrix of real float values.");
-        exit(1);
+      mexErrMsgIdAndTxt("myRINLM3d:InputImage"," input1 must be full matrix of real float values.");
     }
     ima = (float*)mxGetPr(prhs[0]);
     ndim = mxGetNumberOfDimensions(prhs[0]);
@@ -308,21 +307,21 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /*Get the search area*/
     if (mxIsComplex(prhs[1]) ||
             mxGetNumberOfElements(prhs[1]) != 1) {
-        mexErrMsgTxt("myRINLM3d search area must be an integer.");
+      mexErrMsgIdAndTxt("myRINLM3d:Searcharea"," search area must be an integer.");
         return ;
     }
     radioS = (int)(mxGetScalar(prhs[1]));
 
     if (mxIsComplex(prhs[2]) ||
             mxGetNumberOfElements(prhs[2]) != 1) {
-        mexErrMsgTxt("myRINLM3d patch area must be an integer.");
+      mexErrMsgIdAndTxt("myRINLM3d:Patchsize"," patch area must be an integer.");
     }
     radioB = (int)(mxGetScalar(prhs[2]));
 
     if (mxIsSparse(prhs[3]) ||
             mxIsComplex(prhs[3]) ||
             mxGetNumberOfElements(prhs[3]) != 1) {
-        mexErrMsgTxt("myRINLM3d sigma must be real value.");
+      mexErrMsgIdAndTxt("myRINLM3d:Sigma"," sigma must be real value.");
     }
     sigma = (float)(mxGetScalar(prhs[3]));
 
@@ -331,7 +330,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mxIsDouble(prhs[4])  ||
             mxGetNumberOfElements(prhs[4]) == 1 ||
             mxGetNumberOfDimensions(prhs[4]) != 3) {
-        mexErrMsgTxt("myRINLM3d ref must be full matrix of real float values.");
+      mexErrMsgIdAndTxt("myRINLM3d:RefImage"," ref must be full matrix of real float values.");
         return;
     }
     ref = (float*)mxGetPr(prhs[4]);
@@ -339,7 +338,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if (mxIsSparse(prhs[5]) ||
             mxIsComplex(prhs[5]) ||
             mxGetNumberOfElements(prhs[5]) != 1) {
-        mexErrMsgTxt("myRINLM3d rician must be real value or bool.");
+      mexErrMsgIdAndTxt("myRINLM3d:RicianFlag"," rician must be real value or bool.");
     }
     rician = (int)(mxGetScalar(prhs[5]));
 
@@ -352,13 +351,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 mxIsDouble(prhs[6])  ||
                 mxGetNumberOfElements(prhs[6]) == 1 ||
                 mxGetNumberOfDimensions(prhs[6]) != 3) {
-            mexErrMsgTxt("myRINLM3d coil sens must be full matrix of real float values.");
+	  mexErrMsgIdAndTxt("myRINLM3d:B1CoilSensImage"," B1 coil sens must be full matrix of real float values.");
             return;
         }
         coildims = mxGetDimensions(prhs[6]);
         if (coildims[0] != dims[0] || coildims[1] != dims[1] || coildims[2] != dims[2])
         {
-            mexErrMsgTxt("myMBONLM coil dims must equal input image dims.");
+	  mexErrMsgIdAndTxt("myMBONLM:B1CoilSensImage"," coil dims must equal input image dims.");
             return;
         }
         coilsens = (float*)mxGetPr(prhs[6]);
