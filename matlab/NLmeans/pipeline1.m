@@ -8,10 +8,16 @@ function [MRIdenoised,sigma, filtername] = pipeline1(img,NLfilter,hfinal,hfactor
 
 %% parse inputs
 
-if nargin < 4 || isempty(hfactor)
-    hfactor=100;
+beta_=1;
+if nargin < 8 || isempty(B1bias)
+   B1bias = 0; 
 end
-hfinal = hfinal * (hfactor/100)
+if nargin < 7 || isempty(rician)
+    rician = 1;
+end
+if nargin < 6 || isempty(patcharea)
+    patcharea = 1;
+end
 
 if nargin < 5 || isempty(searcharea)
   if NLfilter == -5 || NLfilter == 0 
@@ -20,21 +26,15 @@ if nargin < 5 || isempty(searcharea)
     searcharea = 5;
   end
 end
-if nargin < 6 || isempty(patcharea)
-    patcharea = 1;
-end
-if nargin < 7 || isempty(rician)
-    rician = 1;
-end
-beta_=1;
-if nargin < 8 || isempty(B1bias)
-   B1bias = 0; 
+if nargin < 4 || isempty(hfactor)
+    hfactor=100;
 end
 if nargin < 3 || isempty(hfinal)
     display 'Calculating noise estimate.'
     [hfinal, ho, SNRo, hbg, SNRbg] = MRINoiseEstimation(img,rician,0)
 end
 
+hfinal = hfinal * (hfactor/100)
 
 %% run filter
 display(['Noise estimate: ' num2str(hfinal)])
@@ -78,7 +78,8 @@ switch NLfilter
 					 filtername='MRONLM2';
  case -1
  display('Processing denoised image - PRINLM2')
- tic(),MRIdenoised = MRIDenoisingPRINLM2(img, sigma,  ...
+ tic(),MRIdenoised = MRIDenoisingPRINLM2(img, sigma, ...
+                                         patcharea, searcharea, ...
 					 rician, B1bias);toc()
 					 filtername='PRINLM2';
  case -2
