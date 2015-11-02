@@ -278,7 +278,7 @@ float gammac(float* coilsens, int ni1, int nj1, int nk1, int ni2, int nj2, int n
     int sxy, p1, p2;
 
     sxy = sx * sy;
-    /*
+    
     if (ni1 < 0) ni1 = -ni1;
     if (nj1 < 0) nj1 = -nj1;
     if (ni2 < 0) ni2 = -ni2;
@@ -292,7 +292,7 @@ float gammac(float* coilsens, int ni1, int nj1, int nk1, int ni2, int nj2, int n
     if (ni2 >= sx) ni2 = 2 * sx - ni2 - 1;
     if (nj2 >= sy) nj2 = 2 * sy - nj2 - 1;
     if (nk2 >= sz) nk2 = 2 * sz - nk2 - 1;
-    */
+    
     p1 = nk1 * (sxy) + (nj1 * sx) + ni1;
     p2 = nk2 * (sxy) + (nj2 * sx) + ni2;
     
@@ -491,28 +491,28 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /*Get the patch area, search area and sigma*/
     if (mxIsComplex(prhs[1]) ||
             mxGetNumberOfElements(prhs[1]) != 1) {
-      mexErrMsgIdAndTxt("myMBONLM:"," patch area must be an integer.");
+      mexErrMsgIdAndTxt("myMBONLM:mexfunction"," patch area must be an integer.");
         
     }
     radiusB = (int)(mxGetScalar(prhs[1]));
 
     if (mxIsComplex(prhs[2]) ||
             mxGetNumberOfElements(prhs[2]) != 1) {
-      mexErrMsgIdAndTxt("myMBONLM:"," search area must be an integer.");
+      mexErrMsgIdAndTxt("myMBONLM:mexfunction"," search area must be an integer.");
     }
     radiusS = (int)(mxGetScalar(prhs[2]));
 
     if (mxIsSparse(prhs[3]) ||
             mxIsComplex(prhs[3]) ||
             mxGetNumberOfElements(prhs[3]) != 1) {
-        mexErrMsgIdAndTxt("myMBONLM:"," sigma must be real value.");
+        mexErrMsgIdAndTxt("myMBONLM:mexfunction"," sigma must be real value.");
     }
     hSigma = (float)(mxGetScalar(prhs[3]));
 
     if (mxIsSparse(prhs[4]) ||
             mxIsComplex(prhs[4]) ||
             mxGetNumberOfElements(prhs[4]) != 1) {
-      mexErrMsgIdAndTxt("myMBONLM:"," rician must be real value or bool.");
+      mexErrMsgIdAndTxt("myMBONLM:mexfunction"," rician must be real value or bool.");
     }
     r = (int)(mxGetScalar(prhs[4]));
     if (r > 0) rician = true;
@@ -524,12 +524,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 mxGetNumberOfElements(prhs[5]) == 1 ||
                 mxGetNumberOfDimensions(prhs[5]) != 3)
         {
-	  mexErrMsgIdAndTxt("myMBONLM:"," coil sens must be full matrix of real float values.");
+	  mexErrMsgIdAndTxt("myMBONLM:mexfunction"," coil sens must be full matrix of real float values.");
 	}
         coildims = mxGetDimensions(prhs[5]);
         if (coildims[0] != dims[0] || coildims[1] != dims[1] || coildims[2] != dims[2])
         {
-	  mexErrMsgIdAndTxt("myMBONLM:"," coil dims must equal input image dims.");
+	  mexErrMsgIdAndTxt("myMBONLM:mexfunction"," coil dims must equal input image dims.");
         }
         coilsens = (float*) mxGetPr(prhs[5]);
     }

@@ -1,4 +1,4 @@
-function [ AORNLM] = MRIDenoisingAONLM2(ima, sigma, patchsize, searcharea, rician, coil, verbose)
+function [ AORNLM,ORNLMu,ORNLMo] = MRIDenoisingAONLM2(ima, sigma, patchsize, searcharea, rician, coil, verbose)
 %
 %   Description: Denoising of a 3D MRI image using the multiresolution AONLM
 %   filter.. Using HSM wavelet mixing
@@ -70,17 +70,19 @@ disp('.')
         patchsize=1;
     end
     
-    if  nargin < 4 ||  isempty(searcharea) || (searcharea==0)
+    if  nargin < 4 || isempty(searcharea) || (searcharea==0)
         searcharea=3;
     end
  
-    if  nargin < 5 ||  isempty(rician) || (rician ~= 0)
+    if  nargin < 5 || isempty(rician)
         rician=1;
     end
+    
     if  nargin < 6 || isempty(coil) || numel(coil) ~= numel(ima)
         % create default coil-sensitivity matrix 
         coil = single(ones(size(ima)));
     end
+    coil=single(coil);
     if  nargin < 7 
         verbose=0;
     end

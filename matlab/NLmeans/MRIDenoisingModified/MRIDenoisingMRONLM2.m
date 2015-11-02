@@ -1,4 +1,4 @@
-function [ MRORNLM] = MRIDenoisingMRONLM2(ima, sigma, patchsize, searcharea, rician, coil, verbose)
+function [ MRORNLM,ORNLMu, ORNLMo] = MRIDenoisingMRONLM2(ima, sigma, patchsize, searcharea, rician, coil, verbose)
 %
 %   Description: Denoising of a 3D MRI image using the multiresolution ONLM
 %   filter
