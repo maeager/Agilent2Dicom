@@ -90,6 +90,7 @@ diff -y <(./sortpp <../ExampleAgilentData/kidney512iso_01.fid/procpar) <(./sortp
 
 *procdiff* implements the above line in a shell script
 
+
 * K space
 
 Use ipython for interactive sessions with kspace_filter: 
@@ -182,7 +183,7 @@ ipython -i ./kspace_filter.py -- -v -i ../ExampleAgilentData/kidney512iso_01.fid
 
 
 
-* See Examples
+** See Examples
 
 https://scipy-lectures.github.io/advanced/image_processing/
 https://scipy-lectures.github.io/packages/scikit-image/
@@ -635,3 +636,9 @@ Scikits CUDA IFFT time and first three results:
 4.06088709831 sec, [ 0.00219029  0.00188084  0.00227454]
 
 
+
+* Denoising in MATLAB
+
+** Non local means denoising
+
+See README file in matlab/NLmeans

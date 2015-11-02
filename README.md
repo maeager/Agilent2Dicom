@@ -8,17 +8,20 @@ for filtering and noise removal.
 
 Homepage: [Project's MBI intranet homepage](https://confluence-vre.its.monash.edu.au/display/MBI/Agilent2Dicom+Application)
 
+Version: 2.0.3
+
 Source code: 
 
 [https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom](https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom) 
 
-[https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom](https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom) [DEPRICIATED]
+[https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom](https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom) *DEPRICIATED*
 
-[https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom) [DEPRECIATED]
+[https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom) *DEPRECIATED*
 
-Version: Agilent2Dicom is at version 2.0.3
+
 
 [TOC]
+
 
 ## Basic overview ##
 

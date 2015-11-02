@@ -220,8 +220,13 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_NLpipeline1.clicked.connect(self.ProcNLpipeline1)
         self.ui.pushButton_NLpipeline2.clicked.connect(self.ProcNLpipeline2)
         self.ui.pushButton_NLpipeline3.clicked.connect(self.ProcNLpipeline3)
+        
         self.ui.checkBox_NLinputMagPha.setChecked(False)
         self.ui.checkBox_NLinputRI.setChecked(False)
+        QtCore.QObject.connect(self.ui.actionPRINLM,
+                               QtCore.SIGNAL(
+                                   QtCore.QString.fromUtf8("triggered()")),
+                               self.SetSearchArea5)
         QtCore.QObject.connect(self.ui.actionSave_Filter_Outputs_to_Nifti,
                                QtCore.SIGNAL(
                                    QtCore.QString.fromUtf8("triggered()")),
@@ -250,6 +255,12 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.niftiflag = (self.niftiflag + 1) % 2
         logging.info('Nifti toggled')
 
+    def SetSearchArea3(self):
+        self.ui.lineEdit_NLsearcharea.setText('3')
+    def SetSearchArea5(self):
+        self.ui.lineEdit_NLsearcharea.setText('5')
+            
+        
     # @QtCore.pyqtSlot()
     def ChangeFDFpath(self):
         '''ChangeFDFpath
