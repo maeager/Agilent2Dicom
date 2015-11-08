@@ -1,19 +1,21 @@
-function [denoised_img,swi_n2,swi_n1,swi_nOrig,swi_n0,sigma_real,sigma_imag] = cmplx_pipeline1(mag,phase,NLfilter,searcharea,patchsize,rician,hfactor,sigma,noisepc)
+function [denoised_img,swi_n2,swi_n1,swi_nOrig,swi_n0,sigma_real,sigma_imag] = cmplx_pipeline1(mag,phase,NLfilter,searcharea,patchsize,rician,hfactor,sigma,noisepc,B1bias,fgamma)
 %% cmplx_pipeline1: Complex non-local means denoising Option 1
 %  Option 1 calls the automatic noise estimate before running the
 %  NLmeans filter.  This function normalises real and imag components of
 %  complex images before processing
 %
-%
-% Input Args:
-% mag           Magnitude of input image
-% phase         Phase of input image
-% NLfilter      Set NL denoiseing method
-% searcharea    NL search area
-% patchsize     Patch size
-% rician        Bool flag to enable Rician distribution in estimates
-% hfactor       Factor to scale sigma
-% noisepc       Add noise to input image as percentage (0.05 to 0.5 appropriate)
+%% Input Args:
+%      mag           Magnitude of input image
+%      phase         Phase of input image
+%      NLfilter      Set NL denoiseing method
+%      searcharea    NL search area
+%      patchsize     Patch size
+%      rician        Bool flag to enable Rician distribution in estimates
+%      hfactor       Factor to scale sigma
+%      noisepc       Add noise to input image as percentage (0.05 to 0.5
+%                    appropriate)
+%      B1bias        Use B1 bias correction (3D image same size as mag)
+%      fgamma        kernel gamma function (0=MINMAX,1=MULT,2=EXPDR,3=DR,4=DIFF)
 %
 % Output Args:
 % denoised_img  Complex denoised image
@@ -34,7 +36,7 @@ function [denoised_img,swi_n2,swi_n1,swi_nOrig,swi_n0,sigma_real,sigma_imag] = c
 % - (C) Michael Eager 2015 (michael.eager@monash.edu)
 % -     Monash Biomedical Imaging
 
-narginchk(2,9);
+narginchk(2,11);
 
 if max(abs(phase(:))) > pi
     display('Correcting phase to nearest 2^power');
@@ -78,7 +80,7 @@ end
 
 
 % add some noise
-if nargin ==9 && ~isempty(noisepc) && noisepc > 0
+if nargin >= 9 && ~isempty(noisepc) && noisepc > 0
     real_img = real_img + (randn(size(real_img))*noisepc*mean(mag(:)));
     imag_img = imag_img + (randn(size(imag_img))*noisepc*mean(mag(:)));
     %Adjust centre of histogrma in real and imag images
@@ -90,6 +92,13 @@ if nargin ==9 && ~isempty(noisepc) && noisepc > 0
     mag = abs(img);
     phase = angle(img);
     
+end
+
+if nargin < 10
+    B1bias=single(ones(size(img))); 
+end
+if nargin < 11 || isempty(fgamma)
+   fgamma = 0; 
 end
 %ima=t2swi;
 % Step (2): Scale real and imag
@@ -103,9 +112,9 @@ norm_imag_img=norm_imag_img*256.0;
 % Denoise using pipeline 
 tic()
 [MRIdenoisedReal,sigma_real,filtername] = pipeline1(norm_real_img, NLfilter,...
-    sigma_real, hfactor, searcharea, patchsize, rician);toc
+    sigma_real, hfactor, searcharea, patchsize, rician,B1bias,fgamma);toc
 [MRIdenoisedImag,sigma_imag,filtername] = pipeline1(norm_imag_img, NLfilter,...
-    sigma_imag, hfactor, searcharea, patchsize, rician);
+    sigma_imag, hfactor, searcharea, patchsize, rician,B1bias,fgamma);
 toc()
 
 % Step (4) rescale
