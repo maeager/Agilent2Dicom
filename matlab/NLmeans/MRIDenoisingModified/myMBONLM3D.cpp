@@ -51,7 +51,9 @@
 
 #define max(x,y) x < y ? y : x
 #define min(x,y) x > y ? y : x
+enum gamma_kernel_method {GAMMAMINMAX = 0, GAMMAMULT, GAMMADR, GAMMAEXPDR, GAMMADIFF};
 
+int GAMMAfunction = 0;
 
 
 typedef struct {
@@ -140,7 +142,7 @@ void Value_block(float *Estimate, float *Label, int x, int y, int z, int neighbo
                     for (a = 0; a < ns; a++)
                     {
                         x_pos = x + a - neighborhoodsize;
-                        if (!((x_pos < 0) || (x_pos > sx - 1))) 
+                        if (!((x_pos < 0) || (x_pos > sx - 1)))
                         {
                             p1 = z_pos * (sxy) + (y_pos * sx) + x_pos;
 
@@ -152,13 +154,13 @@ void Value_block(float *Estimate, float *Label, int x, int y, int z, int neighbo
                                 if (denoised_value > 0)
                                     denoised_value = sqrt(denoised_value);
                                 else {
-				  denoised_value = 0.0;
-				}
+                                    denoised_value = 0.0;
+                                }
                                 value = value + denoised_value;
                             }
-                            else { 
-			      value = value + (average[count] / global_sum);
-			    }
+                            else {
+                                value = value + (average[count] / global_sum);
+                            }
 
                             //label = Label[p1];
                             Estimate[p1] = value;
@@ -258,7 +260,7 @@ float distanceB1(float* ima, float* coilsens, int x, int y, int z, int nx, int n
 
                 p1 = nk1 * (sxy) + (nj1 * sx) + ni1;
                 p2 = nk2 * (sxy) + (nj2 * sx) + ni2;
-                distancetotal = distancetotal + ((ima[p1]/ coilsens[p1] - ima[p2] / coilsens[p2]) * (ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]));
+                distancetotal = distancetotal + ((ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]) * (ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]));
                 acu = acu + 1;
             }
         }
@@ -271,14 +273,14 @@ float distanceB1(float* ima, float* coilsens, int x, int y, int z, int nx, int n
 
 
 /*calculate gamma */
-float gammac(float* coilsens, int ni1, int nj1, int nk1, int ni2, int nj2, int nk2, int sx, int sy, int sz)
+float gammac(float* coilsens, int ni1, int nj1, int nk1, int ni2, int nj2, int nk2, int sx, int sy, int sz, int method)
 {
 
     float gamma;
     int sxy, p1, p2;
 
     sxy = sx * sy;
-    
+
     if (ni1 < 0) ni1 = -ni1;
     if (nj1 < 0) nj1 = -nj1;
     if (ni2 < 0) ni2 = -ni2;
@@ -292,16 +294,26 @@ float gammac(float* coilsens, int ni1, int nj1, int nk1, int ni2, int nj2, int n
     if (ni2 >= sx) ni2 = 2 * sx - ni2 - 1;
     if (nj2 >= sy) nj2 = 2 * sy - nj2 - 1;
     if (nk2 >= sz) nk2 = 2 * sz - nk2 - 1;
-    
+
     p1 = nk1 * (sxy) + (nj1 * sx) + ni1;
     p2 = nk2 * (sxy) + (nj2 * sx) + ni2;
-    
-    // Max-min method
-    gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1] , coilsens[p2]);
-    // Exponential DR method
-    // gamma = exp(fabs(coilsens[p1]- coilsens[p2]));
-    // DR method
-    // gamma = (1+(fabs(coilsens[p1]- coilsens[p2])));
+
+    if (method == GAMMAMINMAX) {
+        // Max-min method
+        gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1] , coilsens[p2]);
+    }
+    else if (method == GAMMAEXPDR) {
+        // Exponential DR method
+        gamma = exp(fabs(coilsens[p1] - coilsens[p2]));
+    }
+    else if (method == GAMMADR) {
+        // DR method
+        gamma = (1 + (fabs(coilsens[p1] - coilsens[p2])));
+    }
+    else if (method == GAMMADIFF) {
+        // DR method
+        gamma = ((fabs(coilsens[p1] - coilsens[p2])));
+    }
     return gamma;
 }
 
@@ -388,14 +400,20 @@ void* ThreadFunc(void* pArguments)
 
                                                 if (t1 > mu1 && t1 < (1 / mu1) && t2 > var1 && t2 < (1 / var1))
                                                 {
-						  //d = distanceB1(ima, coilsens, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
-						     d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
-                                                    // Eager Ammendment
-                                                    // add coil sensitivty B1 correction factor to weight
-						     // gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1], coilsens[p2]);
-						     gamma = gammac(coilsens, i, j, k, ni, nj, nk, cols, rows, slices);
-						     if (gamma > epsilon) {
-                                                        w = exp(-(1/(gamma *gamma)) * d / hh);
+                                                    if (GAMMAfunction == GAMMAMULT) {
+                                                        d = distanceB1(ima, coilsens, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
+                                                        gamma = 1.0;
+                                                    }
+                                                    else {
+                                                        d = distance(ima, i, j, k, ni, nj, nk, radiusS, cols, rows, slices);
+                                                        // Eager Ammendment
+                                                        // add coil sensitivty B1 correction factor to weight
+                                                        // gamma = max(coilsens[p1], coilsens[p2]) / min(coilsens[p1], coilsens[p2]);
+                                                        gamma = gammac(coilsens, i, j, k, ni, nj, nk, cols, rows, slices, GAMMAfunction);
+                                                    }
+
+                                                    if (gamma > epsilon) {
+                                                        w = exp(-(1 / (gamma * gamma)) * d / hh);
                                                     }
                                                     else {
                                                         w = exp(-d / (hh));
@@ -464,10 +482,10 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     pthread_t * ThreadList;
 #endif
 
-    if (nrhs < 5 || nrhs > 6)
+    if (nrhs < 5 || nrhs > 7)
     {
-      mexErrMsgIdAndTxt("myMBONLM3D:mexfunction",
-        "Not enough arguments\nUsage: OutputImage=myMBONLM3D(InputImage,searcharea,patcharea,sigma,rician,[Coilsens])");
+        mexErrMsgIdAndTxt("myMBONLM3D:mexfunction",
+                          "Not enough arguments\nUsage: OutputImage=myMBONLM3D(InputImage,searcharea,patcharea,sigma,rician,[Coilsens],[GAMMAfunction])");
     }
 
     /*Copy input pointer x*/
@@ -478,8 +496,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
             mxIsDouble(prhs[0])  ||
             mxGetNumberOfElements(prhs[0]) == 1 ||
             mxGetNumberOfDimensions(prhs[0]) != 3) {
-      mexErrMsgIdAndTxt("myMBONLM:mexfunction","input1 must be full matrix of real float values.");
-        
+        mexErrMsgIdAndTxt("myMBONLM:mexfunction", "input1 must be full matrix of real float values.");
+
     }
     ima = (float*) mxGetPr(prhs[0]);
 
@@ -491,45 +509,45 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     /*Get the patch area, search area and sigma*/
     if (mxIsComplex(prhs[1]) ||
             mxGetNumberOfElements(prhs[1]) != 1) {
-      mexErrMsgIdAndTxt("myMBONLM:mexfunction"," patch area must be an integer.");
-        
+        mexErrMsgIdAndTxt("myMBONLM:mexfunction", " patch area must be an integer.");
+
     }
     radiusB = (int)(mxGetScalar(prhs[1]));
 
     if (mxIsComplex(prhs[2]) ||
             mxGetNumberOfElements(prhs[2]) != 1) {
-      mexErrMsgIdAndTxt("myMBONLM:mexfunction"," search area must be an integer.");
+        mexErrMsgIdAndTxt("myMBONLM:mexfunction", " search area must be an integer.");
     }
     radiusS = (int)(mxGetScalar(prhs[2]));
 
     if (mxIsSparse(prhs[3]) ||
             mxIsComplex(prhs[3]) ||
             mxGetNumberOfElements(prhs[3]) != 1) {
-        mexErrMsgIdAndTxt("myMBONLM:mexfunction"," sigma must be real value.");
+        mexErrMsgIdAndTxt("myMBONLM:mexfunction", " sigma must be real value.");
     }
     hSigma = (float)(mxGetScalar(prhs[3]));
 
     if (mxIsSparse(prhs[4]) ||
             mxIsComplex(prhs[4]) ||
             mxGetNumberOfElements(prhs[4]) != 1) {
-      mexErrMsgIdAndTxt("myMBONLM:mexfunction"," rician must be real value or bool.");
+        mexErrMsgIdAndTxt("myMBONLM:mexfunction", " rician must be real value or bool.");
     }
     r = (int)(mxGetScalar(prhs[4]));
     if (r > 0) rician = true;
 
-    if (nrhs == 6) {
+    if (nrhs >= 6) {
         if (mxIsSparse(prhs[5]) ||
                 mxIsComplex(prhs[5]) ||
                 mxIsDouble(prhs[5])  ||
                 mxGetNumberOfElements(prhs[5]) == 1 ||
                 mxGetNumberOfDimensions(prhs[5]) != 3)
         {
-	  mexErrMsgIdAndTxt("myMBONLM:mexfunction"," coil sens must be full matrix of real float values.");
-	}
+            mexErrMsgIdAndTxt("myMBONLM:mexfunction", " coil sens must be full matrix of real float values.");
+        }
         coildims = mxGetDimensions(prhs[5]);
         if (coildims[0] != dims[0] || coildims[1] != dims[1] || coildims[2] != dims[2])
         {
-	  mexErrMsgIdAndTxt("myMBONLM:mexfunction"," coil dims must equal input image dims.");
+            mexErrMsgIdAndTxt("myMBONLM:mexfunction", " coil dims must equal input image dims.");
         }
         coilsens = (float*) mxGetPr(prhs[5]);
     }
@@ -539,6 +557,40 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         for (i = 0; i < dims[2] *dims[1] * dims[0]; i++)
             coilsens[i] = 1.0;
     }
+    if (nrhs >= 7) {
+        if (mxIsSparse(prhs[6]) ||
+                mxIsComplex(prhs[6]) ||
+                mxGetNumberOfElements(prhs[6]) != 1) {
+            mexErrMsgIdAndTxt("myMBONLM:mexfunction", " GAMMAfunction must be between 0 and 4.");
+        }
+
+        GAMMAfunction = (int)(mxGetScalar(prhs[6]));
+
+        switch (GAMMAfunction) {
+        case GAMMAMULT:
+            GAMMAfunction = GAMMAMULT;
+            mexPrintf("myMBONLM: GAMMAfunction set to GAMMAMULT.\n");break;
+        case GAMMADR:
+            GAMMAfunction = GAMMADR;
+            mexPrintf("myMBONLM: GAMMAfunction set to GAMMADR.\n");break;
+        case GAMMAEXPDR:
+            GAMMAfunction = GAMMAEXPDR;
+            mexPrintf("myMBONLM: GAMMAfunction set to GAMMAEXPDR.\n");break;
+        case GAMMADIFF:
+            GAMMAfunction = GAMMADIFF;
+            mexPrintf("myMBONLM: GAMMAfunction set to GAMMADIFF.\n");break;
+        otherwise:
+            GAMMAfunction = GAMMAMINMAX;
+            mexPrintf("myMBONLM: GAMMAfunction set to default GAMMAMINMAX.\n");
+        }
+    }
+    else {
+        GAMMAfunction = GAMMAMINMAX;
+        mexPrintf("myMBONLM: GAMMAfunction set to default (GAMMAMINMAX).\n");
+    }
+
+
+
 
     Ndims = (int)pow((2 * radiusS + 1), ndim);
 
@@ -740,8 +792,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
         if (pthread_create(&ThreadList[i], NULL, ThreadFunc, &ThreadArgs[i]))
         {
-	  mexErrMsgIdAndTxt("myMBONLM3D:"," Threads cannot be created\n");
-            
+            mexErrMsgIdAndTxt("myMBONLM3D:", " Threads cannot be created\n");
+
         }
     }
 
