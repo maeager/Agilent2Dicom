@@ -524,10 +524,10 @@ def recon(procpar, dims, fid_header, ksp_data_real, ksp_data_imag, args):
     if 'pelist' in procpar.keys() and len(procpar['pelist']) > 1:
         pelist = np.array(procpar['pelist']).astype(
             int) - int(min(procpar['pelist']))
-    elif 'pe2list' in procpar.keys() and len(procpar['pe2list']) > 1
+    elif 'pe2list' in procpar.keys() and len(procpar['pe2list']) > 1:
         pelist = np.array(procpar['pe2list']).astype(
             int) - int(min(procpar['pe2list']))
-    elif 'sgepelist' in procpar.keys() and len(procpar['sgepelist']) > 1
+    elif 'sgepelist' in procpar.keys() and len(procpar['sgepelist']) > 1:
         pelist = np.array(procpar['sgepelist']).astype(
             int) - int(min(procpar['sgepelist']))
     if procpar['nD'] == 2 and procpar['ni2'] == 1:
