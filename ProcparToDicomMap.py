@@ -118,7 +118,7 @@ def CreateUID(uid_type, procpar=[], study_id=[], verbose=0):
         # max length of uuid = 39 characters
         uidstr = dt + '.' + str(uuid.uuid4().int)
 
-    return ".".join([A2D.UID_ROOT, uid_type, uidstr]).ljust(64, '\0')
+    return ".".join([A2D.UID_ROOT, uid_type, uidstr]).ljust(63, '\0')
 
 
 def ProcparToDicomMap(procpar, args):
@@ -182,7 +182,11 @@ def ProcparToDicomMap(procpar, args):
     # Reference: DICOM Part 3: Information Object Definitions C.7.1.1
 
     ds.PatientName = procpar['name']     # 0010,0010 Patient Name (optional)
+    if not ds.PatientName:
+        ds.PatientName="Empty"
     ds.PatientID = procpar['ident']      # 0010,0020 Patient Id (optional)
+    if not ds.PatientID:
+        ds.PatientID="No ID"
     if procpar['birthday'][0] == '':
         ds.PatientBirthDate = '19010101'  # str(["01", "01", "01"])
     else:
@@ -1965,16 +1969,16 @@ def CalcTransMatrix(ds, orientation, location, span, rank, PixelSpacing, SliceTh
     #    print "Location: ", location, location.shape
 
     # diff = numpy.setdiff1d(span, location)
-    print 'CalcTransMatrix'
+    
     if numpy.prod(span.shape) != numpy.prod(location.shape):
         span = span.resize((1, 3))
     # print span
     origin = location - span / 2.0
-    print 'CalcTransMatrix'
+    
     print orientation.transpose()
     print origin.transpose()
     FirstVoxel = orientation.transpose() * origin.transpose()
-    print 'CalcTransMatrix'
+    print FirstVoxel
 
     # DICOM patient coordinate system is defined such that x increases towards
     # the patient's left, y increases towards the patient's posterior, and z
@@ -2039,6 +2043,7 @@ def CalcTransMatrix(ds, orientation, location, span, rank, PixelSpacing, SliceTh
                            ImagePositionPatient[2]],
                           [0, 0, 0, 1]])
     print 'CalcTransMatrix'
+    print ImageTransformationMatrix
 
     return ds, ImageTransformationMatrix
 
