@@ -71,7 +71,7 @@ def ParseDiffusionFDF(ds, procpar, fdf_properties, args):
     # Get procpar diffusion parameters
     bvalue = procpar['bvalue']  # 64 element array
     bvaluesortidx = numpy.argsort(bvalue)
-    # not used -- BvalSave = procpar['bvalSave']
+    bvalSave = procpar['bvalSave']
     # if 'bvalvs' in procpar.keys():
     #    BvalVS = procpar['bvalvs']
     # excluded in external recons by vnmrj, unused here
@@ -149,12 +149,12 @@ def ParseDiffusionFDF(ds, procpar, fdf_properties, args):
 
     # Diffusion b-matrix Sequence (0018,9601)
         diffbmatseq = Dataset()
-        diffbmatseq.DiffusionBValueXX = bvalueRR[diffusion_idx]
-        diffbmatseq.DiffusionBValueXY = bvalueRP[diffusion_idx]
-        diffbmatseq.DiffusionBValueXZ = bvalueRS[diffusion_idx]
-        diffbmatseq.DiffusionBValueYY = bvaluePP[diffusion_idx]
-        diffbmatseq.DiffusionBValueYZ = bvalueSP[diffusion_idx]
-        diffbmatseq.DiffusionBValueZZ = bvalueSS[diffusion_idx]
+        diffbmatseq.DiffusionBValueXX = bvalueRR[diffusion_idx]/bvalSave
+        diffbmatseq.DiffusionBValueXY = bvalueRS[diffusion_idx]/bvalSave
+        diffbmatseq.DiffusionBValueXZ = bvalueRP[diffusion_idx]/bvalSave
+        diffbmatseq.DiffusionBValueYY = bvalueSS[diffusion_idx]/bvalSave
+        diffbmatseq.DiffusionBValueYZ = bvalueSP[diffusion_idx]/bvalSave
+        diffbmatseq.DiffusionBValueZZ = bvaluePP[diffusion_idx]/bvalSave
         diffusionseq.DiffusionBMatrixSequence = Sequence([diffbmatseq])
 
     # TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO
