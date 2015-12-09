@@ -39,7 +39,7 @@ DICOM_Tag_Manufacturer="Agilent Technologies"
 DICOM_Tag_InstitutionName="Monash Biomedical Imaging"
 DICOM_Tag_ManufacturerModelName="vnmrs"
 DICOM_Tag_DeviceSerialNumber="unknown"
-DICOM_Tag_SoftwareVersions="VnmrJ 3.2, MBI's Agilent2Dicom 2.0.1"
+DICOM_Tag_SoftwareVersions="VnmrJ 4.0, MBI's Agilent2Dicom 2.0.3"
 
 Standard_MR_SOPClassUID="1.2.840.10008.5.1.4.1.1.4" # MR Image SOP
 Implementation_Class_UID="1.3.6.1.4.1.25371.1.1.2"
