@@ -14,7 +14,7 @@ if test ${MASSIVE_USERNAME+defined}; then
     # export PATH=${PATH}:${DCMTK}
 else
     DCMTKPATH="/home/vnmr1/src/dcmtk-3.6.0/bin"
-    FDF2DCMPATH="/home/vnmr1/src/Agilent2Dicom"
+    FDF2DCMPATH="/home/vnmr1/src/Agilent2Dicom.git"
     echo $DCMTKPATH
 
 # load dcm tools
