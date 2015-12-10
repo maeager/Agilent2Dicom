@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1321</width>
-    <height>872</height>
+    <width>1824</width>
+    <height>945</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (2.0.3</string>
+   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (2.0.3) </string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -133,8 +133,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>173</width>
-                <height>52</height>
+                <width>196</width>
+                <height>54</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="gridLayout_7">
@@ -3144,8 +3144,8 @@ or B1 image</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1321</width>
-     <height>25</height>
+     <width>1824</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

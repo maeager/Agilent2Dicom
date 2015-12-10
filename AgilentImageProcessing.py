@@ -221,12 +221,12 @@ class Agilent2DicomWindow(QtGui.QMainWindow):
         self.ui.pushButton_NLpipeline2.clicked.connect(self.ProcNLpipeline2)
         self.ui.pushButton_NLpipeline3.clicked.connect(self.ProcNLpipeline3)
         
-        self.ui.checkBox_NLinputMagPha.setChecked(False)
+#        self.ui.checkBox_NLinputMagPha.setChecked(False)
         self.ui.checkBox_NLinputRI.setChecked(False)
-        QtCore.QObject.connect(self.ui.actionPRINLM,
-                               QtCore.SIGNAL(
-                                   QtCore.QString.fromUtf8("triggered()")),
-                               self.SetSearchArea5)
+      #  QtCore.QObject.connect(self.ui.actionPRINLM,
+      #                         QtCore.SIGNAL(
+      #                             QtCore.QString.fromUtf8("triggered()")),
+      #                         self.SetSearchArea5)
         QtCore.QObject.connect(self.ui.actionSave_Filter_Outputs_to_Nifti,
                                QtCore.SIGNAL(
                                    QtCore.QString.fromUtf8("triggered()")),
@@ -1403,8 +1403,8 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             input1_dir = str(self.ui.lineEdit_ProcInfolder1.text())
             input2_dir = str(self.ui.lineEdit_ProcInfolder2.text())
             inputRI = int(self.ui.checkBox_NLinputRI.isChecked())
-            if self.ui.checkBox_NLinputMagPha.isChecked():
-                inputRI=inputRI+4
+          #  if self.ui.checkBox_NLinputMagPha.isChecked():
+          #      inputRI=inputRI+4
             output_dir = str(self.ui.lineEdit_ProcOutputfolder.text())
             NLfilter = self.GetNLfilter()
 
