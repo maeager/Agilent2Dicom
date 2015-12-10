@@ -416,7 +416,7 @@ then
 	mkdir "${dcmdir}/tmp"
 	mv "${dcmdir}"/*.dcm "${dcmdir}"/tmp/
     done
-fi ## JumpToDCMulti
+fi    ## JumpToDCMulti
 
 echo "Convert dicom images to single enhanced MR dicom format image"
 if [ -f "${output_dir}/MULTIECHO" ]

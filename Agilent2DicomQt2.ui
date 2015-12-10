@@ -173,8 +173,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>1068</width>
-               <height>305</height>
+               <width>172</width>
+               <height>35</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -407,7 +407,7 @@
 Warning: use identical sigma values on isotropic images only. Non-isotropic values should be based on image size in comma-serarated list</string>
               </property>
               <property name="currentIndex">
-               <number>2</number>
+               <number>0</number>
               </property>
               <widget class="QWidget" name="tab_7">
                <attribute name="title">
@@ -1816,8 +1816,8 @@ The mode parameter determines how the array borders are handled, where cval is t
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>1068</width>
-               <height>303</height>
+               <width>133</width>
+               <height>35</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -2357,9 +2357,9 @@ Optimal vector difference between GM and WM.</string>
                 <item row="8" column="1">
                  <layout class="QHBoxLayout" name="horizontalLayout_20">
                   <item>
-                   <widget class="QRadioButton" name="radioButton_NLinputRI">
+                   <widget class="QCheckBox" name="checkBox_NLinputRI">
                     <property name="text">
-                     <string>Real and Imag (only valid for Pipeline 1)</string>
+                     <string>Real and Imag</string>
                     </property>
                    </widget>
                   </item>
@@ -2374,6 +2374,13 @@ Optimal vector difference between GM and WM.</string>
                    <widget class="Line" name="line_7">
                     <property name="orientation">
                      <enum>Qt::Vertical</enum>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QCheckBox" name="checkBox_NLinputMagPha">
+                    <property name="text">
+                     <string>Mag and Phase</string>
                     </property>
                    </widget>
                   </item>
@@ -2567,7 +2574,7 @@ MRONLM filter is the preferred filter
                   <item>
                    <widget class="QRadioButton" name="PRINLM">
                     <property name="enabled">
-                     <bool>false</bool>
+                     <bool>true</bool>
                     </property>
                     <property name="toolTip">
                      <string>The PRINLM filter is described in:                                   
@@ -2582,6 +2589,9 @@ Medical Image Analysis, 16(1):18-27, 2012
                     </property>
                     <property name="checkable">
                      <bool>false</bool>
+                    </property>
+                    <property name="action_PRINLM" stdset="0">
+                     <bool>true</bool>
                     </property>
                    </widget>
                   </item>
@@ -2620,6 +2630,9 @@ Medical Image Analysis, 16(1):18-27, 2012
                     <property name="text">
                      <string>ODCT</string>
                     </property>
+                    <property name="action_ODCT" stdset="0">
+                     <bool>false</bool>
+                    </property>
                    </widget>
                   </item>
                   <item>
@@ -2640,6 +2653,9 @@ patchsize=1, searcharea=3, rician=1</string>
                     </property>
                     <property name="checked">
                      <bool>true</bool>
+                    </property>
+                    <property name="action_MRONLM" stdset="0">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -2679,6 +2695,9 @@ patchsize=1, searcharea=3, rician=1</string>
                     </property>
                     <property name="text">
                      <string>AONLM</string>
+                    </property>
+                    <property name="action_AONLM" stdset="0">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -2731,6 +2750,9 @@ patchsize=1, searcharea=3, rician=1</string>
                     </property>
                     <property name="text">
                      <string>ONLM</string>
+                    </property>
+                    <property name="action_ONLM" stdset="0">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -2958,12 +2980,21 @@ Disable when using complex images.</string>
                     <property name="text">
                      <string>CoilSensUnbiasedNL (In development)</string>
                     </property>
+                    <property name="action_CoilSensUnbiasedNL" stdset="0">
+                     <bool>false</bool>
+                    </property>
                    </widget>
                   </item>
                   <item row="0" column="3">
                    <widget class="QRadioButton" name="MRONLM2">
                     <property name="text">
                      <string>MRONLM2</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                    <property name="action_MRONLM2" stdset="0">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -2972,12 +3003,18 @@ Disable when using complex images.</string>
                     <property name="text">
                      <string>PRINLM2</string>
                     </property>
+                    <property name="action_PRINML2" stdset="0">
+                     <bool>false</bool>
+                    </property>
                    </widget>
                   </item>
                   <item row="0" column="4">
                    <widget class="QRadioButton" name="AONLM2">
                     <property name="text">
                      <string>AONLM2</string>
+                    </property>
+                    <property name="action_AONLM2" stdset="0">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -2986,12 +3023,18 @@ Disable when using complex images.</string>
                     <property name="text">
                      <string>ODCT2</string>
                     </property>
+                    <property name="action_ODCT2" stdset="0">
+                     <bool>false</bool>
+                    </property>
                    </widget>
                   </item>
                   <item row="0" column="5">
                    <widget class="QRadioButton" name="ONLM2">
                     <property name="text">
                      <string>ONLM2</string>
+                    </property>
+                    <property name="action_ONLM2" stdset="0">
+                     <bool>false</bool>
                     </property>
                    </widget>
                   </item>
@@ -3251,6 +3294,61 @@ or B1 image</string>
    </property>
    <property name="toolTip">
     <string>Save Filter Outputs to skeleton Nifti.  Nifti will not have pixel dimensions or correct orientation.  Only filter magnitude is saved.</string>
+   </property>
+  </action>
+  <action name="actionPRINLM">
+   <property name="text">
+    <string>PRINLM</string>
+   </property>
+  </action>
+  <action name="actionODCT">
+   <property name="text">
+    <string>ODCT</string>
+   </property>
+  </action>
+  <action name="actionMRONLM">
+   <property name="text">
+    <string>MRONLM</string>
+   </property>
+  </action>
+  <action name="actionAONLM">
+   <property name="text">
+    <string>AONLM</string>
+   </property>
+  </action>
+  <action name="actionONLM">
+   <property name="text">
+    <string>ONLM</string>
+   </property>
+  </action>
+  <action name="actionPRINLM2">
+   <property name="text">
+    <string>PRINLM2</string>
+   </property>
+  </action>
+  <action name="actionODCT2">
+   <property name="text">
+    <string>ODCT2</string>
+   </property>
+  </action>
+  <action name="actionMRONLM2">
+   <property name="text">
+    <string>MRONLM2</string>
+   </property>
+  </action>
+  <action name="actionAONLM2">
+   <property name="text">
+    <string>AONLM2</string>
+   </property>
+  </action>
+  <action name="actionONLM2">
+   <property name="text">
+    <string>ONLM2</string>
+   </property>
+  </action>
+  <action name="actionCoilSensUnbiasedNL">
+   <property name="text">
+    <string>CoilSensUnbiasedNL</string>
    </property>
   </action>
  </widget>
