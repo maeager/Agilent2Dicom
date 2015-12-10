@@ -1,14 +1,37 @@
-function [MRIdenoised,sigma,filtername] = pipeline2(img1,img2,NLfilter,hfinal,hfactor,searcharea,patcharea,rician)
+function [MRIdenoised,sigma,filtername] = pipeline2(img1,img2,NLfilter,hfinal,hfactor,searcharea,patcharea,rician,B1bias,fgamma)
 %% Non-local means denoising Option 2
 % this method calculates the noise estimate from two images 
 % and applies NL means to average image
 %
+% Input Args:
+%      img[1,2]      Input image (magn or complex, 3-5 dimensions)
+%      NLfilter      Set NL denoiseing method
+%      hfinal        Sigma, estimate of noise
+%      hfactor       Factor to scale sigma
+%      searcharea    NL search area
+%      patchsize     Patch size
+%      rician        Bool flag to enable Rician distribution  in estimates
+%     B1bias        Use B1 bias correction (3D image same size as mag)
+%      fgamma        kernel gamma function
+%      (0=MINMAX,1=MULT,2=EXPDR,3=DR,4=DIFF)
+%
+%
 % - (C) Michael Eager 2015 (michael.eager@monash.edu)
 % -     Monash Biomedical Imaging
 
+%% parse inputs
+narginchk(2, 10)
+beta_=1;
 
 if nargin<3
     NLfilter = 0;
+end
+
+if nargin < 9 || isempty(fgamma)
+   fgamma = 0;
+end
+if nargin < 8 || isempty(B1bias)
+   B1bias = 0;
 end
 
 %ima1=NormaliseImage2(abs(img1))*256.0;

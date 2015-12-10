@@ -21,6 +21,8 @@ function [MRIdenoised,sigma, filtername] = pipeline1(img,NLfilter,hfinal,hfactor
 %% parse inputs
 narginchk(2, 9)
 beta_=1;
+
+
 if nargin < 9 || isempty(fgamma)
    fgamma = 0; 
 end
