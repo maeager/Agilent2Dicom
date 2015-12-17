@@ -39,6 +39,8 @@ module virtualgl matlab
 git clone https://github.com/vlfeat/vlfeat.git
 cd vlfeat
 make
+matlab -nodesktop -nosplash -r 'cd ${PWD}/toolbox;run  vl_setup.m; quit'
+
 #+END_SRC
 
 
