@@ -33,7 +33,9 @@ warning off MATLAB:divideByZero;
 %fclose(fid);
 
 % open fid file
-[fid] = fopen([folder '/fid'],'r', 'b');
+[fid, errmsg]= fopen(fullfile(folder, 'fid'),'r', 'b');
+if fid
+[fname,permission,machinefmt,encodingOut] = fopen(fid);
 
 % Read datafileheader
 hdr.nblocks   = fread(fid,1,'int32');
@@ -63,10 +65,26 @@ if pp.nD == 2
     if pp.ni2 > 1 % fse3d sequence has nD == 2, but is a 3d acquisition???
         dims(3) = pp.ni2;
     end
+    if pp.diff == 'y'
+        dims(1) = pp.nphase *(pp.nbdirs+1); % # phase encode lines / 2
+        dims(2) = pp.fn1; % # frequency lines acquired / # echoes
+        dims(3) = pp.ns; % if 2D, # slices, else ni2
+    hdr.np = pp.np;
+    hdr.s_float=1;
+    hdr.s_32=1;
+    
+    end
+    
 elseif pp.nD == 3
     dims(1) = pp.np/2; % # phase encode lines / 2
     dims(2) = pp.nf/pp.ne; % # frequency lines acquired / # echoes
-    dims(3) = pp.ni2; % if 2D, # slices, else ni2    
+    dims(3) = pp.ni2; % if 2D, # slices, else ni2  
+     if pp.diff == 'y'
+        dims(1) = pp.nphase *(pp.nbdirs+1); % # phase encode lines / 2
+        dims(2) = pp.fn1; % # frequency lines acquired / # echoes
+        dims(3) = pp.ns; % if 2D, # slices, else ni2
+    
+    end
 else
     error('Can only handle 2D or 3D files (based on procpar field nD)')
 end
@@ -139,6 +157,7 @@ for i=1:hdr.nblocks
     RE(:,:,i) = data(1:2:hdr.np,:); 
     IM(:,:,i) = data(2:2:hdr.np,:); 
 end
+
 fclose(fid);
 
 fprintf(1, '\nPerforming fourier transform...');
@@ -190,3 +209,6 @@ end
 hdr.pp = pp;
 
 fprintf(1, '\n');
+else
+    display errmsg
+end
