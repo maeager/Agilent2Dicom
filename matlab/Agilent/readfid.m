@@ -6,7 +6,7 @@ function [img, hdr, ksp, RE, IM] = readfid(folder)
 % direction.
 
 error(nargchk(1,2,nargin))
-
+ 
 warning off MATLAB:divideByZero;
 
 % get acqcycles and TE from procpar
@@ -65,13 +65,13 @@ if pp.nD == 2
     if pp.ni2 > 1 % fse3d sequence has nD == 2, but is a 3d acquisition???
         dims(3) = pp.ni2;
     end
-    if pp.diff == 'y'
+    if regexp(pp.diff{1},'y') > 0
         dims(1) = pp.nphase *(pp.nbdirs+1); % # phase encode lines / 2
         dims(2) = pp.fn1; % # frequency lines acquired / # echoes
         dims(3) = pp.ns; % if 2D, # slices, else ni2
     hdr.np = pp.np;
-    hdr.s_float=1;
-    hdr.s_32=1;
+ %   hdr.s_float=1;
+ %   hdr.s_32=1;
     
     end
     
@@ -79,7 +79,7 @@ elseif pp.nD == 3
     dims(1) = pp.np/2; % # phase encode lines / 2
     dims(2) = pp.nf/pp.ne; % # frequency lines acquired / # echoes
     dims(3) = pp.ni2; % if 2D, # slices, else ni2  
-     if pp.diff == 'y'
+     if regexp(pp.diff{1},'y')>0
         dims(1) = pp.nphase *(pp.nbdirs+1); % # phase encode lines / 2
         dims(2) = pp.fn1; % # frequency lines acquired / # echoes
         dims(3) = pp.ns; % if 2D, # slices, else ni2
