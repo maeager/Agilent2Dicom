@@ -260,7 +260,7 @@ float distanceB1(float* ima, float* coilsens, int x, int y, int z, int nx, int n
 
                 p1 = nk1 * (sxy) + (nj1 * sx) + ni1;
                 p2 = nk2 * (sxy) + (nj2 * sx) + ni2;
-                distancetotal = distancetotal + ((ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]) * (ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]));
+                distancetotal += (ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]) ^2;
                 acu = acu + 1;
             }
         }
