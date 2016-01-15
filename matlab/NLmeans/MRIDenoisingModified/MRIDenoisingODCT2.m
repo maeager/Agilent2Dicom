@@ -42,7 +42,7 @@ end
     if  nargin < 3 ||  isempty(rician) || (rician ~= 0)
         rician=1;
     end
-    if  nargin < 4 ||  isempty(B1bias) || any(B1bias)
+    if  nargin < 4 ||  isempty(B1bias)
         B1bias=single(0);
     end
     if  nargin < 5 ||  isempty(fgamma) || (fgamma <0)
