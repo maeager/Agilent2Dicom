@@ -127,7 +127,7 @@ void* ThreadFunc(void* pArguments)
                                 {
                                     p1 = nk * rc + nj * cols + ni;
                                     if (GAMMAfunction == GAMMAMULT) {
-                                        t1 = abs(medias[p] / coilsens[p] - medias[p1] / coilsens[p1]);
+                                        t1 = fabs(medias[p] / coilsens[p] - medias[p1] / coilsens[p1]);
                                         if (t1 > sigma) continue;
                                         w = (ref[p] / coilsens[p] - ref[p1] / coilsens[p1]);
                                         w = (w * w) / hh - 1;
@@ -243,9 +243,13 @@ void* ThreadFunc(void* pArguments)
                                         if (t1 > sigma) continue;
                                         w = (ref[p] / coilsens[p] - ref[p1] / coilsens[p1]);
 
+#ifdef FP_FAST_FMA
+					w = fma(w*w,1.0f/h,-1);
+					d = fma(t1*t1,1,0f/hhh,-1);
+#else
                                         w = (w * w) / hh - 1;
                                         d = (t1 * t1) / hhh - 1;
-
+#endif
                                         w = w < 0 ? 0 : w;
                                         d = d < 0 ? 0 : d;
 
@@ -258,10 +262,13 @@ void* ThreadFunc(void* pArguments)
                                         if (t1 > sigma) continue;
 
                                         w = (ref[p] - ref[p1]);
-
+#ifdef FP_FAST_FMA
+					w = fma(w*w,1.0f/h,-1);
+					d = fma(t1*t1,1,0f/hhh,-1);
+#else
                                         w = (w * w) / hh - 1;
                                         d = (t1 * t1) / hhh - 1;
-
+#endif
                                         w = w < 0 ? 0 : w;
                                         d = d < 0 ? 0 : d;
 
@@ -291,22 +298,31 @@ void* ThreadFunc(void* pArguments)
                                     if (d <= 0) w = 1.0;
                                     else if (d > 10) w = 0;
                                     else w = exp(-d);
-
+				    pesos[p1] += w;
+				    pesos[p] += w;
+                                    
                                     if (rician > 0)
                                     {
+#ifdef FP_FAST_FMA
+				      fima[p]=fma(w,ima[p1] * ima[p1],fima[p]);
+				      fima[p]=fma(w,ima[p] * ima[p],fima[p1]);
+#else
                                         fima[p] += w * ima[p1] * ima[p1];
-                                        pesos[p] += w;
-
+  
                                         fima[p1] += w * ima[p] * ima[p];
-                                        pesos[p1] += w;
-                                    }
+#endif     
+                                   }
                                     else
                                     {
-                                        fima[p] += w * ima[p1];
-                                        pesos[p] += w;
+#ifdef FP_FAST_FMA
+				      fima[p]=fma(w,ima[p1],fima[p]);
+				      fima[p]=fma(w, ima[p],fima[p1]);
 
+#else
+                                        fima[p] += w * ima[p1];
+                                      
                                         fima[p1] += w * ima[p];
-                                        pesos[p1] += w;
+#endif                                   
                                     }
                                 }
                             }
@@ -636,7 +652,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     {
         if (rician > 0)
         {
+#ifdef FP_FAST_FMA
+	  vr=fma(fima[k],1.0f/pesos[k],-sigma);
+#else
             vr = (fima[k] / pesos[k]) - sigma;
+#endif
             if (vr < 0) fima[k] = 0;
             else fima[k] = sqrt(vr);
             if (ima[k] <= 0) fima[k] = 0;
