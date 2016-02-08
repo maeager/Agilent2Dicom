@@ -100,12 +100,26 @@ void Average_block(float *ima, int x, int y, int z, int neighborhoodsize, float 
             {
                 x_pos = x + a - neighborhoodsize;
                 if ((x_pos < 0) || (x_pos > sx - 1)) x_pos = x;
-                p2 = z_pos * (sxy) + (y_pos * sx) + x_pos;
-                if (rician)
-                    average[count] = average[count] + ima[p2] * ima[p2] * weight;
-                else
-                    average[count] = average[count] + ima[p2] * weight;
+#ifdef FP_FAST_FMA
+		p2 = fma(z_pos,sxy,fma(y_pos,sx,x_pos));
+#else
 
+
+                p2 = z_pos * (sxy) + (y_pos * sx) + x_pos;
+#endif
+                if (rician){
+#ifdef FP_FAST_FMA
+		  average[count]=fma (ima[p2] * ima[p2],weight,average[count]);
+#else
+                    average[count] = average[count] + ima[p2] * ima[p2] * weight;
+#endif
+                }else{
+#ifdef FP_FAST_FMA
+		  average[count]=fma (ima[p2],weight,average[count]);
+#else
+                    average[count] = average[count] + ima[p2] * weight;
+#endif
+		}
                 count++;
             }
         }
@@ -144,13 +158,20 @@ void Value_block(float *Estimate, float *Label, int x, int y, int z, int neighbo
                         x_pos = x + a - neighborhoodsize;
                         if (!((x_pos < 0) || (x_pos > sx - 1)))
                         {
+#ifdef FP_FAST_FMA
+			  p1 = fma(z_pos,sxy,fma(y_pos,sx,x_pos));
+#else
                             p1 = z_pos * (sxy) + (y_pos * sx) + x_pos;
-
+#endif
                             value = Estimate[p1];
 
                             if (rician)
                             {
+#ifdef FP_FAST_FMA
+			      denoised_value = fma(average[count],1.0f/global_sum,bias);
+#else
                                 denoised_value  = (average[count] / global_sum) - bias;
+#endif
                                 if (denoised_value > 0)
                                     denoised_value = sqrt(denoised_value);
                                 else {
@@ -159,7 +180,11 @@ void Value_block(float *Estimate, float *Label, int x, int y, int z, int neighbo
                                 value = value + denoised_value;
                             }
                             else {
+#ifdef FP_FAST_FMA
+			      value = fma(average[count],1.0f/global_sum,value);
+#else
                                 value = value + (average[count] / global_sum);
+#endif
                             }
 
                             //label = Label[p1];
@@ -211,8 +236,12 @@ float distance(float* ima, int x, int y, int z, int nx, int ny, int nz, int f, i
 
                 p1 = nk1 * (sxy) + (nj1 * sx) + ni1;
                 p2 = nk2 * (sxy) + (nj2 * sx) + ni2;
+#ifdef FP_FAST_FMA
+		distancetotal = fma((ima[p1] - ima[p2]) , (ima[p1] - ima[p2]),distancetotal);
+#else
                 distancetotal = distancetotal + ((ima[p1] - ima[p2]) * (ima[p1] - ima[p2]));
-                acu = acu + 1;
+#endif     
+           acu = acu + 1;
             }
         }
     }
@@ -260,7 +289,12 @@ float distanceB1(float* ima, float* coilsens, int x, int y, int z, int nx, int n
 
                 p1 = nk1 * (sxy) + (nj1 * sx) + ni1;
                 p2 = nk2 * (sxy) + (nj2 * sx) + ni2;
-                distancetotal = distancetotal + ((ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]) * (ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]));
+#ifdef FP_FAST_FMA
+		distancetotal = fma((ima[p1]/ coilsens[p1] - ima[p2]/ coilsens[p2]) , (ima[p1]/ coilsens[p1] - ima[p2]/ coilsens[p2]),distancetotal);
+#else
+
+                distancetotal += (ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]) * (ima[p1] / coilsens[p1] - ima[p2] / coilsens[p2]);
+#endif
                 acu = acu + 1;
             }
         }

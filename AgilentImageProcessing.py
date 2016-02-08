@@ -70,8 +70,7 @@ then \n\
    echo \"On Massive\" \n\
    module purge \n\
    module load massive virtualgl\n\
-   module load python/2.7.1-gcc \n\
-   module load python/2.7.3-gcc \n\
+   module load python\n\
    module load dcmtk mrtrix \n\
    #module list \n\
    echo $PYTHONPATH \n\

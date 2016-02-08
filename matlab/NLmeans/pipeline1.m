@@ -30,7 +30,7 @@ if nargin < 8 || isempty(B1bias)
    B1bias = 0; 
 end
 if nargin < 7 || isempty(rician)
-    rician = 1;
+    rician = single(1);
 end
 if nargin < 6 || isempty(patcharea)
     patcharea = 1;

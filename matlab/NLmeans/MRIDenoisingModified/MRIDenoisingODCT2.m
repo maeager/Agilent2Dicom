@@ -1,4 +1,4 @@
-function [ imaODCT] = MRIDenoisingODCT2(ima, sigma, rician, verbose)
+function [ imaODCT] = MRIDenoisingODCT2(ima, sigma, rician,B1bias,fgamma,verbose)
 %
 %   Description: Denoising of a 3D MRI image using the ODCT filter
 %               
@@ -42,7 +42,13 @@ end
     if  nargin < 3 ||  isempty(rician) || (rician ~= 0)
         rician=1;
     end
-    if  nargin < 4
+    if  nargin < 4 ||  isempty(B1bias)
+        B1bias=single(0);
+    end
+    if  nargin < 5 ||  isempty(fgamma) || (fgamma <0)
+        fgamma=1;
+    end
+    if  nargin < 6
         verbose=0;
     end
  
@@ -69,7 +75,7 @@ disp('**************************************************************************
  
   %}  
     
-    imaODCT=myODCT3d(single(ima),single(sigma), rician);
+    imaODCT=myODCT3d(single(ima),single(sigma), single(rician));
     map = find(imaODCT<0);
     imaODCT(map) =0;
 

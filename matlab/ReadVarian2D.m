@@ -1,4 +1,4 @@
-function [kspace,np,ntraces,nblocks] = readVarian2D(filename)
+function [kspace,np,ntraces,nblocks,BinStat,status,nhead] = readVarian2D(filename)
 
    file_id=fopen(filename, 'r', 'b');		%always big endian format, even for Linux
 
