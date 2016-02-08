@@ -15,7 +15,18 @@ display('Calling MCI')
 if nargin == 3
     saveRI=0;
 end
-    
+%% Clean input strings
+in1 = regexprep(in1,'["\[\]]','');
+if ~isempty(in2)
+ if isstr(in2)
+        in2 = regexprep(in2,'["\[\]]','');
+    else
+        in2=[];
+    end
+end
+out = regexprep(out,'["\[\]]','');
+
+
 
 voxelsize=[];
 ksp1=[];ksp2=[];

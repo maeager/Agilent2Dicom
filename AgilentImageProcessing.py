@@ -1219,8 +1219,7 @@ Copyright: %s''' % (__version__, Agilent2DicomAppStamp, AGILENT2DICOM_VERSION, _
             # cmd1 = cmd1 + ' -i ' + str(input1_dir) + ' -o ' + str(output_dir)
             # print cmd1
             # cmd = cmd_header + cmd1
-            cmd = """%s matlab -nodesktop -nosplash -r "addpath ./matlab;call_swi('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%d,%d,%d,%d);quit"  """ % (
-                proc_header, str(input1_dir), str(input2_dir), str(output_dir), swiorder, preprocess, saveRI, swineg, swipos)
+            cmd = """%s matlab -nodesktop -nosplash -r "addpath %s/matlab;call_swi('"'"'%s'"'"','"'"'%s'"'"','"'"'%s'"'"',%s,%d,%d,%d,%d);quit"  """ % ( proc_header, str(thispath),str(input1_dir), str(input2_dir), str(output_dir), swiorder, preprocess, saveRI, swineg, swipos)
 
             print cmd
             logging.info('Processing SWI ' + cmd)

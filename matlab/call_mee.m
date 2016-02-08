@@ -24,7 +24,16 @@ end
 if nargin < 7
     useswi=0;
 end
-
+%% Clean input strings
+in1 = regexprep(in1,'["\[\]]','');
+if ~isempty(in2)
+ if isstr(in2)
+        in2 = regexprep(in2,'["\[\]]','');
+    else
+        in2=[];
+    end
+end
+out = regexprep(out,'["\[\]]','');
 
 
 voxelsize=[];

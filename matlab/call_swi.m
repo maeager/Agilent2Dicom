@@ -10,17 +10,34 @@ root_path=a;
 addpath(fullfile(root_path,'matlab'))
 addpath(fullfile(root_path,'matlab/NIFTI'))
 addpath(fullfile(root_path, 'matlab/Agilent/'))
+%% Clean input strings
+in1 = regexprep(in1,'["\[\]]','');  
+if ~isempty(in2)
+ if isstr(in2)
+        in2 = regexprep(in2,'["\[\]]','');
+    else
+        in2=[];
+    end
+end
+out = regexprep(out,'["\[\]]',''); %"
+
 
 display('Calling SWI')
+display(in1)
+display (in2)
+display (out)
 
-if nargin < 7
+if nargin < 8
     swipos=0;
 end
-if nargin < 6
+if nargin < 7
     swipneg=0;
 end
-if nargin < 5
+if nargin < 6
     saveRI=0;
+end
+if nargin < 5
+    preprocess=0;    
 end
 if nargin < 4
     order=0;    
@@ -67,7 +84,7 @@ elseif ~isempty(strfind(in2,'.fid')) && isdir(in2)
     %    voxelsize2=hdr.FOVcm*10/size(img);
     voxelsize2=hdr.voxelmm;
 else
-    display(['Cannot find ' in2])
+    display(['Cannot find second image ' in2])
     %    return
 end
 end
@@ -81,16 +98,22 @@ end
 voxelsize=voxelsize1;
 
 
-[pha1, swi_n1, swi_p1, mag1] = phaserecon_v1(ksp1,ksp1,0.4,1,0.05);
+[pha, swi_n, swi_p, mag] = phaserecon_v1(ksp1,ksp1,0.4,1,0.05);
 % Necessary translations to match FDF images
-swi_n1=flipdim(flipdim(flipdim(swi_n1,1),2),3);
-swi_n1=circshift(swi_n1,[1,1,1]);
+swi_n=flipdim(flipdim(flipdim(swi_n,1),2),3);
+swi_n=circshift(swi_n,[1,1,1]);
+img=mag.*exp(1i*pha);
 
 if ~isempty(ksp2)
     [pha2, swi_n2, swi_p2, mag2] = phaserecon_v1(ksp2,ksp2,0.4,1, ...
                                                  0.05);
     swi_n2=flipdim(flipdim(flipdim(swi_n2,1),2),3);
     swi_n2=circshift(swi_n2,[1,1,1]);
+swi_n = (swi_n+swi_n2)/2;
+    swi_p = (swi_p+swi_p2)/2;
+img = (img+ (mag2.*exp(1i*pha2)))/2;
+
+		
 end
 
 if exist(out,'file')~=2 && ~isdir(out)
@@ -104,22 +127,21 @@ if exist(out,'file')
     delete(out)
 end
 
-if isempty(ksp2)
-    save_nii(make_nii(swi_n1,voxelsize,[],16),out)
-else
-    save_nii(make_nii((swi_n1+swi_n2)/2,voxelsize,[],16),out)
+
+    save_nii(make_nii(swi_n,voxelsize,[],16),out)
+
+
+if swipos
+   swi_p=flipdim(flipdim(flipdim(swi_p,1),2),3);
+   swi_p=circshift(swi_p,[1,1,1]);
+   outp = regexprep(out,'neg','pos');
+
+        save_nii(make_nii(swi_p,voxelsize,[],16),outp)
+
 end
 
-if swipos == 1
-   swi_p1=flipdim(flipdim(flipdim(swi_p1,1),2),3);
-   swi_p1=circshift(swi_p1,[1,1,1]);
-   out = regexp(out,'neg','pos');
-    if isempty(ksp2)
-        save_nii(make_nii(swi_p1,voxelsize,[],16),out)
-    else
-        swi_p2=flipdim(flipdim(flipdim(swi_p2,1),2),3);
-        swi_p2=circshift(swi_p2,[1,1,1]);
-        save_nii(make_nii((swi_p1+swi_p2)/2,voxelsize,[],16),out)
-    end
-end
+if saveRI
+        save_nii(make_nii(real(img),voxelsize,[],16),regexprep(out,'neg','real'))
+        save_nii(make_nii(imag(img),voxelsize,[],16),regexprep(out,'neg','imag'))
 
+end
