@@ -139,6 +139,8 @@ if ~isempty(ksp2)
     end
 end
 
+%% Write output
+
 if exist(out,'file')~=2 && ~isdir(out)
     %if not a file or a dir, create dir
     mkdir (out)
@@ -151,7 +153,7 @@ if exist(out,'file')
 end
 
 
-save_nii(make_nii(swi_n,voxelsize,[],16),out)
+savetonii(swi_n,voxelsize,out)
 
 
 if swipos
@@ -159,12 +161,23 @@ if swipos
     swi_p=circshift(swi_p,[1,1,1]);
     outp = regexprep(out,'neg','pos');
     
-    save_nii(make_nii(swi_p,voxelsize,[],16),outp)
+    savetonii(swi_p,voxelsize,outp)
     
 end
 
 if saveRI
-    save_nii(make_nii(real(img),voxelsize,[],16),regexprep(out,'neg','real'))
-    save_nii(make_nii(imag(img),voxelsize,[],16),regexprep(out,'neg','imag'))
+    savetonii(real(img),voxelsize,regexprep(out,'neg','real'))
+    savetonii(imag(img),voxelsize,regexprep(out,'neg','imag'))
+    
+end
+
+
+function savetonii(vol,vsize,fname)
+if  length(size(ksp1)) ==3
+    save_nii(make_nii(single(vol),vsize,[0,0,0],16),fname)
+elseif  length(size(ksp1)) == 4
+    for echo=1:size(vol,4)
+        save_nii(make_nii(single(vol(:,:,:,1,echo)),vsize,[0,0,0],16),regexprep(fname,'.nii.gz',['echo' num2str(echo) '.nii.gz']))
+    end
     
 end
