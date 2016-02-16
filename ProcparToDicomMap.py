@@ -183,10 +183,10 @@ def ProcparToDicomMap(procpar, args):
 
     ds.PatientName = procpar['name']     # 0010,0010 Patient Name (optional)
     if not ds.PatientName:
-        ds.PatientName="Empty"
+        ds.PatientName = "Empty"
     ds.PatientID = procpar['ident']      # 0010,0020 Patient Id (optional)
     if not ds.PatientID:
-        ds.PatientID="No ID"
+        ds.PatientID = "No ID"
     if procpar['birthday'][0] == '':
         ds.PatientBirthDate = '19010101'  # str(["01", "01", "01"])
     else:
@@ -1969,12 +1969,12 @@ def CalcTransMatrix(ds, orientation, location, span, rank, PixelSpacing, SliceTh
     #    print "Location: ", location, location.shape
 
     # diff = numpy.setdiff1d(span, location)
-    
+
     if numpy.prod(span.shape) != numpy.prod(location.shape):
         span = span.resize((1, 3))
     # print span
     origin = location - span / 2.0
-    
+
     print orientation.transpose()
     print origin.transpose()
     FirstVoxel = orientation.transpose() * origin.transpose()

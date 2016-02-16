@@ -244,8 +244,8 @@ void* ThreadFunc(void* pArguments)
                                         w = (ref[p] / coilsens[p] - ref[p1] / coilsens[p1]);
 
 #ifdef FP_FAST_FMA
-					w = fma(w*w,1.0f/h,-1);
-					d = fma(t1*t1,1,0f/hhh,-1);
+                                        w = fma(w * w, 1.0f / h, -1);
+                                        d = fma(t1 * t1, 1, 0f / hhh, -1);
 #else
                                         w = (w * w) / hh - 1;
                                         d = (t1 * t1) / hhh - 1;
@@ -263,8 +263,8 @@ void* ThreadFunc(void* pArguments)
 
                                         w = (ref[p] - ref[p1]);
 #ifdef FP_FAST_FMA
-					w = fma(w*w,1.0f/h,-1);
-					d = fma(t1*t1,1,0f/hhh,-1);
+                                        w = fma(w * w, 1.0f / h, -1);
+                                        d = fma(t1 * t1, 1, 0f / hhh, -1);
 #else
                                         w = (w * w) / hh - 1;
                                         d = (t1 * t1) / hhh - 1;
@@ -298,31 +298,31 @@ void* ThreadFunc(void* pArguments)
                                     if (d <= 0) w = 1.0;
                                     else if (d > 10) w = 0;
                                     else w = exp(-d);
-				    pesos[p1] += w;
-				    pesos[p] += w;
-                                    
+                                    pesos[p1] += w;
+                                    pesos[p] += w;
+
                                     if (rician > 0)
                                     {
 #ifdef FP_FAST_FMA
-				      fima[p]=fma(w,ima[p1] * ima[p1],fima[p]);
-				      fima[p]=fma(w,ima[p] * ima[p],fima[p1]);
+                                        fima[p] = fma(w, ima[p1] * ima[p1], fima[p]);
+                                        fima[p] = fma(w, ima[p] * ima[p], fima[p1]);
 #else
                                         fima[p] += w * ima[p1] * ima[p1];
-  
+
                                         fima[p1] += w * ima[p] * ima[p];
-#endif     
-                                   }
+#endif
+                                    }
                                     else
                                     {
 #ifdef FP_FAST_FMA
-				      fima[p]=fma(w,ima[p1],fima[p]);
-				      fima[p]=fma(w, ima[p],fima[p1]);
+                                        fima[p] = fma(w, ima[p1], fima[p]);
+                                        fima[p] = fma(w, ima[p], fima[p1]);
 
 #else
                                         fima[p] += w * ima[p1];
-                                      
+
                                         fima[p1] += w * ima[p];
-#endif                                   
+#endif
                                     }
                                 }
                             }
@@ -460,16 +460,16 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         switch (GAMMAfunction) {
         case GAMMAMULT:
             GAMMAfunction = GAMMAMULT;
-            mexPrintf("myRINLM: GAMMAfunction set to GAMMAMULT.\n");break;
+            mexPrintf("myRINLM: GAMMAfunction set to GAMMAMULT.\n"); break;
         case GAMMADR:
             GAMMAfunction = GAMMADR;
-            mexPrintf("myRINLM: GAMMAfunction set to GAMMADR.\n");break;
+            mexPrintf("myRINLM: GAMMAfunction set to GAMMADR.\n"); break;
         case GAMMAEXPDR:
             GAMMAfunction = GAMMAEXPDR;
-            mexPrintf("myRINLM: GAMMAfunction set to GAMMAEXPDR.\n");break;
+            mexPrintf("myRINLM: GAMMAfunction set to GAMMAEXPDR.\n"); break;
         case GAMMADIFF:
             GAMMAfunction = GAMMADIFF;
-            mexPrintf("myRINLM: GAMMAfunction set to GAMMADIFF.\n");break;
+            mexPrintf("myRINLM: GAMMAfunction set to GAMMADIFF.\n"); break;
         otherwise:
             GAMMAfunction = GAMMAMINMAX;
             mexPrintf("myRINLM: GAMMAfunction set to default GAMMAMINMAX.\n");
@@ -653,7 +653,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
         if (rician > 0)
         {
 #ifdef FP_FAST_FMA
-	  vr=fma(fima[k],1.0f/pesos[k],-sigma);
+            vr = fma(fima[k], 1.0f / pesos[k], -sigma);
 #else
             vr = (fima[k] / pesos[k]) - sigma;
 #endif

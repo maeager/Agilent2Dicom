@@ -18,11 +18,12 @@
 # Version 2.0.1: Non-local means options and allows use of FDF/FID and nifti
 # Version 2.0.2: Non-local means parameters and better source code package
 # Version 2.0.3: B1 bias and coil sensitivity correction implementation
+# Version 2.1:   Final version - no more changes planned
 #
-# Copyright 2015 Michael Eager
+# Copyright 2015,2016 Michael Eager (michael.eager@monash.edu)
 #
 # This file is part of the Agilent2Dicom package
-# See https://bitbucket.org/mbi-image/agilent2dicom/ for documentation.
+# See https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom/ for documentation.
 #
 # Agilent2dicom is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

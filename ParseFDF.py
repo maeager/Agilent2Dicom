@@ -149,12 +149,12 @@ def ParseDiffusionFDF(ds, procpar, fdf_properties, args):
 
     # Diffusion b-matrix Sequence (0018,9601)
         diffbmatseq = Dataset()
-        diffbmatseq.DiffusionBValueXX = bvalueRR[diffusion_idx]/bvalSave
-        diffbmatseq.DiffusionBValueXY = bvalueRS[diffusion_idx]/bvalSave
-        diffbmatseq.DiffusionBValueXZ = bvalueRP[diffusion_idx]/bvalSave
-        diffbmatseq.DiffusionBValueYY = bvalueSS[diffusion_idx]/bvalSave
-        diffbmatseq.DiffusionBValueYZ = bvalueSP[diffusion_idx]/bvalSave
-        diffbmatseq.DiffusionBValueZZ = bvaluePP[diffusion_idx]/bvalSave
+        diffbmatseq.DiffusionBValueXX = bvalueRR[diffusion_idx] / bvalSave
+        diffbmatseq.DiffusionBValueXY = bvalueRS[diffusion_idx] / bvalSave
+        diffbmatseq.DiffusionBValueXZ = bvalueRP[diffusion_idx] / bvalSave
+        diffbmatseq.DiffusionBValueYY = bvalueSS[diffusion_idx] / bvalSave
+        diffbmatseq.DiffusionBValueYZ = bvalueSP[diffusion_idx] / bvalSave
+        diffbmatseq.DiffusionBValueZZ = bvaluePP[diffusion_idx] / bvalSave
         diffusionseq.DiffusionBMatrixSequence = Sequence([diffbmatseq])
 
     # TODO  One of: FRACTIONAL, RELATIVE, VOLUME_RATIO

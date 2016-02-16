@@ -1,7 +1,7 @@
 # README #
 
 The *Agilent2Dicom* package is a series of bash and python scripts to
-convert FDF (Vnmrj reconstruction) and FID (raw k-sapce) images from
+convert FDF (Vnmrj reconstruction) and FID (raw k-space) images from
 the Agilent 9.4T MR scanner at Monash Biomedical Imaging (MBI) into
 enhanced MR DICOM images. Further development has added new features
 for filtering and noise removal.
@@ -14,7 +14,7 @@ Source code:
 
 [https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom](https://gitlab.erc.monash.edu.au/mbi-image/agilent2dicom) 
 
-[https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom](https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom) *DEPRICIATED*
+[https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom](https://carbon2.mbi.monash.edu.au/mbi-image/agilent2dicom) *DEPRECIATED*
 
 [https://bitbucket.org/mbi-image/agilent2dicom](https://bitbucket.org/mbi-image/agilent2dicom) *DEPRECIATED*
 
@@ -42,18 +42,18 @@ dicom3tools' dcmulti to compress the basic MR format to an enhanced MR
 format. It requires an input directory containing FDF images, with
 optional arguments for the output directory that defaults to a
 subdrectory called .dcm in the input directory. By default the output
-dicom file is named 0001.dcm and any mutiple dicom files are
+dicom file is named 0001.dcm and any multiple dicom files are
 incremented from 1.
 
 FID file formats contain the raw k-space data from the scanner.  The
 FID2DCM suite (*fid2dcm.sh*, *fid2dicom.py*, *ReadFID.py*) enable the
-reconstruction and convertions of images to DICOM.  A feature of the
+reconstruction and conversions of images to DICOM.  A feature of the
 reconstruction enables adjustable filtering in complex space and
 storage of phase information.  *cplxfilter.py* allows filtering of
-real and imaginary reconstructed images using gaussian, laplace-
-gaussian, median and wiener filters. *kspace_filter.py* allows for
+real and imaginary reconstructed images using Gaussian, Laplace-
+Gaussian, median and wiener filters. *kspace_filter.py* allows for
 filtering in the Fourier domain, as well as zero-padding
-super-resolution methds.
+super-resolution methods.
 
 ## Agilent Console GUI ##
 
@@ -66,7 +66,7 @@ conversion only. This requires python 2.6 and Tkinter.
 [vnmr1@vnmrj1 s_2014062002]$ fdf2dicom
 ```
 
-An updated GUI, *Agilent2DicomAppQt*, now uses PyQt4 and enables more
+An updated GUI (version 2), *Agilent2DicomAppQt*, uses PyQt4 and enables more
 features including FID filtering and double-resolution conversion.
 With the Agilent2Dicom path included in the PATH variable, the GUI can
 be loaded from the terminal from any folder: 
@@ -85,13 +85,13 @@ export PYTHONPATH=/usr/local/pyqt4/4.11/lib/python2.7/site-packages/:/usr/local/
 ./Agilent2DicomAppQt.py
 ```
 
-
+The current GUI (version 2.1) is called AgilentImageProcessing.  
 
 ## Usage ##
 
 ### FDF conversion to DICOM ##
 
-Commandline usage of the FDF2DCM suite is as follows:
+Command-line usage of the FDF2DCM suite is as follows:
 ```
 #!bash
 
@@ -124,7 +124,7 @@ Gaussian, Gaussian Laplace, Median, and Wiener filters.
 
 ** Warning: filtering applicable to isotropic 3D volumes. Non-isotropic filtering must be done with prior knowledge of dimension and voxel resolution sizes. **
 
-Basic FID2DCM usage from the commandline is as follows:
+Basic FID2DCM usage from the command-line is as follows:
 ```
 #!bash
 
@@ -180,7 +180,7 @@ See INSTALL.txt
  -i <inputdir> FDF source directory
  -o <outputdir> Optional destination DICOM directory. Default is input_dir/.dcm.
  -v             verbose output.
- -m,-p          Enable magnitude and phase subdirectory conversion. These flags are
+ -m,-p          Enable magnitude and phase sub-directory conversion. These flags are
 passed to agilent2dicom and should only be used from within fdf2dcm or with knowledge
 of input fdf data.
  -s <SEQ>            Sequence type (one of MULTIECHO,DIFFUSION,ASL).
@@ -213,7 +213,7 @@ optional arguments:
 
 ### FID  ###
 
-Advanced FID2DCM usage from the commandline is as follows:
+Advanced FID2DCM usage from the command-line is as follows:
 ```
 #!bash
 
@@ -230,7 +230,7 @@ Advanced FID2DCM usage from the commandline is as follows:
   imag (-r) or k-space (-k). Filtering is available for Gaussian filter
   (-g sigma), Laplace Gaussian filter (-l sigma), median filter (-n
   window_size), Wiener filter (-w window_size) or Epanechnikov filter
-  (-y <bandwidth>). K-space Fourier filtering is avalable for Gaussian
+  (-y <bandwidth>). K-space Fourier filtering is available for Gaussian
   (-G <sigma>) and Epanechnikov (-Y <bandwidth>) filters.
 
  -i <inputdir>  FID source directory
@@ -248,7 +248,7 @@ Advanced FID2DCM usage from the commandline is as follows:
  -j <order>     Gaussian filter order variable argument, default 0.
  -e {'wrap','reflect','nearest','mirror'}  Gaussian filter mode variable
                         argument, default=nearest.
- -l <simga>     Gaussian Laplace filter smoothing of reconstructed RE and
+ -l <sigma>     Gaussian Laplace filter smoothing of reconstructed RE and
                         IM components. Sigma variable argument, default 1/srqt(2).
  -L <sigma>     Fourier Laplace-of-Gaussian filter smoothing of k-space RE and
                         IM components. Sigma variable argument, default size/1/srqt(2).
@@ -273,7 +273,7 @@ Advanced FID2DCM usage from the commandline is as follows:
 ```
 
 
-*fid2dicom.py* has slighly different arguments to *fid2dcm.sh*
+*fid2dicom.py* has slightly different arguments to *fid2dcm.sh*
 ```
 #!bash
 
@@ -306,14 +306,14 @@ optional arguments:
   -o OUTPUTDIR, --outputdir OUTPUTDIR
                         Output directory name for DICOM files.
   -m, --magnitude       Save Magnitude component. Default output of filtered
-                        image outputput
+                        image output
   -p, --phase           Save Phase component.
   -k, --kspace          Save Kspace data in outputdir-ksp.mat file
   -r, --realimag        Save real and imaginary data in outputdir-real and
                         outputdir-imag.
   -N, --nifti           Save filtered outputs to NIFTI.
   -D, --double_resolution
-                        Zero pad k-space data before recnstruction to double
+                        Zero pad k-space data before reconstruction to double
                         resolution in image space.
   -g, --gaussian_filter
                         Gaussian filter smoothing of reconstructed RE and IM
@@ -409,7 +409,7 @@ To exclusively run the enhanced MR conversion with *dcmulti* and
 *fix-dicom.sh*, a simple wrapper bash script called *enh_mr.sh* was created.
 
 Multi-echo, diffusion and ASL dicoms are accepted if the input
-directory contains appropriate temproary files. 
+directory contains appropriate temporary files. 
 
 Use an input directory of standard dicoms (-i <indir>) with an output
 path (-o <dir>), and an optional number of echoes argument (-e): 
@@ -419,7 +419,7 @@ path (-o <dir>), and an optional number of echoes argument (-e):
 ./enh_mr.sh -e 3 -i ../example_data/s_2015030302/mge3d-1_01.dcm/tmp -o ../example_data/s_2015030302/mge3d-1_01.dcm 
 ```
 
-The enhaced MR output file is checked by dciodvfy with any errors in
+The enhanced MR output file is checked by dciodvfy with any errors in
 the log file "<outdir>.log".
  
 
@@ -427,7 +427,7 @@ the log file "<outdir>.log".
 
 FDF and FID examples are available on MASSIVE working repository
 ExampleAgilentData, these include standard 2d, multi-echo 3D,
-multiecho 2D complex, fast spin echo 3D, diffusion (EPI and FSE), ASL,
+multi-echo 2D complex, fast spin echo 3D, diffusion (EPI and FSE), ASL,
 and CINE images. Most FDF images are reconstructed from Vnmrj
 internally, but some can be externally reconstructed and these are
 slightly different and need to be tested.
@@ -436,8 +436,8 @@ The Makefile contains examples to be used on MASSIVE. These include
 *standard2d*, *me3d*, *me2d*, *diffusion*, *asl*, *cine* and other
 specific protocol examples. These will execute:
 
-* *run_{}* runs the FDF agilent to dicom process and conversion of DICOMs to NIFTI;
-* *check_{}*, check the dimensions of the Dicom and Nifti files; 
+* *run_{}* runs the FDF Agilent to dicom process and conversion of DICOMs to NIFTI;
+* *check_{}*, check the dimensions of the Dicom and NiFTI files; 
 * *test_{}*, runs the dciodvfy on the first dicom to validate the conversion to enhanced MR;
 * *view_{}*, view the DICOM image using mrview; and
 * *viewn_{}*, view the NIFTI formatted image.
@@ -516,10 +516,10 @@ fslview raw_image.nii.gz new_image.nii.gz median_image.nii.gz
  the slices along the axis. 
 
 
-*kspace_filter.py* can perform filtering in the fourier domain.  FID
+*kspace_filter.py* can perform filtering in the Fourier domain.  FID
 k-space data can be filtered before recon - drastically improving
 processing time.  Filter methods include Gaussian, Laplacian
-enhancement, Laplace of Gaussian, and inhomogeneous MR bias
+enhancement, Laplace of Gaussian, and in-homogeneous MR bias
 correction.  Double image resolution can also be achieved by
 zero-padding the outside of the kspace data.
 
@@ -536,8 +536,8 @@ ipython -i ./kspace_filter.py -- -v -i ../ExampleAntData/kidney512iso_01.fid/ -o
 
 New example FDF image type testing procedures should have:
 
-* a 'run_<type>' routine that converts the FDF folder to DICOM and converts the DICOMs to Nifti;
-* a check_<type>' routine that displays the dimensions of the dicom and nifti files;
+* a 'run_<type>' routine that converts the FDF folder to DICOM and converts the DICOMs to NiFTI;
+* a check_<type>' routine that displays the dimensions of the dicom and NiFTI files;
 * a test_<type> routine that runs dciodvfy on the Dicom files;
 * [optional] a view_ routine for mrview and fslview to show the DICOM or NIFTI images
 

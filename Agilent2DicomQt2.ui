@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1824</width>
-    <height>945</height>
+    <width>1270</width>
+    <height>887</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (2.0.3) </string>
+   <string>Agilent2Dicom: MBI's Agilent 9.4T MR Image Analysis and Dicom Converter Application (2.1)   </string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -113,7 +113,7 @@
             </property>
            </widget>
           </item>
-          <item row="5" column="3">
+          <item row="6" column="3">
            <layout class="QHBoxLayout" name="horizontalLayout_2"/>
           </item>
           <item row="4" column="3">
@@ -173,8 +173,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>172</width>
-               <height>35</height>
+               <width>1017</width>
+               <height>205</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_15">
@@ -244,6 +244,19 @@
              </widget>
             </item>
            </layout>
+          </item>
+          <item row="5" column="3">
+           <spacer name="verticalSpacer_15">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
          </layout>
         </item>
@@ -1816,8 +1829,8 @@ The mode parameter determines how the array borders are handled, where cval is t
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>133</width>
-               <height>35</height>
+               <width>1017</width>
+               <height>82</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_21">
@@ -1860,6 +1873,19 @@ The mode parameter determines how the array borders are handled, where cval is t
            </layout>
           </item>
          </layout>
+        </item>
+        <item>
+         <spacer name="verticalSpacer_14">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>20</width>
+            <height>40</height>
+           </size>
+          </property>
+         </spacer>
         </item>
        </layout>
       </widget>
@@ -1975,6 +2001,42 @@ Folder</string>
               <property name="toolTip">
                <string>Clear input 1</string>
               </property>
+              <property name="text">
+               <string>Clear</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_50">
+            <property name="text">
+             <string>Coil Sensitivity
+or B1 image</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_48">
+            <item>
+             <widget class="QLineEdit" name="lineEdit_CoilSens"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_CoilSensChangeDir">
+              <property name="text">
+               <string>Change Dir</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_CoilSensChangeFile">
+              <property name="text">
+               <string>Change File</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_CoilSensClear">
               <property name="text">
                <string>Clear</string>
               </property>
@@ -3046,42 +3108,6 @@ Disable when using complex images.</string>
             </widget>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_50">
-            <property name="text">
-             <string>Coil Sensitivity
-or B1 image</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <layout class="QHBoxLayout" name="horizontalLayout_48">
-            <item>
-             <widget class="QLineEdit" name="lineEdit_CoilSens"/>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_CoilSensChangeDir">
-              <property name="text">
-               <string>Change Dir</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_CoilSensChangeFile">
-              <property name="text">
-               <string>Change File</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="pushButton_CoilSensClear">
-              <property name="text">
-               <string>Clear</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
-          </item>
          </layout>
         </item>
        </layout>
@@ -3096,7 +3122,7 @@ or B1 image</string>
          <enum>QFrame::Sunken</enum>
         </property>
         <property name="text">
-         <string>Agilent2Dicom v2.0.3</string>
+         <string>Agilent2Dicom v2.1</string>
         </property>
        </widget>
       </item>
@@ -3144,8 +3170,8 @@ or B1 image</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1824</width>
-     <height>26</height>
+     <width>1270</width>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
