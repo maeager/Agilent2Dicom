@@ -9,7 +9,7 @@ Monash University, 2015
  *******************/
 
 
-/***************************************************************************
+/***************************************************************************/
 /* Jose V. Manjon - jmanjon@fis.upv.es                                     */
 /* Universidad Politecnica de Valencia, Spain                              */
 /* Pierrick Coupe - pierrick.coupe@gmail.com                               */

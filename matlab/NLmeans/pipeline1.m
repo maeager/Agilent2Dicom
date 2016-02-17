@@ -48,10 +48,11 @@ if nargin < 4 || isempty(hfactor)
 end
 if nargin < 3 || isempty(hfinal)
     display 'Calculating noise estimate.'
-    [hfinal, ho, SNRo, hbg, SNRbg] = MRINoiseEstimation(img,rician,0)
+    [hfinal, ho, SNRo, hbg, SNRbg] = MRINoiseEstimation(img,rician,0);
 end
 
-hfinal = hfinal * (hfactor/100)
+hfinal = hfinal * (hfactor/100);
+display(['HFINAL: ' num2str(hfinal)]);
 
 %% run filter
 display(['Noise estimate: ' num2str(hfinal)])

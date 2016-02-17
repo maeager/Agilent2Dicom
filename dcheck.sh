@@ -15,14 +15,14 @@ if test ${MASSIVE_USERNAME+defined}; then
 else
     DCMTKPATH="/home/vnmr1/src/dcmtk-3.6.0/bin"
     FDF2DCMPATH="/home/vnmr1/src/Agilent2Dicom.git"
-    echo $DCMTKPATH
+    echo ${DCMTKPATH}
 
 # load dcm tools
 # DCMODIFY=./dcmtools/bin/DCMODIFY
     export PATH=${PATH}:${DCMTKPATH}
 fi
 
-echo $FDF2DCMPATH
+echo ${FDF2DCMPATH}
 #KERNEL_RELEASE=$(uname -r | awk -F'.' '{printf("%d.%d.%d\n", $1,$2,$3)}')
 #DCM3TOOLS="${FDF2DCMPATH}/../dicom3tools_1.00.snapshot.20140306142442/bin/1.${KERNEL_RELEASE}.x8664/"
 DCM3TOOLS=$(/bin/ls -d "${FDF2DCMPATH}"/../dicom3tools_*/bin/*)
@@ -48,17 +48,17 @@ print_usage(){
 if [ $# -eq 0 ]; then
 	echo "dcheck.sh must have one argument: -i, --input [directory of FDF images]"
 	print_usage
-	exit $E_BADARGS
+	exit ${E_BADARGS}
 fi
 
 
 
 # Parge arguments
 while getopts ":o:hv" opt; do
-    case $opt in
+    case ${opt} in
 	o)
-	    echo "Output dir: $OPTARG" >&2
-	    output_dir="$OPTARG"
+	    echo "Output dir: ${OPTARG}" >&2
+	    output_dir="${OPTARG}"
 	    ;;
 	h)
 	    print_usage
@@ -69,28 +69,28 @@ while getopts ":o:hv" opt; do
 	    VERBOSE=1
 	    ;;
 	\?)
-	    echo "Invalid option: -$OPTARG" >&2
+	    echo "Invalid option: -${OPTARG}" >&2
 	    print_usage
-	    exit $E_BADARGS
+	    exit ${E_BADARGS}
 	    ;;
 	:)
-	    echo "Option -$OPTARG requires an argument." >&2
+	    echo "Option -${OPTARG} requires an argument." >&2
 	    print_usage
-	    exit $E_BADARGS
+	    exit ${E_BADARGS}
 	    ;;
     esac
 done
 
 
 # Clean up input args
-if [ ! -d "$output_dir" ]; then
+if [ ! -d "${output_dir}" ]; then
     echo "dcheck.sh must have a valid DICOM directory."
-    exit $E_BADARGS
+    exit ${E_BADARGS}
 fi
 
-if [ ! -f "$output_dir"/0001.dcm ]; then
+if [ ! -f "${output_dir}"/0001.dcm ]; then
     echo "dcheck.sh must have a valid DICOM file in the directory."
-    exit $E_BADARGS
+    exit ${E_BADARGS}
 fi
 
 if [ ! -x ${DCIODVFY} ]; then
@@ -98,4 +98,4 @@ if [ ! -x ${DCIODVFY} ]; then
     exit 1
 fi
 
-${DCIODVFY} "$output_dir"/0001.dcm
+${DCIODVFY} "${output_dir}"/0001.dcm

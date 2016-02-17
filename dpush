@@ -31,8 +31,8 @@ if test ${MASSIVEUSERNAME+defined}; then
 else
     DCMTKPATH="/home/vnmr1/src/dcmtk-3.6.0/bin"
     FDF2DCMPATH="/home/vnmr1/src/Agilent2Dicom"
-    echo $DCMTKPATH
-    echo $FDF2DCMPATH
+    echo ${DCMTKPATH}
+    echo ${FDF2DCMPATH}
 # load dcm tools
 # DCMODIFY=./dcmtools/bin/DCMODIFY
     export PATH=${PATH}:${DCMTKPATH}
@@ -50,15 +50,15 @@ usage() {
 #parse input
 while getopts c:s:h OPTION
 do
-     case $OPTION in
+     case ${OPTION} in
          h) usage
             exit 1
             ;;
 
-         c) ASSET_CID=$OPTARG
+         c) ASSET_CID=${OPTARG}
             ;;
 			
-		 s) SERVER_STR=$OPTARG
+		 s) SERVER_STR=${OPTARG}
 		    ;;
 
          ?) usage
@@ -66,25 +66,25 @@ do
             ;;
      esac
 done
-shift $(($OPTIND - 1))
+shift $((${OPTIND} - 1))
 DICOM_DIR=$1
 
 
-if [ -z $ASSET_CID ]
+if [ -z ${ASSET_CID} ]
 then {
     echo "Error: must input asset cid"
     exit 1;
 }
 fi
 
-if [ -z $DICOM_DIR ]
+if [ -z ${DICOM_DIR} ]
 then {
     echo "Error: must input DICOM directory"
     exit 1;
 }
 fi
 
-if [ -z $SERVER_STR ]
+if [ -z ${SERVER_STR} ]
 then {
     echo "Error: must input server string (e.g. titanium, mf-erc)"
     exit 1;
@@ -107,7 +107,7 @@ fi
 SUCCESS=0
 for strline in $( cat ${FDF2DCMPATH}/daris.cfg ); do
     substrings=${strline//:/ }
-    set -- $substrings
+    set -- ${substrings}
     if [ $1 == ${SERVER_STR} ]; then
        
         DICOM_SERVER=$2
@@ -117,7 +117,7 @@ for strline in $( cat ${FDF2DCMPATH}/daris.cfg ); do
         DICOM_PORT=$9
 
         MFHOSTNAME=$1
-        MFLUX_SID_FILE=~/.MFLUX_SID_$MFHOSTNAME;
+        MFLUX_SID_FILE=~/.MFLUX_SID_${MFHOSTNAME};
 
         SUCCESS=1
 
@@ -125,21 +125,21 @@ for strline in $( cat ${FDF2DCMPATH}/daris.cfg ); do
     fi
 done
 
-if [ $SUCCESS == 0 ]; then
+if [ ${SUCCESS} == 0 ]; then
     echo "Error: cannot find setting, check server name again"
     exit 1
 fi
 
 
 
-# files=$(find $DICOM_DIR -type f -name "*.dcm")
+# files=$(find ${DICOM_DIR} -type f -name "*.dcm")
 
 # echo "Modify meta-data with DCMTOOLS"
-# $DCMODIFY  "(0010,0010)=DARIS^$ASSET_CID" $files || (echo "DCMODIFY failed." && exit 1)
-# $DCMODIFY  "(0020,0010)=DARIS^$ASSET_CID" $files || exit 1
+# ${DCMODIFY}  "(0010,0010)=DARIS^${ASSET_CID}" ${files} || (echo "DCMODIFY failed." && exit 1)
+# ${DCMODIFY}  "(0020,0010)=DARIS^${ASSET_CID}" ${files} || exit 1
 
 echo "Upload to DaRIS"
-$STORESCU --aetitle $DICOM_CALLING_AET --call $DICOM_CALLED_AET  $DICOM_SERVER  $DICOM_PORT   --scan-pattern "*.dcm" --scan-directories $DICOM_DIR || (echo "STORESCU failed." && exit 1 )
+${STORESCU} --aetitle ${DICOM_CALLING_AET} --call ${DICOM_CALLED_AET}  ${DICOM_SERVER}  ${DICOM_PORT}   --scan-pattern "*.dcm" --scan-directories ${DICOM_DIR} || (echo "STORESCU failed." && exit 1 )
 echo "File upload to DaRIS completed."
 exit 0
 

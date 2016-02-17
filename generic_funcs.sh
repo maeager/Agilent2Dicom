@@ -27,15 +27,15 @@ function get_output_dirs(){
     output_base=$(basename "${output_dir}" .dcm)
     dirs=$(find "${output_root}" -maxdepth 1 -type d  -name  "${output_base}*.dcm")
     echo "fid2dicom.py completed successfully. Dicom paths generated were: "
-    echo "$dirs"
+    echo "${dirs}"
 }
 
 
 function yesno(){
     read -r -p "$@" response
-    response=$(echo "$response" | awk '{print tolower($0)}')
+    response=$(echo "${response}" | awk '{print tolower($0)}')
 # response=${response,,} # tolower Bash 4.0
-    if [[ "$response" =~ ^(yes|y| ) ]]; then
+    if [[ "${response}" =~ ^(yes|y| ) ]]; then
 	return 0
     fi
     return 1
@@ -62,10 +62,10 @@ function enhance_dicoms_fdf(){
     then
 	echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; printf '\n'
 	nechos=$(cat "${output_dir}/MULTIECHO")
-	nechos=$(printf "%1.0f" "$nechos")
-	echo "Multi echo sequence, $nechos echos"
+	nechos=$(printf "%1.0f" "${nechos}")
+	echo "Multi echo sequence, ${nechos} echos"
 	for ((iecho=1;iecho<=nechos;++iecho)); do
-     	    echoext=$(printf '%03d' $iecho)
+     	    echoext=$(printf '%03d' ${iecho})
      	    echo "Converting echo ${iecho} using dcmulti"
      	    ${DCMULTI} "${output_dir}"/0"${echoext}".dcm $(ls -1 "${output_dir}"/tmp/*echo"${echoext}".dcm | \
 		sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
@@ -93,9 +93,9 @@ function enhance_dicoms_fdf(){
     # increment by one for B0
 	nbdirs=$(ls -1 "${output_dir}/tmp/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
 
-	echo "Diffusion sequence, $nbdirs B-directions"
+	echo "Diffusion sequence, ${nbdirs} B-directions"
 	for ((ibdir=1;ibdir<=nbdirs;ibdir++)); do
-     	    bdirext=$(printf '%03d' $ibdir)
+     	    bdirext=$(printf '%03d' ${ibdir})
      	    echo "Converting bdir ${ibdir} using dcmulti"
 	## Input files are sorted by image number and slice number. 
      	    ${DCMULTI} "${output_dir}"/0"${bdirext}".dcm $(ls -1 "${output_dir}/tmp/*image${bdirext}*.dcm" | \
@@ -115,7 +115,7 @@ function enhance_dicoms_fdf(){
 
 	echo "ASL sequence"
 	for ((iasl=1;iasl<=2;iasl++)); do
-     	    aslext=$(printf '%03d' $iasl)
+     	    aslext=$(printf '%03d' ${iasl})
      	    echo "Converting ASL tag ${iasl} using dcmulti"
 	## Input files are sorted by image number and slice number. 
      	    ${DCMULTI} "${output_dir}"/0"${aslext}".dcm $(ls -1 "${output_dir}/tmp/*echo${aslext}.dcm" | \
@@ -133,7 +133,7 @@ function enhance_dicoms_fdf(){
 	${DCMULTI} "${output_dir}/0001.dcm" $(ls -1 "${output_dir}/tmp/*.dcm"  | \
 	    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
 	    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-	[ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
+	[ $? -ne 0 ] && error_exit "${LINENO}: dcmulti failed"
 
     fi
     echo "DCMULTI complete. Fixing inconsistencies."
@@ -147,12 +147,12 @@ function enhance_dicoms_fid(){
     then
 	echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; printf '\n'
 	nechos=$(cat "${output_dir}/MULTIECHO")
-	nechos=$(printf "%1.0f" "$nechos")
-	echo "Multi echo sequence, $nechos echos"
+	nechos=$(printf "%1.0f" "${nechos}")
+	echo "Multi echo sequence, ${nechos} echos"
 	for ((iecho=1;iecho<=nechos;++iecho)); do
-     	    echoext=$(printf '%03d' $iecho)
+     	    echoext=$(printf '%03d' ${iecho})
      	    echo "Converting echo ${iecho} using dcmulti"
-     	    for dcmdir in $dirs; do
+     	    for dcmdir in ${dirs}; do
 		${DCMULTI} "${dcmdir}/0${echoext}.dcm" $(ls -1 "${dcmdir}/tmp/*echo${echoext}.dcm" | \
 		    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
 g		    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
@@ -176,12 +176,12 @@ g		    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     # ((++nbdirs)) # increment by one for B0
 	nbdirs=$(ls -1 "${output_dir}/tmp/slice*" | sed 's/.*image0\(.*\)echo.*/\1/' | tail -1)
 
-	echo "Diffusion sequence, $nbdirs B-directions"
+	echo "Diffusion sequence, ${nbdirs} B-directions"
 	for ((ibdir=1;ibdir<=nbdirs;ibdir++)); do
-     	    bdirext=$(printf '%03d' $ibdir)
+     	    bdirext=$(printf '%03d' ${ibdir})
 
      	    echo "Converting bdir ${ibdir} using dcmulti"
-	    for dcmdir in $dirs; do
+	    for dcmdir in ${dirs}; do
 	## Input files are sorted by image number and slice number. 
      		${DCMULTI} "${dcmdir}/0${bdirext}.dcm" $(ls -1 "${dcmdir}/tmp/*image${bdirext}*.dcm" | \
 		    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
@@ -198,10 +198,10 @@ g		    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
 	echo "ASL sequence"
 	for ((iasl=1;iasl<=2;iasl++)); do
-     	    aslext=$(printf '%03d' $iasl)
+     	    aslext=$(printf '%03d' ${iasl})
 
      	    echo "Converting ASL tag ${iasl} using dcmulti"
-	    for dcmdir in $dirs; do
+	    for dcmdir in ${dirs}; do
 	## Input files are sorted by image number and slice number. 
      		${DCMULTI} "${dcmdir}/0${aslext}.dcm" $(ls -1 "${dcmdir}/tmp/*echo${aslext}.dcm" | \
 		    sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
@@ -218,11 +218,11 @@ g		    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     ## number. The second argument reorders the list of 2D dicom files
     ## based on echo time, then image number, then slice number.
     ## Only one output file is required, 0001.dcm. 
-	for dcmdir in $dirs; do
+	for dcmdir in ${dirs}; do
 	    ${DCMULTI} "${dcmdir}/0001.dcm" $(ls -1 "${dcmdir}/tmp/*.dcm"  | \
 		sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | \
 		sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-	    [ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
+	    [ $? -ne 0 ] && error_exit "${LINENO}: dcmulti failed"
 	done
     fi
     echo "DCMULTI complete. Fixing inconsistencies."
@@ -230,7 +230,7 @@ g		    sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
 
 function fix_enhanced_dicoms_fid(){
 ## Corrections to dcmulti conversion
-    for dcmdir in $dirs; do
+    for dcmdir in ${dirs}; do
 	"${FID2DCMPATH}"/fix-dicoms.sh "${dcmdir}"
 	echo "Fixing dicom dir ${dcmdir}"
 
@@ -259,7 +259,7 @@ function iodvfy(){
 	    dciodvfy "${output_dir}/0001.dcm" &> "$(dirname "${output_dir}")/$(basename "${output_dir}" .dcm).log"
 	    set -e  
 	else
-	    error_exit "$LINENO: could not find ${output_dir}/0001.dcm for verification"
+	    error_exit "${LINENO}: could not find ${output_dir}/0001.dcm for verification"
 	fi
     fi
 }
@@ -275,7 +275,7 @@ function clean_tmps_fid(){
 	    if yesno "Remove existing tmp output directories, y or n (default y)?"
 	    then
 		echo "Removing existing tmp output directory"
-		for dcmdir in $dirs; do
+		for dcmdir in ${dirs}; do
 		    ${RMDIR} "${dcmdir}/tmp"    
 		done
 	    else
@@ -284,10 +284,10 @@ function clean_tmps_fid(){
 	    fi
 	else
 	    echo "Removing existing tmp output directory"
-	    for dcmdir in $dirs; do
+	    for dcmdir in ${dirs}; do
 		${RMDIR} "${dcmdir}/tmp"    
 	    done
 	fi
-	[ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
+	[ -d "${output_dir}/tmp" ] && error_exit "${LINENO}: temporary dicom directory could not be deleted."
     fi
 }

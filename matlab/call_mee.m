@@ -174,7 +174,7 @@ function output = mee(img,order)
     elseif len(sz)~=5
         return
     end
-    if sz(4)!=1 && sz(5) == 1
+    if sz(4)~=1 && sz(5) == 1
         output=img;
         return
     end
@@ -187,4 +187,4 @@ function output = mee(img,order)
         p=order;
     end
 
-    mee = (sum(img.^-p,5)./sz).^(-1/p);
+    output = (sum(img.^-p,5)./sz).^(-1/p);

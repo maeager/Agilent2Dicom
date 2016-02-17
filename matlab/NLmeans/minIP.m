@@ -3,7 +3,7 @@ function [mIP] = minIP(mag, slab, dim)
 % minimum projection of 3D sections slab  
 % 
 % -(C) 2015  Michael Eager (michael.eager@monash.edu)
-
+mIP=zeros(size(mag));
 if nargin < 3 || dim == 3
     for i =1:size(mag,3)
         start = i;endp = min(size(mag,3), i+slab);

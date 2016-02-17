@@ -29,7 +29,7 @@ E_BADARGS=65
 if [ ! $# -eq 2 ]; then
 	echo "procdiff must have two arguments"
 	print_usage
-	exit $E_BADARGS
+	exit ${E_BADARGS}
 fi
 
 if [ ! -x ${A2DPATH}/sortpp ]; then
@@ -48,5 +48,5 @@ if [ ! -f $2 ];then
     print_usage
     exit 1
 fi
-PATH=${A2DPATH}:$PATH
+PATH=${A2DPATH}:${PATH}
 diff  <( sortpp $1 ) <( sortpp $2 )

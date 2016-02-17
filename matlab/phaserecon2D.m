@@ -57,7 +57,7 @@ win = circshift(win,[xx,yy]-[floor(Nfe/2), floor(Npe/2)]);
 
 img = fftshift(fftn(kimg));%,[intpl*Nfe,intpl*Npe,intpl*Npe2]));
 imgsos = fftshift(fftn(kimgsos));%,[intpl*Nfe,intpl*Npe,intpl*Npe2]));
-
+img_lpf=zeros(size(kimg));
 if numel(size(kimg)==5)
     for echo=1:size(kimg,5)
         for channel=1:size(kimg,4)

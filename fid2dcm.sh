@@ -5,7 +5,7 @@
 # - Michael Eager (michael.eager@monash.edu.au)
 # - Monash Biomedical Imaging 
 #
-#  "$Id$"
+#  "${Id}$"
 #  "$Date$"
 #  Version 0.1: FID2DCM based on FDF2DCM with fid2dicom core
 #  Version 0.5: Major update to input args
@@ -28,19 +28,19 @@
 
 function error_exit(){
      echo "${PROGNAME}: ${1:-Unknown error}" 1>&2
-     # if [ -x `which mutt` && "$USER" == "vnmr1" ]; then
+     # if [ -x `which mutt` && "${USER}" == "vnmr1" ]; then
      #     logfiles=$(find ${FID2DCMPATH} ${PWD} -name *.log -print0)
-     #   EMAIL="$USER@$HOST"
-     #   echo "Error occured `date`" | mutt -s "${PROGNAME}: ${1:-Unknown error}" -a $logfiles  michael.eager@monash.edu
+     #   EMAIL="${USER}@${HOST}"
+     #   echo "Error occured `date`" | mutt -s "${PROGNAME}: ${1:-Unknown error}" -a ${logfiles}  michael.eager@monash.edu
       # fi
-     exit 1                                                                       
+     exit 1
 }
 
 function yesno(){
     read -r -p "$@" response
-    response=$(echo "$response" | awk '{print tolower($0)}')
+    response=$(echo "${response}" | awk '{print tolower($0)}')
 # response=${response,,} # tolower Bash 4.0
-    if [[ "$response" =~ ^(yes|y| ) ]]; then
+    if [[ "${response}" =~ ^(yes|y| ) ]]; then
 	return 0
     fi
     return 1
@@ -64,14 +64,14 @@ if [ ! -d "${DCM3TOOLS}" ]; then
 elif [ ! -x "${DCM3TOOLS}/dcmulti" ]; then
     error_exit "Unable to find Dicom3Tool's executable dcmulti"
 fi
-export PATH=${PATH}:${DCM3TOOLS}
+export PATH="${PATH}":${DCM3TOOLS}
 
 ## Check dcmtk applications on MASSIVE or Agilent console
 if test ${MASSIVEUSERNAME+defined}; then
     test -x dcmodify || module load dcmtk 
 else
     DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
-    export PATH=${PATH}:${DCMTK}
+    export PATH="${PATH}":"${DCMTK}"
 fi
 
 
@@ -162,7 +162,7 @@ print_usage(){
 if [ $# -eq 0 ]; then
 	echo "fid2dcm.sh must have one argument: -i, --input [directory of FID images]"
 	print_usage
-	exit $E_BADARGS
+	exit "${E_BADARGS}"
 fi
 
 
@@ -170,102 +170,102 @@ fi
 while getopts ":i:o:g:l:j:e:n:s:w:y:z:G:L:Y:DhmprkdNCxv" opt; do
     case $opt in
 	i)
-	    echo "Input dir:  $OPTARG" >&2
-	    input_dir="$OPTARG"
+	    echo "Input dir:  ${OPTARG}" >&2
+	    input_dir="${OPTARG}"
 	    ;;
 	o)
-	    echo "Output dir: $OPTARG" >&2
-	    output_dir="$OPTARG"
+	    echo "Output dir: ${OPTARG}" >&2
+	    output_dir="${OPTARG}"
 	    ;;
 	k)
-	    echo "K-space dir:  $OPTARG" >&2
-	    kspace_dir="$OPTARG"
-	    python_args="$python_args --kspace $kspace_dir"
+	    echo "K-space dir:  ${OPTARG}" >&2
+	    kspace_dir="${OPTARG}"
+	    python_args="${python_args} --kspace ${kspace_dir}"
 	    ;;
 	g)
-	    echo "Gaussian filter sigma: $OPTARG" >&2
-	    gaussian_sigma="$OPTARG"
-	    python_args="$python_args --gaussian_filter --sigma $gaussian_sigma --gaussian_order 0 --gaussian_mode nearest"
+	    echo "Gaussian filter sigma: ${OPTARG}" >&2
+	    gaussian_sigma="${OPTARG}"
+	    python_args="${python_args} --gaussian_filter --sigma ${gaussian_sigma} --gaussian_order 0 --gaussian_mode nearest"
 	    do_filter=1
 	    ;;
 	G)
-	    echo "Fourier domain Gaussian filter sigma: $OPTARG" >&2
-	    gaussian_sigma="$OPTARG"
-	    python_args="$python_args --FT_gaussian_filter --sigma $gaussian_sigma --gaussian_order 0 --gaussian_mode nearest"
+	    echo "Fourier domain Gaussian filter sigma: ${OPTARG}" >&2
+	    gaussian_sigma="${OPTARG}"
+	    python_args="${python_args} --FT_gaussian_filter --sigma ${gaussian_sigma} --gaussian_order 0 --gaussian_mode nearest"
 	    do_filter=1
 	    ;;
 	j)
 	    [ ${do_filter} != 1 ] && (echo "Must have -g before -j"; print_usage; exit 1)
-	    echo "Gaussian filter order: $OPTARG" >&2
-	    gaussian_order="$OPTARG"
-	    #python_args=$(echo $python_args | sed 's/--gaussian_order\s[0-3]\s/--gaussian_order '$gaussian_order' /')
-	    python_args="${python_args//--gaussian_order\s[0-3]\s/--gaussian_order $gaussian_order /}"
+	    echo "Gaussian filter order: ${OPTARG}" >&2
+	    gaussian_order="${OPTARG}"
+	    #python_args=$(echo ${python_args} | sed 's/--gaussian_order\s[0-3]\s/--gaussian_order '${gaussian_order}' /')
+	    python_args="${python_args//--gaussian_order\s[0-3]\s/--gaussian_order ${gaussian_order} /}"
 	    ;;
 	e)
-	    [ ${do_filter} != 1 ] && (echo "Must have -g before -e"; print_usage; exit 1)
-	    echo "Gaussian filter mode: $OPTARG" >&2
-	    gaussian_mode="$OPTARG"
-	    python_args=$(echo $python_args | sed 's/--gaussian_mode\s\w+\s/--gaussian_mode $gaussian_mode/')
+	    [ "${do_filter}" != 1 ] && (echo "Must have -g before -e"; print_usage; exit 1)
+	    echo "Gaussian filter mode: ${OPTARG}" >&2
+	    gaussian_mode="${OPTARG}"
+	    python_args=$(echo "${python_args}" | sed 's/--gaussian_mode\s\w+\s/--gaussian_mode ${gaussian_mode}/')
 	    ;;
 	l)
-	    echo "Gaussian Laplace filter sigma: $OPTARG" >&2
-	    gaussian_sigma="$OPTARG"
-	    python_args="$python_args --gaussian_laplace --sigma $gaussian_sigma"
+	    echo "Gaussian Laplace filter sigma: ${OPTARG}" >&2
+	    gaussian_sigma="${OPTARG}"
+	    python_args="${python_args} --gaussian_laplace --sigma ${gaussian_sigma}"
 	    do_filter=2
 	    ;;
 	L)
-	    echo "Fourier Domain Gaussian Laplace filter sigma: $OPTARG" >&2
-	    gaussian_sigma="$OPTARG"
-	    python_args="$python_args --FT_gaussian_laplace --sigma $gaussian_sigma"
+	    echo "Fourier Domain Gaussian Laplace filter sigma: ${OPTARG}" >&2
+	    gaussian_sigma="${OPTARG}"
+	    python_args="${python_args} --FT_gaussian_laplace --sigma ${gaussian_sigma}"
 	    do_filter=2
 	    ;;
 	n)
-	    echo "Median filter size: $OPTARG" >&2
-	    median_window_size="$OPTARG"
-	    python_args="$python_args --median_filter --window_size $median_window_size"
+	    echo "Median filter size: ${OPTARG}" >&2
+	    median_window_size="${OPTARG}"
+	    python_args="${python_args} --median_filter --window_size ${median_window_size}"
 	    do_filter=3
 	    ;;
 	s)
-	    echo "Standard deviation filter [mode/size]: $OPTARG" >&2
+	    echo "Standard deviation filter [mode/size]: ${OPTARG}" >&2
 	    stdev_mode="${OPTARG:0:1}"
 	    stdev_window_size="${OPTARG:2}"
-	    [ "$stdev_mode" == "0" ] && python_args="$python_args --standard_deviation_filter"
-	    [ "$stdev_mode" == "1" ] && python_args="$python_args --standard_deviation_magn"
-	    [ "$stdev_mode" == "2" ] && python_args="$python_args --standard_deviation_phase"
-	    python_args="$python_args --window_size $stdev_window_size"
+	    [ "${stdev_mode}" == "0" ] && python_args="${python_args} --standard_deviation_filter"
+	    [ "${stdev_mode}" == "1" ] && python_args="${python_args} --standard_deviation_magn"
+	    [ "${stdev_mode}" == "2" ] && python_args="${python_args} --standard_deviation_phase"
+	    python_args="${python_args} --window_size ${stdev_window_size}"
 	    do_filter=6
 	    ;;	
 	w)
-	    echo "Wiener filter size: $OPTARG" >&2
-	    wiener_window_size="$OPTARG"
-	    python_args="$python_args --wiener_filter --window_size $wiener_window_size"
+	    echo "Wiener filter size: ${OPTARG}" >&2
+	    wiener_window_size="${OPTARG}"
+	    python_args="${python_args} --wiener_filter --window_size ${wiener_window_size}"
 	    do_filter=4
 	    ;;
 	z)
-	    [ ${do_filter} != 4 ] && (echo "Must have -w before -z"; print_usage; exit 1)
-	    echo "Wiener noise: $OPTARG" >&2
-	    wiener_noise="$OPTARG"
-	    python_args="$python_args --wiener_noise $wiener_noise"
+	    [ "${do_filter}" != 4 ] && (echo "Must have -w before -z"; print_usage; exit 1)
+	    echo "Wiener noise: ${OPTARG}" >&2
+	    wiener_noise="${OPTARG}"
+	    python_args="${python_args} --wiener_noise ${wiener_noise}"
 	    ;;
 	y)
-	    echo "Epanechnikov  filter size: $OPTARG" >&2
-	    epan_bandwidth="$OPTARG"
-	    python_args="$python_args --epanechnikov_filter --epanechnikov_bandwidth $epan_bandwidth"
+	    echo "Epanechnikov  filter size: ${OPTARG}" >&2
+	    epan_bandwidth="${OPTARG}"
+	    python_args="${python_args} --epanechnikov_filter --epanechnikov_bandwidth ${epan_bandwidth}"
 	    do_filter=5
 	    ;;
 	Y)
-	    echo "Fourier Epanechnikov  filter size: $OPTARG" >&2
-	    epan_bandwidth="$OPTARG"
-	    python_args="$python_args --FT_epanechnikov_filter --epanechnikov_bandwidth $epan_bandwidth"
+	    echo "Fourier Epanechnikov  filter size: ${OPTARG}" >&2
+	    epan_bandwidth="${OPTARG}"
+	    python_args="${python_args} --FT_epanechnikov_filter --epanechnikov_bandwidth ${epan_bandwidth}"
 	    do_filter=5
 	    ;;
 	D)
 	    echo "Implementing super-resolution of FID to double the resolution of DICOM conversion."
-	    python_args="$python_args --double_resolution"
+	    python_args="${python_args} --double_resolution"
 	    ;;
 	C)
 	    echo "Disable kspace shift function to centre data to maximum."
-	    python_args="$python_args --no_centre_shift"
+	    python_args="${python_args} --no_centre_shift"
 	    ;;
 	h)
 	    print_usage
@@ -274,24 +274,24 @@ while getopts ":i:o:g:l:j:e:n:s:w:y:z:G:L:Y:DhmprkdNCxv" opt; do
 	    ;;
 	m)
 	    echo "Implementing magnitude component of FID to DICOM conversion."
-	    python_args="$python_args --magnitude"
+	    python_args="${python_args} --magnitude"
 	    ;;
 	r)
 	    echo "Save real and imaginary components of FID conversion."
-	    python_args="$python_args --realimag"
+	    python_args="${python_args} --realimag"
 	    ;;
 	p)
 	    echo "Implementing phase component of FID to DICOM conversion."
-	    python_args="$python_args --phase"
+	    python_args="${python_args} --phase"
 	    ;;
 	N)
 	    echo "Saving filtered outputs to NIFTI."
-	    python_args="$python_args --nifti"
+	    python_args="${python_args} --nifti"
 	    ;;
 	# s)
-	#     echo "Sequence type: $OPTARG" >&2
-	#     sequence="$OPTARG"
-	#     python_args="$python_args -s $sequence"
+	#     echo "Sequence type: ${OPTARG}" >&2
+	#     sequence="${OPTARG}"
+	#     python_args="${python_args} -s ${sequence}"
 	#     ;;
 	d)
 	    do_modify=0
@@ -299,51 +299,51 @@ while getopts ":i:o:g:l:j:e:n:s:w:y:z:G:L:Y:DhmprkdNCxv" opt; do
 	    ;;
 	v)
 	    ((++verbosity))
-	    echo "Setting verbose to $verbosity."
-	    ((verbosity==1)) && python_args="$python_args -v"
+	    echo "Setting verbose to ${verbosity}."
+	    ((verbosity==1)) && python_args="${python_args} -v"
 	    ;;
 	x)
 	    set -x  ## print all commands
 	    log_file="$(dirname $0)/error.log"
-	    exec &> >(tee -a "$log_file")
+	    exec &> >(tee -a "${log_file}")
 	    # exec 2> $(dirname $0)/error.log
 	    ;;
 	\?)
-	    echo "Invalid option: -$OPTARG" >&2
+	    echo "Invalid option: -${OPTARG}" >&2
 	    print_usage
-	    exit $E_BADARGS
+	    exit ${E_BADARGS}
 	    ;;
 	:)
-	    echo "Option -$OPTARG requires an argument." >&2
+	    echo "Option -${OPTARG} requires an argument." >&2
 	    print_usage
-	    exit $E_BADARGS
+	    exit "${E_BADARGS}"
 	    ;;
     esac
 done
 
 # Clean up input args
-if [ ! -d "$input_dir" ]; then
+if [ ! -d "${input_dir}" ]; then
     echo "fid2dcm.sh must have a valid input directory of FID images."
-    exit $E_BADARGS
+    exit "${E_BADARGS}"
 fi
 ## Set output_dir if not in args, default is INPUT/.dcm
-if [ -z "$output_dir" ]
+if [ -z "${output_dir}" ]
 then #test for empty string
     output_dir=$(dirname "${input_dir}")/$(basename "${input_dir}" .fid).dcm
     echo "Output dir set to: ${output_dir}"
 fi
 ## Set kspace_dir if not in args, default is INPUT.dcm
-if [ "$kspace_dir" != "" ]; then 
+if [ "${kspace_dir}" != "" ]; then 
     kspace_dir=$(dirname "${output_dir}")/$(basename "${input_dir}" .fid)_kspace.dcm
     echo "K space output dir set to: ${kspace_dir}"
-    [ ! -d "$kspace_dir" ] && mkdir -p "$kspace_dir"
+    [ ! -d "${kspace_dir}" ] && mkdir -p "${kspace_dir}"
 fi
 
 ## Check existing output directories
 JumpToDCmulti=0
 output_root=$(dirname "${output_dir}")
 output_base=$(basename "${output_dir}" .dcm)
-dirs=$(find "$output_root" -maxdepth 1 -type d  -name  "$output_base*.dcm")
+dirs=$(find "${output_root}" -maxdepth 1 -type d  -name  "${output_base}*.dcm")
 echo "Output dicom paths exist already: "
 echo "${dirs}"
 if [ -d "${output_dir}" ]; then
@@ -374,18 +374,18 @@ then
 	if [ -e "$i" ];then 
 	    (( ++found ))
 	else
-	    error_exit "$LINENO: fid file does not exist $i"
+	    error_exit "${LINENO}: fid file does not exist $i"
 	fi
     done
     shopt -u nullglob
-    if [ $found -eq 0 ]; then  #-o "$fidfiles" == "" 
-	error_exit "$LINENO: Input directory has no FID images"
+    if [ ${found} -eq 0 ]; then  #-o "${fidfiles}" == "" 
+	error_exit "${LINENO}: Input directory has no FID images"
     else
-	echo $found, " FID files were found"
+	echo "${found}", " FID files were found"
     fi
 
     if [ ! -f "${input_dir}/procpar" ]; then
-	error_exit "$LINENO: Input directory has no procpar file"
+	error_exit "${LINENO}: Input directory has no procpar file"
     fi
 
 # set -o errexit  # -e
@@ -397,19 +397,19 @@ then
     echo " Arguments: ${python_args} --inputdir ${input_dir} --outputdir ${output_dir}"
     "${FID2DCMPATH}/${FID2DICOM}" ${python_args} --inputdir "${input_dir}" --outputdir "${output_dir}"
 
-    [ $? -ne 0 ] && error_exit "$LINENO: fid2dicom failed"
+    [ $? -ne 0 ] && error_exit "${LINENO}: fid2dicom failed"
     
-    [ ! -d "${output_dir}" ] && error_exit "$LINENO: Output dir not created by fid2dicom."
+    [ ! -d "${output_dir}" ] && error_exit "${LINENO}: Output dir not created by fid2dicom."
 
     output_root="$(dirname "${output_dir}")"
     output_base=$(basename "${output_dir}" .dcm)
-    dirs=$(find "${output_root}" -maxdepth 1 -type d  -name  "$output_base*.dcm")
+    dirs=$(find "${output_root}" -maxdepth 1 -type d  -name  "${output_base}*.dcm")
     echo "fid2dicom.py completed successfully. Dicom paths generated were: "
-    echo "$dirs"
+    echo "${dirs}"
 
     # dcmfiles=$(ls ${output_dir}/*.dcm)  ## Bad code - use glob
     #if[ $? -ne 0 ]
-    # test -e "${output_dir}"/0001.dcm && error_exit "$LINENO: Output directory of fid2dicom has no DICOM images."
+    # test -e "${output_dir}"/0001.dcm && error_exit "${LINENO}: Output directory of fid2dicom has no DICOM images."
     
     echo "Moving dicom images"
     for dcmdir in ${dirs}; do
@@ -423,10 +423,10 @@ if [ -f "${output_dir}/MULTIECHO" ]
 then
     echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; printf '\n'
     nechos=$(cat "${output_dir}/MULTIECHO")
-    nechos=$(printf "%1.0f" "$nechos")
+    nechos=$(printf "%1.0f" "${nechos}")
     
-    for dcmdir in $dirs; do
-	"${FID2DCMPATH}"/enh_mr.sh -e $nechos -i "${dcmdir}"/tmp/ -o "${dcmdir}"
+    for dcmdir in ${dirs}; do
+	"${FID2DCMPATH}"/enh_mr.sh -e ${nechos} -i "${dcmdir}"/tmp/ -o "${dcmdir}"
     done
     
 
@@ -440,7 +440,7 @@ then
 elif  [ -f "${output_dir}/DIFFUSION" ]; then
 
     echo "Contents of DIFFUSION"; cat "${output_dir}/DIFFUSION"; printf '\n'
-    for dcmdir in $dirs; do
+    for dcmdir in ${dirs}; do
 	"${FID2DCMPATH}"/enh_mr.sh -d 1 -i "${dcmdir}"/tmp/ -o "${dcmdir}"
     done
 
@@ -448,7 +448,7 @@ elif  [ -f "${output_dir}/DIFFUSION" ]; then
 
 else
     ## ASL and standard dicoms
-    for dcmdir in $dirs; do
+    for dcmdir in ${dirs}; do
 	"${FID2DCMPATH}"/enh_mr.sh -i "${dcmdir}"/tmp/ -o "${dcmdir}"
     done
 fi
@@ -468,7 +468,7 @@ then
 	if yesno "Remove existing tmp output directories, y or n (default y)?"
 	then
 	    echo "Removing existing tmp output directory"
-	    for dcmdir in $dirs; do
+	    for dcmdir in ${dirs}; do
 		${RMDIR} "${dcmdir}/tmp"    
 	    done
 	else
@@ -477,10 +477,10 @@ then
 	fi
     else
 	echo "Removing existing tmp output directory"
-	for dcmdir in $dirs; do
+	for dcmdir in ${dirs}; do
 	    ${RMDIR} "${dcmdir}/tmp"    
 	done
     fi
-    [ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
+    [ -d "${output_dir}/tmp" ] && error_exit "${LINENO}: temporary dicom directory could not be deleted."
 fi
 exit 0

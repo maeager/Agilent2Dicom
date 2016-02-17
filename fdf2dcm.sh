@@ -1,4 +1,4 @@
-#!/usr/bin/env  bash 
+#!/bin/bash 
 ## FDF to DICOM converter
 #   Front-end to agilent2dicom and dcmulti
 #
@@ -59,7 +59,7 @@ if test ${MASSIVEUSERNAME+defined}; then
     test -x dcmodify || module load dcmtk 
 else
     DCMTK="/home/vnmr1/src/dcmtk-3.6.0/bin"
-    export PATH=${PATH}:${DCMTK}
+    export PATH="${PATH}":"${DCMTK}"
 fi
 if [ ! -d "${DCM3TOOLS}" ]; then
     echo "${DCM3TOOLS} path not found"
@@ -82,9 +82,9 @@ E_BADARGS=65
 #source ${FDF2DCMPATH}/yesno.sh
 function yesno(){
     read -r -p "$@" response
-    response=$(echo "$response" | awk '{print tolower($0)}')
+    response=$(echo "${response}" | awk '{print tolower($0)}')
 # response=${response,,} # tolower Bash 4.0
-    if [[ "$response" =~ ^(yes|y| ) ]]; then
+    if [[ "${response}" =~ ^(yes|y| ) ]]; then
 	return 0
     fi
     return 1
@@ -118,7 +118,7 @@ print_usage(){
 if [ $# -eq 0 ]; then
 	echo "fdf2dcm.sh must have one argument: -i, --input [directory of FDF images]"
 	print_usage
-	exit $E_BADARGS
+	exit ${E_BADARGS}
 fi
 
 
@@ -126,12 +126,12 @@ fi
 while getopts ":i:o:s:hmpdxv" opt; do
     case $opt in
 	i)
-	    echo "Input dir:  $OPTARG" >&2
-	    input_dir="$OPTARG"
+	    echo "Input dir:  ${OPTARG}" >&2
+	    input_dir="${OPTARG}"
 	    ;;
 	o)
-	    echo "Output dir: $OPTARG" >&2
-	    output_dir="$OPTARG"
+	    echo "Output dir: ${OPTARG}" >&2
+	    output_dir="${OPTARG}"
 	    ;;
 	h)
 	    print_usage
@@ -140,16 +140,16 @@ while getopts ":i:o:s:hmpdxv" opt; do
 	    ;;
 	m)
 	    echo "Implementing magnitude component of FDF to DICOM conversion."
-	    python_args="$python_args -m"
+	    python_args="${python_args} -m"
 	    ;;
 	p)
 	    echo "Implementing phase component of FDF to DICOM conversion."
-	    python_args="$python_args -p"
+	    python_args="${python_args} -p"
 	    ;;
 	s)
-	    echo "Sequence type: $OPTARG" >&2
-	    sequence="$OPTARG"
-	    python_args="$python_args -s $sequence"
+	    echo "Sequence type: ${OPTARG}" >&2
+	    sequence="${OPTARG}"
+	    python_args="${python_args} -s ${sequence}"
 	    ;;
 	d)
 	    do_modify=0
@@ -157,33 +157,33 @@ while getopts ":i:o:s:hmpdxv" opt; do
 	    ;;
 	v)
 	    ((++verbosity))
-	    echo "Setting verbose to $verbosity."
-	    ((verbosity==1)) && python_args="$python_args -v"
+	    echo "Setting verbose to ${verbosity}."
+	    ((verbosity==1)) && python_args="${python_args} -v"
 	    ;;
 	x)
 	    set -x  ## print all commands
 	    exec 2> "$(dirname "$0")/error.log"
 	    ;;
 	\?)
-	    echo "Invalid option: -$OPTARG" >&2
+	    echo "Invalid option: -${OPTARG}" >&2
 	    print_usage
-	    exit $E_BADARGS
+	    exit ${E_BADARGS}
 	    ;;
 	:)
-	    echo "Option -$OPTARG requires an argument." >&2
+	    echo "Option -${OPTARG} requires an argument." >&2
 	    print_usage
-	    exit $E_BADARGS
+	    exit ${E_BADARGS}
 	    ;;
     esac
 done
 
 # Clean up input args
-if [ ! -d "$input_dir" ]; then
+if [ ! -d "${input_dir}" ]; then
     echo "fdfdcm.sh must have a valid input directory of FDF images."
-    exit $E_BADARGS
+    exit ${E_BADARGS}
 fi
 ## Set output_dir if not in args, default is INPUT/.dcm
-if [ -z "$output_dir" ]
+if [ -z "${output_dir}" ]
 then #test for empty string
     output_dir=$(dirname "${input_dir}")/$(basename "${input_dir}" .img).dcm
     echo "Output dir set to: ${output_dir}"
@@ -194,11 +194,11 @@ if [ -d  "${input_dir}/magnitude.img" ] || [ -d "${input_dir}/phase.img" ]
 then
     echo "Input directory has 'magnitude.img' and 'phase.img' "
     verb=''; if (( verbosity > 0 )); then verb=' -v '; fi 
-    "$0" "$verb" -m -i "${input_dir}/magnitude.img/" -o "${output_dir}/magnitude.dcm/"
+    "$0" "${verb}" -m -i "${input_dir}/magnitude.img/" -o "${output_dir}/magnitude.dcm/"
     if (( verbosity > 0 )) && ! yesno "Magnitude complete. Continue converting phase?"; then
 	echo "fdf2dcm completed without phase." && exit 0
     fi	
-    "$0" "$verb" -p -i "${input_dir}/phase.img/" -o "${output_dir}/phase.dcm/"
+    "$0" "${verb}" -p -i "${input_dir}/phase.img/" -o "${output_dir}/phase.dcm/"
     exit 0
 fi
 
@@ -228,18 +228,18 @@ then
 	if [ -e "$i" ];then 
 	    (( ++found ))
 	else
-	    error_exit "$LINENO: fdf file does not exist $i"
+	    error_exit "${LINENO}: fdf file does not exist $i"
 	fi
     done
     shopt -u nullglob
-    if [ $found -eq 0 ]; then  #-o "$fdffiles" == "" 
-	error_exit "$LINENO: Input directory has no FDF images"
+    if [ ${found} -eq 0 ]; then  #-o "${fdffiles}" == "" 
+	error_exit "${LINENO}: Input directory has no FDF images"
     else
-	echo $found, " FDF files were found"
+	echo ${found}, " FDF files were found"
     fi
 
     if [ ! -f "${input_dir}/procpar" ]; then
-	error_exit "$LINENO: Input directory has no procpar file"
+	error_exit "${LINENO}: Input directory has no procpar file"
     fi
 
 # set -o errexit  # -e
@@ -251,13 +251,13 @@ then
     echo " Arguments: ", "${python_args}" -i "${input_dir}" -o "${output_dir}"
     "${FDF2DCMPATH}/${AGILENT2DICOM}" ${python_args} -i "${input_dir}" -o "${output_dir}"
 
-    [ $? -ne 0 ] && error_exit "$LINENO: $AGILENT2DICOM failed"
+    [ $? -ne 0 ] && error_exit "${LINENO}: ${AGILENT2DICOM} failed"
     
-    [ ! -d "${output_dir}" ] && error_exit "$LINENO: Output dir not created by agilent2dicom."
+    [ ! -d "${output_dir}" ] && error_exit "${LINENO}: Output dir not created by agilent2dicom."
 
     # dcmfiles=$(ls ${output_dir}/*.dcm)  ## Bad code - use glob
     #if[ $? -ne 0 ]
-    test -e "${output_dir}"/0001.dcm && error_exit "$LINENO: Output directory of agilent2dicom has no DICOM images."
+    test -e "${output_dir}"/0001.dcm && error_exit "${LINENO}: Output directory of agilent2dicom has no DICOM images."
     
     echo "Moving dicom images"
     mkdir "${output_dir}"/tmp
@@ -270,10 +270,10 @@ if [ -f "${output_dir}/MULTIECHO" ]
 then
     echo "Contents of MULTIECHO"; cat "${output_dir}/MULTIECHO"; printf '\n'
     nechos=$(cat "${output_dir}/MULTIECHO")
-    nechos=$(printf "%1.0f" "$nechos")
-    echo "Multi echo sequence, $nechos echos"
+    nechos=$(printf "%1.0f" "${nechos}")
+    echo "Multi echo sequence, ${nechos} echos"
     for ((iecho=1;iecho<=nechos;++iecho)); do
-     	echoext=$(printf '%03d' $iecho)
+     	echoext=$(printf '%03d' ${iecho})
      	echo "Converting echo ${iecho} using dcmulti"
      	${DCMULTI} "${output_dir}/0${echoext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${echoext}.dcm" | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
     done
@@ -299,11 +299,11 @@ elif  [ -f "${output_dir}/DIFFUSION" ]; then
     # ((++nbdirs)) # increment by one for B0
     nbdirs=$(ls -1 ${output_dir}/tmp/slice* | sed 's/.*image\(.*\)echo.*/\1/' | tail -1)
     # strip leading zeroes 
-    nbdirs=$((10#$nbdirs))
+    nbdirs=$((10#${nbdirs}))
 
-    echo "Diffusion sequence, $nbdirs B-directions"
+    echo "Diffusion sequence, ${nbdirs} B-directions"
     for ((ibdir=1;ibdir<=nbdirs;ibdir++)); do
-     	bdirext=$(printf '%03d' $ibdir)
+     	bdirext=$(printf '%03d' ${ibdir})
      	echo "Converting bdir ${ibdir} using dcmulti"
 	## Input files are sorted by image number and slice number. 
      	${DCMULTI} "${output_dir}/0${bdirext}.dcm" $(ls -1 ${output_dir}/tmp/*image${bdirext}*.dcm | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
@@ -321,7 +321,7 @@ elif  [ -f "${output_dir}/ASL" ]; then
 
     echo "ASL sequence"
     for ((iasl=1;iasl<=2;iasl++)); do
-     	aslext=$(printf '%03d' $iasl)
+     	aslext=$(printf '%03d' ${iasl})
      	echo "Converting ASL tag ${iasl} using dcmulti"
 	## Input files are sorted by image number and slice number. 
      	${DCMULTI} "${output_dir}/0${aslext}.dcm" $(ls -1 "${output_dir}/tmp/*echo${aslext}.dcm" | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
@@ -336,7 +336,7 @@ else
     ## based on echo time, then image number, then slice number.
     ## Only one output file is required, 0001.dcm. 
     ${DCMULTI} "${output_dir}/0001.dcm" $(ls -1 ${output_dir}/tmp/*.dcm  | sed 's/\(.*\)slice\([0-9]*\)image\([0-9]*\)echo\([0-9]*\).dcm/\4 \3 \2 \1/' | sort -n | awk '{printf("%sslice%simage%secho%s.dcm\n",$4,$3,$2,$1)}')
-    [ $? -ne 0 ] && error_exit "$LINENO: dcmulti failed"
+    [ $? -ne 0 ] && error_exit "${LINENO}: dcmulti failed"
 
 fi
 echo "DCMULTI complete. Fixing inconsistencies."
@@ -372,7 +372,7 @@ if (( verbosity > 0 )); then
 	dciodvfy "${output_dir}/0001.dcm" &> "$(dirname "${output_dir}")/$(basename "${output_dir}" .dcm).log"
 	set -e  
     else
-	error_exit "$LINENO: could not find ${output_dir}/0001.dcm for verification"
+	error_exit "${LINENO}: could not find ${output_dir}/0001.dcm for verification"
     fi
 fi
 
@@ -395,7 +395,7 @@ then
 	echo "Removing existing tmp output directory"
 	${RMDIR} "${output_dir}/tmp"    
     fi
-    [ -d "${output_dir}/tmp" ] && error_exit "$LINENO: temporary dicom directory could not be deleted."
+    [ -d "${output_dir}/tmp" ] && error_exit "${LINENO}: temporary dicom directory could not be deleted."
 fi
 
 exit 0

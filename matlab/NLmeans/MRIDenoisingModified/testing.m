@@ -1,6 +1,6 @@
 %% Testing MRI denoising
 
-root_path='/home/vnmr1/src/Agilent2Dicom.git/matlab'
+root_path='/home/vnmr1/src/Agilent2Dicom.git/matlab';
 addpath(fullfile(root_path,'../matlab'))
 addpath(fullfile(root_path,'../matlab/NIFTI'))
 addpath(fullfile(root_path, '../matlab/Agilent/'))
@@ -16,7 +16,7 @@ mex myRINLM3d.cpp
 mex -g myRINLM3d.cpp
 coil=single(ones(size(img1)));
 ima = single(NormaliseImage2(abs(img1)))*256.0;
-[hfinal, ho, SNRo, hbg, SNRbg] = MRINoiseEstimation(ima,1,1)
+[hfinal, ho, SNRo, hbg, SNRbg] = MRINoiseEstimation(ima,1,1);
 
 tic;PRINL=myRINLM3d(ima,3,1,single(23.3298),single(ODCT),1,coil);toc
 

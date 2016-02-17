@@ -20,17 +20,17 @@ function make_diffusion(diffusion_path)
 
 
 addpath ~/Code/Agilent
-addpath ~/Monash016/eagerm/mrtrix-0.2.12/matlab
+addpath /usr/local/mrtrix/0.3.12/matlab
 % cd ~/Monash016/eagerm/Agilent2Dicom
 
 if nargin < 1
-   diffusion_path='../example_data/s_2014061202/epi-dir30_01.img'
+   diffusion_path='../example_data/s_2014061202/epi-dir30_01.img';
 end
 
 
 %%
 [im,hdr] = readfdf(diffusion_path);
-[pp, acq] = readpp(fullfile(diffusion_path,'procpar'), true);
+[pp, ~] = readpp(fullfile(diffusion_path,'procpar'), true);
 image.data=single(squeeze(im));
 
 

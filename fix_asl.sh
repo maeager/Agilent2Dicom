@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 ## fix_asl - Correct DCMULTI headers for ASL sequences
 
 # Copyright (C) 2014 Michael Eager  (michael.eager@monash.edu)
@@ -50,13 +50,17 @@
 #     > (0x0018,0x9258) UL ASL Pulse Train Duration        VR=<UL>   VL=<0x0004>  [0x00000000]
                       
 
-
+if test "${output_dir+defined}"; then
+    echo 'fix_asl.sh error, output_dir env variable must be declared.'
+    exit 1
+fi
 firsttmpdcm=$(ls -1 "${output_dir}"/tmp/*.dcm| head -1)
 dcdump "${firsttmpdcm}" 2>&1| grep -A30 'MR Arterial' | sed -e 's/.*VL=<[^>]*>\s*\(.*\)/\1/' -e '/---/d' -e '/^$/d' | tr -d '<>{}[]' > "${output_dir}"/arterial.tmp
+files=$(find "${output_dir}" -type f -name "*.dcm" -print0 | grep -v tmp)
 
-if [ -f  ${output_dir}/arterial.tmp ]; then
+if [ -f  "${output_dir}"/arterial.tmp ]; then
     declare -a ArterialSpinLabelling
-    let i=0;while IFS=$'\r\n' read -r line_data; do 
+    let i=0; while IFS=$'\r\n' read -r line_data; do 
 	ArterialSpinLabelling[i]="${line_data}"; ((++i)); 
     done < "${output_dir}"/arterial.tmp
     rm -f "${output_dir}"/arterial.tmp
@@ -69,30 +73,30 @@ if [[ ${#ArterialSpinLabelling[*]} -ne 17 ]];then
     echo "DCM modification error. Not enough ASL parameters."
     echo " Ignoring ASL modifications."
 else
-    echo "FrameAnt 7: " ${ArterialSpinLabelling[7]}
+    echo "FrameAnt 7: " "${ArterialSpinLabelling[7]}"
 
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9250)=${ArterialSpinLabelling[0]}" $files	   #  Arterial Spin Labeling Contrast	      VR=<CS>	VL=<000a>
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9252)=${ArterialSpinLabelling[1]}" $files     # ASL Technique Description       VR=<LO>   VL=<0004>  <FAIR> 
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9257)=${ArterialSpinLabelling[2]}" $files	   #ASL Context	    VR=<CS>   VL=<0006>  <LABEL > 
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9259)=${ArterialSpinLabelling[3]}" $files     #ASL Crusher Flag        VR=<CS>   VL=<0002>  <NO>   
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,925b)=${ArterialSpinLabelling[4]}" $files	   #ASL Crusher Description	    VR=<LO>   VL=<0014>  <crusher description > 
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,925c)=${ArterialSpinLabelling[5]}" $files     #ASL Bolus Cut-off Flag          VR=<CS>   VL=<0002>  <NO>
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9250)=${ArterialSpinLabelling[0]}" "${files}"	   #  Arterial Spin Labeling Contrast	      VR=<CS>	VL=<000a>
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9252)=${ArterialSpinLabelling[1]}" "${files}"     # ASL Technique Description       VR=<LO>   VL=<0004>  <FAIR> 
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9257)=${ArterialSpinLabelling[2]}" "${files}"	   #ASL Context	    VR=<CS>   VL=<0006>  <LABEL > 
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9259)=${ArterialSpinLabelling[3]}" "${files}"     #ASL Crusher Flag        VR=<CS>   VL=<0002>  <NO>   
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,925b)=${ArterialSpinLabelling[4]}" "${files}"	   #ASL Crusher Description	    VR=<LO>   VL=<0014>  <crusher description > 
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,925c)=${ArterialSpinLabelling[5]}" "${files}"     #ASL Bolus Cut-off Flag          VR=<CS>   VL=<0002>  <NO>
     # ASL Bolus Cut-off Timing Sequence
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,925d)[0].(0018,925e)=${ArterialSpinLabelling[6]}" $files	#ASL Bolus Cut-off Technique	 VR=<LO>   VL=<0000>	<>	     
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,925d)[0].(0018,925f)=${ArterialSpinLabelling[7]}" $files	#ASL Bolus Cut-off Delay Time	 VR=<UL>   VL=<0004>	[00000000]
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,925d)[0].(0018,925e)=${ArterialSpinLabelling[6]}" "${files}"	#ASL Bolus Cut-off Technique	 VR=<LO>   VL=<0000>	<>	     
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,925d)[0].(0018,925f)=${ArterialSpinLabelling[7]}" "${files}"	#ASL Bolus Cut-off Delay Time	 VR=<UL>   VL=<0004>	[00000000]
     # ASL Slab Sequence	
     #    Anatomic Region Sequence
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0008,2218)[0].(0008,0100)=${ArterialSpinLabelling[8]}" $files  #Code Value	   VR=<SH>   VL=<0008>  <T-D1100 > 
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0008,2218)[0].(0008,0104)=${ArterialSpinLabelling[9]}" $files  #Code Meaning    VR=<LO>   VL=<0004>  <Head>     
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0008,2218)[0].(0008,0100)=${ArterialSpinLabelling[8]}" "${files}"  #Code Value	   VR=<SH>   VL=<0008>  <T-D1100 > 
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0008,2218)[0].(0008,0104)=${ArterialSpinLabelling[9]}" "${files}"  #Code Meaning    VR=<LO>   VL=<0004>  <Head>     
     #    Anatomic Region Modifier Sequence 
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0008,2220)[0].(0008,0100)=${ArterialSpinLabelling[10]}" $files #Code Value	   VR=<SH>   VL=<0006>  <G-A138>   
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0008,2220)[0].(0008,0104)=${ArterialSpinLabelling[11]}" $files #Code Meaning    VR=<LO>   VL=<0008>  <Coronal > 
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0008,2220)[0].(0008,0100)=${ArterialSpinLabelling[10]}" "${files}" #Code Value	   VR=<SH>   VL=<0006>  <G-A138>   
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0008,2220)[0].(0008,0104)=${ArterialSpinLabelling[11]}" "${files}" #Code Meaning    VR=<LO>   VL=<0008>  <Coronal > 
 
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9253)=${ArterialSpinLabelling[12]}" $files #ASL Slab Number		VR=<US>	  VL=<0002>  [0001]
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9254)=${ArterialSpinLabelling[13]}" $files #ASL Slab Thickness      VR=<FD>   VL=<0008>  {12}
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9255)=${ArterialSpinLabelling[14]}" $files #ASL Slab Orientation	VR=<FD>	  VL=<0018>  {1.38,180.661,87.387}
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9256)=${ArterialSpinLabelling[15]}" $files #ASL Mid Slab Position   VR=<FD>   VL=<0018>  {0,0,0}
-    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9258)=${ArterialSpinLabelling[16]}" $files #ASL Pulse Train Duration	VR=<UL>	  VL=<0004>  [00000000]
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9253)=${ArterialSpinLabelling[12]}" "${files}" #ASL Slab Number		VR=<US>	  VL=<0002>  [0001]
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9254)=${ArterialSpinLabelling[13]}" "${files}" #ASL Slab Thickness      VR=<FD>   VL=<0008>  {12}
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9255)=${ArterialSpinLabelling[14]}" "${files}" #ASL Slab Orientation	VR=<FD>	  VL=<0018>  {1.38,180.661,87.387}
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9256)=${ArterialSpinLabelling[15]}" "${files}" #ASL Mid Slab Position   VR=<FD>   VL=<0018>  {0,0,0}
+    ${DCMODIFY} -i "(0018,9251)[0].(0018,9260)[0].(0018,9258)=${ArterialSpinLabelling[16]}" "${files}" #ASL Pulse Train Duration	VR=<UL>	  VL=<0004>  [00000000]
     
 
 fi # array check

@@ -94,11 +94,9 @@ if ~isempty(ksp2)
     mag2=flipdim(flipdim(flipdim(mag2,1),2),3);
     mag2=circshift(mag2,[1,1,1]);
     pha2=flipdim(flipdim(flipdim(pha2,1),2),3);
-    pha3=circshift(pha2,[1,1,1]);
+    pha2=circshift(pha2,[1,1,1]);
 end
 
-stdmask=stdfilt(mag1);
-posmask=find(pha1>0);
 stdmask=stdfilt(mag1);
 stdphmask=stdfilt(pha1);
 gbmask =getbiggestobject(stdphmask<0.013 | stdmask>2000);

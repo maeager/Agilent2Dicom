@@ -116,14 +116,19 @@ elseif  length(size(ksp1)) == 4
     
 end
 if ~isempty(ksp2)
-    if length(size(ksp1)) == 3
+    if length(size(ksp2)) == 3
         
         [pha2, swi_n2, swi_p2, mag2] = phaserecon_v1(ksp2,ksp2,0.4,1, ...
             0.05);
         swi_n2=flipdim(flipdim(flipdim(swi_n2,1),2),3);
         swi_n2=circshift(swi_n2,[1,1,1]);
-    elseif  length(size(ksp1)) == 4
-        for echo=1:size(ksp1,4)
+    elseif  length(size(ksp2)) == 4
+        pha2=zeros(size(ksp2));
+        mag2=zeros(size(ksp2));        
+        swi_n2=zeros(size(ksp2));
+        swi_p2=zeros(size(ksp2));
+        img2=zeros(size(ksp2));
+        for echo=1:size(ksp2,4)
             [pha2(:,:,:,echo), swi_n2(:,:,:,echo), swi_p2(:,:,:,echo), mag2(:,:,:,echo)] = phaserecon_v1(ksp2(:,:,:,echo),ksp2(:,:,:,echo),0.4,1,0.05);
             % Necessary translations to match FDF images
             swi_n2(:,:,:,echo)=flipdim(flipdim(flipdim(swi_n2(:,:,:,echo),1),2),3);
@@ -131,12 +136,13 @@ if ~isempty(ksp2)
             img2(:,:,:,echo)=mag2(:,:,:,echo).*exp(1i*pha2(:,:,:,echo));
         end
         
+
+    end
         % Combine input 1 and 2
         swi_n = (swi_n+swi_n2)/2;
         swi_p = (swi_p+swi_p2)/2;
         img = (img+ (mag2.*exp(1i*pha2)))/2;
         
-    end
 end
 
 %% Write output

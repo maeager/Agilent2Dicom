@@ -1,4 +1,4 @@
-function [ imaPRINLM, imaODCT, B1coil,imaPRINLMc] = MRIDenoisingB1PRINLM2(real_ima,imag_ima, real_sigma,imag_sigma, patchsize, searcharea, rician,coil, verbose)
+function [ imaPRINLM, imaODCT, imaPRINLMc] = MRIDenoisingB1PRINLM2(real_ima,imag_ima, real_sigma,imag_sigma, patchsize, searcharea, rician,coil, verbose)
 %
 %   Description:  Denoising of a 3D MRI image using the PRINLM filter
 %               
@@ -96,8 +96,8 @@ else
     imaODCTi=imaODCTr*0;
 end
 imaODCT = abs(complex(imaODCTr,imaODCTi+min_imag));
-map = find(imaODCT<0);
-imaODCT(map) =0; 
+
+imaODCT((imaODCT<0)) =0; 
 
 
 

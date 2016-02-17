@@ -104,7 +104,7 @@ if inputRI == 0
 [img,Range] = NormaliseImage2(squeeze(abs(img)));
 img = img*256.0;
 
-
+MRIdenoised1=zeros(size(img));
 if length(size(img)) == 3
     display 'Processing 3D image'
     display(['Calling pipeline 1'])
@@ -116,6 +116,7 @@ if length(size(img)) == 3
 
 elseif length(size(img)) == 4
     display 'Processing 4D image'
+   
     for vol=1:size(img,4)
         display(['Calling pipeline 1 on volume ' num2str(vol)])
         tic()
@@ -190,11 +191,12 @@ else % inputRI
   
     % Step (4) rescale
     MRIdenoisedReal=MRIdenoisedReal*(realRange(2)-realRange(1))/256.0;
-    MRIdenoisedImag=MRIdenoisedImag*(imagRange(2)-imagRange(1))/256.0
+    MRIdenoisedImag=MRIdenoisedImag*(imagRange(2)-imagRange(1))/256.0;
     denoised_img = complex(MRIdenoisedReal,MRIdenoisedImag);
     % Step (5) Save denoised images
     
-    filter_line = ['filter' filtername '_sigma' num2str(sigma) ];
+    filter_line = ['filter' filtername '_sigmaR' num2str(sigma_real) ...
+                   '_sigmaI' num2str(sigma_imag) ];
     denoised_file = [ out(1:end-8) '_' filter_line out(end-7:end)];
     denoised_file = [out '/denoised_mag_' filter_line '.nii.gz'];
     save_nii(make_nii(abs(denoised_img),voxelsize,[],16),denoised_file)

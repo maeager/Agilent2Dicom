@@ -26,7 +26,7 @@ set -u  # nounset
 
 FID2DCM=../fid2dicom.py   #../fid2dcm.sh
 EXAMPLEDATA=../..
-fidfolders=`find $EXAMPLEDATA -type d -name "*.fid"`
+fidfolders=$(find $EXAMPLEDATA -type d -name '*.fid')
 echo $fidfolders
 fidarray=($fidfolders)
 echo "Number of FIDs " ${#fidarray[*]}

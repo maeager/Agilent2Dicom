@@ -17,7 +17,7 @@ function [pha, swi_n, swi_p, mag] = phaserecon_v1(kimg,kimgsos,a,intpl,thr,order
 % -------------------------------------------
 
 if nargin <6
-    order=4
+    order=4;
 end
 
 [Nfe,Npe,Npe2] = size(kimg);
@@ -58,7 +58,7 @@ win = circshift(win,[xx,yy,zz]-[floor(Nfe/2), floor(Npe/2), floor(Npe2/2)]);
 
 img = fftshift(fftn(kimg));%,[intpl*Nfe,intpl*Npe,intpl*Npe2]));
 imgsos = fftshift(fftn(kimgsos));%,[intpl*Nfe,intpl*Npe,intpl*Npe2]));
-
+img_lpf=zeros(size(kimg));
 if multi_dim ==1
     for i=1:size(kimg,5)
     img_lpf(:,:,:,1,i) = fftshift(fftn(kimg(:,:,:,1,i).*win));

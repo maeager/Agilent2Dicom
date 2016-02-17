@@ -6,7 +6,7 @@ function b1=B1correction(img,verbose)
 % not to be used on body coil images
 %
 % 5th order best
-
+b1=zeros(size(b1));
 for slice = 1:size(img,3)
     dcts = dct2(img(:,:,slice)); 
     dctt = zeros(size(dcts)); 

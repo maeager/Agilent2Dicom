@@ -49,8 +49,7 @@ end
 if nargin < 5 || isempty(hfactor)
     hfactor=100;
 end
-hfinal = hfinal * (hfactor/100)
-
+hfinal = hfinal * (hfactor/100);
 if nargin < 6 || isempty(searcharea)
   if NLfilter == -5 || NLfilter == 0 
     searcharea=3;
@@ -124,7 +123,7 @@ switch NLfilter
     tic(),MRIdenoised = MRIDenoisingONLM2(avg, hfinal, ...
                                          patcharea, searcharea, ...
                                          rician, 0);toc()
-					 filtername='ONLM2'
+					 filtername='ONLM2';
   case -4
     display('Processing denoised image - ODCT2 ')
     tic(),MRIdenoised = MRIDenoisingODCT2(avg, hfinal, ...
